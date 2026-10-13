@@ -1,3 +1,7 @@
+import { execFileSync } from "node:child_process";
+import { createRequire } from "node:module";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import type { StudyHistoryRecord } from "@/entities/study-session";
 import { aggregateStudyHistory } from "./aggregateStudyHistory";
@@ -88,55 +92,80 @@ describe("STUDY-SESSION-09 STUDY-SESSION-13 daily study counts", () => {
     expect(result.days.at(-1)?.date).toBe(new Date(`${end}T00:00:00`).getTime());
   });
 
-  // The dedicated CI run starts in New York; ordinary unit runs retain the host timezone.
-  it.runIf(Intl.DateTimeFormat().resolvedOptions().timeZone === "America/New_York").each([
-    {
-      start: "2026-03-07",
-      end: "2026-03-09",
-      hours: 71,
-      midnights: [
-        "2026-03-07T00:00:00-05:00",
-        "2026-03-08T00:00:00-05:00",
-        "2026-03-09T00:00:00-04:00",
-        "2026-03-10T00:00:00-04:00",
-      ],
-    },
-    {
-      start: "2025-11-01",
-      end: "2025-11-03",
-      hours: 73,
-      midnights: [
-        "2025-11-01T00:00:00-04:00",
-        "2025-11-02T00:00:00-04:00",
-        "2025-11-03T00:00:00-05:00",
-        "2025-11-04T00:00:00-05:00",
-      ],
-    },
-  ] as const)(
-    "spans $hours hours and three New York calendar days in $start–$end",
-    ({ start, end, midnights, hours }) => {
-      const range = getStudyHistoryRange(new URLSearchParams({ start, end }), new Date(2026, 8, 22)).period;
-      if (range === null) throw new Error("Expected a valid custom period");
-      expect(range).toEqual({ start: Date.parse(midnights[0]), end: Date.parse(midnights[3]) });
-      expect(range.end - range.start).toBe(hours * 60 * 60 * 1000);
-      for (const boundary of [range.start, range.end]) {
-        const date = new Date(boundary);
-        expect([date.getHours(), date.getMinutes(), date.getSeconds(), date.getMilliseconds()]).toEqual([0, 0, 0, 0]);
+  // Register only assertions in the child, so the subprocess cannot launch itself recursively.
+  if (process.env.TANGO_STUDY_HISTORY_DST_CHILD === "1") {
+    it.each([
+      {
+        start: "2026-03-07",
+        end: "2026-03-09",
+        hours: 71,
+        midnights: [
+          "2026-03-07T00:00:00-05:00",
+          "2026-03-08T00:00:00-05:00",
+          "2026-03-09T00:00:00-04:00",
+          "2026-03-10T00:00:00-04:00",
+        ],
+      },
+      {
+        start: "2025-11-01",
+        end: "2025-11-03",
+        hours: 73,
+        midnights: [
+          "2025-11-01T00:00:00-04:00",
+          "2025-11-02T00:00:00-04:00",
+          "2025-11-03T00:00:00-05:00",
+          "2025-11-04T00:00:00-05:00",
+        ],
+      },
+    ] as const)(
+      "spans $hours hours and three New York calendar days in $start–$end",
+      ({ start, end, midnights, hours }) => {
+        expect(Intl.DateTimeFormat().resolvedOptions().timeZone).toBe("America/New_York");
+        const range = getStudyHistoryRange(new URLSearchParams({ start, end }), new Date(2026, 8, 22)).period;
+        if (range === null) throw new Error("Expected a valid custom period");
+        expect(range).toEqual({ start: Date.parse(midnights[0]), end: Date.parse(midnights[3]) });
+        expect(range.end - range.start).toBe(hours * 60 * 60 * 1000);
+        for (const boundary of [range.start, range.end]) {
+          const date = new Date(boundary);
+          expect([date.getHours(), date.getMinutes(), date.getSeconds(), date.getMilliseconds()]).toEqual([0, 0, 0, 0]);
+        }
+        const result = aggregateStudyHistory(
+          range,
+          [record(range.start - 1), record(range.start), record(range.end - 1), record(range.end)],
+          [record(range.start - 1), record(range.start), record(range.end - 1), record(range.end)],
+          visible
+        );
+        expect(result.days).toHaveLength(3);
+        expect(result.days.map((day) => day.date)).toEqual(midnights.slice(0, 3).map((date) => Date.parse(date)));
+        expect(result.days.map(({ started, completed }) => ({ started, completed }))).toEqual([
+          { started: 1, completed: 1 },
+          { started: 0, completed: 0 },
+          { started: 1, completed: 1 },
+        ]);
+        expect(result).toMatchObject({ started: 2, completed: 2 });
       }
-      const result = aggregateStudyHistory(
-        range,
-        [record(range.start - 1), record(range.start), record(range.end - 1), record(range.end)],
-        [record(range.start - 1), record(range.start), record(range.end - 1), record(range.end)],
-        visible
+    );
+  } else {
+    it("verifies DST boundaries in a TZ=America/New_York subprocess", () => {
+      const output = execFileSync(
+        process.execPath,
+        [
+          join(dirname(createRequire(import.meta.url).resolve("vitest/package.json")), "vitest.mjs"),
+          "run",
+          "--project=unit",
+          fileURLToPath(import.meta.url),
+          "--reporter=verbose",
+        ],
+        {
+          env: { ...process.env, TZ: "America/New_York", TANGO_STUDY_HISTORY_DST_CHILD: "1" },
+          encoding: "utf8",
+          timeout: 30_000,
+          killSignal: "SIGKILL",
+        }
       );
-      expect(result.days).toHaveLength(3);
-      expect(result.days.map((day) => day.date)).toEqual(midnights.slice(0, 3).map((date) => Date.parse(date)));
-      expect(result.days.map(({ started, completed }) => ({ started, completed }))).toEqual([
-        { started: 1, completed: 1 },
-        { started: 0, completed: 0 },
-        { started: 1, completed: 1 },
-      ]);
-      expect(result).toMatchObject({ started: 2, completed: 2 });
-    }
-  );
+      console.info(output);
+      expect(output).toContain("spans 71 hours");
+      expect(output).toContain("spans 73 hours");
+    }, 35_000);
+  }
 });

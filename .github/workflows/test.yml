@@ -93,11 +93,6 @@ jobs:
           - name: Unit coverage
             command: npm run build:sample && npm run test:coverage
             coverage: true
-          - name: Study history DST
-            command: |
-              export TZ=America/New_York
-              node -e 'const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone; console.log("TZ=" + timezone); require("node:assert/strict").equal(timezone, "America/New_York");'
-              npm run test:unit -- src/pages/study-history/model/queries/aggregateStudyHistory.spec.ts --reporter=verbose
           - name: Sample
             command: npm run test:sample
     steps:
