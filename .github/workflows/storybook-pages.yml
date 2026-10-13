@@ -1,5 +1,4 @@
 name: Deploy Storybook to Pages
-run-name: Deploy Storybook ${{ github.event.client_payload.sha || github.sha }}
 
 on:
   push:
@@ -18,37 +17,10 @@ permissions:
   contents: read
 
 jobs:
-  candidate:
-    if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    outputs:
-      accepted: ${{ steps.candidate.outputs.accepted }}
-    steps:
-      - name: Validate main candidate
-        id: candidate
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPOSITORY: ${{ github.repository }}
-          EVENT_NAME: ${{ github.event_name }}
-          DISPATCH_SHA: ${{ github.event.client_payload.sha }}
-          EVENT_SHA: ${{ github.sha }}
-        run: |
-          CANDIDATE_SHA="$EVENT_SHA"
-          if [ "$EVENT_NAME" = repository_dispatch ]; then
-            CANDIDATE_SHA="$DISPATCH_SHA"
-          fi
-          [[ "$CANDIDATE_SHA" =~ ^[0-9a-f]{40}$ ]]
-          main_sha="$(gh api "repos/$REPOSITORY/git/ref/heads/main" --jq '.object.sha')"
-          if [ "$CANDIDATE_SHA" != "$EVENT_SHA" ] || [ "$CANDIDATE_SHA" != "$main_sha" ]; then
-            echo "Candidate $CANDIDATE_SHA is superseded or mismatched (event $EVENT_SHA, main $main_sha); deployment skipped." >> "$GITHUB_STEP_SUMMARY"
-            exit 0
-          fi
-          echo "accepted=true" >> "$GITHUB_OUTPUT"
-          echo "Accepted main candidate $CANDIDATE_SHA." >> "$GITHUB_STEP_SUMMARY"
-
   build:
-    needs: candidate
-    if: needs.candidate.outputs.accepted == 'true'
+    if: >-
+      github.ref == 'refs/heads/main' &&
+      (github.event_name != 'repository_dispatch' || github.event.client_payload.sha == github.sha)
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -79,15 +51,12 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
-      - name: Validate current main candidate
-        env:
+      - env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPOSITORY: ${{ github.repository }}
-          CANDIDATE_SHA: ${{ github.sha }}
         run: |
-          main_sha="$(gh api "repos/$REPOSITORY/git/ref/heads/main" --jq '.object.sha')"
-          if [ "$CANDIDATE_SHA" != "$main_sha" ]; then
-            echo "Candidate $CANDIDATE_SHA was superseded by main $main_sha; refusing deployment." >> "$GITHUB_STEP_SUMMARY"
+          main_sha="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq '.object.sha')"
+          if [ "$GITHUB_SHA" != "$main_sha" ]; then
+            echo "::error::Candidate $GITHUB_SHA was superseded by main $main_sha; refusing deployment."
             exit 1
           fi
 

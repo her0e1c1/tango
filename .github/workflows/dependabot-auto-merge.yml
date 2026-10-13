@@ -18,9 +18,6 @@ jobs:
       github.event.workflow_run.event == 'pull_request' &&
       github.event.workflow_run.pull_requests[0] != null
     runs-on: ubuntu-latest
-    concurrency:
-      group: dependabot-merge-${{ github.event.workflow_run.pull_requests[0].number }}
-      cancel-in-progress: false
     permissions:
       contents: write
     steps:
@@ -37,7 +34,6 @@ jobs:
             exit 0
           fi
 
-          # A repeated Test completion must not dispatch a previously merged PR again.
           if [ "$(jq -r '.state' <<< "$pr")" != open ] || [ "$(jq -r '.base.ref' <<< "$pr")" != main ]; then
             echo "PR is not open against main; skipping merge."
             exit 0
@@ -63,28 +59,9 @@ jobs:
 
           merge_sha="$(jq -er 'select(.merged == true) | .sha' <<< "$result")"
           [[ "$merge_sha" =~ ^[0-9a-f]{40}$ ]]
-
-          # Keep the exact candidate available for recovery if dispatch cannot be delivered.
-          {
-            echo "Merged PR #$PR_NUMBER as candidate $merge_sha."
-            echo 'If dispatch fails, rerunning this merge job skips the closed PR. After authorization, retry the handoff with:'
-            echo '```sh'
-            echo "gh api --method POST repos/$REPOSITORY/dispatches -f event_type=dependabot-merged -f 'client_payload[sha]=$merge_sha' -F 'client_payload[pr]=$PR_NUMBER'"
-            echo '```'
-          } >> "$GITHUB_STEP_SUMMARY"
+          echo "Merged PR #$PR_NUMBER as candidate $merge_sha." >> "$GITHUB_STEP_SUMMARY"
 
           # GITHUB_TOKEN pushes do not trigger workflows; repository_dispatch is supported.
-          payload="$(jq -n --arg sha "$merge_sha" --argjson pr "$PR_NUMBER" \
-            '{event_type: "dependabot-merged", client_payload: {sha: $sha, pr: $pr}}')"
-          for attempt in 1 2 3; do
-            if gh api --method POST "repos/$REPOSITORY/dispatches" --input - <<< "$payload"; then
-              echo "Dispatched Firebase and Pages candidate $merge_sha from PR #$PR_NUMBER." >> "$GITHUB_STEP_SUMMARY"
-              exit 0
-            fi
-            if [ "$attempt" != 3 ]; then
-              sleep 5
-            fi
-          done
-
-          echo "Dispatch failed for candidate $merge_sha; delivery is unconfirmed. Use the recovery command above after authorization." >> "$GITHUB_STEP_SUMMARY"
-          exit 1
+          jq -n --arg sha "$merge_sha" \
+            '{event_type: "dependabot-merged", client_payload: {sha: $sha}}' | \
+            gh api --method POST "repos/$REPOSITORY/dispatches" --input -
