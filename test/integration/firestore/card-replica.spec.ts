@@ -71,7 +71,7 @@ async function readReplica() {
   }
 }
 
-describe("Confirmed Card replica", () => {
+describe("Card replica and Store deltas", () => {
   let environment: RulesTestEnvironment;
   let uid: string;
   let stops: (() => void)[];
@@ -85,6 +85,28 @@ describe("Confirmed Card replica", () => {
     ...createCard({ id, uid, deckId: "deck", frontText: id }),
     updatedAt: Timestamp.fromMillis(updatedAt),
   });
+  const cardWithDamagedFsrs = (id: string, damage: "missing" | "invalid") => {
+    const value = { ...card(id), fsrs: {} as never };
+    if (damage === "missing") Reflect.deleteProperty(value, "fsrs");
+    return value;
+  };
+  async function subscribeCachedAnonymousCards() {
+    connection.isAnonymous = true;
+    await getDocs(query(collection(connection.db, "card"), where("uid", "==", uid)));
+    await disableNetwork(connection.db);
+    await new Promise<void>((resolve, reject) =>
+      stops.push(
+        subscribeCards(
+          uid,
+          (error) => {
+            errors.push(error);
+            reject(error);
+          },
+          resolve
+        )
+      )
+    );
+  }
   const seed = async (values: ReturnType<typeof card>[]) =>
     environment.withSecurityRulesDisabled(async (context) => {
       for (let offset = 0; offset < values.length; offset += 400) {
@@ -151,7 +173,7 @@ describe("Confirmed Card replica", () => {
   });
   afterAll(async () => environment.cleanup());
 
-  it("[FIRESTORE-CARD-REPLICA-01] resumes inclusively with stopped edits, creates and tombstones", async () => {
+  it("[FIRESTORE-CARD-REPLICA-01] regular: resumes inclusively with stopped edits, creates and tombstones", async () => {
     await seed([card("a"), card("b"), card("unchanged"), card("boundary", 2000)]);
     start();
     await loaded(["a", "b", "boundary", "unchanged"]);
@@ -172,7 +194,7 @@ describe("Confirmed Card replica", () => {
   });
 
   it.each(["missing", "lost-card", "corrupt", "version", "uid", "checkpoint"])(
-    "[FIRESTORE-CARD-REPLICA-02] full-syncs an unusable replica: %s",
+    "[FIRESTORE-CARD-REPLICA-02] regular: full-syncs an unusable replica: %s",
     async (damage) => {
       await seed([card("old"), card("new", 2000)]);
       start();
@@ -212,7 +234,7 @@ describe("Confirmed Card replica", () => {
   );
 
   it.each(["edit", "create", "tombstone"])(
-    "[FIRESTORE-CARD-REPLICA-03] ignores a pending and rejected %s",
+    "[FIRESTORE-CARD-REPLICA-03] regular: ignores a pending and rejected %s",
     async (kind) => {
       await seed([card("old"), card("boundary", 2000)]);
       start();
@@ -251,7 +273,7 @@ describe("Confirmed Card replica", () => {
     }
   );
 
-  it("[FIRESTORE-CARD-REPLICA-04] restores confirmed state after pending, stop, reject, restart", async () => {
+  it("[FIRESTORE-CARD-REPLICA-04] regular: restores confirmed state after pending, stop, reject, restart", async () => {
     await seed([card("old"), card("boundary", 2000)]);
     start();
     await loaded(["boundary", "old"]);
@@ -274,7 +296,7 @@ describe("Confirmed Card replica", () => {
   });
 
   it.each(["repair", "live", "cached"])(
-    "[FIRESTORE-CARD-REPLICA-05] retries the complete unapplied window: %s",
+    "[FIRESTORE-CARD-REPLICA-05] regular: retries the complete unapplied window: %s",
     async (source) => {
       await seed([card("old")]);
       start();
@@ -325,7 +347,7 @@ describe("Confirmed Card replica", () => {
     }
   );
 
-  it("[FIRESTORE-CARD-REPLICA-06] cancels a restoring owner before switching UID", async () => {
+  it("[FIRESTORE-CARD-REPLICA-06] regular: cancels a restoring owner before switching UID", async () => {
     await seed([card("a")]);
     start();
     await loaded(["a"]);
@@ -346,7 +368,7 @@ describe("Confirmed Card replica", () => {
     expect((await readReplica()).metadata.uid).toBe(uid);
   });
 
-  it("[FIRESTORE-CARD-REPLICA-07] aborts Card and checkpoint changes together", async () => {
+  it("[FIRESTORE-CARD-REPLICA-07] regular: aborts Card and checkpoint changes together", async () => {
     await seed([card("old")]);
     start();
     await loaded(["old"]);
@@ -375,11 +397,20 @@ describe("Confirmed Card replica", () => {
     expect(restored?.cards.map(({ frontText }) => frontText)).toEqual(["old"]);
   });
 
-  it.each([false, true])(
-    "[FIRESTORE-CARD-REPLICA-08] processes only the changed Card among 1000 records (anonymous=%s)",
-    async (isAnonymous) => {
+  it.each([
+    { account: "regular", isAnonymous: false },
+    { account: "anonymous", isAnonymous: true },
+  ])(
+    "[FIRESTORE-CARD-REPLICA-08] $account: processes only Card A's change among 1000 Cards",
+    async ({ isAnonymous }) => {
       connection.isAnonymous = isAnonymous;
-      const values = Array.from({ length: 1000 }, (_, index) => card(`card-${String(index).padStart(4, "0")}`));
+      const cardA = card("card-a");
+      const cardB = card("card-b");
+      const values = [
+        cardA,
+        cardB,
+        ...Array.from({ length: 998 }, (_, index) => card(`card-other-${String(index).padStart(4, "0")}`)),
+      ];
       await seed(values);
       start();
       await loaded(values.map(({ id }) => id));
@@ -390,20 +421,20 @@ describe("Confirmed Card replica", () => {
       const apply = vi.spyOn(store, "applyCardChanges");
       const put = vi.spyOn(IDBObjectStore.prototype, "put");
       await environment.withSecurityRulesDisabled(async (context) => {
-        await updateDoc(doc(context.firestore(), "card", "card-0000"), {
+        await updateDoc(doc(context.firestore(), "card", cardA.id), {
           frontText: "changed",
           updatedAt: serverTimestamp(),
         });
       });
-      await vi.waitFor(() => expect(getCards()[0]?.frontText).toBe("changed"));
+      await vi.waitFor(() => expect(getCards().find(({ id }) => id === cardA.id)?.frontText).toBe("changed"));
       expect(
         isAnonymous
           ? parseLocal.mock.calls.flatMap(([values]) => values.map(({ id }) => id))
           : parse.mock.calls.map(([id]) => id)
-      ).toEqual(["card-0000"]);
-      expect(apply.mock.calls.flatMap(([cards]) => cards.map(({ id }) => id))).toEqual(["card-0000"]);
+      ).toEqual([cardA.id]);
+      expect(apply.mock.calls.flatMap(([cards]) => cards.map(({ id }) => id))).toEqual([cardA.id]);
       expect(put.mock.calls.filter(([value]) => "id" in value).map(([value]) => value.id)).toEqual(
-        isAnonymous ? [] : ["card-0000"]
+        isAnonymous ? [] : [cardA.id]
       );
       const updated = getCards();
       expect(updated).toHaveLength(1000);
@@ -413,7 +444,7 @@ describe("Confirmed Card replica", () => {
     20000
   );
 
-  it("[FIRESTORE-CARD-REPLICA-09] keeps the checkpoint unchanged for cached and pending snapshots", async () => {
+  it("[FIRESTORE-CARD-REPLICA-09] regular: keeps the checkpoint unchanged for cached and pending snapshots", async () => {
     await seed([card("old")]);
     start();
     await loaded(["old"]);
@@ -432,7 +463,7 @@ describe("Confirmed Card replica", () => {
     await vi.waitFor(() => expect(getCards()[0]?.frontText).toBe("pending"));
   });
 
-  it("[FIRESTORE-CARD-REPLICA-10] applies FSRS only after the server acknowledgement", async () => {
+  it("[FIRESTORE-CARD-REPLICA-10] regular: applies FSRS only after the server acknowledgement", async () => {
     await seed([card("old")]);
     start();
     await loaded(["old"]);
@@ -448,76 +479,129 @@ describe("Confirmed Card replica", () => {
     await vi.waitFor(() => expect(getCards()[0]?.fsrs).toEqual(fsrs));
     expect((await readReplica()).cards[0]?.fsrs).toEqual(fsrs);
   });
-  it("[FIRESTORE-CARD-REPLICA-11] keeps anonymous pending changes exclusively in the SDK cache", async () => {
+  it("[FIRESTORE-CARD-REPLICA-11] anonymous: creates, edits, restores and tombstones Card A offline without a replica", async () => {
     connection.isAnonymous = true;
+    const cardA = createCard({ id: "card-a", uid, deckId: "deck", frontText: "created" });
     await disableNetwork(connection.db);
     await new Promise<void>((resolve, reject) => stops.push(subscribeCards(uid, reject, resolve)));
     expect(getCards()).toEqual([]);
-    await saveCard(uid, createCard({ id: "local", uid, deckId: "deck", frontText: "created" }));
-    await loaded(["local"]);
-    await editCard(uid, { id: "local", frontText: "edited" });
+
+    await saveCard(uid, cardA);
+    await loaded([cardA.id]);
+    expect(getCards()[0]?.frontText).toBe("created");
+
+    await editCard(uid, { id: cardA.id, frontText: "edited" });
     await vi.waitFor(() => expect(getCards()[0]?.frontText).toBe("edited"));
+
     stop();
     clearRemoteCards();
     await new Promise<void>((resolve, reject) => stops.push(subscribeCards(uid, reject, resolve)));
     expect(getCards()[0]?.frontText).toBe("edited");
-    await deleteCard(uid, "local");
+
+    await deleteCard(uid, cardA.id);
     await loaded([]);
     expect(await indexedDB.databases()).toEqual([]);
   });
 
-  it.each(["missing", "invalid"])(
-    "[FIRESTORE-CARD-REPLICA-12] isolates and repairs anonymous Cards with %s FSRS",
+  it.each(["missing", "invalid"] as const)(
+    "[FIRESTORE-CARD-REPLICA-12] anonymous: completes initial readiness with zero valid Cards and %s FSRS",
     async (damage) => {
-      connection.isAnonymous = true;
-      const invalid = { ...card("broken"), fsrs: {} as never };
-      if (damage === "missing") Reflect.deleteProperty(invalid, "fsrs");
-      await seed([invalid]);
-      await getDocs(query(collection(connection.db, "card"), where("uid", "==", uid)));
-      await disableNetwork(connection.db);
-      await new Promise<void>((resolve, reject) =>
-        stops.push(
-          subscribeCards(
-            uid,
-            (error) => {
-              errors.push(error);
-              reject(error);
-            },
-            resolve
-          )
-        )
-      );
+      const cardA = cardWithDamagedFsrs("card-a", damage);
+      await seed([cardA]);
+      await subscribeCachedAnonymousCards();
+
       expect(getCards()).toEqual([]);
-      expect(store.cardStore.getState().invalidCardIds).toEqual(["broken"]);
-      expect((await getDocFromCache(doc(connection.db, "card", "broken"))).data()?.fsrs).toEqual(invalid.fsrs);
+      expect(store.cardStore.getState().invalidCardIds).toEqual([cardA.id]);
+      expect((await getDocFromCache(doc(connection.db, "card", cardA.id))).data()?.fsrs).toEqual(cardA.fsrs);
+      expect(errors).toEqual([]);
+      expect(await indexedDB.databases()).toEqual([]);
+    }
+  );
 
+  it.each(["missing", "invalid"] as const)(
+    "[FIRESTORE-CARD-REPLICA-13] anonymous: repairs, re-isolates and repairs Card A with %s FSRS while updating Card B",
+    async (damage) => {
+      const cardA = card("card-a");
+      const damagedCardA = cardWithDamagedFsrs(cardA.id, damage);
+      const cardB = card("card-b");
+      await seed([damagedCardA]);
+      await subscribeCachedAnonymousCards();
+      expect(store.cardStore.getState().invalidCardIds).toEqual([cardA.id]);
       await enableNetwork(connection.db);
-      await seed([card("broken"), card("sibling")]);
-      await loaded(["broken", "sibling"]);
-      expect(store.cardStore.getState().invalidCardIds).toEqual([]);
-      await seed([invalid, { ...card("sibling"), frontText: "changed" }]);
-      await loaded(["sibling"]);
-      expect(getCards()[0]?.frontText).toBe("changed");
-      expect(store.cardStore.getState().invalidCardIds).toEqual(["broken"]);
 
-      await seed([{ ...card("sibling"), deletedAt: 2000 }]);
-      await loaded([]);
-      expect(store.cardStore.getState().invalidCardIds).toEqual(["broken"]);
-      await seed([card("broken")]);
-      await loaded(["broken"]);
+      // Repair Card A and add Card B in the same notification.
+      await seed([cardA, cardB]);
+      await loaded([cardA.id, cardB.id]);
       expect(store.cardStore.getState().invalidCardIds).toEqual([]);
-      await seed([invalid]);
-      await vi.waitFor(() => expect(store.cardStore.getState().invalidCardIds).toEqual(["broken"]));
-      await seed([{ ...card("broken"), deletedAt: 3000 }]);
+
+      // Re-isolate Card A while publishing Card B's update.
+      await seed([damagedCardA, { ...cardB, frontText: "changed" }]);
+      await loaded([cardB.id]);
+      expect(getCards()[0]?.frontText).toBe("changed");
+      expect(store.cardStore.getState().invalidCardIds).toEqual([cardA.id]);
+      expect((await getDocFromCache(doc(connection.db, "card", cardA.id))).data()?.fsrs).toEqual(damagedCardA.fsrs);
+
+      // A second repair must restore Card A without reverting Card B.
+      await seed([cardA]);
+      await loaded([cardA.id, cardB.id]);
+      expect(store.cardStore.getState().invalidCardIds).toEqual([]);
+      expect(getCards().find(({ id }) => id === cardB.id)?.frontText).toBe("changed");
+      expect(errors).toEqual([]);
+      expect(await indexedDB.databases()).toEqual([]);
+    }
+  );
+
+  it.each(["missing", "invalid"] as const)(
+    "[FIRESTORE-CARD-REPLICA-14] anonymous: applies Card B's tombstone and clears Card A's %s FSRS diagnostic after a valid tombstone",
+    async (damage) => {
+      const cardA = card("card-a");
+      const damagedCardA = cardWithDamagedFsrs(cardA.id, damage);
+      const cardB = card("card-b");
+      await seed([damagedCardA, cardB]);
+      await subscribeCachedAnonymousCards();
+      expect(getCards().map(({ id }) => id)).toEqual([cardB.id]);
+      expect(store.cardStore.getState().invalidCardIds).toEqual([cardA.id]);
+      await enableNetwork(connection.db);
+
+      // Card B's logical deletion must retain Card A's diagnostic.
+      await seed([{ ...cardB, deletedAt: 2000 }]);
+      await loaded([]);
+      expect(store.cardStore.getState().invalidCardIds).toEqual([cardA.id]);
+      expect((await getDocFromCache(doc(connection.db, "card", cardB.id))).data()?.deletedAt).toBe(2000);
+
+      await seed([cardA]);
+      await loaded([cardA.id]);
+      expect(store.cardStore.getState().invalidCardIds).toEqual([]);
+
+      await seed([damagedCardA]);
+      await vi.waitFor(() => expect(store.cardStore.getState().invalidCardIds).toEqual([cardA.id]));
+      expect(getCards()).toEqual([]);
+
+      // A valid tombstone clears the re-isolated Card A's diagnostic.
+      await seed([{ ...cardA, deletedAt: 3000 }]);
       await vi.waitFor(() => expect(store.cardStore.getState().invalidCardIds).toEqual([]));
       expect(getCards()).toEqual([]);
+      expect((await getDocFromCache(doc(connection.db, "card", cardA.id))).data()?.deletedAt).toBe(3000);
+      expect(errors).toEqual([]);
+      expect(await indexedDB.databases()).toEqual([]);
+    }
+  );
 
-      await seed([{ ...invalid, id: "removed" }, card("kept")]);
-      await vi.waitFor(() => expect(store.cardStore.getState().invalidCardIds).toEqual(["removed"]));
+  it.each(["missing", "invalid"] as const)(
+    "[FIRESTORE-CARD-REPLICA-15] anonymous: removes Card A's %s FSRS diagnostic and Card B after physical deletion",
+    async (damage) => {
+      const cardA = cardWithDamagedFsrs("card-a", damage);
+      const cardB = card("card-b");
+      await seed([cardA, cardB]);
+      await subscribeCachedAnonymousCards();
+      expect(getCards().map(({ id }) => id)).toEqual([cardB.id]);
+      expect(store.cardStore.getState().invalidCardIds).toEqual([cardA.id]);
+      await enableNetwork(connection.db);
+
       await environment.withSecurityRulesDisabled(async (context) => {
         const batch = writeBatch(context.firestore() as unknown as Firestore);
-        batch.delete(doc(context.firestore(), "card", "removed"));
-        batch.delete(doc(context.firestore(), "card", "kept"));
+        batch.delete(doc(context.firestore(), "card", cardA.id));
+        batch.delete(doc(context.firestore(), "card", cardB.id));
         await batch.commit();
       });
       await vi.waitFor(() => {
@@ -529,33 +613,33 @@ describe("Confirmed Card replica", () => {
     }
   );
 
-  it("[FIRESTORE-CARD-REPLICA-13] ignores a stopped anonymous owner after switching UID", async () => {
+  it("[FIRESTORE-CARD-REPLICA-16] anonymous: switches from UID A to UID B without old Cards, diagnostics or notifications", async () => {
     connection.isAnonymous = true;
-    const oldUid = uid;
-    const nextUid = crypto.randomUUID();
-    await seed([card("old"), { ...card("invalid"), fsrs: {} as never }, { ...card("next"), uid: nextUid }]);
+    const uidA = uid;
+    const uidB = crypto.randomUUID();
+    await seed([card("card-a"), { ...card("card-b"), fsrs: {} as never }, { ...card("card-c"), uid: uidB }]);
     await getDocs(query(collection(connection.db, "card"), where("uid", "==", uid)));
-    const previousDb = connection.db;
+    const receivingDbA = connection.db;
     const ready = vi.fn();
     stops.push(subscribeCards(uid, (error) => errors.push(error), ready));
-    await loaded(["old"]);
-    await vi.waitFor(() => expect(store.cardStore.getState().invalidCardIds).toEqual(["invalid"]));
+    await loaded(["card-a"]);
+    await vi.waitFor(() => expect(store.cardStore.getState().invalidCardIds).toEqual(["card-b"]));
     stop();
     const readyCount = ready.mock.calls.length;
-    uid = nextUid;
+    uid = uidB;
     connection.db = environment
       .authenticatedContext(uid, { firebase: { sign_in_provider: "google.com", identities: {} } })
       .firestore() as unknown as Firestore;
     replaceRemoteDecks([createDeck({ id: "deck", uid })]);
     start();
-    await loaded(["next"]);
+    await loaded(["card-c"]);
     expect(store.cardStore.getState().invalidCardIds).toEqual([]);
     const state = store.cardStore.getState();
     // Observe arrival on the old receiving client before checking that its stopped subscriber stayed silent.
     const received = new Promise<void>((resolve, reject) =>
       stops.push(
         onSnapshot(
-          doc(previousDb, "card", "old"),
+          doc(receivingDbA, "card", "card-a"),
           (snapshot) => {
             if (!snapshot.metadata.fromCache && snapshot.data()?.frontText === "late") resolve();
           },
@@ -563,16 +647,16 @@ describe("Confirmed Card replica", () => {
         )
       )
     );
-    await seed([{ ...card("old"), uid: oldUid, frontText: "late" }]);
+    await seed([{ ...card("card-a"), uid: uidA, frontText: "late" }]);
     await received;
     expect(store.cardStore.getState()).toBe(state);
     expect(ready).toHaveBeenCalledTimes(readyCount);
     expect(errors).toEqual([]);
   });
 
-  it("[FIRESTORE-CARD-REPLICA-14] keeps Card references through anonymous metadata notifications", async () => {
+  it("[FIRESTORE-CARD-REPLICA-17] anonymous: calls ready without reprocessing Card A on metadata-only notifications", async () => {
     connection.isAnonymous = true;
-    await seed([card("cached")]);
+    await seed([card("card-a")]);
     await getDocs(query(collection(connection.db, "card"), where("uid", "==", uid)));
     await disableNetwork(connection.db);
     const ready = vi.fn();
