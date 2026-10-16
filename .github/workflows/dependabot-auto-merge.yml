@@ -34,6 +34,11 @@ jobs:
             exit 0
           fi
 
+          if [ "$(jq -r '.state' <<< "$pr")" != open ] || [ "$(jq -r '.base.ref' <<< "$pr")" != main ]; then
+            echo "PR is not open against main; skipping merge."
+            exit 0
+          fi
+
           if [ "$(jq -r '.head.sha' <<< "$pr")" != "$TESTED_SHA" ]; then
             echo "PR head changed after CI; skipping merge."
             exit 0
@@ -46,8 +51,17 @@ jobs:
             exit 0
           fi
 
-          gh api \
+          result="$(gh api \
             --method PUT \
             "repos/$REPOSITORY/pulls/$PR_NUMBER/merge" \
             -f merge_method=squash \
-            -f sha="$TESTED_SHA"
+            -f sha="$TESTED_SHA")"
+
+          merge_sha="$(jq -er 'select(.merged == true) | .sha' <<< "$result")"
+          [[ "$merge_sha" =~ ^[0-9a-f]{40}$ ]]
+          echo "Merged PR #$PR_NUMBER as candidate $merge_sha." >> "$GITHUB_STEP_SUMMARY"
+
+          # GITHUB_TOKEN pushes do not trigger workflows; repository_dispatch is supported.
+          jq -n --arg sha "$merge_sha" \
+            '{event_type: "dependabot-merged", client_payload: {sha: $sha}}' | \
+            gh api --method POST "repos/$REPOSITORY/dispatches" --input -

@@ -4,12 +4,18 @@ on:
   push:
     branches:
       - main
+  repository_dispatch:
+    types: [dependabot-merged]
 
 permissions:
   contents: read
 
 jobs:
   test:
+    # Repository dispatch uses the latest default-branch SHA, which may have overtaken the merge.
+    if: >-
+      github.ref == 'refs/heads/main' &&
+      (github.event_name != 'repository_dispatch' || github.event.client_payload.sha == github.sha)
     name: Test
     permissions:
       contents: read
@@ -26,6 +32,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
 
       - uses: jdx/mise-action@08ae2a091c038e1e05ec6f5115dc5c69d5a2a6b8 # v5.1.2
 
@@ -42,4 +50,12 @@ jobs:
           workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ vars.GCP_DEPLOY_SERVICE_ACCOUNT }}
 
-      - run: npx firebase deploy --project tango-ts --only hosting,firestore:rules,firestore:indexes
+      - env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          main_sha="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq '.object.sha')"
+          if [ "$GITHUB_SHA" != "$main_sha" ]; then
+            echo "::error::Candidate $GITHUB_SHA was superseded by main $main_sha; refusing deployment."
+            exit 1
+          fi
+          npx firebase deploy --project tango-ts --only hosting,firestore:rules,firestore:indexes
