@@ -128,7 +128,17 @@
   "overrides": {
     "@grpc/grpc-js": "^1.14.5",
     "basic-ftp": "^6.2.1",
+    "firebase-tools": {
+      "@google-cloud/pubsub": "~6.0.1"
+    },
+    "gaxios@6": {
+      "uuid": "^11.1.1"
+    },
+    "handlebars@4": "^4.7.10",
     "katex": "$katex",
-    "smol-toml": "^1.9.0"
+    "smol-toml": "^1.9.0",
+    "typed-rest-client@2": {
+      "qs": "^6.16.0"
+    }
   }
 }
