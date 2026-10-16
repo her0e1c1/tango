@@ -236,7 +236,13 @@
 | FIRESTORE-CARD-REPLICA-05 | read | 異常系 | [不正 document を部分適用せず修復後に復帰する](./card-replica.md#firestore-card-replica-05) |
 | FIRESTORE-CARD-REPLICA-06 | read | 正常系 | [UID 切替と復元中の停止で古い Card を表示しない](./card-replica.md#firestore-card-replica-06) |
 | FIRESTORE-CARD-REPLICA-07 | read | 異常系 | [transaction 失敗で checkpoint だけ先行しない](./card-replica.md#firestore-card-replica-07) |
-| FIRESTORE-CARD-REPLICA-08 | read | 正常系 | [少数更新の処理件数を Card 総数から独立させる](./card-replica.md#firestore-card-replica-08) |
+| FIRESTORE-CARD-REPLICA-08 | read | 正常系 | [通常／匿名で1000枚中の Card A の変更だけを処理する](./card-replica.md#firestore-card-replica-08) |
 | FIRESTORE-CARD-REPLICA-09 | read | 正常系 | [cache のみでは checkpoint を進めない](./card-replica.md#firestore-card-replica-09) |
 | FIRESTORE-CARD-REPLICA-10 | read | 正常系 | [FSRS は確定後に反映する](./card-replica.md#firestore-card-replica-10) |
-| FIRESTORE-CARD-REPLICA-11 | batch | 正常系 | [匿名は replica を使わずローカル変更を表示する](./card-replica.md#firestore-card-replica-11) |
+| FIRESTORE-CARD-REPLICA-11 | batch | 正常系 | [匿名は replica を使わず Card A のローカル変更を表示する](./card-replica.md#firestore-card-replica-11) |
+| FIRESTORE-CARD-REPLICA-12 | read | 異常系 | [匿名は正常0件の不正 Card A 初期読込でも ready を完了する](./card-replica.md#firestore-card-replica-12) |
+| FIRESTORE-CARD-REPLICA-13 | batch | 異常系 | [匿名は Card A の修復・再隔離・再修復と Card B の更新を反映する](./card-replica.md#firestore-card-replica-13) |
+| FIRESTORE-CARD-REPLICA-14 | batch | 異常系 | [匿名は Card B の論理削除と Card A の有効な tombstone を反映する](./card-replica.md#firestore-card-replica-14) |
+| FIRESTORE-CARD-REPLICA-15 | batch | 異常系 | [匿名は物理削除で Card A の診断と Card B の表示を除去する](./card-replica.md#firestore-card-replica-15) |
+| FIRESTORE-CARD-REPLICA-16 | read | 正常系 | [匿名の UID 切替後に旧購読の変更を反映しない](./card-replica.md#firestore-card-replica-16) |
+| FIRESTORE-CARD-REPLICA-17 | read | 正常系 | [匿名の metadata 通知では Card A を再処理しない](./card-replica.md#firestore-card-replica-17) |

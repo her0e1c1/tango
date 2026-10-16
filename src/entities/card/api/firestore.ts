@@ -18,7 +18,7 @@ import { auth, db } from "@/shared/firebase";
 import { omitUndefined } from "@/shared/lib/omitUndefined";
 import { mapCardDocument, parseCardDocument, parseLocalCardDocuments } from "./document";
 import { createCardSchema, deleteCardSchema, editCardSchema } from "../model/schema";
-import { applyCardChanges, applyCardSnapshot, clearRemoteCards, findCardById } from "../model/store";
+import { applyCardChanges, clearRemoteCards, findCardById } from "../model/store";
 
 import { restoreCardReplica, saveConfirmedCards } from "./replica";
 
@@ -83,11 +83,16 @@ function subscribeLocalCards(uid: string, onError: (error: Error) => void, onRea
     (snapshot) => {
       if (!active) return;
       try {
+        // Initial documents are added changes; metadata-only events need no Store update.
+        const changes = snapshot.docChanges();
         const { cards, invalidCardIds } = parseLocalCardDocuments(
-          snapshot.docs.map((item) => ({ id: item.id, value: item.data({ serverTimestamps: "estimate" }) }))
+          changes
+            .filter((change) => change.type !== "removed")
+            .map(({ doc: item }) => ({ id: item.id, value: item.data({ serverTimestamps: "estimate" }) }))
         );
-        // A partial local snapshot is usable; retain diagnostics without rewriting the invalid saved documents.
-        applyCardSnapshot(cards, invalidCardIds);
+        // Unlike a regular-account delta window, this query represents the complete local result.
+        const removedCardIds = changes.filter((change) => change.type === "removed").map(({ doc: item }) => item.id);
+        applyCardChanges(cards, { removedCardIds, invalidCardIds });
         onReady?.();
       } catch (error) {
         report(error);
