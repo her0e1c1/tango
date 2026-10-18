@@ -81,6 +81,7 @@ describe("CardPlayer [STUDY-CONTROLS-05] [STUDY-CONTROLS-06] [STUDY-CONTROLS-07]
       />
     );
     const front = screen.getByText("Long front");
+    // When: Perform reading swipes and their trailing mouse click.
     swipeUp(front);
     swipeLeft(front);
     swipeWithMouse(front, { clientX: 100, clientY: 200 }, { clientX: 100, clientY: 20 });
@@ -211,7 +212,10 @@ describe("CardPlayer [STUDY-CONTROLS-05] [STUDY-CONTROLS-06] [STUDY-CONTROLS-07]
         editLink={{ visible: true, onToggle: vi.fn(), element: <a href="/edit">Edit</a> }}
       />
     );
+    // When: Render the answer with an edit link configured.
+    // Then: Hide the configured edit link on the answer.
     expect(screen.queryByRole("link", { name: "Edit" })).not.toBeInTheDocument();
+    // When: Switch to Study and open its actions menu.
     view.rerender(<CardPlayer {...props} />);
     // When: Exercise `fireEvent.click` with the prepared inputs.
     fireEvent.click(screen.getByRole("button", { name: "Open card actions" }));
@@ -686,8 +690,8 @@ describe("CardPlayer [STUDY-CONTROLS-05] [STUDY-CONTROLS-06] [STUDY-CONTROLS-07]
     );
     const back = screen.getByText("Back");
 
+    // When: Swipe the back text horizontally and vertically.
     swipeLeft(back);
-    // When: Exercise `swipeUp` with the prepared inputs.
     swipeUp(back);
 
     // Then: Verify the expected result in the assertions below.
@@ -731,6 +735,7 @@ describe("CardPlayer [STUDY-CONTROLS-05] [STUDY-CONTROLS-06] [STUDY-CONTROLS-07]
     );
     const front = screen.getByRole("button", { name: "Front" });
 
+    // When: Perform a primary-button mouse swipe followed by its trailing click.
     swipeWithMouse(front, { clientX: 24, clientY: 200 }, { clientX: 24, clientY: 20 });
     // When: Exercise `fireEvent.click` with the prepared inputs.
     fireEvent.click(front);
@@ -772,6 +777,7 @@ describe("CardPlayer [STUDY-CONTROLS-05] [STUDY-CONTROLS-06] [STUDY-CONTROLS-07]
     );
     const back = screen.getByRole("button", { name: "Back" });
 
+    // When: Drag the back text and deliver the trailing click.
     swipeWithMouse(back, { clientX: 200, clientY: 24 }, { clientX: 20, clientY: 24 });
     // When: Exercise `fireEvent.click` with the prepared inputs.
     fireEvent.click(back);

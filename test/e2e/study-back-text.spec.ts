@@ -175,13 +175,14 @@ test("STUDY-BACK-TEXT-07 keeps the full answer width beneath overlays on a narro
   page,
 }) => {
   // Given: Use this case's inputs and any shared test setup.
-  // When: Exercise `page.setViewportSize` with the prepared inputs.
+
   await page.setViewportSize({ width: 320, height: 568 });
   const deck = fixture.deck();
   const session = fixture.session();
   const currentCard = fixture.card("card-1");
   await fixture.apply(page);
 
+  // When: Open Study and reveal the long answer in the prepared narrow viewport.
   await page.goto(`/deck/${deck.id}/study`);
   const answerRegion = await revealAnswer(page, currentCard.frontText);
   const answerContent = page.locator("[data-study-answer-content]");
@@ -219,13 +220,14 @@ test("STUDY-BACK-TEXT-07 keeps the full answer width beneath overlays on a narro
 
 test("STUDY-BACK-TEXT-08 scrolls a long answer with wheel and touch from edge overlays", async ({ fixture, page }) => {
   // Given: Use this case's inputs and any shared test setup.
-  // When: Exercise `page.setViewportSize` with the prepared inputs.
+
   await page.setViewportSize({ width: 320, height: 568 });
   const deck = fixture.deck();
   const session = fixture.session();
   const currentCard = fixture.card("card-1");
   await fixture.apply(page);
 
+  // When: Open Study and reveal the long answer in the prepared narrow viewport.
   await page.goto(`/deck/${deck.id}/study`);
   const answerRegion = await revealAnswer(page, currentCard.frontText);
   const initialScroll = await answerRegion.evaluate((element) => ({

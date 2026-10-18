@@ -95,10 +95,14 @@ describe("mounted deadline consumers [STUDY-SESSION-01 CARD-FILTER-01]", () => {
     const { result, unmount } = renderHook(() => useStudySessionStartState(deck.id, getStudyFilter(deck)));
     expect(result.current.cardsLength).toBe(0);
     expect(vi.getTimerCount()).toBe(1);
+    // When: Advance halfway toward the current deadline.
     act(() => vi.advanceTimersByTime(60_000));
+    // Then: Keep the Card unavailable and retain one pending deadline timer.
     expect(result.current.cardsLength).toBe(0);
     expect(vi.getTimerCount()).toBe(1);
+    // When: Replace the current deadline with a nearer one.
     act(() => setDeadline(Date.now() + 1000));
+    // Then: Replace the existing timer instead of adding another.
     expect(vi.getTimerCount()).toBe(1);
     // When: Exercise `act` with the prepared inputs.
     act(() => {

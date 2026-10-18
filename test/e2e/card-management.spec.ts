@@ -537,11 +537,12 @@ test.describe("card", () => {
     const backText = `${namespace.caseId} remote back`;
     const viewport = { width: 390, height: 844 };
     const viewportBounds = { x: 0, y: 0, ...viewport };
-    // When: Exercise `page.setViewportSize` with the prepared inputs.
+
     await page.setViewportSize(viewport);
     await fixture.apply(page);
 
     await page.goto(`/deck/${deck.id}`);
+    // When: Open Card creation from the prepared Deck.
     await page.getByRole("button", { name: "Actions", exact: true }).click();
     await page.getByRole("menuitem", { name: "Add card" }).click();
     // Then: Verify the expected result in the assertions below.
@@ -627,13 +628,14 @@ test.describe("card", () => {
         1748
       );
     const backText = `${namespace.caseId} local back`;
-    // When: Exercise `page.setViewportSize` with the prepared inputs.
+
     await page.setViewportSize({ width: 360, height: 640 });
     await fixture.apply(page);
     const local = await createAnonymousDeck(page);
     const { deck } = local;
 
     await page.goto(`/deck/${deck.id}`);
+    // When: Open Card creation from the prepared Deck.
     await page.getByRole("button", { name: "Actions", exact: true }).click();
     await page.getByRole("menuitem", { name: "Add card" }).click();
     // Then: Verify the expected result in the assertions below.
@@ -770,9 +772,9 @@ test.describe("card", () => {
     const local = await createAnonymousDeck(page);
     const { deck } = local;
 
-    // When: Exercise `page.setViewportSize` with the prepared inputs.
     await page.setViewportSize({ width: 375, height: 812 });
     const before = await downloadDeckCards(page, deck.name);
+    // When: Open Card creation in the prepared mobile viewport.
     await page.goto(`/deck/${deck.id}/card/new`);
     // Then: Verify the expected result in the assertions below.
     await expect(page.getByRole("heading", { name: "Create card" })).toBeVisible();

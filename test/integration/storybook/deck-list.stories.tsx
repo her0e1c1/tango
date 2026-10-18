@@ -409,7 +409,9 @@ export const PendingDeletion: Story = {
     });
     await step("STORYBOOK-DECK-LIST-26 Keep the menu closed when the failed operation finishes", async () => {
       // Given: Use the rendered story, its args, parameters, and any setup below.
+      // When: Finish the pending deletion with its configured failure.
       finish();
+      // Then: Release this Deck's controls and keep its action menu closed.
       await waitFor(() => expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument());
       await expect(target).toBeEnabled();
       await expect(menuTrigger).toBeEnabled();

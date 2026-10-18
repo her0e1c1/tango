@@ -799,6 +799,7 @@ export const ReadingGestures: Story = {
     await step("STORYBOOK-CARD-PLAYER-01 Keep reading gestures separate from explicit study actions", async () => {
       // Given: Use the rendered story, its args, parameters, and any setup below.
       const surface = canvas.getByRole("region", { name: "Card front text" });
+      // When: Drag the reading surface in all touch directions and with the mouse.
       for (const [x, y] of [
         [200, 40],
         [200, 360],
@@ -807,6 +808,7 @@ export const ReadingGestures: Story = {
       ] as const)
         touchSwipe(surface, x, y);
       mouseSwipe(surface, 200, 40);
+      // Then: Reading gestures request no study action or mode change.
       await expect(args.onSwipeUp).not.toHaveBeenCalled();
       await expect(args.onSwipeLeft).not.toHaveBeenCalled();
       await expect(args.onToggleViewMode).not.toHaveBeenCalled();

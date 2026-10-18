@@ -124,30 +124,29 @@ describe("Query realtime subscriptions", () => {
     const deck = createDeckFixture({ id: crypto.randomUUID(), uid, name: "Before stop" });
     const card = createCard({ id: crypto.randomUUID(), deckId: deck.id, uid, frontText: "Before stop" });
 
-    // When: Exercise `createDeck` with the prepared inputs.
     await createDeck(uid, createRemoteDeckInput({ id: deck.id, name: deck.name }));
-    // Then: Verify the expected result in the assertions below.
+
     await vi.waitFor(() => {
       expect(deckStore.getState().remoteDecks).toContainEqual(
         expect.objectContaining({ id: deck.id, name: "Before stop" })
       );
     });
-    // When: Exercise `createCardCommand` with the prepared inputs.
+
     await createCardCommand(uid, card);
-    // Then: Verify the expected result in the assertions below.
+
     await vi.waitFor(() => {
       expect(Object.values(cardStore.getState().cardsById)).toContainEqual(
         expect.objectContaining({ id: card.id, frontText: "Before stop" })
       );
     });
 
-    // When: Exercise `stopCards` with the prepared inputs.
+    // When: Stop both subscriptions and edit their saved Deck and Card.
     stopCards();
     stopDecks();
     await editDeck(uid, { ...deck, name: "After stop" });
     await editCard(uid, { ...card, frontText: "After stop" });
 
-    // Then: Verify the expected result in the assertions below.
+    // Then: Preserve the previously received Before stop values without notifying errors.
     expect(deckStore.getState().remoteDecks).toContainEqual(
       expect.objectContaining({ id: deck.id, name: "Before stop" })
     );

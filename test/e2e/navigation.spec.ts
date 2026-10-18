@@ -381,11 +381,12 @@ test("NAVIGATION-13 scrolls one long answer with touch and exits at either horiz
   // Given: Prepare `deck`, `card` and any shared test state below.
   const deck = fixture.deck();
   const card = fixture.card("card-1");
-  // When: Exercise `page.setViewportSize` with the prepared inputs.
+
   await page.setViewportSize({ width: 320, height: 568 });
   await fixture.apply(page);
   await page.goto("/");
   const before = await readSavedData(page, fixture);
+  // When: Open View for the prepared single-Card Deck.
   await openView(page, deck.name);
   // Then: Verify the expected result in the assertions below.
   await expectFront(page, card.frontText);
@@ -1210,12 +1211,13 @@ test.describe("View mode", () => {
     // Given: Prepare `deck`, `card` and any shared test state below.
     const deck = fixture.deck();
     const card = fixture.card("card-1");
-    // When: Exercise `page.setViewportSize` with the prepared inputs.
+
     await page.setViewportSize({ width: 320, height: 568 });
     await fixture.apply(page);
     await page.goto(`/deck/${deck.id}/${scenario.route}`);
     const before = await readProgress(card.id);
     await enterViewMode(page);
+    // When: Scroll and drag through the long front text in View mode.
     await readLongFront(page);
     // Then: Verify the expected result in the assertions below.
     await expect(page).toHaveURL(`/deck/${deck.id}/${scenario.route}`);

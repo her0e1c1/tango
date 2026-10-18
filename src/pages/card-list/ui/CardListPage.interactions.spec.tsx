@@ -495,12 +495,14 @@ describe("CARD-VIEW-02 CARD-MANAGEMENT-02 CARD-MANAGEMENT-08 CARD-MANAGEMENT-03 
       const callsBeforeCompletion = newSave.mock.calls.length;
       expect(confirm).toBeDisabled();
 
+      // When: Complete the old mutation after the new dialog has opened.
       await actAsync(async () => {
         if (outcome === "success") oldWrite.resolve();
         else oldWrite.reject(new Error("late write failure"));
         await oldWrite.promise.catch(() => undefined);
       });
 
+      // Then: Preserve the new pending dialog and suppress old-operation notifications.
       expect(dialog).toBeVisible();
       expect(confirm).toBeDisabled();
       expect(within(dialog).getByRole("button", { name: "Cancel" })).toBeDisabled();

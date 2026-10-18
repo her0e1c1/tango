@@ -74,9 +74,13 @@ describe("STUDY-SESSION-09 STUDY-SESSION-10 STUDY-SESSION-11 STUDY-SESSION-12 ST
     // Given: Use this case's inputs and any shared test setup.
     renderPage();
     expect(screen.getByRole("status")).toHaveTextContent("Loading");
+    // When: Deliver only the first cached history scope.
     act(() => subscriptions[0]?.emit([completedRecord()], true));
+    // Then: Keep the combined result pending until both scopes arrive.
     expect(screen.queryByRole("table")).not.toBeInTheDocument();
+    // When: Deliver the second cached history scope.
     act(() => subscriptions[1]?.emit([completedRecord()], true));
+    // Then: Prepare the cached result while the daily table remains collapsed.
     expect(screen.getByRole("table", { hidden: true })).not.toBeVisible();
     // When: Exercise `userEvent.setup().click` with the prepared inputs.
     await userEvent.setup().click(screen.getByText("Show daily counts · 30 days"));
@@ -174,12 +178,15 @@ describe("STUDY-SESSION-09 STUDY-SESSION-10 STUDY-SESSION-11 STUDY-SESSION-12 ST
     vi.setSystemTime(new Date(2026, 8, 21, 23, 59, 59));
     renderPage("/study-history?start=2026-09-20&end=2026-09-21");
     emit([completedRecord()]);
+    // When: Cross midnight with a fixed custom range already displayed.
     act(() => vi.advanceTimersByTime(1000));
+    // Then: Keep its results and subscriptions while updating the date bound.
     expect(screen.queryByRole("status")).not.toBeInTheDocument();
     expect(screen.getByRole("heading", { name: first.name })).toBeVisible();
     expect(screen.getByLabelText("End date")).toHaveAttribute("max", "2026-09-22");
     expect(subscriptions).toHaveLength(2);
     expect(subscriptions.every((sub) => sub.stop.mock.calls.length === 0)).toBe(true);
+    // When: Deliver a read failure before the explicit retry.
     act(() => subscriptions[0]?.fail(new Error("failed")));
     // When: Exercise `fireEvent.click` with the prepared inputs.
     fireEvent.click(screen.getByRole("button", { name: "Retry" }));
@@ -260,7 +267,9 @@ describe("STUDY-SESSION-09 STUDY-SESSION-10 STUDY-SESSION-11 STUDY-SESSION-12 ST
       act(() => replaceAuthSession({ status: "initializing" }));
       const { router } = renderPage(`/study-history?deckId=${deckId}`);
       expect(screen.getByRole("status")).toHaveTextContent("Loading");
+      // When: Finish account and Deck initialization for the URL selection.
       act(() => replaceAuthSession({ status: "authenticated", uid: "uid", isAnonymous: false, displayName: null }));
+      // Then: Report the unavailable selection and preserve its URL until All decks is chosen.
       expect(screen.getByRole("status")).toHaveTextContent("The selected deck is unavailable.");
       expect(router.state.location.search).toBe(`?deckId=${deckId}`);
       expect(screen.getByRole("combobox")).toHaveDisplayValue("The selected deck is unavailable.");

@@ -317,12 +317,13 @@ test.describe("View mode", () => {
     // Given: Prepare `deck`, `card` and any shared test state below.
     const deck = fixture.deck();
     const card = fixture.card("card-1");
-    // When: Exercise `page.setViewportSize` with the prepared inputs.
+
     await page.setViewportSize({ width: 320, height: 568 });
     await fixture.apply(page);
     await page.goto(`/deck/${deck.id}/${scenario.route}`);
     const before = await readProgress(card.id);
     await enterViewMode(page);
+    // When: Scroll and drag through the long front text in View mode.
     await readLongFront(page);
     // Then: Verify the expected result in the assertions below.
     await expect(page).toHaveURL(`/deck/${deck.id}/${scenario.route}`);
@@ -427,7 +428,7 @@ test("STUDY-CONTROLS-09 shares and persists view mode across Study and Deck view
 test("STUDY-CONTROLS-10 keeps long text and all controls reachable on a short viewport", async ({ fixture, page }) => {
   // Given: Prepare `deck` and any shared test state below.
   const deck = fixture.deck();
-  // When: Exercise `page.setViewportSize` with the prepared inputs.
+
   await page.setViewportSize({ width: 568, height: 320 });
   await fixture.apply(page, {
     preferences: {
@@ -441,6 +442,7 @@ test("STUDY-CONTROLS-10 keeps long text and all controls reachable on a short vi
     },
   });
   await page.goto(`/deck/${deck.id}/study`);
+  // When: Expand the controls and scroll the short viewport's reading surface.
   await page.getByRole("button", { name: "Open card actions" }).click();
   const surface = page.getByRole("region", { name: "Card front text" });
   await surface.scrollIntoViewIfNeeded();
@@ -472,15 +474,16 @@ test("STUDY-CONTROLS-11 allows touch scrolling and pinch enlargement without car
 }) => {
   // Given: Prepare `deck` and any shared test state below.
   const deck = fixture.deck();
-  // When: Exercise `page.setViewportSize` with the prepared inputs.
+
   await page.setViewportSize({ width: 390, height: 844 });
   await fixture.apply(page, { preferences: { controls: { viewMode: true } } });
   await page.goto(`/deck/${deck.id}/study`);
   const surface = page.getByRole("region", { name: "Card front text" });
+  // When: Touch-scroll the reading surface.
   await touchScroll(page, surface);
   // Then: Verify the expected result in the assertions below.
   await expect.poll(() => surface.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
-  // When: Exercise `surface.boundingBox` with the prepared inputs.
+  // Given: Measure the surface and configure touch emulation for the pinch gesture.
   const box = await surface.boundingBox();
   if (box === null) throw new Error("Missing reading surface");
   const session = await page.context().newCDPSession(page);
@@ -493,6 +496,7 @@ test("STUDY-CONTROLS-11 allows touch scrolling and pinch enlargement without car
   const scale = await page.evaluate(() => window.visualViewport?.scale ?? 1);
   const x = box.x + box.width / 2;
   const y = box.y + box.height / 2;
+  // When: Pinch outward from the prepared surface coordinates.
   await session.send("Input.dispatchTouchEvent", {
     type: "touchStart",
     touchPoints: [
