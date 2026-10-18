@@ -5,22 +5,29 @@ on:
     branches:
       - main
   workflow_dispatch:
+  repository_dispatch:
+    types: [dependabot-merged]
 
 concurrency:
   group: pages
   cancel-in-progress: false
+  queue: max
 
 permissions:
   contents: read
 
 jobs:
   build:
-    if: github.ref == 'refs/heads/main'
+    if: >-
+      github.ref == 'refs/heads/main' &&
+      (github.event_name != 'repository_dispatch' || github.event.client_payload.sha != '')
     runs-on: ubuntu-latest
     permissions:
       contents: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
 
       - uses: jdx/mise-action@08ae2a091c038e1e05ec6f5115dc5c69d5a2a6b8 # v5.1.2
 
@@ -44,5 +51,11 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
+      - name: Record deployment candidate
+        env:
+          REQUESTED_SHA: ${{ github.event.client_payload.sha }}
+        run: |
+          printf 'Requested merge: %s\nDeployment candidate: %s\n' "${REQUESTED_SHA:-not a repository dispatch}" "$GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+
       - id: deployment
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1

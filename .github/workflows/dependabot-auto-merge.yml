@@ -46,8 +46,19 @@ jobs:
             exit 0
           fi
 
-          gh api \
+          result="$(gh api \
             --method PUT \
             "repos/$REPOSITORY/pulls/$PR_NUMBER/merge" \
             -f merge_method=squash \
-            -f sha="$TESTED_SHA"
+            -f sha="$TESTED_SHA")"
+
+          merge_sha="$(jq -er 'select(.merged == true) | .sha' <<< "$result")"
+          [[ "$merge_sha" =~ ^[0-9a-f]{40}$ ]]
+          echo "Merged PR #$PR_NUMBER as candidate $merge_sha." >> "$GITHUB_STEP_SUMMARY"
+
+          # Dependabot PRs are auto-merged with GITHUB_TOKEN, not a user's token.
+          # The resulting push to main does not trigger deployment workflows.
+          # This workflow explicitly sends repository_dispatch to start them.
+          jq -n --arg sha "$merge_sha" \
+            '{event_type: "dependabot-merged", client_payload: {sha: $sha}}' | \
+            gh api --method POST "repos/$REPOSITORY/dispatches" --input -

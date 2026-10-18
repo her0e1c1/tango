@@ -4,12 +4,17 @@ on:
   push:
     branches:
       - main
+  repository_dispatch:
+    types: [dependabot-merged]
 
 permissions:
   contents: read
 
 jobs:
   test:
+    if: >-
+      github.ref == 'refs/heads/main' &&
+      (github.event_name != 'repository_dispatch' || github.event.client_payload.sha != '')
     name: Test
     permissions:
       contents: read
@@ -19,13 +24,25 @@ jobs:
   deploy:
     needs: [test]
     name: Deploy To Firebase
+    concurrency:
+      group: firebase-production
+      cancel-in-progress: false
+      queue: max
     permissions:
       contents: read
       id-token: write
     environment: production
     runs-on: ubuntu-latest
     steps:
+      - name: Record deployment candidate
+        env:
+          REQUESTED_SHA: ${{ github.event.client_payload.sha }}
+        run: |
+          printf 'Requested merge: %s\nDeployment candidate: %s\n' "${REQUESTED_SHA:-not a repository dispatch}" "$GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
 
       - uses: jdx/mise-action@08ae2a091c038e1e05ec6f5115dc5c69d5a2a6b8 # v5.1.2
 
