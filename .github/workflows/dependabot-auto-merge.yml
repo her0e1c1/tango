@@ -34,11 +34,6 @@ jobs:
             exit 0
           fi
 
-          if [ "$(jq -r '.state' <<< "$pr")" != open ] || [ "$(jq -r '.base.ref' <<< "$pr")" != main ]; then
-            echo "PR is not open against main; skipping merge."
-            exit 0
-          fi
-
           if [ "$(jq -r '.head.sha' <<< "$pr")" != "$TESTED_SHA" ]; then
             echo "PR head changed after CI; skipping merge."
             exit 0
