@@ -38,10 +38,5 @@ def my_bisect_right(sl, a):
     ],
 )
 def test(args, expected):
-    # Given: The parameterized row supplies args and the expected result.
-    # When: Evaluate bisect_right with this row's arguments inside the assertion.
-    # Then: The result matches the row's expected value.
     assert bisect_right(*args) == expected
-    # When: Evaluate my_bisect_right with this row's arguments inside the assertion.
-    # Then: The result matches the row's expected value.
     assert my_bisect_right(*args) == expected
