@@ -25,6 +25,10 @@ jobs:
   deploy:
     needs: [test]
     name: Deploy To Firebase
+    concurrency:
+      group: firebase-production
+      cancel-in-progress: false
+      queue: max
     permissions:
       contents: read
       id-token: write
