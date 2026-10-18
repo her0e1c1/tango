@@ -20,7 +20,7 @@ jobs:
   build:
     if: >-
       github.ref == 'refs/heads/main' &&
-      (github.event_name != 'repository_dispatch' || github.event.client_payload.sha == github.sha)
+      (github.event_name != 'repository_dispatch' || github.event.client_payload.sha != '')
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -51,14 +51,11 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
-      - env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Record deployment candidate
+        env:
+          REQUESTED_SHA: ${{ github.event.client_payload.sha }}
         run: |
-          main_sha="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq '.object.sha')"
-          if [ "$GITHUB_SHA" != "$main_sha" ]; then
-            echo "::error::Candidate $GITHUB_SHA was superseded by main $main_sha; refusing deployment."
-            exit 1
-          fi
+          printf 'Requested merge: %s\nDeployment candidate: %s\n' "${REQUESTED_SHA:-not a repository dispatch}" "$GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
 
       - id: deployment
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1

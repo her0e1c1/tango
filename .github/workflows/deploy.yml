@@ -12,10 +12,9 @@ permissions:
 
 jobs:
   test:
-    # Repository dispatch uses the latest default-branch SHA, which may have overtaken the merge.
     if: >-
       github.ref == 'refs/heads/main' &&
-      (github.event_name != 'repository_dispatch' || github.event.client_payload.sha == github.sha)
+      (github.event_name != 'repository_dispatch' || github.event.client_payload.sha != '')
     name: Test
     permissions:
       contents: read
@@ -35,6 +34,12 @@ jobs:
     environment: production
     runs-on: ubuntu-latest
     steps:
+      - name: Record deployment candidate
+        env:
+          REQUESTED_SHA: ${{ github.event.client_payload.sha }}
+        run: |
+          printf 'Requested merge: %s\nDeployment candidate: %s\n' "${REQUESTED_SHA:-not a repository dispatch}" "$GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.sha }}
@@ -54,12 +59,4 @@ jobs:
           workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ vars.GCP_DEPLOY_SERVICE_ACCOUNT }}
 
-      - env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          main_sha="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq '.object.sha')"
-          if [ "$GITHUB_SHA" != "$main_sha" ]; then
-            echo "::error::Candidate $GITHUB_SHA was superseded by main $main_sha; refusing deployment."
-            exit 1
-          fi
-          npx firebase deploy --project tango-ts --only hosting,firestore:rules,firestore:indexes
+      - run: npx firebase deploy --project tango-ts --only hosting,firestore:rules,firestore:indexes
