@@ -56,8 +56,8 @@ describe("NAVIGATION-22 Local data recovery", () => {
     const database = await createDatabase("other-tab");
     localStorage.setItem("settings", "old");
     sessionStorage.setItem("session", "old");
-    // When: Attempt startup cleanup while database enumeration fails.
-    // Then: Report the enumeration error and preserve the remaining session storage.
+    // When: Attempt startup cleanup while another connection holds the database.
+    // Then: Reject the blocked reset and preserve both local and session storage.
     await expect(clearLocalDataBeforeStartup()).rejects.toThrow("Close other Tango tabs");
     expect(localStorage.getItem("settings")).toBe("old");
     expect(sessionStorage.getItem("session")).toBe("old");

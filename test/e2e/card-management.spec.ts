@@ -164,7 +164,8 @@ test.describe("card-resilience", () => {
   };
 
   const expectCreatedCard = async (page: Page, deckId: string, frontText: string) => {
-    // Given: Use this case's inputs and any shared test setup.
+    // Given: Use the Deck and Card details supplied by the creation scenario.
+    // Then: Confirm creation feedback, navigation, and the saved Card content.
     await expect(page).toHaveURL(`/deck/${deckId}`);
     await expect(page.getByRole("alertdialog")).toHaveCount(0);
     await expect(page.getByRole("status", { name: "Toast notifications" })).toContainText(
@@ -180,6 +181,7 @@ test.describe("card-resilience", () => {
           .map((document) => document.fields.backText?.stringValue)
       )
       .toEqual(["Pending back"]);
+    // When: Reload the destination to check the saved Card survives a fresh page.
     await page.reload();
     // Then: Verify the expected result in the assertions below.
     await expect(page.getByRole("button", { name: `View ${frontText}`, exact: true })).toBeVisible();
