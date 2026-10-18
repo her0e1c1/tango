@@ -760,6 +760,8 @@ test("STUDY-CONTROLS-15 ignores delivered modified keys and then accepts ordinar
   await fixture.apply(page);
   await page.goto(`/deck/${deck.id}/study`);
   await expect(page.getByText(first.frontText, { exact: true })).toBeVisible();
+  // Given: Wait for entry persistence so it cannot change the baseline during ignored-key checks.
+  await expect.poll(async () => (await readSession(fixture.user().uid, deck.id))?.lastStudiedAt).toBeGreaterThan(0);
   const before = await getDocument("card", first.id);
   const session = await readSession(fixture.user().uid, deck.id);
   for (const modifiers of shortcutModifiers) {
