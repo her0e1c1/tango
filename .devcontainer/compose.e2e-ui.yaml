@@ -1,0 +1,49 @@
+# Keep the UI runner on the same isolated network as fixtures and the remote browser.
+services:
+  app:
+    image: ${COMPOSE_PROJECT_NAME}-dev
+    volumes:
+      - app_build:/workspace/build
+  auth:
+    image: ${COMPOSE_PROJECT_NAME}-dev
+  dev:
+    image: ${COMPOSE_PROJECT_NAME}-dev
+  ui:
+    extends:
+      file: compose.yaml
+      service: dev
+    image: ${COMPOSE_PROJECT_NAME}-dev
+    pull_policy: never
+    profiles: [ui]
+    init: true
+    stdin_open: false
+    tty: false
+    environment:
+      PLAYWRIGHT_BASE_URL: http://app.test:4173
+      PW_TEST_CONNECT_WS_ENDPOINT: ws://browser:3000/
+    command: npm run e2e:ui -- --ui-host=0.0.0.0 --ui-port=8077
+    ports:
+      - "127.0.0.1:${E2E_UI_PORT:-8077}:8077"
+    volumes:
+      - ../test-results/${COMPOSE_PROJECT_NAME}:/workspace/test-results
+    depends_on:
+      db:
+        condition: service_healthy
+      auth:
+        condition: service_healthy
+      browser:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "require('http').get('http://localhost:8077/', r => process.exit(r.statusCode === 302 && r.headers.location?.includes('uiMode.html?ws=') ? 0 : 1)).on('error', () => process.exit(1))",
+        ]
+      start_period: 5s
+      interval: 1s
+      retries: 60
+
+volumes:
+  app_build:

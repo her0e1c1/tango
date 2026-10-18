@@ -129,6 +129,10 @@ docker compose up --wait --wait-timeout 120 --remove-orphans
 docker compose run --rm --remove-orphans --env CI --entrypoint npm dev run e2e
 """
 
+[tasks."e2e:ui"]
+description = "Prepare an isolated E2E stack and open Playwright UI in a browser"
+file = "scripts/e2e-ui.sh"
+
 [tasks.check]
 alias = "c"
 depends = ["init"]

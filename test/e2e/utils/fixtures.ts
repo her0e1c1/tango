@@ -105,7 +105,8 @@ export const collectBrowserErrors = (context: BrowserContext, baseURL?: string) 
 
 const createNamespace = (title: string, testId: string, retry: number): TestNamespace => {
   const caseId = requireE2ECaseId(title);
-  const digest = createHash("sha256").update(`${testId}:${retry}`).digest("hex").slice(0, 10);
+  // UI reruns keep testId/retry unchanged while the emulator retains documents from the previous execution.
+  const digest = createHash("sha256").update(`${testId}:${retry}:${randomUUID()}`).digest("hex").slice(0, 10);
   const stem = `${caseId.toLowerCase()}-${digest}`;
   return {
     caseId,
