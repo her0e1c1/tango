@@ -61,7 +61,7 @@ const savedDocuments = async (uid: string) =>
     )
   );
 
-test("SETTINGS-10 Zero autoplay interval is explained and saved without resetting other preferences", async ({
+test("SETTINGS-10 SETTINGS-16 Zero autoplay interval is explained and saved without resetting other preferences", async ({
   fixture,
   page,
 }) => {
@@ -118,7 +118,7 @@ test("SETTINGS-10 Zero autoplay interval is explained and saved without resettin
   });
 });
 
-test("SETTINGS-11 Restoring a positive interval preserves the active study session and playback preferences", async ({
+test("SETTINGS-11 SETTINGS-17 Restoring a positive interval preserves the active study session and playback preferences", async ({
   fixture,
   page,
 }) => {
@@ -317,7 +317,7 @@ const verifyUnlimitedCardLocale = async (page: Page) => {
 
 const cardCountLabel = (count: number) => `${String(count)} ${count === 1 ? "card" : "cards"}`;
 
-test("SETTINGS-02 Maximum cards limits the next study session", async ({ fixture, page }) => {
+test("SETTINGS-02 SETTINGS-12 Maximum cards limits the next study session", async ({ fixture, page }) => {
   const { deck, numberOfCards, expectedMaximum } =
     await test.step("Given: A deck with enough cards to exercise the learning limit", async () => {
       const deck = fixture.deck();

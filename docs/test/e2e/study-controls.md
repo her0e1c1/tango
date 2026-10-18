@@ -15,15 +15,22 @@
 | STUDY-CONTROLS-05 | write | 正常系 | [Help button の表示設定を reload 後も維持できる](#study-controls-05) |
 | STUDY-CONTROLS-06 | write | 正常系 | [view mode で長い表面を操作の誤発火なくスクロールできる](#study-controls-06) |
 | STUDY-CONTROLS-07 | write | 正常系 | [view mode をタップまたは Enter で終了して表面を維持できる](#study-controls-07) |
-| STUDY-CONTROLS-08 | batch | 正常系 | [view mode 中も評価ボタンと自動再生で次の Card へ進める](#study-controls-08) |
+| STUDY-CONTROLS-08 | batch | 正常系 | [view mode 中も評価ボタンで次の Card へ進める](#study-controls-08) |
 | STUDY-CONTROLS-09 | write | 正常系 | [view mode 設定を閲覧・学習・reload 間で共有できる](#study-controls-09) |
 | STUDY-CONTROLS-10 | write | 正常系 | [横向きの短い画面でも本文と操作ボタンに到達できる](#study-controls-10) |
-| STUDY-CONTROLS-11 | write | 正常系 | [view mode でタッチスクロールとピンチ拡大ができる](#study-controls-11) |
+| STUDY-CONTROLS-11 | write | 正常系 | [view mode でタッチスクロールができる](#study-controls-11) |
 | STUDY-CONTROLS-12 | write | 正常系 | [方向ボタンの読み上げ名で現在の操作を確認できる](#study-controls-12) |
 | STUDY-CONTROLS-13 | write | 正常系 | [方向キーを長押ししても追加評価せず再押下で進める](#study-controls-13) |
-| STUDY-CONTROLS-14 | write | 正常系 | [Space と b の長押しで連続切替せず再押下で切り替える](#study-controls-14) |
+| STUDY-CONTROLS-14 | write | 正常系 | [Space の長押しで再生を連続切替せず再押下で切り替える](#study-controls-14) |
 | STUDY-CONTROLS-15 | write | 正常系 | [修飾付きショートカットを無視して通常入力を受け付ける](#study-controls-15) |
 | STUDY-CONTROLS-16 | write | 正常系 | [修飾付き Enter で view mode を終了しない](#study-controls-16) |
+| STUDY-CONTROLS-17 | read | 正常系 | [Help dialog 内のキー入力と focus を学習操作から分離できる](#study-controls-17) |
+| STUDY-CONTROLS-18 | read | 正常系 | [Help dialog 表示中の通知が dialog の操作と focus を妨げない](#study-controls-18) |
+| STUDY-CONTROLS-19 | write | 正常系 | [閲覧モードボタンの表示設定を閲覧・学習・reload 間で共有できる](#study-controls-19) |
+| STUDY-CONTROLS-20 | write | 正常系 | [Card・表裏・モードの変更で本文のスクロール位置が先頭へ戻る](#study-controls-20) |
+| STUDY-CONTROLS-21 | batch | 正常系 | [view mode 中も自動再生で次の Card へ進める](#study-controls-21) |
+| STUDY-CONTROLS-22 | write | 正常系 | [view mode でピンチ拡大ができる](#study-controls-22) |
+| STUDY-CONTROLS-23 | write | 正常系 | [b の長押しで方向ボタンを連続切替せず再押下で切り替える](#study-controls-23) |
 
 <a id="study-controls-01"></a>
 
@@ -112,13 +119,10 @@ Given:
 - 認証済みユーザーが所有する Deck に進行中の学習 session が存在する。
 - 方向操作には既定値と異なる操作が設定され、操作ボタンの一部は非表示に設定されている。
 - 英語の画面を表示している。
-- 自動では消えない通知が表示されている。
 
 When:
 
 - 学習画面から Help dialog を開く。
-- dialog 内で方向キーと操作ボタン表示切り替えキーを入力し、focus を移動する。
-- Escape で Help dialog を閉じる。
 
 Then:
 
@@ -126,11 +130,6 @@ Then:
 - Card の表示、自動再生、操作ボタン表示、Card details、Deck 一覧へ戻る操作が表示される。
 - 非表示の操作ボタンは現在の設定と一致する説明で表示される。
 - 設定された4段階評価の意味が表示され、前の Card へ戻る学習操作は存在しない。
-- Help dialog 表示中は、通知が重なっていても dialog の操作を妨げず、通知へ誤って操作や focus が移らない。
-- dialog 表示中に通知が消えるか置き換わっても、focus は Close help に維持される。
-- Help dialog を閉じると、残っている通知の操作を再び利用できる。
-- dialog 内のキー入力で Card、学習結果、session の位置が変更されない。
-- focus が dialog 内に維持され、閉じた後は Help button へ戻る。
 
 <a id="study-controls-05"></a>
 
@@ -173,14 +172,13 @@ Given:
 When:
 
 - ツールバーの閲覧モードボタンから view mode を ON にして、wheel・touch・方向キー・Space・PageUp／PageDown で本文を読む。マウスを全方向へドラッグし、文字選択も行う。
-- 「…」から閲覧モードボタンを非表示にし、reload して閲覧画面へ移動する。閲覧画面の「…」から再表示して学習画面へ戻る。
+- Help を開いて閲覧中の操作の説明を確認する。
 
 Then:
 
 - 文字サイズと数式表示を保ち、先頭から末尾までスクロールできる。操作ボタン・ツールバーは本文を覆わない。
-- スワイプと方向キーで評価・移動が発生せず、スクロールや選択後も view mode と表面が維持される。Card の学習結果と session の現在位置も変わらない。表示切替・reload・画面移動・Help 表示を終えた時点でも session の現在位置を維持する。
+- スワイプと方向キーで評価・移動が発生せず、スクロールや選択後も view mode と表面が維持される。Card の学習結果と session の現在位置も変わらない。Help 表示を終えた時点でも session の現在位置を維持する。
 - Space は自動再生やモード終了を起こさない。Help は閲覧中の操作を説明する。
-- 閲覧モードボタンは既定で表示される。「…」を開くと同じアイコンで表示・非表示を切り替えられ、モード自体は変化しない。非表示でも「…」から再表示でき、設定は reload 後も維持され、学習・閲覧画面で共有される。
 
 <a id="study-controls-07"></a>
 
@@ -203,11 +201,10 @@ Then:
 
 - タップと最初の Enter は同じ Card の表面を維持して view mode だけを OFF にする。次の Enter で裏面へ切り替わる。
 - Enter を押し続けても終了後に裏返らない。
-- スクロール位置は Card・表裏・モードの変更時に先頭へ戻る。
 
 <a id="study-controls-08"></a>
 
-### STUDY-CONTROLS-08 view mode 中も評価ボタンと自動再生で次の Card へ進める
+### STUDY-CONTROLS-08 view mode 中も評価ボタンで次の Card へ進める
 
 カテゴリ: `batch`
 
@@ -216,16 +213,16 @@ Then:
 Given:
 
 - Fixture: [`study-session-start`](./fixture/study-session-start.yaml)
-- 複数の Card があり、view mode が ON、自動再生の間隔が正の値である。
+- 複数の Card があり、view mode が ON である。
 
 When:
 
-- 評価ボタンで次の Card へ進み、再生ボタンから自動再生を開始して次の Card へ進む。
+- 評価ボタンで次の Card へ進む。
 
 Then:
 
-- 評価ボタンの結果が保存され、次の Card に進む。自動再生でも次の Card に進む。
-- どちらの移動後も view mode は ON で、スクロール位置は先頭になる。
+- 評価ボタンの結果が保存され、次の Card に進む。
+- 移動後も view mode は ON で、スクロール位置は先頭になる。
 
 <a id="study-controls-09"></a>
 
@@ -272,7 +269,7 @@ Then:
 
 <a id="study-controls-11"></a>
 
-### STUDY-CONTROLS-11 view mode でタッチスクロールとピンチ拡大ができる
+### STUDY-CONTROLS-11 view mode でタッチスクロールができる
 
 カテゴリ: `write`
 
@@ -285,11 +282,11 @@ Given:
 
 When:
 
-- 本文を縦にスクロールし、2本指でピンチ拡大する。
+- 本文をタッチ操作で縦にスクロールする。
 
 Then:
 
-- 本文のスクロール位置が変わり、ピンチ操作で表示倍率が上がる。
+- 本文のスクロール位置が変わる。
 - 評価・Card 移動・モード終了は発生しない。
 
 <a id="study-controls-12"></a>
@@ -343,7 +340,7 @@ Then:
 
 <a id="study-controls-14"></a>
 
-### STUDY-CONTROLS-14 Space と b の長押しで連続切替せず再押下で切り替える
+### STUDY-CONTROLS-14 Space の長押しで再生を連続切替せず再押下で切り替える
 
 カテゴリ: `write`
 
@@ -358,12 +355,10 @@ Given:
 When:
 
 - Space を押して保持し、離して再び押す。
-- b を押して保持し、離して再び押す。
 
 Then:
 
 - 最初の Space で再生を開始し、保持中は再生を維持し、再押下で停止する。
-- 最初の b で方向ボタンを隠し、保持中は非表示を維持し、再押下で表示する。
 - Card の表示・回答履歴・記憶状態・学習位置は変わらない。
 
 <a id="study-controls-15"></a>
@@ -413,3 +408,163 @@ Then:
 - 修飾付き Enter では表面と view mode を維持し、reload 後も ON のままとなる。
 - 修飾なしの最初の Enter で view mode だけを終了し、保持中は表面を維持する。再押下で裏面へ切り替わる。
 - 回答履歴・記憶状態・学習位置は変わらない。
+
+<a id="study-controls-17"></a>
+
+### STUDY-CONTROLS-17 Help dialog 内のキー入力と focus を学習操作から分離できる
+
+カテゴリ: `read`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`study-session-help`](./fixture/study-session-help.yaml)
+- 認証済みユーザーが所有する Deck に進行中の学習 session が存在する。
+- 方向操作には既定値と異なる操作が設定され、操作ボタンの一部は非表示に設定されている。
+- 英語の画面で Help dialog を開いている。
+
+When:
+
+- dialog 内で方向キーと操作ボタン表示切り替えキーを入力し、focus を移動してから Escape で閉じる。
+
+Then:
+
+- dialog 内のキー入力で Card、学習結果、session の位置、操作ボタンの表示設定が変更されない。
+- focus が dialog 内に維持され、閉じた後は Help button へ戻る。
+
+<a id="study-controls-18"></a>
+
+### STUDY-CONTROLS-18 [TODO] Help dialog 表示中の通知が dialog の操作と focus を妨げない
+
+カテゴリ: `read`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`study-session-help`](./fixture/study-session-help.yaml)
+- 認証済みユーザーが所有する Deck に進行中の学習 session が存在する。
+- 英語の画面に自動では消えない通知と Help dialog が表示され、Close help に focus がある。
+
+When:
+
+- 通知が重なった状態で dialog を操作する。通知が消える場合と置き換わる場合にも focus を確認してから、Help dialog を閉じる。
+
+Then:
+
+- 通知が重なっていても dialog の操作を妨げず、通知へ誤って操作や focus が移らない。
+- dialog 表示中に通知が消えるか置き換わっても、focus は Close help に維持される。
+- Help dialog を閉じると、残っている通知の操作を再び利用できる。
+
+<a id="study-controls-19"></a>
+
+### STUDY-CONTROLS-19 閲覧モードボタンの表示設定を閲覧・学習・reload 間で共有できる
+
+カテゴリ: `write`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`study-back-text-long`](./fixture/study-back-text-long.yaml)
+- 長い front text の Card を学習中で、view mode が ON である。
+- 閲覧モードボタンは既定で表示されている。
+
+When:
+
+- 「…」から閲覧モードボタンを非表示にし、reload して閲覧画面へ移動する。閲覧画面の「…」から再表示して学習画面へ戻る。
+
+Then:
+
+- 「…」を開くと同じアイコンで表示・非表示を切り替えられ、非表示でも「…」から再表示できる。
+- ボタンの表示設定は reload 後も維持され、学習・閲覧画面で共有される。
+- ボタンの表示切替でモード自体は変化せず、表示切替・reload・画面移動を終えた時点でも session の現在位置を維持する。
+
+<a id="study-controls-20"></a>
+
+### STUDY-CONTROLS-20 [TODO] Card・表裏・モードの変更で本文のスクロール位置が先頭へ戻る
+
+カテゴリ: `write`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`study-back-text-long`](./fixture/study-back-text-long.yaml)
+- 長い本文の Card を学習中で、本文を先頭以外までスクロールしている。
+
+When:
+
+- Card、表裏、モードのいずれかを変更する。
+
+Then:
+
+- 変更後の本文のスクロール位置は先頭へ戻る。
+
+<a id="study-controls-21"></a>
+
+### STUDY-CONTROLS-21 view mode 中も自動再生で次の Card へ進める
+
+カテゴリ: `batch`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`study-session-start`](./fixture/study-session-start.yaml)
+- 複数の Card があり、view mode が ON、自動再生の間隔が正の値である。
+
+When:
+
+- 再生ボタンから自動再生を開始して次の Card へ進む。
+
+Then:
+
+- 自動再生で次の Card に進む。
+- 移動後も view mode は ON で、スクロール位置は先頭になる。
+
+<a id="study-controls-22"></a>
+
+### STUDY-CONTROLS-22 view mode でピンチ拡大ができる
+
+カテゴリ: `write`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`study-back-text-long`](./fixture/study-back-text-long.yaml)
+- タッチ端末で長い front text を学習中で、view mode が ON である。
+
+When:
+
+- 本文を2本指でピンチ拡大する。
+
+Then:
+
+- ピンチ操作で表示倍率が上がる。
+- 評価・Card 移動・モード終了は発生しない。
+
+<a id="study-controls-23"></a>
+
+### STUDY-CONTROLS-23 b の長押しで方向ボタンを連続切替せず再押下で切り替える
+
+カテゴリ: `write`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`study-session-start`](./fixture/study-session-start.yaml)
+- view mode が OFF で Card の表面が表示され、自動再生は停止中である。
+- 方向ボタンは表示されている。
+
+When:
+
+- b を押して保持し、離して再び押す。
+
+Then:
+
+- 最初の b で方向ボタンを隠し、保持中は非表示を維持し、再押下で表示する。
+- Card の表示・回答履歴・記憶状態・学習位置は変わらない。

@@ -9,13 +9,15 @@ Deck を作成・編集・削除でき、失敗後も再試行できることを
 | ID | カテゴリ | 区分 | テストケース |
 | --- | --- | --- | --- |
 | DECK-MANAGEMENT-01 | write | 正常系 | [Deck 編集内容を保存して reload 後も確認できる](#deck-management-01) |
-| DECK-MANAGEMENT-02 | batch | 正常系 / 異常系 | [Deck と関連データをまとめて削除できる](#deck-management-02) |
+| DECK-MANAGEMENT-02 | batch | 正常系 | [Deck と関連データをまとめて削除できる](#deck-management-02) |
 | DECK-MANAGEMENT-03 | read | 正常系 | [Deck の削除を取り消せる](#deck-management-03) |
 | DECK-MANAGEMENT-04 | batch | 異常系 | [Deck の削除失敗後に再試行できる](#deck-management-04) |
 | DECK-MANAGEMENT-05 | write | 正常系 | [ログイン中に空の Deck を作成して reload 後も確認できる](#deck-management-05) |
 | DECK-MANAGEMENT-06 | write | 異常系 | [ログイン中の Deck 作成拒否を反映できる](#deck-management-06) |
 | DECK-MANAGEMENT-07 | write | 正常系 | [匿名で空の Deck を作成して reload 後も確認できる](#deck-management-07) |
-| DECK-MANAGEMENT-08 | read | 正常系 | [未保存の Deck 編集内容を離脱前に確認できる](#deck-management-08) |
+| DECK-MANAGEMENT-08 | read | 正常系 | [未保存の Deck 編集内容を維持して編集を続けられる](#deck-management-08) |
+| DECK-MANAGEMENT-09 | batch | 異常系 | [学習 session の終了失敗後も Deck の削除成功を維持する](#deck-management-09) |
+| DECK-MANAGEMENT-10 | read | 正常系 | [未保存の Deck 編集内容を破棄して一覧へ戻れる](#deck-management-10) |
 
 <a id="deck-management-01"></a>
 
@@ -46,7 +48,7 @@ Then:
 
 カテゴリ: `batch`
 
-区分: 正常系 / 異常系
+区分: 正常系
 
 Given:
 
@@ -54,14 +56,15 @@ Given:
 - 認証済みユーザーが所有する削除対象の Deck が存在する。
 - 対象 Deck に複数の Card と再開可能な学習 session が存在する。
 - 同じユーザーが、操作対象ではない別の Deck、Card、学習 session を所有している。
+- Deck の削除と学習 session 終了の後処理が成功できる。
 
 When:
 
-- Deck 一覧から対象 Deck の削除を確定し、画面を reload する。学習セッション終了の後処理が成功する場合と、後処理だけが拒否される場合を確認する。
+- Deck 一覧から対象 Deck の削除を確定し、画面を reload する。
 
 Then:
 
-- Deck の保存成功で削除成功が通知され、操作待ちが解除される。学習セッションの終了だけが保留・失敗しても削除成功は取り消さず、失敗時は後処理を完了できなかったことを別の toast で通知する。
+- Deck の保存成功で削除成功が通知され、操作待ちが解除される。
 - Deck 一覧に対象 Deck が表示されない。
 - 対象 Deck のすべての Card を表示・操作できなくなる。削除前にこのブラウザーで開いたことがない Card も対象となる。
 - 対象 Deck の学習 session を再開できない。
@@ -164,7 +167,7 @@ When:
 
 Then:
 
-- 通常アカウントの作成はサーバー保存の成功まで待ち、保存失敗時は入力を維持して toast を表示する。匿名利用ではサーバー応答を待たない。
+- 通常アカウントの作成はサーバー保存の成功まで待ち、保存失敗時は入力を維持して toast を表示する。
 - クラウドから拒否された Deck は Firestore の rollback により利用できる Deck として一覧に残らない。拒否は呼び出し側が toast で通知する。
 - 操作していないのに新しい Deck が繰り返し作成されない。
 
@@ -189,6 +192,7 @@ When:
 Then:
 
 - 作成画面に保存先の選択肢はない。
+- サーバー応答を待たずに作成を完了できる。
 - Deck の作成成功が通知される。
 - 作成した空の Deck が同じブラウザーで reload した後も、一つだけ Deck 一覧に表示される。
 - 作成した Deck はこのブラウザーだけで利用でき、クラウドには追加されない。
@@ -196,7 +200,7 @@ Then:
 
 <a id="deck-management-08"></a>
 
-### DECK-MANAGEMENT-08 未保存の Deck 編集内容を離脱前に確認できる
+### DECK-MANAGEMENT-08 未保存の Deck 編集内容を維持して編集を続けられる
 
 カテゴリ: `read`
 
@@ -211,12 +215,60 @@ Given:
 
 When:
 
-- Header から Deck 一覧への離脱を試み、Keep editing を選択した後、再度離脱して Discard changes を選択する。
+- Header から Deck 一覧への離脱を試み、Keep editing を選択する。
 
 Then:
 
-- 最初の離脱は取り消され、変更した name が編集画面に維持される。
+- 離脱は取り消され、変更した name が編集画面に維持される。
 - 離脱確認 dialog 表示中は、通知が重なっていても dialog の操作を妨げない。
 - dialog 表示中に通知が消えるか置き換わっても、focus は Keep editing に維持される。
+
+<a id="deck-management-09"></a>
+
+### DECK-MANAGEMENT-09 学習 session の終了失敗後も Deck の削除成功を維持する
+
+カテゴリ: `batch`
+
+区分: 異常系
+
+Given:
+
+- Fixture: [`multi-study-sessions`](./fixture/multi-study-sessions.yaml)
+- 認証済みユーザーが所有する削除対象の Deck に、複数の Card と再開可能な学習 session が存在する。
+- 同じユーザーが、操作対象ではない別の Deck、Card、学習 session を所有している。
+- Deck の保存は成功するが、対象 Deck の学習 session を終了する後処理は保留された後に拒否される。
+
+When:
+
+- Deck 一覧から対象 Deck の削除を確定し、学習 session 終了の後処理が拒否された後に画面を reload する。
+
+Then:
+
+- Deck の保存成功で削除成功が通知され、学習 session の終了を待たずに操作待ちが解除される。
+- 学習 session の終了だけが保留・失敗しても削除成功は取り消されず、失敗時は後処理を完了できなかったことが別の toast で通知される。
+- reload 後も Deck 一覧に対象 Deck が表示されず、その学習 session を再開できない。
+- 対象 Deck のすべての Card を表示・操作できない。削除前にこのブラウザーで開いたことがない Card も対象となる。
+- 操作対象ではない Deck、Card、学習 session は維持され、引き続き再開できる。
+
+<a id="deck-management-10"></a>
+
+### DECK-MANAGEMENT-10 未保存の Deck 編集内容を破棄して一覧へ戻れる
+
+カテゴリ: `read`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`deck-unsaved-navigation`](./fixture/deck-unsaved-navigation.yaml)
+- 認証済みユーザーが所有する Deck の編集画面で name を変更し、まだ保存していない。
+- Header から Deck 一覧への離脱を一度試み、Keep editing を選択して編集を続けている。
+
+When:
+
+- Header から再度 Deck 一覧への離脱を試み、Discard changes を選択する。
+
+Then:
+
 - 2回目の離脱では Deck 一覧へ1回だけ遷移する。
 - Deck 一覧には変更前の name が表示される。

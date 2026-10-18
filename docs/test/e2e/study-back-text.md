@@ -15,7 +15,8 @@
 | STUDY-BACK-TEXT-05 | write | 正常系 | [左 overlay から設定済み action を実行できる](#study-back-text-05) |
 | STUDY-BACK-TEXT-06 | write | 正常系 | [右 overlay から設定済み action を実行できる](#study-back-text-06) |
 | STUDY-BACK-TEXT-07 | read | 正常系 | [狭い画面でも overlay の下で裏面を全幅表示できる](#study-back-text-07) |
-| STUDY-BACK-TEXT-08 | read | 正常系 | [overlay 上の wheel と touch で長い裏面 text を scroll できる](#study-back-text-08) |
+| STUDY-BACK-TEXT-08 | read | 正常系 | [左 overlay 上の wheel で長い裏面 text を scroll できる](#study-back-text-08) |
+| STUDY-BACK-TEXT-09 | read | 正常系 | [右 overlay 上の touch で長い裏面 text を scroll できる](#study-back-text-09) |
 
 <a id="study-back-text-01"></a>
 
@@ -194,7 +195,7 @@ Then:
 
 <a id="study-back-text-08"></a>
 
-### STUDY-BACK-TEXT-08 overlay 上の wheel と touch で長い裏面 text を scroll できる
+### STUDY-BACK-TEXT-08 左 overlay 上の wheel で長い裏面 text を scroll できる
 
 カテゴリ: `read`
 
@@ -207,15 +208,44 @@ Given:
 - 現在の Card に表示領域を超える長さの back text が設定されている。
 - back text swipe overlay の表示設定が有効になり、左右とも前方へ進む action が設定されている。
 - viewport の幅が 320px になっている。
+- 現在の Card の裏面が表示され、answer の scroll 位置は先頭である。
 
 When:
 
-- 現在の Card を裏面へ切り替え、左 overlay 上から下方向へ wheel scroll する。
-- answer を先頭へスクロールして戻し、右 overlay 上から上方向へ touch 操作する。
+- 左 overlay 上から下方向へ wheel scroll する。
 
 Then:
 
-- wheel と touch のどちらでも answer の下側の本文を読める。
+- answer の下側の本文を読める。
+- 対象 Card の back text と左右 overlay が引き続き表示される。
+- 右 overlay と viewport 右端の間に scrollbar を直接操作できる領域が残る。
+- overlay に設定された評価や移動は行われない。
+- Card の学習結果と session の位置が変更されない。
+
+<a id="study-back-text-09"></a>
+
+### STUDY-BACK-TEXT-09 右 overlay 上の touch で長い裏面 text を scroll できる
+
+カテゴリ: `read`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`study-back-text-overlays-long`](./fixture/study-back-text-overlays-long.yaml)
+- 認証済みユーザーが所有する Deck に進行中の学習 session が存在する。
+- 現在の Card に表示領域を超える長さの back text が設定されている。
+- back text swipe overlay の表示設定が有効になり、左右とも前方へ進む action が設定されている。
+- viewport の幅が 320px になっている。
+- 現在の Card の裏面が表示され、answer の scroll 位置は先頭である。
+
+When:
+
+- 右 overlay 上から上方向へ touch 操作する。
+
+Then:
+
+- answer の下側の本文を読める。
 - 対象 Card の back text と左右 overlay が引き続き表示される。
 - 右 overlay と viewport 右端の間に scrollbar を直接操作できる領域が残る。
 - overlay に設定された評価や移動は行われない。

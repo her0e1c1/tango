@@ -246,7 +246,10 @@ test("STUDY-BACK-TEXT-07 keeps the full answer width beneath overlays on a narro
   });
 });
 
-test("STUDY-BACK-TEXT-08 scrolls a long answer with wheel and touch from edge overlays", async ({ fixture, page }) => {
+test("STUDY-BACK-TEXT-08 STUDY-BACK-TEXT-09 scrolls a long answer with wheel and touch from edge overlays", async ({
+  fixture,
+  page,
+}) => {
   const { deck, session, currentCard, answerRegion, initialScroll, leftOverlay, rightOverlay, rightOverlayBounds } =
     await test.step("Given: A long answer open at the top with visible edge overlays", async () => {
       await page.setViewportSize({ width: 320, height: 568 });

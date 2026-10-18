@@ -55,7 +55,7 @@ const StudyDestination = () => {
   );
 };
 
-describe("NAVIGATION-17 NAVIGATION-02 NAVIGATION-06 DECK-MANAGEMENT-02 DECK-MANAGEMENT-03 DECK-MANAGEMENT-04 DECK-TRANSFER-01 NAVIGATION-08 STUDY-SESSION-03 DeckListPage", () => {
+describe("NAVIGATION-17 NAVIGATION-02 NAVIGATION-06 DECK-MANAGEMENT-02 DECK-MANAGEMENT-03 DECK-MANAGEMENT-04 DECK-TRANSFER-01 NAVIGATION-08 STUDY-SESSION-03 DeckListPage NAVIGATION-26 NAVIGATION-38 NAVIGATION-45", () => {
   const activeDeck = createLocalDeck({ id: "active-deck", name: "Active deck" });
   const freshDeck = createLocalDeck({ id: "fresh-deck", name: "Fresh deck" });
   const activeCard = createLocalCard({
@@ -252,7 +252,7 @@ describe("NAVIGATION-17 NAVIGATION-02 NAVIGATION-06 DECK-MANAGEMENT-02 DECK-MANA
   });
 
   it.each(["identity change", "unmount"])(
-    "[STUDY-SESSION-03] cancels Continue navigation after a queued %s",
+    "[STUDY-SESSION-21] cancels Continue navigation after a queued %s",
     async (change) => {
       // Given: Prepare `router`, `view` and any shared test state below.
       const router = createMemoryRouter([

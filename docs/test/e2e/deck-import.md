@@ -19,6 +19,16 @@ CSV の内容を確認して取り込み、失敗後も再試行できること�
 | DECK-IMPORT-09 | batch | 正常系 | [通常ユーザーの Sample deck を同期できる](#deck-import-09) |
 | DECK-IMPORT-10 | batch | 正常系 | [Google 未ログインの Sample deck をこのブラウザーだけに維持できる](#deck-import-10) |
 | DECK-IMPORT-11 | read | 異常系 | [同じ CSV を修正して再選択できる](#deck-import-11) |
+| DECK-IMPORT-12 | read | 異常系 | [複数行フィールドを含む CSV の論理レコード単位で診断を確認できる](#deck-import-12) |
+| DECK-IMPORT-13 | read | 異常系 | [CSV の引用符エラーを論理レコードと元列値で確認できる](#deck-import-13) |
+| DECK-IMPORT-14 | read | 異常系 | [空白だけの CSV をファイル全体のエラーとして拒否できる](#deck-import-14) |
+| DECK-IMPORT-15 | read | 正常系 | [4種類の例の内容に一致する CSV をダウンロードできる](#deck-import-15) |
+| DECK-IMPORT-16 | read | 正常系 | [4種類の例を保存せずに preview できる](#deck-import-16) |
+| DECK-IMPORT-17 | batch | 正常系 | [同じ例を再び選んで新しい Deck として追加できる](#deck-import-17) |
+| DECK-IMPORT-18 | batch | 異常系 | [例の保存失敗後も同じ内容で重複せず再試行できる](#deck-import-18) |
+| DECK-IMPORT-19 | batch | 正常系 | [例の選択後にアカウントを変更すると以前の内容を保存できない](#deck-import-19) |
+| DECK-IMPORT-20 | read | 正常系 | [ファイル選択の取消後も現在の確認内容を維持できる](#deck-import-20) |
+| DECK-IMPORT-21 | batch | 正常系 | [匿名で追加した例をクラウドに保存しない](#deck-import-21) |
 
 <a id="deck-import-01"></a>
 
@@ -59,9 +69,6 @@ Given:
 
 - Fixture: [`empty`](./fixture/empty.yaml)
 - 必須の uniqueKey が空の行を含む CSV と、必須の4列に足りない行を含む CSV を、それぞれ独立した入力例として用意する。
-- 論理レコード番号と元列値を確認する入力例として、`"front\ncontinued","back"," foo,foo, bar "," key "\n\n"bad ""front""","back"," key "\n" "," "," foo,foo, bar "," key "` がある。ここで `\n` は実際の改行を表す。
-- 引用符エラーの独立した入力例として、`"front\ncontinued",back,,key\n\n` の後に閉じ引用符のない `"unterminated`、または閉じ引用符の直後に文字が続く `"bad"tail,back,,key` を置いた CSV がある。
-- ファイル全体のエラーを確認する独立した入力例として、空白3文字だけの CSV がある。
 - CSV に対応する Deck と Card はまだ存在しない。
 
 When:
@@ -72,10 +79,6 @@ Then:
 
 - 不正な行と理由が入力エラーとして画面内に表示される。
 - 必須列に足りない行を正常な Card へ補完せず、不正な行数に数える。
-- 複数行フィールドを含む入力例では、有効な論理レコード1の本文の改行を保持し、タグは `foo`、`bar`、uniqueKey は `key` に正規化する。空の論理レコード2を読み飛ばし、3列の論理レコード3と表裏が空白かつキーが重複する論理レコード4を不正な2レコードとして数える。レコード4に複数の理由があっても不正件数は増えない。
-- 診断番号は1始まりの論理レコード番号とし、引用符内の改行を物理行として加算しない。列contextは引用符の解析後、正規化前の値を保持する。レコード3は `["bad \"front\"","back"," key "]`、レコード4は `[" "," "," foo,foo, bar "," key "]` となる。
-- 引用符エラーの入力例では、論理レコード3に引用符のエラーを表示し、不正件数は1レコードとなる。閉じ引用符が欠落していることとcontext `["unterminated"]`、閉じ引用符の後に余計な文字があることとcontext `["bad\"tail,back,,key"]` をそれぞれ確認できる。
-- 空白だけの入力では、空のCSVであることをファイル全体のエラーとして報告し、特定のレコード番号や列contextを付けない。
 - Import 操作は無効のままになる。
 - Deck と Card は追加されない。
 
@@ -171,20 +174,15 @@ Given:
 
 When:
 
-- 各種類の例を切り替え、表裏の表示と CSV の記述を確認し、CSV をダウンロードする。
 - 各例について `Try this example` を実行し、preview を確認して追加を確定する。
 - Deck 一覧を reload して追加した Deck を開く。
 
 Then:
 
 - 4種類で同じ操作、確認手順を利用できる。
-- ダウンロードには表示した種類の全 Card が含まれ、数式・Markdown・複数タグ・引用符内の改行は失われない。
-- 例の選択だけでは保存せず、件数・Deck 名・表裏の内容を preview できる。
 - 処理中は例の選択、ファイル選択、追加確定を重ねて実行できない。再入場後も処理中の表示が維持される。
 - 明示的な確定後に選んだ全 Card が追加され、件数が通知されて Deck 一覧へ戻る。
-- reload 後も Card を表示できる。匿名で追加した場合はクラウドに保存されない。
-- 新たに同じ例を選んで追加しても既存の Deck や Card は上書きせず、新しい Deck になる。
-- 保存に失敗した場合は同じ preview の内容で再試行でき、同じ取り込みが重複しない。アカウントが変わった場合は、以前の選択内容を別アカウントへ保存できない。
+- reload 後も Card を表示できる。
 
 <a id="deck-import-07"></a>
 
@@ -304,12 +302,240 @@ Given:
 When:
 
 - CSV を繰り返し選択して文字コードエラーを確認し、画面を離れずに同じファイルを UTF-8 の有効な内容に修正して再選択する。
-- preview を表示したままファイル選択を取り消す。
 - 同じファイルを必須の uniqueKey が空の内容へ変更して選び直した後、再び有効な内容へ修正して選び直す。
 
 Then:
 
 - 同じファイルを選ぶたびに読み取りと検証が行われ、文字コードエラー・行エラーから修正後の内容で preview と追加可否が更新される。
-- ファイル選択を取り消しても、現在の preview・エラー・追加可否は変わらない。
 - 表示するファイル名は維持される。ファイル選択欄はキーボードで操作でき、処理中は再選択できない。
 - 追加を確定するまで Deck と Card は保存されない。
+
+<a id="deck-import-12"></a>
+
+### DECK-IMPORT-12 [TODO] 複数行フィールドを含む CSV の論理レコード単位で診断を確認できる
+
+カテゴリ: `read`
+
+区分: 異常系
+
+Given:
+
+- Fixture: [`empty`](./fixture/empty.yaml)
+- 論理レコード番号と元列値を確認する入力例として、`"front\ncontinued","back"," foo,foo, bar "," key "\n\n"bad ""front""","back"," key "\n" "," "," foo,foo, bar "," key "` がある。ここで `\n` は実際の改行を表す。
+- CSV に対応する Deck と Card はまだ存在しない。
+
+When:
+
+- Import 画面で CSV を選択し、検証の完了を待つ。
+
+Then:
+
+- 複数行フィールドを含む入力例では、有効な論理レコード1の本文の改行を保持し、タグは `foo`、`bar`、uniqueKey は `key` に正規化する。空の論理レコード2を読み飛ばし、3列の論理レコード3と表裏が空白かつキーが重複する論理レコード4を不正な2レコードとして数える。レコード4に複数の理由があっても不正件数は増えない。
+- 診断番号は1始まりの論理レコード番号とし、引用符内の改行を物理行として加算しない。列contextは引用符の解析後、正規化前の値を保持する。レコード3は `["bad \"front\"","back"," key "]`、レコード4は `[" "," "," foo,foo, bar "," key "]` となる。
+- Import 操作は無効のままになる。
+- Deck と Card は追加されない。
+
+<a id="deck-import-13"></a>
+
+### DECK-IMPORT-13 [TODO] CSV の引用符エラーを論理レコードと元列値で確認できる
+
+カテゴリ: `read`
+
+区分: 異常系
+
+Given:
+
+- Fixture: [`empty`](./fixture/empty.yaml)
+- 引用符エラーの独立した入力例として、`"front\ncontinued",back,,key\n\n` の後に閉じ引用符のない `"unterminated`、または閉じ引用符の直後に文字が続く `"bad"tail,back,,key` を置いた CSV がある。
+- CSV に対応する Deck と Card はまだ存在しない。
+
+When:
+
+- Import 画面で CSV を選択し、検証の完了を待つ。
+
+Then:
+
+- 引用符エラーの入力例では、論理レコード3に引用符のエラーを表示し、不正件数は1レコードとなる。閉じ引用符が欠落していることとcontext `["unterminated"]`、閉じ引用符の後に余計な文字があることとcontext `["bad\"tail,back,,key"]` をそれぞれ確認できる。
+- Import 操作は無効のままになる。
+- Deck と Card は追加されない。
+
+<a id="deck-import-14"></a>
+
+### DECK-IMPORT-14 [TODO] 空白だけの CSV をファイル全体のエラーとして拒否できる
+
+カテゴリ: `read`
+
+区分: 異常系
+
+Given:
+
+- Fixture: [`empty`](./fixture/empty.yaml)
+- 空白3文字だけの CSV がある。
+- CSV に対応する Deck と Card はまだ存在しない。
+
+When:
+
+- Import 画面で CSV を選択し、検証の完了を待つ。
+
+Then:
+
+- 空白だけの入力では、空のCSVであることをファイル全体のエラーとして報告し、特定のレコード番号や列contextを付けない。
+- Import 操作は無効のままになる。
+- Deck と Card は追加されない。
+
+<a id="deck-import-15"></a>
+
+### DECK-IMPORT-15 4種類の例の内容に一致する CSV をダウンロードできる
+
+カテゴリ: `read`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`empty`](./fixture/empty.yaml)
+- Google アカウントにログインしている。
+- Import 画面に基本・数式・マークダウン・サンプルデッキの4種類の例がある。
+- 各種類を独立した状態で確認する。
+
+When:
+
+- 各種類の例を切り替え、表裏の表示と CSV の記述を確認し、CSV をダウンロードする。
+
+Then:
+
+- ダウンロードには表示した種類の全 Card が含まれ、数式・Markdown・複数タグ・引用符内の改行は失われない。
+
+<a id="deck-import-16"></a>
+
+### DECK-IMPORT-16 4種類の例を保存せずに preview できる
+
+カテゴリ: `read`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`empty`](./fixture/empty.yaml)
+- Google アカウントにログインしている。
+- Import 画面に基本・数式・マークダウン・サンプルデッキの4種類の例がある。
+- 各種類を独立した状態で確認し、その例に対応する Deck と Card はまだ存在しない。
+
+When:
+
+- 各例を選択して `Try this example` を実行し、追加を確定せずに preview を確認する。
+
+Then:
+
+- 例の選択だけでは保存せず、件数・Deck 名・表裏の内容を preview できる。
+
+<a id="deck-import-17"></a>
+
+### DECK-IMPORT-17 [TODO] 同じ例を再び選んで新しい Deck として追加できる
+
+カテゴリ: `batch`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`empty`](./fixture/empty.yaml)
+- Google アカウントにログインしている。
+- Import 画面の例を追加済みで、その Deck と Card を利用できる。
+
+When:
+
+- 新たに同じ例を選び、追加を確定する。
+
+Then:
+
+- 既存の Deck や Card は上書きせず、新しい Deck になる。
+
+<a id="deck-import-18"></a>
+
+### DECK-IMPORT-18 [TODO] 例の保存失敗後も同じ内容で重複せず再試行できる
+
+カテゴリ: `batch`
+
+区分: 異常系
+
+Given:
+
+- Fixture: [`empty`](./fixture/empty.yaml)
+- Google アカウントにログインしている。
+- Import 画面の例の preview を確認し、追加を確定したが保存に失敗している。
+
+When:
+
+- 同じ preview の内容で追加を再試行する。
+
+Then:
+
+- 同じ取り込みが重複せず、同じ preview の内容を取り込める。
+
+<a id="deck-import-19"></a>
+
+### DECK-IMPORT-19 [TODO] 例の選択後にアカウントを変更すると以前の内容を保存できない
+
+カテゴリ: `batch`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`empty`](./fixture/empty.yaml)
+- Google アカウントにログインしている。
+- Import 画面の例を選択している。
+
+When:
+
+- 選択後、追加を確定する前にアカウントを変更する。
+
+Then:
+
+- 以前の選択内容を別アカウントへ保存できない。
+
+<a id="deck-import-20"></a>
+
+### DECK-IMPORT-20 ファイル選択の取消後も現在の確認内容を維持できる
+
+カテゴリ: `read`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`empty`](./fixture/empty.yaml)
+- Import 画面に選択済み CSV の preview またはエラーが表示され、追加可否を確認できる。
+
+When:
+
+- ファイル選択を取り消す。
+
+Then:
+
+- 現在の preview・エラー・追加可否は変わらない。
+
+<a id="deck-import-21"></a>
+
+### DECK-IMPORT-21 [TODO] 匿名で追加した例をクラウドに保存しない
+
+カテゴリ: `batch`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`empty`](./fixture/empty.yaml)
+- Google アカウントにログインしていない匿名ユーザーである。
+- Import 画面に基本・数式・マークダウン・サンプルデッキの4種類の例がある。
+- 各種類を独立した状態で確認し、その例に対応する Deck と Card はまだ存在しない。
+
+When:
+
+- 各例について preview を確認して追加を確定し、reload して追加した Deck を開く。
+
+Then:
+
+- reload 後も Card を表示できる。
+- 匿名で追加した Deck と Card はクラウドに保存されない。

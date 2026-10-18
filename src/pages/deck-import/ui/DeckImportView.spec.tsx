@@ -19,7 +19,7 @@ const preview = {
   },
 } satisfies NonNullable<DeckImportViewProps["preview"]>;
 
-describe("DeckImportView [DECK-IMPORT-01 DECK-IMPORT-02 DECK-IMPORT-06 SETTINGS-09]", () => {
+describe("DeckImportView [DECK-IMPORT-01 DECK-IMPORT-02 DECK-IMPORT-06 SETTINGS-09 SETTINGS-15 DECK-IMPORT-16]", () => {
   it.each([
     [new ImportFailure("authentication"), "アカウントへのインポートには認証済みユーザーが必要です。"],
     [new ImportFailure("account-changed"), "アカウントが変わりました。CSVファイルや例をもう一度選んでください。"],

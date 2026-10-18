@@ -30,6 +30,9 @@ Card 一覧（card-list）と Deck 閲覧（deck-view）で、学習条件とは
 | CARD-FILTER-11 | read | 正常系 | [絞り込み結果の表示順を標準へ戻せる](#card-filter-11) |
 | CARD-FILTER-12 | write | 正常系 | [タグ未選択なら AND / OR にかかわらず全件表示する](#card-filter-12) |
 | CARD-FILTER-13 | read | 正常系 | [リロードでソートだけを標準へ戻しフィルターを維持する](#card-filter-13) |
+| CARD-FILTER-14 | read | 正常系 | [別の Deck から戻ると元のフィルターを復元できる](#card-filter-14) |
+| CARD-FILTER-15 | read | 正常系 | [Card 未登録の一覧から Card の追加へ進める](#card-filter-15) |
+| CARD-FILTER-16 | read | 正常系 | [Card 未登録の Deck 閲覧から Deck 一覧へ戻れる](#card-filter-16) |
 
 <a id="card-filter-01"></a>
 
@@ -80,13 +83,12 @@ Given:
 
 When:
 
-- 移動先の Deck の Card 一覧と Deck 閲覧を開き、その後、移動元の Card 一覧へ戻る。
+- 移動先の Deck の Card 一覧と Deck 閲覧を開く。
 
 Then:
 
 - 移動先は絞り込みなし・OR 条件で全 Card を表示する。
 - 移動元の選択タグと AND 条件を移動先へ適用しない。
-- 移動元へ戻ると保存済みのタグと AND 条件、および絞り込み結果が復元される。
 - 各画面には選択した Deck の Card だけを表示し、両 Deck の保存済み条件を変更しない。
 
 <a id="card-filter-03"></a>
@@ -113,7 +115,6 @@ Then:
 - 両画面で表示対象が0件であることが分かり、Card を表示しない。
 - Card 未登録の状態を示し、学習条件で対象外になっているとは案内しない。
 - 別の Deck の Card を代わりに表示しない。
-- 一覧では Card の追加、Deck 閲覧では Deck 一覧へ戻る操作を利用できる。
 
 <a id="card-filter-04"></a>
 
@@ -365,3 +366,71 @@ Then:
 - 両画面は保存済みフィルターに一致する Card を標準の相対順序で表示する。
 - 選択タグと AND / OR 条件、表示対象と件数はリロード前から変わらない。
 - 保存済みフィルターまで初期化せず、Card、学習条件、学習 session の順序・位置も変更しない。
+
+<a id="card-filter-14"></a>
+
+### CARD-FILTER-14 別の Deck から戻ると元のフィルターを復元できる
+
+カテゴリ: `read`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`browse-filter`](./fixture/browse-filter.yaml)
+- Card を持つ複数の Deck がある。
+- 移動元の Deck には一部の Card に絞り込むタグと AND 条件を保存済みである。
+- 移動元を離れ、フィルター未設定の別の Deck の Card 一覧を経て Deck 閲覧を開いている。
+
+When:
+
+- 移動元の Deck の Card 一覧へ戻り、フィルター欄を開く。
+
+Then:
+
+- 移動元の保存済みの選択タグと AND 条件、および絞り込み結果が復元される。
+- 移動元の Deck の Card だけを表示し、両 Deck の保存済み条件を変更しない。
+
+<a id="card-filter-15"></a>
+
+### CARD-FILTER-15 Card 未登録の一覧から Card の追加へ進める
+
+カテゴリ: `read`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`browse-filter`](./fixture/browse-filter.yaml)
+- 対象 Deck は存在するが、Card が1枚も登録されていない。
+- 対象 Deck の Card フィルターは未設定で、Card 一覧を開いている。
+
+When:
+
+- Card の追加操作を選択する。
+
+Then:
+
+- 対象 Deck の Card 作成画面へ移動できる。
+
+<a id="card-filter-16"></a>
+
+### CARD-FILTER-16 Card 未登録の Deck 閲覧から Deck 一覧へ戻れる
+
+カテゴリ: `read`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`browse-filter`](./fixture/browse-filter.yaml)
+- 対象 Deck は存在するが、Card が1枚も登録されていない。
+- 対象 Deck の Card フィルターは未設定で、Deck 閲覧を開いている。
+
+When:
+
+- Deck 一覧へ戻る操作を選択する。
+
+Then:
+
+- Deck 一覧へ移動できる。

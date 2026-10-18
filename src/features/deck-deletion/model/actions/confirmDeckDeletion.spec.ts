@@ -11,7 +11,7 @@ vi.mock("@/entities/deck", () => ({ deleteDeck: vi.fn(), getDecks: vi.fn(), must
 vi.mock("@/entities/study-session", () => ({ abandonStudySession: vi.fn() }));
 vi.mock("@/shared/ui/toast", () => ({ showToast: vi.fn() }));
 
-describe("Deck deletion account guards [DECK-MANAGEMENT-02 DECK-MANAGEMENT-04]", () => {
+describe("Deck deletion account guards [DECK-MANAGEMENT-02 DECK-MANAGEMENT-09 DECK-MANAGEMENT-04]", () => {
   beforeEach(() => {
     // Given: Establish the shared setup used by the following cases.
     vi.resetAllMocks();

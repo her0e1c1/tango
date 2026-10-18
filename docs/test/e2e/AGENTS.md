@@ -93,7 +93,7 @@
 
 ### CSV import と例の選択
 
-DECK-IMPORT-01〜DECK-IMPORT-06 に適用する。
+DECK-IMPORT-01〜DECK-IMPORT-06、DECK-IMPORT-12〜DECK-IMPORT-19、DECK-IMPORT-21 に適用する。
 
 - CSV の検証、import、例の選択は同時に一つだけ実行でき、処理中は競合する操作を受け付けない。
 - 処理中に画面を離れて再入場しても処理中の表示が維持され、通常アカウントでは Deck とすべての Card のサーバー保存成功後に操作可能になる。匿名利用ではサーバー応答を待たず、ローカル反映を確認する。書き込みの受付だけでは処理完了としない。
@@ -130,7 +130,8 @@ STUDY-ACTIONS の各ケースに適用する。
 
 ### 学習記録の表示
 
-STUDY-SESSION-09〜STUDY-SESSION-13 に適用する。
+STUDY-SESSION-09〜STUDY-SESSION-13、STUDY-SESSION-28〜STUDY-SESSION-29、STUDY-SESSION-33〜STUDY-SESSION-39 に適用する。
+STUDY-SESSION-28〜STUDY-SESSION-29 には開始・完了・中止の計数に関する項目だけを適用する。
 
 - 開始数は学習を始めた日、完了数は最後まで学習を終えた日で独立して数える。日付は表示している端末の暦日に従う。
 - 初期期間は今日を含む30日間とする。7日・30日・90日、または開始日・終了日を選択できる。範囲指定では開始日の0時から終了日の翌日0時までを対象とし、両端の日付を含む。

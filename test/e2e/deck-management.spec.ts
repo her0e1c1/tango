@@ -176,7 +176,7 @@ test("DECK-MANAGEMENT-02 deletes one Deck and preserves unrelated Deck data", as
   });
 });
 
-test("DECK-MANAGEMENT-02 preserves deletion success when session cleanup is rejected", async ({
+test("DECK-MANAGEMENT-02 DECK-MANAGEMENT-09 preserves deletion success when session cleanup is rejected", async ({
   fixture,
   page,
   browserErrors,
@@ -437,7 +437,11 @@ test("DECK-MANAGEMENT-06 rolls back a rejected remote create without locking the
   });
 });
 
-test("DECK-MANAGEMENT-08 confirms before discarding an unsaved Deck edit", async ({ fixture, page, namespace }) => {
+test("DECK-MANAGEMENT-08 DECK-MANAGEMENT-10 confirms before discarding an unsaved Deck edit", async ({
+  fixture,
+  page,
+  namespace,
+}) => {
   const { deck, unsavedName } = await test.step("Given: A saved deck ready for an unsaved name edit", async () => {
     const deck = fixture.deck();
     const unsavedName = `${namespace.caseId} unsaved`;

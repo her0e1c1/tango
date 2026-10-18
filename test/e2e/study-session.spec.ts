@@ -8,7 +8,10 @@ const readSelectedTags = async (deckId: string): Promise<string[]> =>
     .map((value) => value.stringValue)
     .filter((value): value is string => value !== undefined);
 
-test("STUDY-SESSION-08 reveals, persists, and applies an additional Study tag", async ({ fixture, page }) => {
+test("STUDY-SESSION-08 STUDY-SESSION-32 reveals, persists, and applies an additional Study tag", async ({
+  fixture,
+  page,
+}) => {
   const { deck, targetCard, targetTag } =
     await test.step("Given: Study settings with additional tags initially hidden", async () => {
       const deck = fixture.deck();
@@ -179,7 +182,7 @@ test("STUDY-SESSION-12 restores anonymous study history from the device cache", 
   });
 });
 
-test("STUDY-SESSION-13 selects presets and inclusive dates while preserving Deck and URL navigation", async ({
+test("STUDY-SESSION-13 STUDY-SESSION-35 selects presets and inclusive dates while preserving Deck and URL navigation", async ({
   fixture,
   page,
 }) => {
@@ -470,7 +473,10 @@ test("STUDY-SESSION-06 keeps multiple Deck sessions independent", async ({ fixtu
   });
 });
 
-test("STUDY-SESSION-07 preserves local-only progress and session position across reload", async ({ fixture, page }) => {
+test("STUDY-SESSION-07 STUDY-SESSION-30 STUDY-SESSION-31 preserves local-only progress and session position across reload", async ({
+  fixture,
+  page,
+}) => {
   const { deck, currentCard, nextCard } =
     await test.step("Given: An anonymous session advanced once with review scheduling enabled", async () => {
       await fixture.apply(page, { preferences: { study: { useCardInterval: true } } });

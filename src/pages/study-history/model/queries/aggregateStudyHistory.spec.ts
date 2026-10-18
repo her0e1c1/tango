@@ -20,7 +20,7 @@ const record = (occurredAt: number, deckId = "deck"): StudyHistoryRecord => ({
 });
 const visible = new Set(["deck"]);
 
-describe("STUDY-SESSION-09 STUDY-SESSION-13 daily study counts", () => {
+describe("STUDY-SESSION-09 STUDY-SESSION-13 STUDY-SESSION-35 daily study counts", () => {
   it("counts a completed session once in both metrics and includes 30 calendar days", () => {
     // Given: Prepare `started`, `completed` and any shared test state below.
     const started = record(new Date(2026, 8, 21, 10).getTime());

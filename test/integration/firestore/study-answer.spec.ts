@@ -117,7 +117,7 @@ const answerData = () => ({
   updatedAt: Timestamp.fromMillis(2000),
 });
 
-describe("StudyAnswer persistence and access [STUDY-ACTIONS-01] [STUDY-ACTIONS-02] [STUDY-ACTIONS-03] [STUDY-ACTIONS-05]", () => {
+describe("StudyAnswer persistence and access [STUDY-ACTIONS-01] [STUDY-ACTIONS-02] [STUDY-ACTIONS-03] [STUDY-ACTIONS-05 STUDY-ACTIONS-12 STUDY-ACTIONS-14]", () => {
   let environment: RulesTestEnvironment;
   let stopStates: () => void = () => undefined;
   afterEach(() => {

@@ -38,7 +38,7 @@ const deck = createDeck({
   category: "math",
 });
 
-describe("NAVIGATION-17 NAVIGATION-08 DeckListCard [STUDY-SESSION-03]", () => {
+describe("NAVIGATION-17 NAVIGATION-08 DeckListCard [STUDY-SESSION-03] NAVIGATION-35 NAVIGATION-38 NAVIGATION-45", () => {
   beforeEach(() => {
     // Given: Establish the shared setup used by the following cases.
     vi.useFakeTimers();

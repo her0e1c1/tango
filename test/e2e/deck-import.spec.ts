@@ -309,7 +309,7 @@ test.describe("import", () => {
     });
   }
 
-  test("DECK-IMPORT-11 A corrected file at the same path can be selected repeatedly", async ({
+  test("DECK-IMPORT-11 DECK-IMPORT-20 A corrected file at the same path can be selected repeatedly", async ({
     fixture,
     page,
   }, testInfo) => {
@@ -591,7 +591,7 @@ test.describe("import", () => {
   ];
   // Each example gets a fresh browser context and UID instead of accumulating reloads and pending streams.
   for (const example of examples) {
-    test(`DECK-IMPORT-06 ${example.label} supports preview, download, and destination-aware import`, async ({
+    test(`DECK-IMPORT-06 DECK-IMPORT-15 DECK-IMPORT-16 ${example.label} supports preview, download, and destination-aware import`, async ({
       fixture,
       page,
     }, testInfo) => {

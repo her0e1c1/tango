@@ -90,7 +90,7 @@ it("NAVIGATION-03 uses the initialized locale outside I18nProvider", async () =>
 
 afterEach(() => vi.restoreAllMocks());
 
-describe("NAVIGATION-04 unhandled browser errors", () => {
+describe("NAVIGATION-04 NAVIGATION-24 unhandled browser errors", () => {
   it.each([new Error("async failure"), "failure", null, undefined, false, 0, ""])(
     "shows recovery regardless of rejection reason: %s",
     (reason) => {
@@ -207,7 +207,7 @@ it("NAVIGATION-03 displays the original route failure with recovery actions", ()
   expect(screen.getAllByRole("button")).toHaveLength(1);
 });
 
-it("NAVIGATION-22 prevents overlapping recovery actions and offers retry after deletion fails", async () => {
+it("NAVIGATION-22 NAVIGATION-42 prevents overlapping recovery actions and offers retry after deletion fails", async () => {
   // Given: Prepare `deletion` and any shared test state below.
   const deletion = Promise.withResolvers<void>();
   vi.mocked(clearLocalDataAndReload).mockReturnValueOnce(deletion.promise);

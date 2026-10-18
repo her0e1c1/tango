@@ -63,7 +63,7 @@ const renderGuard = () => {
   return render(<RouterProvider router={router} />);
 };
 
-describe("DECK-MANAGEMENT-08 CARD-MANAGEMENT-09 CARD-MANAGEMENT-12 useNavigationGuard", () => {
+describe("DECK-MANAGEMENT-08 DECK-MANAGEMENT-10 CARD-MANAGEMENT-09 CARD-MANAGEMENT-12 useNavigationGuard", () => {
   it("allows clean navigation and intentional successful navigation", async () => {
     // Given: Prepare `view` and any shared test state below.
     const view = renderGuard();

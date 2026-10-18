@@ -35,7 +35,7 @@ const sections = {
   other: [{ deck: otherDeck, cardCount: 7 }],
 } satisfies DeckListProps["sections"];
 
-describe("SETTINGS-04 NAVIGATION-06 NAVIGATION-17 DeckList", () => {
+describe("SETTINGS-04 NAVIGATION-06 NAVIGATION-17 DeckList NAVIGATION-25 NAVIGATION-26 NAVIGATION-35 NAVIGATION-44", () => {
   it("groups active decks before other decks with visible headings", () => {
     // Given: Use this case's inputs and any shared test setup.
     // When: Exercise `render` with the prepared inputs.

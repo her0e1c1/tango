@@ -59,7 +59,7 @@ const StudySessionDestination = () => {
   );
 };
 
-describe("STUDY-SESSION-01 STUDY-SESSION-02 STUDY-SESSION-08 StudySessionStartPage", () => {
+describe("STUDY-SESSION-01 STUDY-SESSION-02 STUDY-SESSION-08 STUDY-SESSION-14 STUDY-SESSION-18 STUDY-SESSION-20 StudySessionStartPage", () => {
   const deckId = "deck-id";
   const cardId = "card-id";
   const renderPage = (path = `/deck/${deckId}/start`) =>

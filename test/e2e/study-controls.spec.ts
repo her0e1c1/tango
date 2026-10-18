@@ -90,7 +90,7 @@ test("STUDY-CONTROLS-03 saves local-only progress and advances on a primary upwa
   });
 });
 
-test("STUDY-CONTROLS-04 shows configured Study controls without changing the active session", async ({
+test("STUDY-CONTROLS-04 STUDY-CONTROLS-17 shows configured Study controls without changing the active session", async ({
   fixture,
   page,
 }) => {
@@ -300,7 +300,7 @@ const verifyStudyViewModeControls = async (page: Page, uid: string, deckId: stri
 
 test.describe("View mode", () => {
   const scenario = { id: "STUDY-CONTROLS-06", route: "study" };
-  test("STUDY-CONTROLS-06 scrolls the entire front without gesture actions or accidental exit", async ({
+  test("STUDY-CONTROLS-06 STUDY-CONTROLS-19 scrolls the entire front without gesture actions or accidental exit", async ({
     fixture,
     page,
   }) => {
@@ -376,7 +376,10 @@ test.describe("View mode", () => {
 
 test.describe("View mode", () => {
   const scenario = { id: "STUDY-CONTROLS-08", route: "study", next: "Swipe right: Good" };
-  test("STUDY-CONTROLS-08 keeps button actions and autoplay available in view mode", async ({ fixture, page }) => {
+  test("STUDY-CONTROLS-08 STUDY-CONTROLS-21 keeps button actions and autoplay available in view mode", async ({
+    fixture,
+    page,
+  }) => {
     const { first, before } =
       await test.step("Given: Study uses reading mode and a positive autoplay interval", async () => {
         const deck = fixture.deck();
@@ -505,7 +508,7 @@ test("STUDY-CONTROLS-10 keeps long text and all controls reachable on a short vi
   });
 });
 
-test("STUDY-CONTROLS-11 allows touch scrolling and pinch enlargement without card actions", async ({
+test("STUDY-CONTROLS-11 STUDY-CONTROLS-22 allows touch scrolling and pinch enlargement without card actions", async ({
   fixture,
   page,
 }) => {
@@ -752,7 +755,10 @@ for (const [key, rating] of [
   });
 }
 
-test("STUDY-CONTROLS-14 toggles playback and swipe controls only on fresh presses", async ({ fixture, page }) => {
+test("STUDY-CONTROLS-14 STUDY-CONTROLS-23 toggles playback and swipe controls only on fresh presses", async ({
+  fixture,
+  page,
+}) => {
   const { deck } =
     await test.step("Given: A study session with playback stopped and swipe controls visible", async () => {
       const deck = fixture.deck();

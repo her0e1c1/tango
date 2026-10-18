@@ -21,7 +21,7 @@ import { CardList } from "./CardList";
 const card = createCard({ id: "card-id", frontText: "Front", backText: "Back", tags: [] });
 const otherCard = createCard({ id: "other-id", frontText: "Other", backText: "Other back", tags: ["two"] });
 
-describe("CardList [CARD-VIEW-01] [CARD-LIST-ACTIONS-01] [CARD-MANAGEMENT-08] [CARD-LIST-ACTIONS-02]", () => {
+describe("CardList [CARD-VIEW-01] [CARD-LIST-ACTIONS-01] [CARD-MANAGEMENT-08] [CARD-LIST-ACTIONS-02] CARD-LIST-ACTIONS-04 CARD-LIST-ACTIONS-07 CARD-LIST-ACTIONS-08", () => {
   it("renders the heading, zero count, and collapsed no-filter summary", () => {
     // Given: Use this case's inputs and any shared test setup.
     // When: Exercise `render` with the prepared inputs.
