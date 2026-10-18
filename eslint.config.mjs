@@ -8,8 +8,8 @@ import vitest from "@vitest/eslint-plugin";
 import playwright from "eslint-plugin-playwright";
 import storybook from "eslint-plugin-storybook";
 
-// lint:tsc invokes TypeScript 7 through @typescript/native directly to avoid the two tsc binaries colliding.
-// Keep TypeScript 5 for the compiler API used by this parser and other tools, including Steiger's TS 5 peers.
+// lint:tsc explicitly selects the native TypeScript 7 compiler through @typescript/native.
+// API-based tools use the TypeScript 6 compatibility package; Steiger's TS 5 peers resolve separately.
 // Keep application policies separate from test-runner checks.
 const sourceFiles = ["src/**/*.{ts,tsx}"];
 const integrationStoryFiles = ["test/integration/storybook/**/*.{ts,tsx}"];
