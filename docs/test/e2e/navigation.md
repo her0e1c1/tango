@@ -52,7 +52,7 @@ Deck、Card 一覧、閲覧、および全ページの主要画面の表示・�
 | NAVIGATION-42 | batch | 異常系 | [ローカルデータの削除失敗時は再試行を案内する](#navigation-42) |
 | NAVIGATION-43 | batch | 異常系 | [ローカルデータ削除後の起動失敗時は復旧画面を表示する](#navigation-43) |
 | NAVIGATION-44 | read | 正常系 | [空の Deck 一覧でも追加メニューを利用できる](#navigation-44) |
-| NAVIGATION-45 | read | 正常系 | [Deck 一覧の Continue から既存の学習を再開できる](#navigation-45) |
+| NAVIGATION-45 | write | 正常系 | [Deck 一覧の Continue から既存の学習を再開できる](#navigation-45) |
 
 <a id="navigation-01"></a>
 
@@ -1094,7 +1094,7 @@ Then:
 
 ### NAVIGATION-45 Deck 一覧の Continue から既存の学習を再開できる
 
-カテゴリ: `read`
+カテゴリ: `write`
 
 区分: 正常系
 

@@ -45,7 +45,7 @@
 | CARD-LIST-ACTIONS-06 | write | 異常系 | [filter 保存失敗後も選択を維持して次の変更を保存できる](./card-list-actions.md#card-list-actions-06) |
 | CARD-LIST-ACTIONS-07 | read | 正常系 | [並び替え後も選択した Card のプレビューと行操作を利用できる](./card-list-actions.md#card-list-actions-07) |
 | CARD-LIST-ACTIONS-08 | read | 正常系 | [別 Card の変更後も行のフォーカスとメニューを維持できる](./card-list-actions.md#card-list-actions-08) |
-| CARD-LIST-ACTIONS-09 | read | 正常系 | [言語やフィルターを変更しても並び順を保持できる](./card-list-actions.md#card-list-actions-09) |
+| CARD-LIST-ACTIONS-09 | write | 正常系 | [言語やフィルターを変更しても並び順を保持できる](./card-list-actions.md#card-list-actions-09) |
 | CARD-LIST-ACTIONS-10 | read | 正常系 | [filter 保存中も並び替えでき禁止中の操作は実行できない](./card-list-actions.md#card-list-actions-10) |
 | CARD-LIST-ACTIONS-11 | read | 正常系 | [画面を離れるか Deck を変更すると並び順が標準に戻る](./card-list-actions.md#card-list-actions-11) |
 | CARD-MANAGEMENT-01 | write | 正常系 | [Card 編集内容を保存して reload 後も確認できる](./card-management.md#card-management-01) |
@@ -175,7 +175,7 @@
 | NAVIGATION-42 | batch | 異常系 | [ローカルデータの削除失敗時は再試行を案内する](./navigation.md#navigation-42) |
 | NAVIGATION-43 | batch | 異常系 | [ローカルデータ削除後の起動失敗時は復旧画面を表示する](./navigation.md#navigation-43) |
 | NAVIGATION-44 | read | 正常系 | [空の Deck 一覧でも追加メニューを利用できる](./navigation.md#navigation-44) |
-| NAVIGATION-45 | read | 正常系 | [Deck 一覧の Continue から既存の学習を再開できる](./navigation.md#navigation-45) |
+| NAVIGATION-45 | write | 正常系 | [Deck 一覧の Continue から既存の学習を再開できる](./navigation.md#navigation-45) |
 | PERSISTENCE-01 | read | 正常系 | [アカウントごとのデータを再読み込み後も分離して表示できる](./persistence.md#persistence-01) |
 | PERSISTENCE-02 | batch | 正常系 | [オフラインの変更を再接続後に同期できる](./persistence.md#persistence-02) |
 | PERSISTENCE-03 | write | 正常系 | [別のブラウザーに Card の変更を再読み込みなしで反映できる](./persistence.md#persistence-03) |
