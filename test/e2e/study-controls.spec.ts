@@ -29,7 +29,7 @@ test("STUDY-CONTROLS-01 advances a remote session on a primary upward mouse drag
     await page.goto(`/deck/${deck.id}/study`);
     await swipeFrontUp(page, currentCard.frontText);
   });
-  await test.step("Then: Good progress saves and the next card front appears", async () => {
+  await test.step("Then: Rated progress saves and the next card front appears", async () => {
     await expect(page.getByText(nextCard.frontText, { exact: true })).toBeVisible();
     await expect(page.getByText(nextCard.backText, { exact: true })).toBeHidden();
     await expect.poll(() => readProgress(currentCard.id)).toEqual({ reps: 1 });
@@ -324,7 +324,7 @@ test.describe("View mode", () => {
       await expect(page.getByRole("region", { name: "Card front text" })).toContainText(card.frontText);
       expect(await readProgress(card.id)).toEqual(before);
     });
-    await test.step("When: Use the existing Study reading-mode controls workflow", async () => {
+    await test.step("When: Toggle reading controls, switch between Study and View, and open Help", async () => {
       if (scenario.route === "study") await verifyStudyViewModeControls(page, fixture.user().uid, deck.id);
     });
   });
@@ -414,15 +414,15 @@ test.describe("View mode", () => {
 });
 
 test("STUDY-CONTROLS-09 shares and persists view mode across Study and Deck viewing", async ({ fixture, page }) => {
-  const { deck } = await test.step("Given: Reading mode has been enabled from an ordinary study card", async () => {
+  const { deck } = await test.step("Given: An ordinary study card with reading mode disabled", async () => {
     const deck = fixture.deck();
     await fixture.apply(page);
     await page.goto(`/deck/${deck.id}/study`);
     await expect(page.getByRole("region", { name: "Card front text" })).toHaveCount(0);
-    await enterViewMode(page);
     return { deck };
   });
-  await test.step("When: Reload Study", async () => {
+  await test.step("When: Enable reading mode and reload Study", async () => {
+    await enterViewMode(page);
     await page.reload();
   });
   await test.step("Then: Reading mode is restored", async () => {
@@ -596,7 +596,7 @@ for (const language of ["en", "ja"] as const) {
           return { deck, card };
         });
       const { progress, session, preferences, actions, buttons } =
-        await test.step("When: Open Study and record its settled entry baseline", async () => {
+        await test.step("Given: Study is open with its settled entry baseline", async () => {
           await page.goto(`/deck/${deck.id}/study`);
           await expect(page.getByRole("button", { name: card.frontText, exact: true })).toBeVisible();
           // Entering Study records its visit independently of the label-only interactions below.
