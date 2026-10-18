@@ -113,6 +113,7 @@ run = "npm run build:storybook"
 
 [tasks.e2e]
 alias = "e"
+usage = 'flag "--ui" help="Open Playwright UI"'
 depends = ["//sample:build"]
 env = { COMPOSE_FILE = ".devcontainer/compose.yaml:.devcontainer/compose.e2e.yaml" }
 run = """
@@ -126,7 +127,7 @@ trap cleanup EXIT
 # The E2E override forbids remote pulls, so local runs must create the same image that CI loads before startup.
 docker compose build app
 docker compose up --wait --wait-timeout 120 --remove-orphans
-if [ "${E2E_UI:-false}" = "true" ]; then
+if [ "${usage_ui:-false}" = "true" ]; then
   echo "Playwright UI: http://127.0.0.1:${E2E_UI_PORT:-8077}/ (open after the runner starts; Ctrl-C to stop)"
   docker compose run --rm --remove-orphans --publish "127.0.0.1:${E2E_UI_PORT:-8077}:8077" --entrypoint npm dev run e2e:ui -- --ui-host=0.0.0.0 --ui-port=8077
 else
@@ -138,8 +139,7 @@ fi
 description = "Run the existing E2E environment in Playwright UI mode"
 interactive = true
 depends = ["init"]
-env = { E2E_UI = "true" }
-run = [{ task = "e2e" }]
+run = [{ task = "e2e", args = ["--ui"] }]
 
 [tasks.check]
 alias = "c"
