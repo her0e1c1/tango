@@ -530,6 +530,7 @@ test("PERSISTENCE-10 keeps healthy study controls inside the mobile viewport wit
     body: await page.screenshot(),
     contentType: "image/png",
   });
+  // When: Start playback using the visible Play control.
   await page.getByRole("button", { name: "Play", exact: true }).click();
   // Then: Verify the expected result in the assertions below.
   await expect(page.getByRole("button", { name: "Pause", exact: true })).toBeVisible();

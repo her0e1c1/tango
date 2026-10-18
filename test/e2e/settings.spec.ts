@@ -505,7 +505,6 @@ test("SETTINGS-07 Advanced disclosure keeps keyboard focus visible without chang
         await expect(summary).toBeFocused();
         const captureFocus = async (state: string) => {
           // Given: Use this case's inputs and any shared test setup.
-          // When: Observe the prepared result through the following checks.
           // Then: Verify the expected result in the assertions below.
           await expect(summary).toBeInViewport();
           // Then: Measure the focused disclosure's visible outline.
@@ -528,8 +527,9 @@ test("SETTINGS-07 Advanced disclosure keeps keyboard focus visible without chang
             contentType: "image/png",
           });
         };
-        // When: Exercise `captureFocus` with the prepared inputs.
+        // Then: Verify the disclosure's focus visibility and record its rendered outline.
         await captureFocus("closed");
+        // When: Move keyboard focus back to the interval control.
         await page.keyboard.press("Shift+Tab");
         // Then: Verify the expected result in the assertions below.
         await expect(interval).toBeFocused();
@@ -541,7 +541,7 @@ test("SETTINGS-07 Advanced disclosure keeps keyboard focus visible without chang
         await page.keyboard.press("Enter");
         // Then: Verify the expected result in the assertions below.
         await expect(details).toHaveAttribute("open");
-        // When: Exercise `captureFocus` with the prepared inputs.
+        // Then: Verify the disclosure's focus visibility and record its rendered outline.
         await captureFocus("open");
         // Then: Verify the expected result in the assertions below.
         await expect(details.getByText("Version", { exact: true })).toBeVisible();

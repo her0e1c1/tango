@@ -228,7 +228,6 @@ describe("StudyAnswer persistence and access [STUDY-ACTIONS-01] [STUDY-ACTIONS-0
 
   it("[FIRESTORE-STUDY-ANSWER-04] records ten answers and completes", async () => {
     // Given: Use this case's inputs and any shared test setup.
-    // When: Exercise `operation` with the prepared inputs.
     let final = operation();
     for (const [index, cardId] of cardIds.entries()) {
       // Given: Use the current iteration or branch inputs from the enclosing case.
@@ -317,9 +316,9 @@ describe("StudyAnswer persistence and access [STUDY-ACTIONS-01] [STUDY-ACTIONS-0
       lastStudiedAt: 1000,
       remote: { uid, startedAt: 1000 },
     };
-    // When: Exercise `restoreStudySession` with the prepared inputs.
     restoreStudySession(session);
-    // Then: Verify the expected result in the assertions below.
+    // When: Persist an operation for the locally restored but missing remote session.
+    // Then: Report the failure while retaining the successful Card and answer writes.
     await expect(persistStudyOperation(input, session)).rejects.toBeDefined();
     expect((await getDoc(stateReference())).data()?.fsrs).toEqual(input.fsrs);
     expect((await getDoc(doc(connection.db, "studyAnswer", input.id))).data()?.sessionId).toBe("not-saved");
@@ -327,7 +326,7 @@ describe("StudyAnswer persistence and access [STUDY-ACTIONS-01] [STUDY-ACTIONS-0
       expect((await getDoc(doc(context.firestore(), "studySession", "not-saved"))).exists()).toBe(false);
     });
     expect((await getDoc(doc(connection.db, "studySession", sessionId))).data()?.currentIndex).toBe(0);
-    // When: Exercise `replaceAuthSession` with the prepared inputs.
+    // When: Switch the authenticated owner and attempt the previous owner's operation.
     replaceAuthSession({ status: "authenticated", uid: "other-user", isAnonymous: false, displayName: null });
     // Then: Verify the expected result in the assertions below.
     await expect(saveStudyOperation(operation())).rejects.toThrow("user changed");
@@ -337,19 +336,21 @@ describe("StudyAnswer persistence and access [STUDY-ACTIONS-01] [STUDY-ACTIONS-0
 
   it("[FIRESTORE-STUDY-ANSWER-10] keeps the answer and position when the Card write is denied", async () => {
     // Given: Use this case's inputs and any shared test setup.
-    // When: Exercise `operation` with the prepared inputs.
     const input = operation();
     await environment.withSecurityRulesDisabled(async (context) => {
       await updateDoc(doc(context.firestore(), "deck", deckId), { uid: "another-owner" });
     });
-    // Then: Verify the expected result in the assertions below.
+    // When: Save the operation after the parent Deck's owner has changed.
+    // Then: Reject the Card write while retaining its answer and advanced session position.
     await expect(saveStudyOperation(input)).rejects.toMatchObject({ code: "permission-denied" });
     expect((await answers()).size).toBe(1);
     expect((await getDoc(doc(connection.db, "studySession", sessionId))).data()?.currentIndex).toBe(1);
     expect(await hasState(input.cardId)).toBe(false);
+    // When: Restore the parent owner and retry the same operation.
     await environment.withSecurityRulesDisabled(async (context) => {
       await updateDoc(doc(context.firestore(), "deck", deckId), { uid });
     });
+    // Then: Reject its stale session position without adding another answer.
     await expect(saveStudyOperation(input)).rejects.toThrow("session does not match");
     expect((await getDoc(doc(connection.db, "studyAnswer", input.id))).data()?.answeredAt).toEqual(
       Timestamp.fromMillis(2000)
@@ -359,14 +360,14 @@ describe("StudyAnswer persistence and access [STUDY-ACTIONS-01] [STUDY-ACTIONS-0
   it.each(["sessionId", "cardId", "deckId"] as const)("[FIRESTORE-STUDY-ANSWER-11] queries by %s", async (field) => {
     // Given: Prepare `input` and any shared test state below.
     const input = operation();
-    // When: Exercise `saveStudyOperation` with the prepared inputs.
     await saveStudyOperation(input);
     const constraints: QueryConstraint[] = [where("uid", "==", uid), where(field, "==", input[field])];
     if (field !== "sessionId") constraints.push(orderBy("answeredAt", "desc"));
+    // When: Query the saved answer using the owner and this row's indexed field.
     const result = await assertSucceeds(getDocs(query(collection(connection.db, "studyAnswer"), ...constraints)));
     // Then: Verify the expected result in the assertions below.
     expect(result.docs.map(({ id }) => id)).toEqual([input.id]);
-    // When: Observe the prepared result through the following checks.
+    // When: Attempt the same field query without its required owner constraint.
     // Then: Verify the expected result in the assertions below.
     await assertFails(getDocs(query(collection(connection.db, "studyAnswer"), where(field, "==", input[field]))));
   });
@@ -514,9 +515,9 @@ describe("StudyAnswer persistence and access [STUDY-ACTIONS-01] [STUDY-ACTIONS-0
     "[FIRESTORE-STUDY-ANSWER-21] rejects invalid answer time %s before saving",
     async (answeredAt) => {
       // Given: Use this case's inputs and any shared test setup.
-      // When: Exercise `operation` with the prepared inputs.
       const input = { ...operation(), answeredAt };
-      // Then: Verify the expected result in the assertions below.
+      // When: Attempt to save the operation with this row's invalid answer time.
+      // Then: Reject validation before changing the Card, answer collection, or session.
       await expect(saveStudyOperation(input)).rejects.toBeDefined();
       expect((await getDoc(stateReference())).data()?.fsrs).toBeNull();
       expect((await answers()).size).toBe(0);
