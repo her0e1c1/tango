@@ -6,7 +6,10 @@ import { buildCardPlayerHelpRows } from "./buildCardPlayerHelpRows";
 
 describe("STUDY-CONTROLS-04 STUDY-CONTROLS-06 buildCardPlayerHelpRows", () => {
   it("explains scrolling, mode exit, and button playback while reading", () => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Exercise `buildCardPlayerHelpRows` with the prepared inputs.
     const rows = buildCardPlayerHelpRows(createPreferences({ controls: { viewMode: true } }));
+    // Then: Verify the expected result in the assertions below.
     expect(rows.slice(0, 4).every((row) => row.action === "viewModeScroll")).toBe(true);
     expect(rows).toContainEqual({ control: "flip", action: "exitViewMode" });
     expect(rows).toContainEqual({ control: "autoPlay", action: "viewModeAutoPlay" });
@@ -14,6 +17,7 @@ describe("STUDY-CONTROLS-04 STUDY-CONTROLS-06 buildCardPlayerHelpRows", () => {
   });
 
   it("maps configured directions to semantic control and action identifiers", () => {
+    // Given: Prepare `preferences` and any shared test state below.
     const preferences = createPreferences({
       controls: {
         cardSwipeUp: "GoBack",
@@ -23,8 +27,10 @@ describe("STUDY-CONTROLS-04 STUDY-CONTROLS-06 buildCardPlayerHelpRows", () => {
       },
     });
 
+    // When: Exercise `buildCardPlayerHelpRows` with the prepared inputs.
     const rows = buildCardPlayerHelpRows(preferences);
 
+    // Then: Verify the expected result in the assertions below.
     expect(rows.slice(0, 4)).toEqual([
       { control: "cardSwipeUp", action: "GoBack" },
       { control: "cardSwipeDown", action: "DoNothing" },
@@ -34,13 +40,16 @@ describe("STUDY-CONTROLS-04 STUDY-CONTROLS-06 buildCardPlayerHelpRows", () => {
   });
 
   it("describes hidden and unavailable controls from current preferences", () => {
+    // Given: Prepare `preferences` and any shared test state below.
     const preferences = createPreferences({
       cardInterval: 0,
       controls: { showViewMode: false, showSwipeButtonList: false, showPlaybackControls: false, showSkip: false },
     });
 
+    // When: Exercise `buildCardPlayerHelpRows` with the prepared inputs.
     const rows = buildCardPlayerHelpRows(preferences);
 
+    // Then: Verify the expected result in the assertions below.
     expect(rows).toEqual(
       expect.arrayContaining([
         { control: "viewMode", action: "viewModeHidden" },
@@ -53,16 +62,22 @@ describe("STUDY-CONTROLS-04 STUDY-CONTROLS-06 buildCardPlayerHelpRows", () => {
   });
 
   it("omits skip help when the player does not provide a skip control", () => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Exercise `buildCardPlayerHelpRows` with the prepared inputs.
     const rows = buildCardPlayerHelpRows(createPreferences(), {}, false);
 
+    // Then: Verify the expected result in the assertions below.
     expect(rows).not.toEqual(expect.arrayContaining([{ control: "skipControls", action: expect.any(String) }]));
   });
 
   it("keeps mapping identity independent from presentation locale", () => {
+    // Given: Prepare `preferences` and any shared test state below.
     const preferences = createPreferences({ controls: { cardSwipeRight: "RateGood" } });
 
+    // When: Exercise `buildCardPlayerHelpRows` with the prepared inputs.
     const rows = buildCardPlayerHelpRows(preferences);
 
+    // Then: Verify the expected result in the assertions below.
     expect(rows).toContainEqual({ control: "cardSwipeRight", action: "RateGood" });
   });
 });

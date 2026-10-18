@@ -4,6 +4,9 @@ import { expect, fn } from "storybook/test";
 
 import { Switch } from "./Switch";
 
+// Given: Story args and parameters define the render scenarios below.
+// When: Storybook renders each exported variant and runs its play when present.
+// Then: Assertions are in the relevant plays; rendering alone adds no behavioral checks.
 const meta = {
   title: "Shared/Forms/Switch",
   component: Switch,
@@ -19,8 +22,11 @@ export const Default: Story = {};
 export const Interaction: Story = {
   args: { "aria-label": "Interactive switch", onChange: fn() },
   play: async ({ args, canvas, userEvent }) => {
+    // Given: Use the rendered story, its args, parameters, and any setup below.
     const control = canvas.getByRole("checkbox", { name: "Interactive switch" });
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(control);
+    // Then: Verify the expected result in the assertions below.
     await expect(control).toBeChecked();
     await expect(args.onChange).toHaveBeenCalledOnce();
   },

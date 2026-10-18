@@ -78,6 +78,9 @@ const longDeck = {
   ...fixture.deck.tooLongName,
 };
 
+// Given: Story args and parameters define the render scenarios below.
+// When: Storybook renders each exported variant and runs its play when present.
+// Then: Assertions are in the relevant plays; rendering alone adds no behavioral checks.
 const meta = {
   title: "Features/Deck Form/DeckForm",
   component: DeckFormStory,
@@ -105,13 +108,19 @@ export const Saving: Story = { args: { mode: "edit", isSaving: true } };
 export const LongContent: Story = { args: { mode: "edit", deck: longDeck } };
 export const Interaction: Story = {
   play: async ({ canvas, userEvent, step }) => {
+    // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-DECK-FORM-01 Enter name and category", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
       const name = canvas.getByRole("textbox", { name: "Name" });
+      // When: Exercise `userEvent.type` with the prepared inputs.
       await userEvent.type(name, "New deck");
+      // Then: Verify the expected result in the assertions below.
       await expect(name).toHaveValue("New deck");
 
       const category = canvas.getByRole("combobox");
+      // When: Exercise `userEvent.selectOptions` with the prepared inputs.
       await userEvent.selectOptions(category, "math");
+      // Then: Verify the expected result in the assertions below.
       await expect(category).toHaveValue("math");
     });
   },

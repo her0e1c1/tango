@@ -73,6 +73,7 @@ describe("DeckEditPage (DECK-MANAGEMENT-01 DECK-MANAGEMENT-02 DECK-MANAGEMENT-03
   };
 
   beforeEach(async () => {
+    // Given: Establish the shared setup used by the following cases.
     dismissToast();
     mocks.preferences = createPreferences({ appearance: { darkMode: false } });
     mocks.setDarkMode.mockReset();
@@ -84,26 +85,35 @@ describe("DeckEditPage (DECK-MANAGEMENT-01 DECK-MANAGEMENT-02 DECK-MANAGEMENT-03
   });
 
   it("renders the stored deck editor in the application shell", () => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Exercise `renderPage` with the prepared inputs.
     renderPage();
 
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByRole("heading", { level: 1, name: "Deck name" })).toBeVisible();
     expect(screen.getByRole("textbox", { name: "Name" })).toHaveValue("Deck name");
     expect(screen.getByRole("button", { name: "tango" })).toBeVisible();
   });
 
   it("initializes the editor when the route Deck arrives after mount", async () => {
+    // Given: Prepare `delayedDeckId` and any shared test state below.
     const delayedDeckId = "delayed-deck";
+    // When: Exercise `renderPage` with the prepared inputs.
     renderPage(`/deck/${delayedDeckId}/edit`);
 
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByRole("heading", { level: 1, name: "Deck not found" })).toBeVisible();
+    // When: Exercise `actAsync` with the prepared inputs.
     await actAsync(async () => {
       await createDeck("user-id", createLocalDeck({ id: delayedDeckId, name: "Delayed deck" }));
     });
 
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByRole("textbox", { name: "Name" })).toHaveValue("Delayed deck");
   });
 
   it("resets page-owned state when navigating to a different Deck", async () => {
+    // Given: Prepare `nextDeckId`, `router` and any shared test state below.
     const nextDeckId = "next-deck";
     await createDeck("user-id", createLocalDeck({ id: nextDeckId, name: "Next deck" }));
     const router = createMemoryRouter(
@@ -122,27 +132,32 @@ describe("DeckEditPage (DECK-MANAGEMENT-01 DECK-MANAGEMENT-02 DECK-MANAGEMENT-03
     );
     render(<RouterProvider router={router} />);
 
+    // When: Exercise `userEvent.clear` with the prepared inputs.
     await userEvent.clear(screen.getByRole("textbox", { name: "Name" }));
     await userEvent.type(screen.getByRole("textbox", { name: "Name" }), "Unsaved name");
 
     await userEvent.click(screen.getByRole("link", { name: "Next deck" }));
     await userEvent.click(screen.getByRole("button", { name: "Discard changes" }));
 
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByRole("textbox", { name: "Name" })).toHaveValue("Next deck");
     expect(screen.queryByRole("alertdialog", { name: "Discard unsaved changes?" })).not.toBeInTheDocument();
   });
 
   it.each([false, true])("saves other fields without changing legacy convertToBr=%s", async (convertToBr) => {
+    // Given: Use this case's inputs and any shared test setup.
     await createDeck("user-id", createLocalDeck({ id: deckId, name: "Deck name", category: "", convertToBr }));
     renderPage();
     expect(screen.queryByRole("checkbox", { name: "Convert line breaks", hidden: true })).not.toBeInTheDocument();
     expect(screen.queryByText("More settings")).not.toBeInTheDocument();
 
+    // When: Exercise `userEvent.clear` with the prepared inputs.
     await userEvent.clear(screen.getByRole("textbox", { name: "Name" }));
     await userEvent.type(screen.getByRole("textbox", { name: "Name" }), "Saved deck");
     await userEvent.selectOptions(screen.getByRole("combobox"), "math");
     await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
 
+    // Then: Verify the expected result in the assertions below.
     expect(await screen.findByRole("heading", { level: 1, name: "Deck list" })).toBeVisible();
     expect(screen.getByText("Updated deck “Saved deck”.")).toBeVisible();
     expect(getDecks().find((deck) => deck.id === deckId)).toMatchObject({
@@ -153,27 +168,36 @@ describe("DeckEditPage (DECK-MANAGEMENT-01 DECK-MANAGEMENT-02 DECK-MANAGEMENT-03
   });
 
   it("navigates to the deck list after cancellation", async () => {
+    // Given: Use this case's inputs and any shared test setup.
     renderPage();
 
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByRole("button", { name: "Back to decks" }));
 
+    // Then: Verify the expected result in the assertions below.
     expect(await screen.findByRole("heading", { level: 1, name: "Deck list" })).toBeVisible();
   });
 
   it("blocks cancellation while the Deck form is dirty", async () => {
+    // Given: Prepare `name` and any shared test state below.
     renderPage();
     const name = screen.getByRole("textbox", { name: "Name" });
+    // When: Exercise `userEvent.clear` with the prepared inputs.
     await userEvent.clear(name);
     await userEvent.type(name, "Unsaved deck");
 
     await userEvent.click(screen.getByRole("button", { name: "Back to decks" }));
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByRole("alertdialog", { name: "Discard unsaved changes?" })).toBeVisible();
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByRole("button", { name: "Keep editing" }));
 
+    // Then: Verify the expected result in the assertions below.
     expect(name).toHaveValue("Unsaved deck");
   });
 
   it("keeps the opening Deck snapshot and disables the editor while saving", async () => {
+    // Given: Prepare `resolveWrite`, `view`, `name` and any shared test state below.
     let resolveWrite: () => void = () => undefined;
     mocks.beforeDeckWrite = () =>
       new Promise<void>((resolve) => {
@@ -183,24 +207,31 @@ describe("DeckEditPage (DECK-MANAGEMENT-01 DECK-MANAGEMENT-02 DECK-MANAGEMENT-03
     mocks.remoteDeck = createRemoteDeck({ id: deckId, name: "Deck name" });
     const view = renderPage();
     const name = screen.getByRole("textbox", { name: "Name" });
+    // When: Exercise `userEvent.clear` with the prepared inputs.
     await userEvent.clear(name);
     await userEvent.type(name, "Submitted deck");
 
     await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
+    // Then: Verify the expected result in the assertions below.
     expect(await screen.findByRole("button", { name: "Saving…" })).toBeDisabled();
     mocks.remoteDeck = createRemoteDeck({ id: deckId, name: "Subscription deck" });
+    // When: Exercise `view.rerenderRouter` with the prepared inputs.
     view.rerenderRouter();
 
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByRole("button", { name: "Saving…" })).toBeDisabled();
     expect(name).toHaveValue("Submitted deck");
     expect(screen.getByRole("button", { name: "Back to decks" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Delete deck" })).toBeDisabled();
+    // When: Exercise `actAsync` with the prepared inputs.
     await actAsync(async () => resolveWrite());
 
+    // Then: Verify the expected result in the assertions below.
     expect(await screen.findByRole("heading", { level: 1, name: "Deck list" })).toBeVisible();
   });
 
   it("does not navigate when saving finishes after the Page unmounts", async () => {
+    // Given: Prepare `resolveWrite`, `view` and any shared test state below.
     let resolveWrite: () => void = () => undefined;
     mocks.beforeDeckWrite = () =>
       new Promise<void>((resolve) => {
@@ -209,45 +240,62 @@ describe("DeckEditPage (DECK-MANAGEMENT-01 DECK-MANAGEMENT-02 DECK-MANAGEMENT-03
     mocks.skipDeckWrite = true;
     const view = renderPage();
 
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
+    // Then: Verify the expected result in the assertions below.
     expect(await screen.findByRole("button", { name: "Saving…" })).toBeDisabled();
     const openingPath = view.router.state.location.pathname;
+    // When: Exercise `view.unmount` with the prepared inputs.
     view.unmount();
     await actAsync(async () => resolveWrite());
 
+    // Then: Verify the expected result in the assertions below.
     expect(view.router.state.location.pathname).toBe(openingPath);
   });
 
   it("shows navigation confirmation above an open deletion dialog", async () => {
+    // Given: Prepare `view`, `name` and any shared test state below.
     const view = renderPage();
     const name = screen.getByRole("textbox", { name: "Name" });
+    // When: Exercise `userEvent.clear` with the prepared inputs.
     await userEvent.clear(name);
     await userEvent.type(name, "Unsaved deck");
     await userEvent.click(screen.getByRole("button", { name: "Delete deck" }));
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByRole("alertdialog", { name: "Delete deck?" })).toBeVisible();
 
+    // When: Exercise `actAsync` with the prepared inputs.
     await actAsync(async () => {
       await view.router.navigate(-1);
     });
 
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByRole("alertdialog", { name: "Discard unsaved changes?" })).toBeVisible();
     expect(screen.queryByRole("alertdialog", { name: "Delete deck?" })).not.toBeInTheDocument();
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByRole("button", { name: "Keep editing" }));
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByRole("alertdialog", { name: "Delete deck?" })).toBeVisible();
     expect(name).toHaveValue("Unsaved deck");
   });
 
   it("deletes the deck from its settings page after confirmation", async () => {
+    // Given: Use this case's inputs and any shared test setup.
     renderPage();
 
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByRole("button", { name: "Delete deck" }));
     const dialog = screen.getByRole("alertdialog", { name: "Delete deck?" });
+    // Then: Verify the expected result in the assertions below.
     expect(dialog).toHaveTextContent("Deck name");
     expect(dialog).toHaveTextContent("This permanently deletes 0 cards in this deck.");
 
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(within(dialog).getByRole("button", { name: "Cancel" }));
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByRole("heading", { level: 1, name: "Deck name" })).toBeVisible();
 
+    // When: Exercise `userEvent.clear` with the prepared inputs.
     await userEvent.clear(screen.getByRole("textbox", { name: "Name" }));
     await userEvent.type(screen.getByRole("textbox", { name: "Name" }), "Unsaved before deletion");
     await userEvent.click(screen.getByRole("button", { name: "Delete deck" }));
@@ -255,12 +303,14 @@ describe("DeckEditPage (DECK-MANAGEMENT-01 DECK-MANAGEMENT-02 DECK-MANAGEMENT-03
       within(screen.getByRole("alertdialog", { name: "Delete deck?" })).getByRole("button", { name: "Delete deck" })
     );
 
+    // Then: Verify the expected result in the assertions below.
     expect(await screen.findByRole("heading", { level: 1, name: "Deck list" })).toBeVisible();
     expect(screen.getByText("Deleted deck “Deck name”.")).toBeVisible();
     expect(screen.queryByRole("alertdialog", { name: "Discard unsaved changes?" })).not.toBeInTheDocument();
   });
 
   it("keeps the new deletion dialog pending when an earlier visit finishes", async () => {
+    // Given: Prepare `nextDeckId`, `finishOldDelete`, `view` and any shared test state below.
     const nextDeckId = "next-deletion-deck";
     await createDeck("user-id", createLocalDeck({ id: nextDeckId, name: "Next deck" }));
     let finishOldDelete: () => void = () => undefined;
@@ -269,6 +319,7 @@ describe("DeckEditPage (DECK-MANAGEMENT-01 DECK-MANAGEMENT-02 DECK-MANAGEMENT-03
         finishOldDelete = resolve;
       });
     const view = renderPage();
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByRole("button", { name: "Delete deck" }));
     await userEvent.click(
       within(screen.getByRole("alertdialog", { name: "Delete deck?" })).getByRole("button", { name: "Delete deck" })
@@ -281,37 +332,52 @@ describe("DeckEditPage (DECK-MANAGEMENT-01 DECK-MANAGEMENT-02 DECK-MANAGEMENT-03
         finishNewDelete = resolve;
       });
     renderPage(`/deck/${nextDeckId}/edit`);
+    // Then: Verify the expected result in the assertions below.
     expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByRole("button", { name: "Delete deck" }));
     const dialog = screen.getByRole("alertdialog", { name: "Delete deck?" });
+    // Then: Verify the expected result in the assertions below.
     expect(dialog).toHaveTextContent("Next deck");
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(within(dialog).getByRole("button", { name: "Delete deck" }));
 
     await actAsync(async () => finishOldDelete());
+    // Then: Verify the expected result in the assertions below.
     expect(dialog).toBeVisible();
     expect(within(dialog).getByRole("button", { name: "Cancel" })).toBeDisabled();
     expect(screen.queryByText("Deleted deck “Deck name”.")).not.toBeInTheDocument();
 
+    // When: Exercise `actAsync` with the prepared inputs.
     await actAsync(async () => finishNewDelete());
+    // Then: Verify the expected result in the assertions below.
     expect(await screen.findByRole("heading", { level: 1, name: "Deck list" })).toBeVisible();
     expect(screen.getByText("Deleted deck “Next deck”.")).toBeVisible();
   });
 
   it("navigates with both recovery actions when the deck is unavailable", async () => {
+    // Given: Prepare `view` and any shared test state below.
     const view = renderPage("/deck/missing-deck/edit");
 
     expect(screen.getByRole("heading", { level: 1, name: "Deck not found" })).toBeVisible();
     expect(screen.queryByRole("button", { name: "tango" })).not.toBeInTheDocument();
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByRole("button", { name: "Go home" }));
+    // Then: Verify the expected result in the assertions below.
     expect(await screen.findByRole("heading", { level: 1, name: "Deck list" })).toBeVisible();
 
+    // When: Exercise `view.unmount` with the prepared inputs.
     view.unmount();
     renderPage("/deck/missing-deck/edit");
     await userEvent.click(screen.getByRole("button", { name: "Go back" }));
+    // Then: Verify the expected result in the assertions below.
     expect(await screen.findByRole("heading", { level: 1, name: "Previous page" })).toBeVisible();
   });
 
   it("rejects a route without a deck id", () => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Evaluate `render` as part of the following checks.
+    // Then: Verify the expected result in the assertions below.
     expect(() =>
       render(
         <MemoryRouter>

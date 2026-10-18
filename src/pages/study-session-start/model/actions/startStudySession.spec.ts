@@ -55,6 +55,7 @@ vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
 describe("Study start persistence mode [STUDY-SESSION-01] [STUDY-SESSION-07] [PERSISTENCE-04]", () => {
   beforeEach(() => {
+    // Given: Establish the shared setup used by the following cases.
     clearStudySessions();
     mocks.cards = null;
     mocks.useCardInterval = false;
@@ -63,20 +64,27 @@ describe("Study start persistence mode [STUDY-SESSION-01] [STUDY-SESSION-07] [PE
   });
 
   it.each([true, false])("uses the same persistence path for anonymous=%s", async (isAnonymous) => {
+    // Given: Prepare `deck` and any shared test state below.
     replaceAuthSession({ status: "authenticated", uid: "uid", isAnonymous, displayName: null });
     const deck = createDeck({ id: "deck", uid: "uid" });
     mocks.deck = deck;
+    // When: Evaluate `startStudySession` as part of the following checks.
+    // Then: Verify the expected result in the assertions below.
     expect(await startStudySession(deck.id, getStudyFilter(deck))).toEqual(expect.any(String));
     expect(getStudySession(deck.id)).toMatchObject({ cardOrderIds: ["card"], currentIndex: 0, remote: { uid: "uid" } });
   });
   it("rejects a different account after an identity switch before Start", async () => {
+    // Given: Prepare `deck` and any shared test state below.
     const deck = createDeck({ id: "deck", uid: "uid" });
     replaceAuthSession({ status: "authenticated", uid: "current", isAnonymous: false, displayName: null });
+    // When: Evaluate `startStudySession` as part of the following checks.
+    // Then: Verify the expected result in the assertions below.
     expect(await startStudySession(deck.id, getStudyFilter(deck))).toBeUndefined();
     expect(getStudySession("deck")).toBeUndefined();
   });
   afterEach(() => vi.useRealTimers());
   it("reselects at click time and refuses an empty selection [STUDY-SESSION-02]", async () => {
+    // Given: Prepare `now`, `deck` and any shared test state below.
     vi.useFakeTimers();
     const now = Date.parse("2026-09-21T00:00:00Z");
     vi.setSystemTime(now);
@@ -90,6 +98,8 @@ describe("Study start persistence mode [STUDY-SESSION-01] [STUDY-SESSION-07] [PE
       }),
     ];
     const deck = createDeck({ id: "deck", uid: "uid" });
+    // When: Evaluate `startStudySession` as part of the following checks.
+    // Then: Verify the expected result in the assertions below.
     expect(await startStudySession(deck.id, getStudyFilter(deck))).toBeUndefined();
     expect(getStudySession(deck.id)).toBeUndefined();
     vi.setSystemTime(now + 1000);

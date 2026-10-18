@@ -26,6 +26,9 @@ const InteractiveController: React.FC<React.ComponentProps<typeof Controller>> =
   );
 };
 
+// Given: Story args and parameters define the render scenarios below.
+// When: Storybook renders each exported variant and runs its play when present.
+// Then: Assertions are in the relevant plays; rendering alone adds no behavioral checks.
 const meta = {
   title: "Features/Card Player/Controller",
   component: Controller,
@@ -49,8 +52,12 @@ export const Default: Story = {};
 
 export const Interaction: Story = {
   play: async ({ args, canvas, userEvent, step }) => {
+    // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-STUDY-CONTROLS-01 Toggle playback", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
+      // When: Exercise `userEvent.click` with the prepared inputs.
       await userEvent.click(canvas.getByRole("button", { name: "Play" }));
+      // Then: Verify the expected result in the assertions below.
       await expect(args.onToggleAutoPlay).toHaveBeenCalledOnce();
       await expect(canvas.getByRole("button", { name: "Pause" })).toBePressed();
     });
@@ -73,9 +80,13 @@ export const Saving: Story = { args: { disabled: true } };
 
 export const KeyboardPlayback: Story = {
   play: async ({ args, canvas, userEvent, step }) => {
+    // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-STUDY-CONTROLS-03 Request playback with Enter", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
       canvas.getByRole("button", { name: "Play" }).focus();
+      // When: Exercise `userEvent.keyboard` with the prepared inputs.
       await userEvent.keyboard("{Enter}");
+      // Then: Verify the expected result in the assertions below.
       await expect(args.onToggleAutoPlay).toHaveBeenCalledOnce();
     });
   },
@@ -84,8 +95,12 @@ export const KeyboardPlayback: Story = {
 export const ChangePosition: Story = {
   args: { index: 0, numberOfCards: 5 },
   play: async ({ args, canvas, step }) => {
+    // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-STUDY-CONTROLS-04 Request a numeric position", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
+      // When: Exercise `fireEvent.change` with the prepared inputs.
       await fireEvent.change(canvas.getByRole("slider"), { target: { value: "3" } });
+      // Then: Verify the expected result in the assertions below.
       await expect(args.onChange).toHaveBeenLastCalledWith(3);
     });
   },

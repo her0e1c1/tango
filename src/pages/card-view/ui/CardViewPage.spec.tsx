@@ -39,6 +39,7 @@ describe("CARD-VIEW-04 CARD-VIEW-05 CardViewPage", () => {
     );
 
   beforeEach(async () => {
+    // Given: Establish the shared setup used by the following cases.
     mocks.preferences = createPreferences({ appearance: { darkMode: false } });
     mocks.setDarkMode.mockReset();
     await createDeck("user-id", createLocalDeck({ id: deckId, category: "raw" }));
@@ -49,13 +50,17 @@ describe("CARD-VIEW-04 CARD-VIEW-05 CardViewPage", () => {
   });
 
   it("renders the stored card answer in the application shell", () => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Exercise `renderPage` with the prepared inputs.
     renderPage();
 
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByRole("region", { name: "Card answer" })).toHaveTextContent("Back text");
     expect(screen.getByRole("button", { name: "tango" })).toBeVisible();
   });
 
   it("updates the answer when the route selects another card without remounting", async () => {
+    // Given: Use this case's inputs and any shared test setup.
     await createCard("user-id", createLocalCard({ id: "second-card", deckId, backText: "Second answer" }));
     render(
       <MemoryRouter initialEntries={[`/card/${cardId}`]}>
@@ -68,27 +73,37 @@ describe("CARD-VIEW-04 CARD-VIEW-05 CardViewPage", () => {
 
     expect(screen.getByRole("region", { name: "Card answer" })).toHaveTextContent("Back text");
 
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByRole("link", { name: "View second card" }));
 
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByRole("region", { name: "Card answer" })).toHaveTextContent("Second answer");
     expect(screen.getByRole("region", { name: "Card answer" })).not.toHaveTextContent("Back text");
   });
 
   it("navigates with both recovery actions when the card is unavailable", async () => {
+    // Given: Prepare `view` and any shared test state below.
     const view = renderPage("/card/missing-card");
 
     expect(screen.getByRole("heading", { level: 1, name: "Card not found" })).toBeVisible();
     expect(screen.queryByRole("button", { name: "tango" })).not.toBeInTheDocument();
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByRole("button", { name: "Go home" }));
+    // Then: Verify the expected result in the assertions below.
     expect(await screen.findByRole("heading", { level: 1, name: "Deck list destination" })).toBeVisible();
 
+    // When: Exercise `view.unmount` with the prepared inputs.
     view.unmount();
     renderPage("/card/missing-card");
     await userEvent.click(screen.getByRole("button", { name: "Go back" }));
+    // Then: Verify the expected result in the assertions below.
     expect(await screen.findByRole("heading", { level: 1, name: "Previous page" })).toBeVisible();
   });
 
   it("rejects a route without a card id", () => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Evaluate `render` as part of the following checks.
+    // Then: Verify the expected result in the assertions below.
     expect(() =>
       render(
         <MemoryRouter>

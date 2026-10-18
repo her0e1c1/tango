@@ -18,11 +18,14 @@ function emptyDays(start: string, length: number) {
 
 describe("STUDY-SESSION-09 STUDY-SESSION-13 study history chart", () => {
   it("shows one start and completion on their date throughout the initial 30-day period", () => {
+    // Given: Prepare `days` and any shared test state below.
     const days = emptyDays("2026-03-02", 30);
     days[29] = { date: midnight("2026-03-31"), started: 1, completed: 1 };
 
+    // When: Exercise `getStudyHistoryChart` with the prepared inputs.
     const chart = getStudyHistoryChart(days);
 
+    // Then: Verify the expected result in the assertions below.
     expect(chart.bucketSize).toBe(1);
     expect(chart.buckets).toEqual([
       ...Array.from({ length: 29 }, (_, index) => {
@@ -36,6 +39,7 @@ describe("STUDY-SESSION-09 STUDY-SESSION-13 study history chart", () => {
   });
 
   it("sums independent counts into seven-day intervals and preserves the final partial interval", () => {
+    // Given: Prepare `days` and any shared test state below.
     const days = emptyDays("2026-01-01", 90);
     for (const [index, started, completed] of [
       [0, 1, 0],
@@ -45,11 +49,16 @@ describe("STUDY-SESSION-09 STUDY-SESSION-13 study history chart", () => {
       [84, 4, 2],
       [89, 1, 0],
     ] as const) {
+      // Given: Use the current iteration or branch inputs from the enclosing case.
+      // When: Apply the operation or event under test.
       days[index] = { date: days[index]!.date, started, completed };
+      // Then: The invoked verification helper checks the case's expected result.
     }
 
     const chart = getStudyHistoryChart(days);
 
+    // When: Observe the prepared result through the following checks.
+    // Then: Verify the expected result in the assertions below.
     expect(chart.bucketSize).toBe(7);
     expect(chart.buckets).toEqual([
       bucket("2026-01-01", "2026-01-07", 3, 1),
@@ -77,10 +86,13 @@ describe("STUDY-SESSION-09 STUDY-SESSION-13 study history chart", () => {
     { length: 181, bucketSize: 30 },
     { length: 366, bucketSize: 30 },
   ])("groups the $length-day range into $bucketSize-day intervals", ({ length, bucketSize }) => {
+    // Given: Prepare `days` and any shared test state below.
     const days = emptyDays("2026-01-03", length).map((day) => ({ ...day, started: 1, completed: 2 }));
 
+    // When: Exercise `getStudyHistoryChart` with the prepared inputs.
     const chart = getStudyHistoryChart(days);
 
+    // Then: Verify the expected result in the assertions below.
     expect(chart.bucketSize).toBe(bucketSize);
     expect(chart.buckets).toEqual(
       Array.from({ length: Math.ceil(length / bucketSize) }, (_, index) => {
@@ -93,15 +105,21 @@ describe("STUDY-SESSION-09 STUDY-SESSION-13 study history chart", () => {
   });
 
   it.each([367, 768, 1000])("covers the entire %i-day range in at most 24 intervals", (length) => {
+    // Given: Prepare `days` and any shared test state below.
     const days = emptyDays("2026-01-03", length).map((day) => ({ ...day, started: 1, completed: 2 }));
 
+    // When: Exercise `getStudyHistoryChart` with the prepared inputs.
     const chart = getStudyHistoryChart(days);
 
+    // Then: Verify the expected result in the assertions below.
     expect(chart.buckets.length).toBeGreaterThan(0);
     expect(chart.buckets.length).toBeLessThanOrEqual(24);
     let nextDay = 0;
     for (const interval of chart.buckets) {
+      // Given: Use the current iteration or branch inputs from the enclosing case.
+      // When: Exercise `days.findIndex` with the prepared inputs.
       const lastDay = days.findIndex((day) => day.date === interval.endDate);
+      // Then: Verify the expected result in the assertions below.
       expect(lastDay).toBeGreaterThanOrEqual(nextDay);
       const count = lastDay - nextDay + 1;
       expect(interval).toEqual({
@@ -151,8 +169,11 @@ describe("STUDY-SESSION-09 STUDY-SESSION-13 study history chart", () => {
       bucketSize: 7,
     },
   ])("does not invent counts in the empty $preset-day preset", ({ preset, start, expected, bucketSize }) => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Exercise `getStudyHistoryChart` with the prepared inputs.
     const chart = getStudyHistoryChart(emptyDays(start, preset));
 
+    // Then: Verify the expected result in the assertions below.
     expect(chart.bucketSize).toBe(bucketSize);
     expect(chart.buckets).toEqual(expected);
     expect(Number.isFinite(chart.maximum)).toBe(true);

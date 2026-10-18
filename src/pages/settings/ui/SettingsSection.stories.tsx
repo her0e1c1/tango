@@ -38,6 +38,9 @@ const SettingsSectionStory = (args: SettingsSectionProps) => {
   );
 };
 
+// Given: Story args and parameters define the render scenarios below.
+// When: Storybook renders each exported variant and runs its play when present.
+// Then: Assertions are in the relevant plays; rendering alone adds no behavioral checks.
 const meta = {
   title: "Pages/Settings/SettingsSection",
   component: SettingsSection,
@@ -76,9 +79,13 @@ export const Row: Story = {
 export const Interaction: Story = {
   render: (args) => <SettingsSectionStory {...args} />,
   play: async ({ canvas, userEvent, step }) => {
+    // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-SETTINGS-03 Toggle setting row", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
       const control = canvas.getByRole("checkbox", { name: "Show swipe controls" });
+      // When: Exercise `userEvent.click` with the prepared inputs.
       await userEvent.click(control);
+      // Then: Verify the expected result in the assertions below.
       await expect(control).not.toBeChecked();
       await expect(onShowSwipeControlsChange).toHaveBeenCalledOnce();
     });

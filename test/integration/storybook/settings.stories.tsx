@@ -17,6 +17,9 @@ const page = {
     },
   },
 };
+// Given: Story args and parameters define the render scenarios below.
+// When: Storybook renders each exported variant and runs its play when present.
+// Then: Assertions are in the relevant plays; rendering alone adds no behavioral checks.
 const meta = { ...routeMeta, title: "Integration/Settings", parameters: { ...routeMeta.parameters, page } };
 export default meta;
 type Story = StoryObj<typeof meta>;
@@ -24,12 +27,19 @@ type Story = StoryObj<typeof meta>;
 export const Japanese: Story = {
   parameters: { locale: "ja" },
   play: async ({ canvas, step }) => {
+    // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-SETTINGS-01 Keep System selected while following the Japanese browser language", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
+      // When: Evaluate `canvas.findByRole` as part of the following checks.
+      // Then: Verify the expected result in the assertions below.
       await expect(await canvas.findByRole("heading", { name: "設定" })).toBeVisible();
       await expect(canvas.getByRole("combobox", { name: "言語" })).toHaveDisplayValue("System");
       await expect(document.documentElement).toHaveAttribute("lang", "ja");
     });
     await step("STORYBOOK-SETTINGS-08 Expose localized control names and slider values", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
+      // When: Evaluate `canvas.getByRole` as part of the following checks.
+      // Then: Verify the expected result in the assertions below.
       await expect(canvas.getByRole("checkbox", { name: "裏面のスワイプ操作を表示" })).toBeVisible();
       await expect(canvas.getByRole("checkbox", { name: "ダークモード" })).toBeVisible();
       await expect(canvas.getByRole("slider", { name: "最大カード数" })).toHaveAttribute("aria-valuetext", "24枚");
@@ -39,18 +49,27 @@ export const Japanese: Story = {
 };
 export const Controls: Story = {
   play: async ({ canvas, userEvent, step }) => {
+    // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-SETTINGS-02 Toggle playback visibility in both directions", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
       const control = await canvas.findByRole("checkbox", { name: "Show playback controls" });
       await expect(control).toBeChecked();
+      // When: Exercise `userEvent.click` with the prepared inputs.
       await userEvent.click(control);
+      // Then: Verify the expected result in the assertions below.
       await expect(control).not.toBeChecked();
+      // When: Exercise `userEvent.click` with the prepared inputs.
       await userEvent.click(control);
+      // Then: Verify the expected result in the assertions below.
       await expect(control).toBeChecked();
     });
     await step("STORYBOOK-SETTINGS-03 Toggle swipe visibility independently", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
       const control = canvas.getByRole("checkbox", { name: "Show swipe controls" });
       await expect(control).toBeChecked();
+      // When: Exercise `userEvent.click` with the prepared inputs.
       await userEvent.click(control);
+      // Then: Verify the expected result in the assertions below.
       await expect(control).not.toBeChecked();
       await expect(canvas.getByRole("checkbox", { name: "Show playback controls" })).toBeChecked();
       await expect(canvas.getByRole("checkbox", { name: "Show card details" })).toBeChecked();
@@ -59,7 +78,11 @@ export const Controls: Story = {
 };
 export const Structure: Story = {
   play: async ({ canvas, userEvent, step }) => {
+    // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-SETTINGS-04 Keep account operations outside settings", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
+      // When: Evaluate `canvas.findByRole` as part of the following checks.
+      // Then: Verify the expected result in the assertions below.
       await expect(await canvas.findByRole("heading", { name: "Settings" })).toBeVisible();
       for (const name of ["Language", "Appearance", "Study"])
         await expect(canvas.getByRole("region", { name })).toBeVisible();
@@ -69,6 +92,7 @@ export const Structure: Story = {
       await expect(canvas.queryByRole("button", { name: /Sign in|Sign out/ })).not.toBeInTheDocument();
     });
     await step("STORYBOOK-SETTINGS-06 Show review guidance and build metadata", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
       const schedule = canvas.getByRole("checkbox", { name: "Respect review schedule" });
       await expect(schedule).toBeChecked();
       await expect(schedule).toHaveAccessibleDescription("Hide cards until their next review time");
@@ -76,7 +100,9 @@ export const Structure: Story = {
         "aria-valuetext",
         "7 seconds"
       );
+      // When: Exercise `userEvent.click` with the prepared inputs.
       await userEvent.click(canvas.getByText("Advanced", { exact: true }));
+      // Then: Verify the expected result in the assertions below.
       await expect(canvas.getByText("1.2.3")).toBeVisible();
       await expect(canvas.getByRole("link", { name: "0123456" })).toHaveAttribute(
         "href",
@@ -84,12 +110,18 @@ export const Structure: Story = {
       );
     });
     await step("STORYBOOK-SETTINGS-07 Associate labels, explanations, and section headings", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
       for (const name of ["Language", "Appearance", "Study"]) {
+        // Given: Prepare `region` and any shared test state below.
         const region = canvas.getByRole("region", { name });
+        // When: Evaluate `within(region).getByRole` as part of the following checks.
+        // Then: Verify the expected result in the assertions below.
         await expect(region).toHaveAttribute("aria-labelledby", within(region).getByRole("heading", { name }).id);
         for (const icon of region.querySelectorAll("svg"))
           await expect(icon.closest('[aria-hidden="true"]')).not.toBeNull();
       }
+      // When: Evaluate `canvas.getByRole` as part of the following checks.
+      // Then: Verify the expected result in the assertions below.
       await expect(canvas.getByRole("checkbox", { name: "Dark mode" })).toHaveAccessibleDescription(
         "Use the darker Calm Focus palette"
       );
@@ -98,27 +130,39 @@ export const Structure: Story = {
 };
 export const LanguageAndInputs: Story = {
   play: async ({ canvas, userEvent, step }) => {
+    // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-SETTINGS-05 Apply language and control changes through the Page model", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
+      // When: Exercise `userEvent.selectOptions` with the prepared inputs.
       await userEvent.selectOptions(await canvas.findByRole("combobox", { name: "Language" }), "ja");
+      // Then: Verify the expected result in the assertions below.
       await expect(await canvas.findByRole("heading", { name: "設定" })).toBeVisible();
       await expect(canvas.getByRole("combobox", { name: "言語" })).toHaveValue("ja");
       for (const name of ["再生コントロールを表示", "カードの詳細を表示", "スキップ操作を表示"]) {
+        // Given: Prepare `control` and any shared test state below.
+        // When: Exercise `canvas.getByRole` with the prepared inputs.
         const control = canvas.getByRole("checkbox", { name });
         await userEvent.click(control);
+        // Then: Verify the expected result in the assertions below.
         await expect(control).not.toBeChecked();
       }
       const overlays = canvas.getByRole("checkbox", { name: "裏面のスワイプ操作を表示" });
+      // When: Exercise `userEvent.click` with the prepared inputs.
       await userEvent.click(overlays);
+      // Then: Verify the expected result in the assertions below.
       await expect(overlays).toBeChecked();
       await expect(overlays).toHaveAccessibleDescription("回答の表示中に左右の学習操作を表示します");
       const maximum = canvas.getByRole("slider", { name: "最大カード数" });
+      // When: Exercise `fireEvent.change` with the prepared inputs.
       await fireEvent.change(maximum, { target: { value: "31" } });
+      // Then: Verify the expected result in the assertions below.
       await expect(maximum).toHaveAttribute("aria-valuetext", "31枚");
       await expect(maximum).toHaveValue("31");
     });
   },
 };
 function maximumStory(japanese: boolean): Story {
+  // Given: Prepare `sliderLabel`, `description`, `allMatchingText` and any shared test state below.
   const sliderLabel = japanese ? "最大カード数" : "Maximum cards";
   const description = japanese ? /0 は.*すべてのカード/ : /0 includes all cards matching tags/;
   const allMatchingText = japanese ? "条件に一致するすべてのカード" : "All matching cards";
@@ -129,6 +173,8 @@ function maximumStory(japanese: boolean): Story {
     { value: "0", spoken: allMatchingText, visible: allMatchingText },
   ];
 
+  // When: Evaluate `step` as part of the following checks.
+  // Then: Verify the expected result in the assertions below.
   return {
     parameters: {
       locale: japanese ? "ja" : "en",
@@ -138,13 +184,18 @@ function maximumStory(japanese: boolean): Story {
       },
     },
     play: async ({ canvas, step }) => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
       await step("STORYBOOK-SETTINGS-09 Describe all matching cards at zero", async () => {
+        // Given: Use the rendered story, its args, parameters, and any setup below.
         const slider = await canvas.findByRole("slider", { name: sliderLabel });
         await expect(slider).toHaveAttribute("min", "0");
         await expect(slider).toHaveAttribute("max", "100");
         await expect(slider).toHaveAccessibleDescription(description);
         for (const { value, spoken, visible } of cases) {
+          // Given: Use the current iteration or branch inputs from the enclosing case.
+          // When: Exercise `fireEvent.change` with the prepared inputs.
           await fireEvent.change(slider, { target: { value } });
+          // Then: Verify the expected result in the assertions below.
           await expect(slider).toHaveAttribute("aria-valuetext", spoken);
           await expect(canvas.getByText(visible, { exact: true })).toBeVisible();
         }
@@ -155,6 +206,7 @@ function maximumStory(japanese: boolean): Story {
 export const Maximum = maximumStory(false);
 export const JapaneseMaximum = maximumStory(true);
 function intervalStory(japanese: boolean, autoPlay: boolean, playback: boolean): Story {
+  // Given: Prepare `sliderLabel`, `autoPlayLabel`, `playbackLabel` and any shared test state below.
   const sliderLabel = japanese ? "自動再生の間隔" : "Autoplay interval";
   const autoPlayLabel = japanese ? "自動再生で開始" : "Start autoplay";
   const playbackLabel = japanese ? "再生コントロールを表示" : "Show playback controls";
@@ -171,6 +223,8 @@ function intervalStory(japanese: boolean, autoPlay: boolean, playback: boolean):
         { value: "60", spoken: "60 seconds", visible: "60s" },
       ];
 
+  // When: Evaluate `step` as part of the following checks.
+  // Then: Verify the expected result in the assertions below.
   return {
     parameters: {
       locale: japanese ? "ja" : "en",
@@ -184,17 +238,24 @@ function intervalStory(japanese: boolean, autoPlay: boolean, playback: boolean):
       },
     },
     play: async ({ canvas, step }) => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
       await step("STORYBOOK-SETTINGS-10 Describe interval boundaries without changing other settings", async () => {
+        // Given: Use the rendered story, its args, parameters, and any setup below.
         const slider = await canvas.findByRole("slider", { name: sliderLabel });
         await expect(slider).toHaveAttribute("min", "0");
         await expect(slider).toHaveAttribute("max", "60");
         for (const { value, spoken, visible } of cases) {
+          // Given: Use the current iteration or branch inputs from the enclosing case.
+          // When: Exercise `fireEvent.change` with the prepared inputs.
           await fireEvent.change(slider, { target: { value } });
+          // Then: Verify the expected result in the assertions below.
           await expect(slider).toHaveAttribute("aria-valuetext", spoken);
           await expect(canvas.getByText(visible, { exact: true })).toBeVisible();
           await expect(canvas.getByRole<HTMLInputElement>("checkbox", { name: autoPlayLabel }).checked).toBe(autoPlay);
           await expect(canvas.getByRole<HTMLInputElement>("checkbox", { name: playbackLabel }).checked).toBe(playback);
         }
+        // When: Observe the prepared result through the following checks.
+        // Then: Verify the expected result in the assertions below.
         await expect(slider).toHaveAccessibleDescription(description);
       });
     },
@@ -210,9 +271,13 @@ export const JapaneseIntervalOnHidden = intervalStory(true, true, false);
 export const JapaneseIntervalOnVisible = intervalStory(true, true, true);
 export const Home: Story = {
   play: async ({ canvas, userEvent, step }) => {
+    // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-SETTINGS-11 Navigate home using the shortcut", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
       await canvas.findByRole("heading", { name: "Settings" });
+      // When: Exercise `userEvent.keyboard` with the prepared inputs.
       await userEvent.keyboard("t");
+      // Then: Verify the expected result in the assertions below.
       await expect(await canvas.findByRole("heading", { name: "Decks" })).toBeVisible();
     });
   },

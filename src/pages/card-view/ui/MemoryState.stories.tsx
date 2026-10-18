@@ -6,6 +6,9 @@ import { MemoryState } from "./MemoryState";
 const at = Date.UTC(2026, 8, 21, 12);
 const short = calculateFsrsState(null, "good", at);
 const long = calculateFsrsState(null, "easy", at);
+// Given: Story args and parameters define the render scenarios below.
+// When: Storybook renders each exported variant and runs its play when present.
+// Then: Assertions are in the relevant plays; rendering alone adds no behavioral checks.
 const meta = {
   title: "Pages/CardView/MemoryState",
   component: MemoryState,

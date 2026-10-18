@@ -32,5 +32,10 @@ def has_element_naive(sl, a):  # O(N)
     ],
 )
 def test(args, expected):
+    # Given: The parameterized row supplies args and the expected result.
+    # When: Evaluate has_element with this row's arguments inside the assertion.
+    # Then: The result matches the row's expected value.
     assert has_element(*args) == expected
+    # When: Evaluate has_element_naive with this row's arguments inside the assertion.
+    # Then: The result matches the row's expected value.
     assert has_element_naive(*args) == expected

@@ -29,6 +29,7 @@ const cases = [
 
 describe("NAVIGATION-06 Deck navigation through App, router, and local Entities", () => {
   beforeEach(async () => {
+    // Given: Establish the shared setup used by the following cases.
     replaceAuthSession({ status: "authenticated", uid: "user-id", displayName: null, isAnonymous: true });
     updatePreferences(createPreferences({ loadSample: false }));
     for (const { id, name, frontText } of cases) {
@@ -44,6 +45,7 @@ describe("NAVIGATION-06 Deck navigation through App, router, and local Entities"
   });
 
   it.each(cases)("opens only $id Cards and preserves the destination on direct entry", async (selected) => {
+    // Given: Prepare `decksBefore`, `cardsBefore`, `savedDecks` and any shared test state below.
     const decksBefore = structuredClone(getDecks());
     const cardsBefore = structuredClone(getCards());
     const savedDecks = localStorage.getItem("tango-local-decks");
@@ -51,20 +53,26 @@ describe("NAVIGATION-06 Deck navigation through App, router, and local Entities"
     const router = createMemoryRouter(appRoutes, { initialEntries: ["/"] });
     const view = render(<App router={router} />);
 
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByRole("button", { name: `Open cards in ${selected.name}` }));
 
+    // Then: Verify the expected result in the assertions below.
     expect(await screen.findByRole("button", { name: `View ${selected.frontText}` })).toBeVisible();
     expect(router.state.location).toMatchObject({ pathname: selected.path, search: "", hash: "" });
     for (const other of cases.filter(({ id }) => id !== selected.id)) {
+      // Given: Use the current iteration or branch inputs from the enclosing case.
       expect(screen.queryByRole("button", { name: `View ${other.frontText}` })).not.toBeInTheDocument();
     }
 
+    // When: Exercise `view.unmount` with the prepared inputs.
     view.unmount();
     router.dispose();
     const directRouter = createMemoryRouter(appRoutes, { initialEntries: [selected.path] });
     const directView = render(<App router={directRouter} />);
+    // Then: Verify the expected result in the assertions below.
     expect(await screen.findByRole("button", { name: `View ${selected.frontText}` })).toBeVisible();
     for (const other of cases.filter(({ id }) => id !== selected.id)) {
+      // Given: Use the current iteration or branch inputs from the enclosing case.
       expect(screen.queryByRole("button", { name: `View ${other.frontText}` })).not.toBeInTheDocument();
     }
     expect(getDecks()).toEqual(decksBefore);

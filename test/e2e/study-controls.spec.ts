@@ -17,29 +17,35 @@ test("STUDY-CONTROLS-01 advances a remote session on a primary upward mouse drag
   fixture,
   page,
 }) => {
+  // Given: Prepare `deck`, `currentCard`, `nextCard` and any shared test state below.
   const deck = fixture.deck();
   const currentCard = fixture.card("card-1");
   const nextCard = fixture.card("card-2");
   await fixture.apply(page);
 
+  // When: Exercise `page.goto` with the prepared inputs.
   await page.goto(`/deck/${deck.id}/study`);
   await swipeFrontUp(page, currentCard.frontText);
 
+  // Then: Verify the expected result in the assertions below.
   await expect(page.getByText(nextCard.frontText, { exact: true })).toBeVisible();
   await expect(page.getByText(nextCard.backText, { exact: true })).toBeHidden();
   await expect.poll(() => readProgress(currentCard.id)).toEqual({ reps: 1 });
 });
 
 test("STUDY-CONTROLS-02 ignores non-primary mouse drags", async ({ fixture, page }) => {
+  // Given: Prepare `deck`, `session`, `currentCard` and any shared test state below.
   const deck = fixture.deck();
   const session = fixture.session();
   const currentCard = fixture.card("card-1");
   await fixture.apply(page);
 
+  // When: Exercise `page.goto` with the prepared inputs.
   await page.goto(`/deck/${deck.id}/study`);
   await swipeFrontUp(page, currentCard.frontText, "right");
   await swipeFrontUp(page, currentCard.frontText, "middle");
 
+  // Then: Verify the expected result in the assertions below.
   await expect(page.getByText(currentCard.frontText, { exact: true })).toBeVisible();
   await expect.poll(() => readProgress(currentCard.id)).toEqual({ reps: 0 });
   await expect
@@ -51,6 +57,7 @@ test("STUDY-CONTROLS-03 saves local-only progress and advances on a primary upwa
   fixture,
   page,
 }) => {
+  // Given: Prepare `local`, `frontText`, `currentCard` and any shared test state below.
   await fixture.apply(page);
   const local = await createAnonymousDeck(page);
   const { deck } = local;
@@ -58,13 +65,17 @@ test("STUDY-CONTROLS-03 saves local-only progress and advances on a primary upwa
   const currentCard = frontText === local.first.frontText ? local.first : local.second;
   const nextCard = currentCard === local.first ? local.second : local.first;
 
+  // When: Exercise `page.goto` with the prepared inputs.
   await page.goto(`/deck/${deck.id}/study`);
   await swipeFrontUp(page, currentCard.frontText);
 
+  // Then: Verify the expected result in the assertions below.
   await expect(page.getByText(nextCard.frontText, { exact: true })).toBeVisible();
   await expect(page.getByText(nextCard.backText, { exact: true })).toBeHidden();
   await expect(page.getByRole("slider", { name: "Study progress" })).toHaveValue("1");
+  // When: Exercise `page.goto` with the prepared inputs.
   await page.goto(`/card/${currentCard.id}`);
+  // Then: Verify the expected result in the assertions below.
   await expect(page.getByRole("img", { name: /Forgetting curve/ })).toBeVisible();
 });
 
@@ -72,6 +83,7 @@ test("STUDY-CONTROLS-04 shows configured Study controls without changing the act
   fixture,
   page,
 }) => {
+  // Given: Prepare `deck`, `session`, `currentCard` and any shared test state below.
   const deck = fixture.deck();
   const session = fixture.session();
   const currentCard = fixture.card("card-1");
@@ -80,9 +92,11 @@ test("STUDY-CONTROLS-04 shows configured Study controls without changing the act
   await page.goto(`/deck/${deck.id}/study`);
   const progressBeforeHelp = await readProgress(currentCard.id);
   await expect(page.getByRole("button", { name: "Open study help" })).toBeVisible();
+  // When: Exercise `page.getByRole("button", { name: "Open study help" }).click` with the prepared inputs.
   await page.getByRole("button", { name: "Open study help" }).click();
 
   const dialog = page.getByRole("dialog", { name: "Study controls" });
+  // Then: Verify the expected result in the assertions below.
   await expect(dialog).toBeVisible();
   await expect(dialog).toContainText("Arrow Up / Swipe UpEnd the current session and return to the deck list");
   await expect(dialog).toContainText("Arrow Down / Swipe DownNo action");
@@ -97,11 +111,15 @@ test("STUDY-CONTROLS-04 shows configured Study controls without changing the act
 
   const close = dialog.getByRole("button", { name: "Close help" });
   await expect(close).toBeFocused();
+  // When: Exercise `page.keyboard.press` with the prepared inputs.
   await page.keyboard.press("Tab");
+  // Then: Verify the expected result in the assertions below.
   await expect(close).toBeFocused();
+  // When: Exercise `page.keyboard.press` with the prepared inputs.
   await page.keyboard.press("ArrowLeft");
   await page.keyboard.press("b");
 
+  // Then: Verify the expected result in the assertions below.
   await expect(dialog).toContainText("B / Swipe controls buttonShow the currently hidden swipe buttons");
   await expect(page.getByText(currentCard.frontText, { exact: true })).toBeVisible();
   await expect.poll(() => readProgress(currentCard.id)).toEqual(progressBeforeHelp);
@@ -109,14 +127,17 @@ test("STUDY-CONTROLS-04 shows configured Study controls without changing the act
     .poll(async () => (await readSession(fixture.user().uid, deck.id))?.currentIndex)
     .toBe(session.currentIndex);
 
+  // When: Exercise `page.keyboard.press` with the prepared inputs.
   await page.keyboard.press("Escape");
 
+  // Then: Verify the expected result in the assertions below.
   await expect(dialog).not.toBeVisible();
   await expect(page.getByRole("button", { name: "Open study help" })).toBeFocused();
   await expect(page.getByRole("button", { name: /^Swipe left/ })).toHaveCount(0);
 });
 
 test("STUDY-CONTROLS-05 toggles and persists the Study Help button", async ({ fixture, page }) => {
+  // Given: Prepare `deck`, `help`, `actions` and any shared test state below.
   const deck = fixture.deck();
   await fixture.apply(page);
 
@@ -132,13 +153,19 @@ test("STUDY-CONTROLS-05 toggles and persists the Study Help button", async ({ fi
   if (helpBounds === null || actionsBounds === null) throw new Error("Missing toolbar bounds");
   expect(helpBounds.x + helpBounds.width).toBeLessThanOrEqual(actionsBounds.x);
 
+  // When: Exercise `actions.click` with the prepared inputs.
   await actions.click();
   await page.getByRole("button", { name: "Help button" }).click();
+  // Then: Verify the expected result in the assertions below.
   await expect(page.getByRole("button", { name: "Open study help" })).toHaveCount(0);
 
+  // When: Exercise `page.reload` with the prepared inputs.
   await page.reload();
+  // Then: Verify the expected result in the assertions below.
   await expect(page.getByRole("button", { name: "Open study help" })).toHaveCount(0);
+  // When: Exercise `page.getByRole("button", { name: "Open card actions" }).click` with the prepared inputs.
   await page.getByRole("button", { name: "Open card actions" }).click();
+  // Then: Verify the expected result in the assertions below.
   await expect(page.getByRole("button", { name: "Help button" })).toHaveAttribute("aria-pressed", "false");
 });
 
@@ -168,27 +195,42 @@ const touchScroll = async (page: Page, surface: Locator) => {
 };
 
 const readLongFront = async (page: Page) => {
+  // Given: Prepare `surface`, `box` and any shared test state below.
   const surface = page.getByRole("region", { name: "Card front text" });
   await expect(surface).toBeVisible();
   const box = await surface.boundingBox();
   if (box === null) throw new Error("Missing reading surface");
+  // When: Exercise `surface.hover` with the prepared inputs.
   await surface.hover();
   await page.mouse.wheel(0, box.height);
+  // Then: Verify the expected result in the assertions below.
   await expect.poll(() => surface.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
+  // When: Exercise `surface.focus` with the prepared inputs.
   await surface.focus();
   for (const key of ["ArrowDown", "Space", "PageDown"]) {
+    // Given: Use the current iteration or branch inputs from the enclosing case.
     await surface.press("Home");
+    // Then: Verify the expected result in the assertions below.
     await expect.poll(() => surface.evaluate((element) => element.scrollTop)).toBe(0);
+    // When: Exercise `surface.press` with the prepared inputs.
     await surface.press(key);
+    // Then: Verify the expected result in the assertions below.
     await expect.poll(() => surface.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
   }
+  // When: Exercise `surface.press` with the prepared inputs.
   await surface.press("Home");
+  // Then: Verify the expected result in the assertions below.
   await expect.poll(() => surface.evaluate((element) => element.scrollTop)).toBe(0);
+  // When: Exercise `touchScroll` with the prepared inputs.
   await touchScroll(page, surface);
+  // Then: Verify the expected result in the assertions below.
   await expect.poll(() => surface.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
   for (const key of ["ArrowDown", "ArrowUp", "ArrowLeft", "ArrowRight", "Space", "PageDown", "PageUp"]) {
+    // Given: Use the current iteration or branch inputs from the enclosing case.
+    // When: Exercise `surface.focus` with the prepared inputs.
     await surface.focus();
     await page.keyboard.press(key);
+    // Then: The invoked verification helper checks the case's expected result.
   }
   for (const [dx, dy] of [
     [-80, 0],
@@ -196,49 +238,70 @@ const readLongFront = async (page: Page) => {
     [0, -60],
     [0, 60],
   ]) {
+    // Given: Prepare `x`, `y` and any shared test state below.
     const x = box.x + box.width / 2;
     const y = box.y + box.height / 2;
     await page.mouse.move(x, y);
     await page.mouse.down();
     await page.mouse.move(x + (dx ?? 0), y + (dy ?? 0), { steps: 5 });
     await page.mouse.up();
+    // Then: Verify the expected result in the assertions below.
     await expect(surface).toBeVisible();
   }
+  // When: Exercise `page.evaluate` with the prepared inputs.
   await page.evaluate(() => window.getSelection()?.removeAllRanges());
   await surface.focus();
   await surface.press("End");
+  // Then: Verify the expected result in the assertions below.
   await expect
     .poll(() => surface.evaluate((element) => element.scrollTop + element.clientHeight >= element.scrollHeight - 1))
     .toBe(true);
   await expect.poll(() => readViewMode(page)).toBe(true);
   await expect(page.getByRole("button", { name: "Play", exact: true })).toBeVisible();
+  // When: Exercise `surface.press` with the prepared inputs.
   await surface.press("Home");
+  // Then: Verify the expected result in the assertions below.
   await expect.poll(() => surface.evaluate((element) => element.scrollTop)).toBe(0);
 };
 
 const verifyStudyViewModeControls = async (page: Page, uid: string, deckId: string) => {
+  // Given: Prepare `viewModeButton` and any shared test state below.
   expect((await readSession(uid, deckId))?.currentIndex).toBe(0);
   const viewModeButton = page.getByRole("button", { name: "View mode", exact: true });
+  // When: Exercise `page.getByRole("button", { name: "Open card actions" }).click` with the prepared inputs.
   await page.getByRole("button", { name: "Open card actions" }).click();
   await viewModeButton.click();
+  // Then: Verify the expected result in the assertions below.
   await expect(viewModeButton).toHaveAttribute("aria-pressed", "false");
   await expect.poll(() => readViewMode(page)).toBe(true);
+  // When: Exercise `page.getByRole("button", { name: "Close card actions" }).click` with the prepared inputs.
   await page.getByRole("button", { name: "Close card actions" }).click();
+  // Then: Verify the expected result in the assertions below.
   await expect(viewModeButton).toHaveCount(0);
+  // When: Exercise `page.reload` with the prepared inputs.
   await page.reload();
+  // Then: Verify the expected result in the assertions below.
   await expect(page.getByRole("button", { name: "Open card actions" })).toBeVisible();
   await expect(viewModeButton).toHaveCount(0);
+  // When: Exercise `page.goto` with the prepared inputs.
   await page.goto(`/deck/${deckId}/view`);
+  // Then: Verify the expected result in the assertions below.
   await expect(page.getByRole("button", { name: "Open card actions" })).toBeVisible();
   await expect(viewModeButton).toHaveCount(0);
+  // When: Exercise `page.getByRole("button", { name: "Open card actions" }).click` with the prepared inputs.
   await page.getByRole("button", { name: "Open card actions" }).click();
   await viewModeButton.click();
   await page.getByRole("button", { name: "Close card actions" }).click();
+  // Then: Verify the expected result in the assertions below.
   await expect(viewModeButton).toHaveAttribute("title", "Exit view mode");
+  // When: Exercise `page.goto` with the prepared inputs.
   await page.goto(`/deck/${deckId}/study`);
+  // Then: Verify the expected result in the assertions below.
   await expect(viewModeButton).toBeVisible();
 
+  // When: Exercise `page.getByRole("button", { name: "Open study help" }).click` with the prepared inputs.
   await page.getByRole("button", { name: "Open study help" }).click();
+  // Then: Verify the expected result in the assertions below.
   await expect(page.getByRole("dialog")).toContainText("Exit view mode and keep the front visible");
   await expect(page.getByRole("dialog")).toContainText("Space scrolls the front text");
   expect((await readSession(uid, deckId))?.currentIndex).toBe(0);
@@ -250,17 +313,21 @@ test.describe("View mode", () => {
     fixture,
     page,
   }) => {
+    // Given: Prepare `deck`, `card` and any shared test state below.
     const deck = fixture.deck();
     const card = fixture.card("card-1");
+    // When: Exercise `page.setViewportSize` with the prepared inputs.
     await page.setViewportSize({ width: 320, height: 568 });
     await fixture.apply(page);
     await page.goto(`/deck/${deck.id}/${scenario.route}`);
     const before = await readProgress(card.id);
     await enterViewMode(page);
     await readLongFront(page);
+    // Then: Verify the expected result in the assertions below.
     await expect(page).toHaveURL(`/deck/${deck.id}/${scenario.route}`);
     await expect(page.getByRole("region", { name: "Card front text" })).toContainText(card.frontText);
     expect(await readProgress(card.id)).toEqual(before);
+    // When: Exercise `verifyStudyViewModeControls` with the prepared inputs.
     if (scenario.route === "study") await verifyStudyViewModeControls(page, fixture.user().uid, deck.id);
   });
 });
@@ -268,24 +335,33 @@ test.describe("View mode", () => {
 test.describe("View mode", () => {
   const scenario = { id: "STUDY-CONTROLS-07", route: "study", answer: "Study answer" };
   test("STUDY-CONTROLS-07 exits view mode with a tap or Enter before flipping the card", async ({ fixture, page }) => {
+    // Given: Prepare `deck`, `card` and any shared test state below.
     const deck = fixture.deck();
     const card = fixture.card("card-1");
     await fixture.apply(page);
     await page.goto(`/deck/${deck.id}/${scenario.route}`);
     await enterViewMode(page);
+    // When: Apply the operation or event under test.
     await page.getByRole("region", { name: "Card front text" }).getByText(card.frontText, { exact: true }).click();
+    // Then: Verify the expected result in the assertions below.
     await expect.poll(() => readViewMode(page)).toBe(false);
     await expect(page.getByRole("region", { name: scenario.answer })).toHaveCount(0);
+    // When: Exercise `enterViewMode` with the prepared inputs.
     await enterViewMode(page);
     await page.getByRole("region", { name: "Card front text" }).focus();
     await page.keyboard.down("Enter");
     await page.keyboard.down("Enter");
     await page.keyboard.up("Enter");
+    // Then: Verify the expected result in the assertions below.
     await expect.poll(() => readViewMode(page)).toBe(false);
     await expect(page.getByRole("region", { name: scenario.answer })).toHaveCount(0);
+    // When: Exercise `page.keyboard.press` with the prepared inputs.
     await page.keyboard.press("Enter");
+    // Then: Verify the expected result in the assertions below.
     await expect(page.getByRole("region", { name: scenario.answer })).toContainText(card.backText);
+    // When: Apply the operation or event under test.
     await page.getByRole("region", { name: scenario.answer }).getByText(card.backText, { exact: true }).click();
+    // Then: Verify the expected result in the assertions below.
     await expect(page.getByRole("region", { name: scenario.answer })).toHaveCount(0);
   });
 });
@@ -293,18 +369,25 @@ test.describe("View mode", () => {
 test.describe("View mode", () => {
   const scenario = { id: "STUDY-CONTROLS-08", route: "study", next: "Swipe right: Good" };
   test("STUDY-CONTROLS-08 keeps button actions and autoplay available in view mode", async ({ fixture, page }) => {
+    // Given: Prepare `deck`, `first`, `before` and any shared test state below.
     const deck = fixture.deck();
     const first = fixture.card("card-1");
     await fixture.apply(page, { preferences: { study: { cardInterval: 1 }, controls: { viewMode: true } } });
     await page.goto(`/deck/${deck.id}/${scenario.route}`);
     const before = await readProgress(first.id);
+    // When: Exercise `page.getByRole("button", { name: scenario.next, exact: true }).click` with the prepared inputs.
     await page.getByRole("button", { name: scenario.next, exact: true }).click();
     const surface = page.getByRole("region", { name: "Card front text" });
+    // Then: Verify the expected result in the assertions below.
     await expect(surface).toContainText(fixture.card("card-2").frontText);
     await expect.poll(() => surface.evaluate((element) => element.scrollTop)).toBe(0);
+    // When: Exercise `page.getByRole("button", { name: "Play", exact: true }).click` with the prepared inputs.
     await page.getByRole("button", { name: "Play", exact: true }).click();
+    // Then: Verify the expected result in the assertions below.
     await expect(surface).toContainText(fixture.card("card-3").frontText);
+    // When: Exercise `page.getByRole("button", { name: "Pause", exact: true }).click` with the prepared inputs.
     await page.getByRole("button", { name: "Pause", exact: true }).click();
+    // Then: Verify the expected result in the assertions below.
     await expect.poll(() => readViewMode(page)).toBe(true);
     await expect
       .poll(() => readProgress(first.id))
@@ -313,28 +396,37 @@ test.describe("View mode", () => {
 });
 
 test("STUDY-CONTROLS-09 shares and persists view mode across Study and Deck viewing", async ({ fixture, page }) => {
+  // Given: Prepare `deck` and any shared test state below.
   const deck = fixture.deck();
   await fixture.apply(page);
   await page.goto(`/deck/${deck.id}/study`);
   await expect(page.getByRole("region", { name: "Card front text" })).toHaveCount(0);
   await enterViewMode(page);
+  // When: Exercise `page.reload` with the prepared inputs.
   await page.reload();
+  // Then: Verify the expected result in the assertions below.
   await expect(page.getByRole("region", { name: "Card front text" })).toBeVisible();
+  // When: Exercise `page.goto` with the prepared inputs.
   await page.goto(`/deck/${deck.id}/view`);
+  // Then: Verify the expected result in the assertions below.
   await expect(page.getByRole("region", { name: "Card front text" })).toBeVisible();
+  // When: Apply the operation or event under test.
   await page
     .getByRole("region", { name: "Card front text" })
     .getByText(fixture.card("card-1").frontText, { exact: true })
     .click();
   await page.goto(`/deck/${deck.id}/study`);
   await page.reload();
+  // Then: Verify the expected result in the assertions below.
   await expect(page.getByRole("button", { name: fixture.card("card-1").frontText, exact: true })).toBeVisible();
   await expect(page.getByRole("region", { name: "Card front text" })).toHaveCount(0);
   await expect.poll(() => readViewMode(page)).toBe(false);
 });
 
 test("STUDY-CONTROLS-10 keeps long text and all controls reachable on a short viewport", async ({ fixture, page }) => {
+  // Given: Prepare `deck` and any shared test state below.
   const deck = fixture.deck();
+  // When: Exercise `page.setViewportSize` with the prepared inputs.
   await page.setViewportSize({ width: 568, height: 320 });
   await fixture.apply(page, {
     preferences: {
@@ -351,16 +443,22 @@ test("STUDY-CONTROLS-10 keeps long text and all controls reachable on a short vi
   await page.getByRole("button", { name: "Open card actions" }).click();
   const surface = page.getByRole("region", { name: "Card front text" });
   await surface.scrollIntoViewIfNeeded();
+  // Then: Verify the expected result in the assertions below.
   await expect.poll(() => surface.evaluate((element) => element.clientHeight)).toBeGreaterThanOrEqual(160);
   await expect(surface).toBeInViewport();
+  // When: Exercise `surface.focus` with the prepared inputs.
   await surface.focus();
   await surface.press("End");
+  // Then: Verify the expected result in the assertions below.
   await expect
     .poll(() => surface.evaluate((element) => element.scrollTop + element.clientHeight >= element.scrollHeight - 1))
     .toBe(true);
   for (const name of ["Swipe right: Good", "Play", "Skip"]) {
+    // Given: Prepare `button` and any shared test state below.
+    // When: Exercise `page.getByRole` with the prepared inputs.
     const button = page.getByRole("button", { name, exact: true });
     await button.scrollIntoViewIfNeeded();
+    // Then: Verify the expected result in the assertions below.
     await expect(button).toBeInViewport();
   }
   await expect.poll(() => readViewMode(page)).toBe(true);
@@ -371,13 +469,17 @@ test("STUDY-CONTROLS-11 allows touch scrolling and pinch enlargement without car
   fixture,
   page,
 }) => {
+  // Given: Prepare `deck` and any shared test state below.
   const deck = fixture.deck();
+  // When: Exercise `page.setViewportSize` with the prepared inputs.
   await page.setViewportSize({ width: 390, height: 844 });
   await fixture.apply(page, { preferences: { controls: { viewMode: true } } });
   await page.goto(`/deck/${deck.id}/study`);
   const surface = page.getByRole("region", { name: "Card front text" });
   await touchScroll(page, surface);
+  // Then: Verify the expected result in the assertions below.
   await expect.poll(() => surface.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
+  // When: Exercise `surface.boundingBox` with the prepared inputs.
   const box = await surface.boundingBox();
   if (box === null) throw new Error("Missing reading surface");
   const session = await page.context().newCDPSession(page);
@@ -398,6 +500,7 @@ test("STUDY-CONTROLS-11 allows touch scrolling and pinch enlargement without car
     ],
   });
   for (const distance of [40, 55, 75, 100, 130]) {
+    // Given: Use the current iteration or branch inputs from the enclosing case.
     await session.send("Input.dispatchTouchEvent", {
       type: "touchMove",
       touchPoints: [
@@ -405,10 +508,14 @@ test("STUDY-CONTROLS-11 allows touch scrolling and pinch enlargement without car
         { id: 1, x: x + distance, y },
       ],
     });
+    // Then: The invoked verification helper checks the case's expected result.
   }
   await session.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+  // Then: Verify the expected result in the assertions below.
   await expect.poll(() => page.evaluate(() => window.visualViewport?.scale ?? 1)).toBeGreaterThan(scale);
+  // When: Exercise `session.detach` with the prepared inputs.
   await session.detach();
+  // Then: Verify the expected result in the assertions below.
   await expect.poll(() => readViewMode(page)).toBe(true);
   expect((await readSession(fixture.user().uid, deck.id))?.currentIndex).toBe(0);
 });
@@ -419,6 +526,7 @@ for (const language of ["en", "ja"] as const) {
       fixture,
       page,
     }) => {
+      // Given: Prepare `deck`, `card`, `progress` and any shared test state below.
       const deck = fixture.deck();
       const card = fixture.card("card-1");
       await fixture.apply(page, {
@@ -456,18 +564,24 @@ for (const language of ["en", "ja"] as const) {
         page.getByRole("button", { name: `${direction}: ${actions[index]}`, exact: true })
       );
       for (const [index, button] of buttons.entries()) {
+        // Given: Use the current iteration or branch inputs from the enclosing case.
+        // When: Observe the prepared result through the following checks.
+        // Then: Verify the expected result in the assertions below.
         await expect(button).toBeVisible();
         await expect(button).toHaveText(actions[index]!);
         await expect(button).toHaveAttribute("aria-description", actions[index]!);
       }
       await buttons[1]!.focus();
+      // When: Exercise `page.keyboard.press` with the prepared inputs.
       await page.keyboard.press("Tab");
+      // Then: Verify the expected result in the assertions below.
       await expect(buttons[remapped ? 3 : 2]!).toBeFocused();
       if (remapped) await expect(buttons[2]!).toBeDisabled();
       const help = page.getByRole("button", {
         name: language === "en" ? "Open study help" : "学習ヘルプを開く",
         exact: true,
       });
+      // When: Exercise `help.click` with the prepared inputs.
       await help.click();
       const dialog = page.getByRole("dialog");
       const expectedHelp = remapped
@@ -497,13 +611,16 @@ for (const language of ["en", "ja"] as const) {
               "Again（もう一度）で回答して次へ",
               "Good（普通）で回答して次へ",
             ];
+      // Then: Verify the expected result in the assertions below.
       for (const text of expectedHelp) await expect(dialog).toContainText(text);
       await expect(dialog).toContainText(
         language === "en"
           ? "Exit without ending the current study session"
           : "現在の学習セッションを終了せずに画面を離れる"
       );
+      // When: Exercise `page.keyboard.press` with the prepared inputs.
       await page.keyboard.press("Escape");
+      // Then: Verify the expected result in the assertions below.
       await expect(help).toBeFocused();
       expect(await readProgress(card.id)).toEqual(progress);
       expect(await readSession(fixture.user().uid, deck.id)).toEqual(session);
@@ -522,6 +639,7 @@ for (const [key, rating] of [
   ["ArrowRight", "good"],
 ] as const) {
   test(`STUDY-CONTROLS-13 ignores held ${key} after saving and accepts a fresh press`, async ({ fixture, page }) => {
+    // Given: Prepare `deck`, `session`, `first` and any shared test state below.
     const deck = fixture.deck();
     const session = fixture.session();
     const first = fixture.card("card-1");
@@ -529,7 +647,9 @@ for (const [key, rating] of [
     await fixture.apply(page);
     await page.goto(`/deck/${deck.id}/study`);
     await expect(page.getByText(first.frontText, { exact: true })).toBeVisible();
+    // When: Exercise `page.keyboard.down` with the prepared inputs.
     await page.keyboard.down(key);
+    // Then: Verify the expected result in the assertions below.
     await expect(page.getByText(second.frontText, { exact: true })).toBeVisible();
     await expect(page.getByRole("button", { name: "Swipe right: Good" })).toBeEnabled();
     await expect.poll(() => readAnswers(session.sessionId)).toHaveLength(1);
@@ -538,14 +658,18 @@ for (const [key, rating] of [
     const answers = await readAnswers(session.sessionId);
     expect(answers[0]?.fields.answer?.mapValue?.fields?.rating?.stringValue).toBe(rating);
 
+    // When: Exercise `page.keyboard.down` with the prepared inputs.
     await page.keyboard.down(key);
+    // Then: Verify the expected result in the assertions below.
     await expect(page.getByText(second.frontText, { exact: true })).toBeVisible();
     expect(await readSession(fixture.user().uid, deck.id)).toEqual(savedSession);
     expect(await getDocument("card", second.id)).toEqual(nextCard);
     expect(await readAnswers(session.sessionId)).toEqual(answers);
 
+    // When: Exercise `page.keyboard.up` with the prepared inputs.
     await page.keyboard.up(key);
     await page.keyboard.press(key);
+    // Then: Verify the expected result in the assertions below.
     await expect(page.getByText(fixture.card("card-3").frontText, { exact: true })).toBeVisible();
     await expect.poll(() => readAnswers(session.sessionId)).toHaveLength(2);
     const nextAnswer = (await readAnswers(session.sessionId)).find(
@@ -557,23 +681,36 @@ for (const [key, rating] of [
 }
 
 test("STUDY-CONTROLS-14 toggles playback and swipe controls only on fresh presses", async ({ fixture, page }) => {
+  // Given: Prepare `deck` and any shared test state below.
   const deck = fixture.deck();
   await fixture.apply(page, { preferences: { study: { cardInterval: 60 } } });
   await page.goto(`/deck/${deck.id}/study`);
   await expect(page.getByRole("button", { name: "Play", exact: true })).toBeVisible();
+  // When: Exercise `page.keyboard.down` with the prepared inputs.
   await page.keyboard.down("Space");
+  // Then: Verify the expected result in the assertions below.
   await expect(page.getByRole("button", { name: "Pause", exact: true })).toBeVisible();
+  // When: Exercise `page.keyboard.down` with the prepared inputs.
   await page.keyboard.down("Space");
+  // Then: Verify the expected result in the assertions below.
   await expect(page.getByRole("button", { name: "Pause", exact: true })).toBeVisible();
+  // When: Exercise `page.keyboard.up` with the prepared inputs.
   await page.keyboard.up("Space");
   await page.keyboard.press("Space");
+  // Then: Verify the expected result in the assertions below.
   await expect(page.getByRole("button", { name: "Play", exact: true })).toBeVisible();
+  // When: Exercise `page.keyboard.down` with the prepared inputs.
   await page.keyboard.down("b");
+  // Then: Verify the expected result in the assertions below.
   await expect(page.getByRole("button", { name: "Swipe right: Good" })).toHaveCount(0);
+  // When: Exercise `page.keyboard.down` with the prepared inputs.
   await page.keyboard.down("b");
+  // Then: Verify the expected result in the assertions below.
   await expect(page.getByRole("button", { name: "Swipe right: Good" })).toHaveCount(0);
+  // When: Exercise `page.keyboard.up` with the prepared inputs.
   await page.keyboard.up("b");
   await page.keyboard.press("b");
+  // Then: Verify the expected result in the assertions below.
   await expect(page.getByRole("button", { name: "Swipe right: Good" })).toBeVisible();
   await expect(page.getByText(fixture.card("card-1").frontText, { exact: true })).toBeVisible();
   expect((await readSession(fixture.user().uid, deck.id))?.currentIndex).toBe(0);
@@ -612,6 +749,7 @@ const shortcutModifiers = [
 ];
 
 test("STUDY-CONTROLS-15 ignores delivered modified keys and then accepts ordinary input", async ({ fixture, page }) => {
+  // Given: Prepare `deck`, `first`, `before` and any shared test state below.
   const deck = fixture.deck();
   const first = fixture.card("card-1");
   await fixture.apply(page);
@@ -620,7 +758,11 @@ test("STUDY-CONTROLS-15 ignores delivered modified keys and then accepts ordinar
   const before = await getDocument("card", first.id);
   const session = await readSession(fixture.user().uid, deck.id);
   for (const modifiers of shortcutModifiers) {
+    // Given: Use the current iteration or branch inputs from the enclosing case.
     for (const key of ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Enter", " ", "b"]) {
+      // Given: Use the current iteration or branch inputs from the enclosing case.
+      // When: Evaluate `sendModifiedKey` as part of the following checks.
+      // Then: Verify the expected result in the assertions below.
       expect(await sendModifiedKey(page, key, modifiers)).toEqual({ delivered: true, defaultPrevented: false });
       await expect(page.getByText(first.frontText, { exact: true })).toBeVisible();
       await expect(page.getByRole("button", { name: "Play", exact: true })).toBeVisible();
@@ -630,10 +772,14 @@ test("STUDY-CONTROLS-15 ignores delivered modified keys and then accepts ordinar
   expect(await getDocument("card", first.id)).toEqual(before);
   expect(await readSession(fixture.user().uid, deck.id)).toEqual(session);
   expect(await readAnswers(fixture.session().sessionId)).toHaveLength(0);
+  // When: Exercise `page.keyboard.press` with the prepared inputs.
   await page.keyboard.press("Enter");
+  // Then: Verify the expected result in the assertions below.
   await expect(page.getByRole("region", { name: "Study answer" })).toContainText(first.backText);
+  // When: Exercise `page.keyboard.press` with the prepared inputs.
   await page.keyboard.press("Enter");
   await page.keyboard.press("ArrowRight");
+  // Then: Verify the expected result in the assertions below.
   await expect(page.getByText(fixture.card("card-2").frontText, { exact: true })).toBeVisible();
   await expect.poll(() => readAnswers(fixture.session().sessionId)).toHaveLength(1);
   expect(
@@ -642,25 +788,37 @@ test("STUDY-CONTROLS-15 ignores delivered modified keys and then accepts ordinar
 });
 
 test("STUDY-CONTROLS-16 keeps view mode persisted until an unmodified Enter", async ({ fixture, page }) => {
+  // Given: Prepare `deck`, `surface` and any shared test state below.
   const deck = fixture.deck();
   await fixture.apply(page, { preferences: { controls: { viewMode: true } } });
   await page.goto(`/deck/${deck.id}/study`);
   const surface = page.getByRole("region", { name: "Card front text" });
   await expect(surface).toBeVisible();
   for (const modifiers of shortcutModifiers) {
+    // Given: Use the current iteration or branch inputs from the enclosing case.
+    // When: Evaluate `sendModifiedKey` as part of the following checks.
+    // Then: Verify the expected result in the assertions below.
     expect(await sendModifiedKey(page, "Enter", modifiers)).toEqual({ delivered: true, defaultPrevented: false });
     await expect(surface).toBeVisible();
     expect(await readViewMode(page)).toBe(true);
   }
+  // When: Exercise `page.reload` with the prepared inputs.
   await page.reload();
+  // Then: Verify the expected result in the assertions below.
   await expect(surface).toBeVisible();
+  // When: Exercise `surface.focus` with the prepared inputs.
   await surface.focus();
   await page.keyboard.down("Enter");
+  // Then: Verify the expected result in the assertions below.
   await expect.poll(() => readViewMode(page)).toBe(false);
+  // When: Exercise `page.keyboard.down` with the prepared inputs.
   await page.keyboard.down("Enter");
+  // Then: Verify the expected result in the assertions below.
   await expect(page.getByText(fixture.card("card-1").frontText, { exact: true })).toBeVisible();
+  // When: Exercise `page.keyboard.up` with the prepared inputs.
   await page.keyboard.up("Enter");
   await page.keyboard.press("Enter");
+  // Then: Verify the expected result in the assertions below.
   await expect(page.getByRole("region", { name: "Study answer" })).toBeVisible();
   expect((await readSession(fixture.user().uid, deck.id))?.currentIndex).toBe(0);
   expect(await readAnswers(fixture.session().sessionId)).toHaveLength(0);

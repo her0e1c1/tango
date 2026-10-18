@@ -3,6 +3,9 @@ import { expect, fn } from "storybook/test";
 
 import { RemovableTag } from "./RemovableTag";
 
+// Given: Story args and parameters define the render scenarios below.
+// When: Storybook renders each exported variant and runs its play when present.
+// Then: Assertions are in the relevant plays; rendering alone adds no behavioral checks.
 const meta = {
   title: "Shared/Content/RemovableTag",
   component: RemovableTag,
@@ -20,7 +23,10 @@ export const Default: Story = {};
 
 export const Remove: Story = {
   play: async ({ args, canvas, userEvent }) => {
+    // Given: Use the rendered story, its args, parameters, and any setup below.
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(canvas.getByRole("button", { name: "Remove TypeScript filter" }));
+    // Then: Verify the expected result in the assertions below.
     await expect(args.onRemove).toHaveBeenCalledWith("TypeScript");
   },
 };

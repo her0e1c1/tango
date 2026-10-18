@@ -30,11 +30,15 @@ const SettingsFormHarness: React.FC<{ values?: Preferences }> = ({ values = defa
 
 describe("SETTINGS-01 SETTINGS-02 SETTINGS-04 SettingsForm", () => {
   it("groups every auto-saved setting in the unified settings list", () => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Exercise `render` with the prepared inputs.
     render(<SettingsFormHarness />);
+    // Then: Verify the expected result in the assertions below.
     expect(screen.queryByRole("form")).not.toBeInTheDocument();
     expect(screen.getByRole("heading", { level: 1, name: "Settings" })).toBeVisible();
     expect(screen.getByText("Changes are saved automatically")).toBeVisible();
     for (const name of ["Language", "Appearance", "Study"]) {
+      // Given: Use the current iteration or branch inputs from the enclosing case.
       expect(screen.getByRole("region", { name })).toBeInTheDocument();
     }
     expect(screen.queryByRole("region", { name: "Account" })).not.toBeInTheDocument();
@@ -42,6 +46,7 @@ describe("SETTINGS-01 SETTINGS-02 SETTINGS-04 SettingsForm", () => {
   });
 
   it("renders and updates switches and numeric sliders through RHF registration", async () => {
+    // Given: Prepare `playback`, `backTextSwipeOverlays`, `cardDetails` and any shared test state below.
     render(<SettingsFormHarness />);
     const playback = screen.getByRole("checkbox", { name: "Show playback controls" });
     const backTextSwipeOverlays = screen.getByRole("checkbox", { name: "Show back text swipe overlays" });
@@ -58,6 +63,7 @@ describe("SETTINGS-01 SETTINGS-02 SETTINGS-04 SettingsForm", () => {
     expect(screen.getByText("Display left and right study actions while viewing an answer")).toBeInTheDocument();
     expect(maximumCards).toHaveValue("24");
 
+    // When: Exercise `userEvent.selectOptions` with the prepared inputs.
     await userEvent.selectOptions(language, "ja");
     await userEvent.click(playback);
     await userEvent.click(backTextSwipeOverlays);
@@ -65,6 +71,7 @@ describe("SETTINGS-01 SETTINGS-02 SETTINGS-04 SettingsForm", () => {
     await userEvent.click(skip);
     fireEvent.change(maximumCards, { target: { value: "31" } });
 
+    // Then: Verify the expected result in the assertions below.
     expect(playback).not.toBeChecked();
     expect(backTextSwipeOverlays).toBeChecked();
     expect(cardDetails).not.toBeChecked();
@@ -77,7 +84,10 @@ describe("SETTINGS-01 SETTINGS-02 SETTINGS-04 SettingsForm", () => {
   });
 
   it("preserves scheduling descriptions and metadata", () => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Exercise `render` with the prepared inputs.
     render(<SettingsFormHarness />);
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByRole("checkbox", { name: "Respect review schedule" })).toBeChecked();
     expect(screen.getByText("Hide cards until their next review time")).toBeInTheDocument();
     expect(screen.getByRole("slider", { name: "Autoplay interval" })).toHaveAttribute("aria-valuetext", "7 seconds");
@@ -93,6 +103,8 @@ describe("SETTINGS-01 SETTINGS-02 SETTINGS-04 SettingsForm", () => {
   });
 
   it("keeps section heading relationships unique across multiple instances", () => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Exercise `render` with the prepared inputs.
     render(
       <>
         <SettingsFormHarness />
@@ -100,16 +112,21 @@ describe("SETTINGS-01 SETTINGS-02 SETTINGS-04 SettingsForm", () => {
       </>
     );
     for (const name of ["Language", "Appearance", "Study"]) {
+      // Given: Use the current iteration or branch inputs from the enclosing case.
+      // Then: Verify the expected result in the assertions below.
       expect(screen.getAllByRole("region", { name })).toHaveLength(2);
       expect(screen.getAllByRole("heading", { level: 2, name })).toHaveLength(2);
     }
   });
 
   it("renders Japanese presentation and accessible value text from the active locale", async () => {
+    // Given: Use this case's inputs and any shared test setup.
     await getI18n().changeLanguage("ja");
 
+    // When: Exercise `render` with the prepared inputs.
     render(<SettingsFormHarness />);
 
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByRole("heading", { level: 1, name: "設定" })).toBeVisible();
     expect(screen.getByRole("combobox", { name: "言語" })).toHaveDisplayValue("System");
     expect(screen.getByRole("checkbox", { name: "裏面のスワイプ操作を表示" })).toBeVisible();
@@ -140,6 +157,7 @@ describe("SETTINGS-02 maximum card count presentation", () => {
   ])(
     "explains zero and preserves positive counts in $locale",
     async ({ locale, label, allMatching, single, plural, help }) => {
+      // Given: Prepare `slider` and any shared test state below.
       await getI18n().changeLanguage(locale);
       render(<SettingsFormHarness values={createPreferences({ maxNumberOfCardsToLearn: 0 })} />);
 
@@ -151,16 +169,22 @@ describe("SETTINGS-02 maximum card count presentation", () => {
       expect(slider).toHaveAccessibleDescription(expect.stringContaining(help));
       expect(screen.getByText(allMatching)).toBeVisible();
 
+      // When: Exercise `fireEvent.change` with the prepared inputs.
       fireEvent.change(slider, { target: { value: "1" } });
+      // Then: Verify the expected result in the assertions below.
       expect(slider).toHaveAttribute("aria-valuetext", single);
       expect(screen.getByText("1")).toBeVisible();
       expect(screen.queryByText(allMatching)).not.toBeInTheDocument();
 
+      // When: Exercise `fireEvent.change` with the prepared inputs.
       fireEvent.change(slider, { target: { value: "2" } });
+      // Then: Verify the expected result in the assertions below.
       expect(slider).toHaveAttribute("aria-valuetext", plural);
       expect(screen.getByText("2")).toBeVisible();
 
+      // When: Exercise `fireEvent.change` with the prepared inputs.
       fireEvent.change(slider, { target: { value: "0" } });
+      // Then: Verify the expected result in the assertions below.
       expect(slider).toHaveAttribute("aria-valuetext", allMatching);
       expect(screen.getByText(allMatching)).toBeVisible();
     }

@@ -22,15 +22,18 @@ const selectBackText = async (page: Page, backText: string) => {
 };
 
 test("STUDY-BACK-TEXT-01 reveals the current Card answer without changing progress", async ({ fixture, page }) => {
+  // Given: Prepare `deck`, `session`, `currentCard` and any shared test state below.
   const deck = fixture.deck();
   const session = fixture.session();
   const currentCard = fixture.card("card-1");
   await fixture.apply(page);
 
+  // When: Exercise `page.goto` with the prepared inputs.
   await page.goto(`/deck/${deck.id}/study`);
   const before = await readProgress(currentCard.id);
   const answerRegion = await revealAnswer(page, currentCard.frontText);
 
+  // Then: Verify the expected result in the assertions below.
   await expect(answerRegion).toBeVisible();
   await expect(page.getByText(currentCard.backText, { exact: true })).toBeVisible();
   await expect.poll(() => readProgress(currentCard.id)).toEqual(before);
@@ -40,15 +43,18 @@ test("STUDY-BACK-TEXT-01 reveals the current Card answer without changing progre
 });
 
 test("STUDY-BACK-TEXT-02 selects answer text without changing the Card state", async ({ fixture, page }) => {
+  // Given: Prepare `deck`, `session`, `currentCard` and any shared test state below.
   const deck = fixture.deck();
   const session = fixture.session();
   const currentCard = fixture.card("card-1");
   await fixture.apply(page);
 
+  // When: Exercise `page.goto` with the prepared inputs.
   await page.goto(`/deck/${deck.id}/study`);
   await revealAnswer(page, currentCard.frontText);
   await selectBackText(page, currentCard.backText);
 
+  // Then: Verify the expected result in the assertions below.
   await expect(page.getByText(currentCard.backText, { exact: true })).toBeVisible();
   await expect
     .poll(async () => page.evaluate(() => window.getSelection()?.toString() ?? ""))
@@ -63,6 +69,7 @@ test("STUDY-BACK-TEXT-03 returns to the same Card front when answer overlays are
   fixture,
   page,
 }) => {
+  // Given: Prepare `deck`, `session`, `currentCard` and any shared test state below.
   const deck = fixture.deck();
   const session = fixture.session();
   const currentCard = fixture.card("card-1");
@@ -72,8 +79,10 @@ test("STUDY-BACK-TEXT-03 returns to the same Card front when answer overlays are
   await revealAnswer(page, currentCard.frontText);
   await expect(page.getByRole("button", { name: "Swipe left" })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Swipe right" })).toHaveCount(0);
+  // When: Exercise `page.getByText(currentCard.backText, { exact: true }).click` with the prepared inputs.
   await page.getByText(currentCard.backText, { exact: true }).click();
 
+  // Then: Verify the expected result in the assertions below.
   await expect(page.getByText(currentCard.frontText, { exact: true })).toBeVisible();
   await expect(page.getByText(currentCard.backText, { exact: true })).toBeHidden();
   await expect.poll(() => readProgress(currentCard.id)).toEqual({ reps: 0 });
@@ -83,6 +92,7 @@ test("STUDY-BACK-TEXT-03 returns to the same Card front when answer overlays are
 });
 
 test("STUDY-BACK-TEXT-04 scrolls a long answer without changing the Card state", async ({ fixture, page }) => {
+  // Given: Prepare `deck`, `session`, `currentCard` and any shared test state below.
   const deck = fixture.deck();
   const session = fixture.session();
   const currentCard = fixture.card("card-1");
@@ -97,9 +107,11 @@ test("STUDY-BACK-TEXT-04 scrolls a long answer without changing the Card state",
   }));
   expect(initialScroll.scrollHeight).toBeGreaterThan(initialScroll.clientHeight);
   expect(initialScroll.scrollTop).toBe(0);
+  // When: Exercise `answerRegion.hover` with the prepared inputs.
   await answerRegion.hover();
   await page.mouse.wheel(0, initialScroll.clientHeight);
 
+  // Then: Verify the expected result in the assertions below.
   await expect.poll(async () => answerRegion.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
   await expect(answerRegion).toContainText(currentCard.backText.split("\n").at(-1) ?? currentCard.backText);
   await expect.poll(() => readProgress(currentCard.id)).toEqual({ reps: 0 });
@@ -112,6 +124,7 @@ test("STUDY-BACK-TEXT-05 runs the mapped left overlay action once and shows the 
   fixture,
   page,
 }) => {
+  // Given: Prepare `deck`, `session`, `currentCard` and any shared test state below.
   const deck = fixture.deck();
   const session = fixture.session();
   const currentCard = fixture.card("card-1");
@@ -120,8 +133,10 @@ test("STUDY-BACK-TEXT-05 runs the mapped left overlay action once and shows the 
 
   await page.goto(`/deck/${deck.id}/study`);
   await revealAnswer(page, currentCard.frontText);
+  // When: Exercise `page.getByRole("button", { name: "Swipe left" }).click` with the prepared inputs.
   await page.getByRole("button", { name: "Swipe left" }).click();
 
+  // Then: Verify the expected result in the assertions below.
   await expect(page.getByText(nextCard.frontText, { exact: true })).toBeVisible();
   await expect(page.getByText(nextCard.backText, { exact: true })).toBeHidden();
   await expect.poll(() => readProgress(currentCard.id)).toEqual({ reps: 1 });
@@ -134,6 +149,7 @@ test("STUDY-BACK-TEXT-06 runs the mapped right overlay action once and shows the
   fixture,
   page,
 }) => {
+  // Given: Prepare `deck`, `session`, `currentCard` and any shared test state below.
   const deck = fixture.deck();
   const session = fixture.session();
   const currentCard = fixture.card("card-1");
@@ -142,8 +158,10 @@ test("STUDY-BACK-TEXT-06 runs the mapped right overlay action once and shows the
 
   await page.goto(`/deck/${deck.id}/study`);
   await revealAnswer(page, currentCard.frontText);
+  // When: Exercise `page.getByRole("button", { name: "Swipe right" }).click` with the prepared inputs.
   await page.getByRole("button", { name: "Swipe right" }).click();
 
+  // Then: Verify the expected result in the assertions below.
   await expect(page.getByText(nextCard.frontText, { exact: true })).toBeVisible();
   await expect(page.getByText(nextCard.backText, { exact: true })).toBeHidden();
   await expect.poll(() => readProgress(currentCard.id)).toEqual({ reps: 1 });
@@ -156,6 +174,8 @@ test("STUDY-BACK-TEXT-07 keeps the full answer width beneath overlays on a narro
   fixture,
   page,
 }) => {
+  // Given: Use this case's inputs and any shared test setup.
+  // When: Exercise `page.setViewportSize` with the prepared inputs.
   await page.setViewportSize({ width: 320, height: 568 });
   const deck = fixture.deck();
   const session = fixture.session();
@@ -182,6 +202,7 @@ test("STUDY-BACK-TEXT-07 keeps the full answer width beneath overlays on a narro
     throw new Error("Expected visible answer region, back text, and overlays");
   }
 
+  // Then: Verify the expected result in the assertions below.
   expect(backTextSurfaceBounds.x).toBe(answerRegionBounds.x);
   expect(backTextSurfaceBounds.width).toBe(answerRegionBounds.width);
   expect(leftOverlayBounds.x + leftOverlayBounds.width).toBeGreaterThan(backTextSurfaceBounds.x);
@@ -197,6 +218,8 @@ test("STUDY-BACK-TEXT-07 keeps the full answer width beneath overlays on a narro
 });
 
 test("STUDY-BACK-TEXT-08 scrolls a long answer with wheel and touch from edge overlays", async ({ fixture, page }) => {
+  // Given: Use this case's inputs and any shared test setup.
+  // When: Exercise `page.setViewportSize` with the prepared inputs.
   await page.setViewportSize({ width: 320, height: 568 });
   const deck = fixture.deck();
   const session = fixture.session();
@@ -210,6 +233,7 @@ test("STUDY-BACK-TEXT-08 scrolls a long answer with wheel and touch from edge ov
     scrollHeight: element.scrollHeight,
     scrollTop: element.scrollTop,
   }));
+  // Then: Verify the expected result in the assertions below.
   expect(initialScroll.scrollHeight).toBeGreaterThan(initialScroll.clientHeight);
   expect(initialScroll.scrollTop).toBe(0);
 
@@ -217,13 +241,18 @@ test("STUDY-BACK-TEXT-08 scrolls a long answer with wheel and touch from edge ov
   const rightOverlay = page.getByRole("button", { name: "Swipe right" });
   await expect(leftOverlay).toBeVisible();
   await expect(rightOverlay).toBeVisible();
+  // When: Exercise `rightOverlay.boundingBox` with the prepared inputs.
   const rightOverlayBounds = await rightOverlay.boundingBox();
   if (rightOverlayBounds == null) throw new Error("Expected a visible right back text overlay");
+  // Then: Verify the expected result in the assertions below.
   expect(rightOverlayBounds.x + rightOverlayBounds.width).toBeLessThan(page.viewportSize()?.width ?? 0);
+  // When: Exercise `leftOverlay.hover` with the prepared inputs.
   await leftOverlay.hover();
   await page.mouse.wheel(0, initialScroll.clientHeight);
 
+  // Then: Verify the expected result in the assertions below.
   await expect.poll(async () => answerRegion.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
+  // When: Exercise `answerRegion.evaluate` with the prepared inputs.
   await answerRegion.evaluate((element) => {
     element.scrollTop = 0;
   });
@@ -243,6 +272,7 @@ test("STUDY-BACK-TEXT-08 scrolls a long answer with wheel and touch from edge ov
   });
   await touchSession.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
 
+  // Then: Verify the expected result in the assertions below.
   await expect.poll(async () => answerRegion.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
   await expect(leftOverlay).toBeVisible();
   await expect(rightOverlay).toBeVisible();

@@ -28,4 +28,7 @@ def lis(nums):
     ],
 )
 def test(args, expected):
+    # Given: The parameterized row supplies args and the expected result.
+    # When: Evaluate lis with this row's arguments inside the assertion.
+    # Then: The result matches the row's expected value.
     assert lis(args) == expected

@@ -29,6 +29,7 @@ describe("study store [STUDY-SESSION-01] [STUDY-ACTIONS-04]", () => {
   const store = studySessionStore;
 
   beforeEach(() => {
+    // Given: Establish the shared setup used by the following cases.
     store.setState({ sessionsByDeckId: {} });
     localStorage.clear();
   });
@@ -40,13 +41,16 @@ describe("study store [STUDY-SESSION-01] [STUDY-ACTIONS-04]", () => {
   });
 
   it("keeps independent study sessions for multiple decks", () => {
+    // Given: Use this case's inputs and any shared test setup.
     vi.useFakeTimers();
     vi.setSystemTime(1000);
 
     startSession("deck-1", ["card-1", "card-2"]);
     vi.setSystemTime(2000);
+    // When: Exercise `startSession` with the prepared inputs.
     startSession("deck-2", ["card-3"]);
 
+    // Then: Verify the expected result in the assertions below.
     expect(store.getState().sessionsByDeckId).toEqual({
       "deck-1": {
         sessionId: expect.any(String),
@@ -68,6 +72,7 @@ describe("study store [STUDY-SESSION-01] [STUDY-ACTIONS-04]", () => {
   });
 
   it("[UNIT-STORE-STUDY-02] removes sessions absent from the latest snapshot while retaining other progress", () => {
+    // Given: Prepare `second`, `retained` and any shared test state below.
     vi.useFakeTimers();
     vi.setSystemTime(1000);
     startSession("deck-1", ["card-1"]);
@@ -80,11 +85,13 @@ describe("study store [STUDY-SESSION-01] [STUDY-ACTIONS-04]", () => {
     if (!retained) throw new Error("Missing retained session");
 
     setStudySessionOwner("uid");
+    // When: Exercise `applyStudySessionSnapshot` with the prepared inputs.
     applyStudySessionSnapshot("uid", {
       values: [{ session: retained, endReason: null, endedAt: null }],
       fromCache: false,
     });
 
+    // Then: Verify the expected result in the assertions below.
     expect(getStudySession("deck-1")).toBeUndefined();
     expect(getStudySession("deck-2")).toEqual(retained);
   });
@@ -96,6 +103,7 @@ describe("study store [STUDY-SESSION-01] [STUDY-ACTIONS-04]", () => {
   ] as const)(
     "[UNIT-STORE-STUDY-04] preserves only the new owner's sessions and loading state (owner=%s)",
     async (ownerUid, retained, loading) => {
+      // Given: Prepare `expected`, `listener`, `sessions` and any shared test state below.
       const expected = [
         {
           sessionId: "session-a",
@@ -135,16 +143,20 @@ describe("study store [STUDY-SESSION-01] [STUDY-ACTIONS-04]", () => {
         })),
       } as unknown as QuerySnapshot);
       const sessions = { "deck-a": expected[0], "deck-b": expected[1] };
+      // When: Exercise `renderHook` with the prepared inputs.
       const { result } = renderHook(() => ({
         sessions: useStudySessions(),
         deckA: useStudySession("deck-a"),
         deckB: useStudySession("deck-b"),
         loading: useRemoteStudySessionsLoading(),
       }));
+      // Then: Verify the expected result in the assertions below.
       expect(result.current).toEqual({ sessions, deckA: expected[0], deckB: expected[1], loading: false });
 
+      // When: Exercise `act` with the prepared inputs.
       act(() => setStudySessionOwner(ownerUid));
 
+      // Then: Verify the expected result in the assertions below.
       expect(result.current).toEqual({
         sessions: retained ? sessions : {},
         deckA: retained ? expected[0] : undefined,
@@ -157,15 +169,19 @@ describe("study store [STUDY-SESSION-01] [STUDY-ACTIONS-04]", () => {
   );
 
   it("clears the visible session without deleting the legacy backup", () => {
+    // Given: Use this case's inputs and any shared test setup.
     localStorage.setItem(STUDY_STORAGE_KEY, "legacy backup");
     startSession("deck-1", ["card-1"]);
+    // When: Exercise `clearStudySessions` with the prepared inputs.
     clearStudySessions();
+    // Then: Verify the expected result in the assertions below.
     expect(getStudySession("deck-1")).toBeUndefined();
     expect(localStorage.getItem(STUDY_STORAGE_KEY)).toBe("legacy backup");
   });
   it.each([false, true])(
     "[UNIT-STORE-STUDY-11] retains progress and reports sync errors to current and later history readers (loaded=%s)",
     async (loaded) => {
+      // Given: Prepare `expected`, `stopInitial`, `initial` and any shared test state below.
       const expected = loaded
         ? [
             {
@@ -210,7 +226,9 @@ describe("study store [STUDY-SESSION-01] [STUDY-ACTIONS-04]", () => {
       const input = { uid: "uid", period: { start: 0, end: 1000 }, deckId: null, metric: "started" as const };
       const history = vi.fn();
       const historyError = vi.fn();
+      // When: Exercise `onTestFinished` with the prepared inputs.
       onTestFinished(subscribeStudyHistory(input, history, historyError));
+      // Then: Verify the expected result in the assertions below.
       expect(history).toHaveBeenLastCalledWith(
         expected.map((session) => ({
           sessionId: session.sessionId,
@@ -223,6 +241,7 @@ describe("study store [STUDY-SESSION-01] [STUDY-ACTIONS-04]", () => {
         })),
         true
       );
+      // When: Exercise `stopInitial` with the prepared inputs.
       stopInitial();
 
       const failed = vi.fn();
@@ -230,10 +249,13 @@ describe("study store [STUDY-SESSION-01] [STUDY-ACTIONS-04]", () => {
       onTestFinished(subscribeStudySessions("uid", failed, ready));
       const listener = await currentListener();
       const { result } = renderHook(useRemoteStudySessionsLoading);
+      // Then: Verify the expected result in the assertions below.
       expect(result.current).toBe(true);
       const error = new Error("Subscription unavailable");
+      // When: Exercise `act` with the prepared inputs.
       act(() => listener.error(error));
 
+      // Then: Verify the expected result in the assertions below.
       expect(result.current).toBe(false);
       expect([getStudySession("deck-a"), getStudySession("deck-b")].filter(Boolean)).toEqual(expected);
       expect(failed).toHaveBeenCalledWith(error);
@@ -241,7 +263,9 @@ describe("study store [STUDY-SESSION-01] [STUDY-ACTIONS-04]", () => {
       expect(ready).not.toHaveBeenCalled();
       const lateHistory = vi.fn();
       const lateError = vi.fn();
+      // When: Exercise `onTestFinished` with the prepared inputs.
       onTestFinished(subscribeStudyHistory(input, lateHistory, lateError));
+      // Then: Verify the expected result in the assertions below.
       expect(lateError).toHaveBeenCalledWith(error);
       expect(lateHistory).not.toHaveBeenCalled();
     }

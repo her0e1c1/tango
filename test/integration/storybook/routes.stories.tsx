@@ -118,6 +118,9 @@ const AppRoutes = ({ path }: { path: string }) => {
   );
 };
 
+// Given: Story args and parameters define the render scenarios below.
+// When: Storybook renders each exported variant and runs its play when present.
+// Then: Assertions are in the relevant plays; rendering alone adds no behavioral checks.
 const meta = {
   title: "Integration/Routes",
   render: (_args, context) => (
@@ -175,7 +178,9 @@ export const Account: Story = {
 export const Import: Story = {
   parameters: { page: { ...pageStoryState, path: routes.deckImport.to() } },
   play: async ({ canvas, userEvent, step }) => {
+    // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-IMPORT-02 Import preview through route", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
       const file = new File(
         ['"storybook prompt","storybook answer","story","storybook-import"'],
         "storybook-import.csv",
@@ -184,8 +189,10 @@ export const Import: Story = {
 
       await expect(canvas.queryByRole("heading", { name: "Review import" })).not.toBeInTheDocument();
       await expect(canvas.queryByRole("radio")).not.toBeInTheDocument();
+      // When: Exercise `userEvent.upload` with the prepared inputs.
       await userEvent.upload(canvas.getByLabelText("Upload a csv file"), file);
 
+      // Then: Verify the expected result in the assertions below.
       await expect(await canvas.findByRole("heading", { level: 2, name: "Review import" })).toBeVisible();
       await expect(canvas.getByText("1 valid")).toBeVisible();
       await expect(canvas.getByText("storybook answer")).toBeVisible();
@@ -200,9 +207,13 @@ export const NotFound: Story = {
 export const SettingsHomeShortcut: Story = {
   parameters: Settings.parameters ?? {},
   play: async ({ canvas, userEvent, step }) => {
+    // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-SETTINGS-11 Navigate home with the settings shortcut", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
       await expect(await canvas.findByRole("heading", { level: 1, name: "Settings" })).toBeVisible();
+      // When: Exercise `userEvent.keyboard` with the prepared inputs.
       await userEvent.keyboard("t");
+      // Then: Verify the expected result in the assertions below.
       await expect(await canvas.findByRole("heading", { level: 1, name: "Decks" })).toBeVisible();
     });
   },
@@ -211,9 +222,13 @@ export const SettingsHomeShortcut: Story = {
 export const AccountHomeShortcut: Story = {
   parameters: Account.parameters ?? {},
   play: async ({ canvas, userEvent, step }) => {
+    // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-ACCOUNT-09 Navigate home with the account shortcut", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
       await expect(await canvas.findByRole("heading", { level: 1, name: "Account" })).toBeVisible();
+      // When: Exercise `userEvent.keyboard` with the prepared inputs.
       await userEvent.keyboard("t");
+      // Then: Verify the expected result in the assertions below.
       await expect(await canvas.findByRole("heading", { level: 1, name: "Decks" })).toBeVisible();
     });
   },
@@ -226,7 +241,11 @@ export const AnonymousAccountIdentity: Story = {
     replaceAuthSession({ status: "authenticated", uid: "anonymous-user", displayName: null, isAnonymous: true });
   },
   play: async ({ canvas, step }) => {
+    // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-ACCOUNT-06 Display the anonymous session identity", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
+      // When: Evaluate `canvas.findByText` as part of the following checks.
+      // Then: Verify the expected result in the assertions below.
       for (const text of ["Anonymous account", "Not available", "anonymous-user"])
         await expect(await canvas.findByText(text, { exact: true })).toBeVisible();
       await expect(canvas.getByRole("button", { name: "Sign in with Google" })).toBeEnabled();
@@ -242,14 +261,21 @@ export const LinkedAccountIdentity: Story = {
     replaceAuthSession({ status: "authenticated", uid: "linked-user", displayName: "Test User", isAnonymous: false });
   },
   play: async ({ canvas, step }) => {
+    // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-ACCOUNT-06 Display the linked session identity", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
+      // When: Evaluate `canvas.findByText` as part of the following checks.
+      // Then: Verify the expected result in the assertions below.
       for (const text of ["Signed in with Google", "Test User", "linked-user"])
         await expect(await canvas.findByText(text, { exact: true })).toBeVisible();
       await expect(canvas.getByRole("button", { name: "Sign out" })).toBeEnabled();
       await expect(canvas.queryByRole("button", { name: "Sign in with Google" })).not.toBeInTheDocument();
     });
     await step("STORYBOOK-ACCOUNT-08 Preserve profile values when changing language", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
+      // When: Exercise `appI18n.changeLanguage` with the prepared inputs.
       await appI18n.changeLanguage("ja");
+      // Then: Verify the expected result in the assertions below.
       await expect(await canvas.findByRole("heading", { name: "アカウント" })).toBeVisible();
       await expect(canvas.getByText("Test User", { exact: true })).toBeVisible();
       await expect(canvas.getByText("linked-user", { exact: true })).toBeVisible();
@@ -269,85 +295,118 @@ const accountSession = (linked: boolean) =>
     isAnonymous: !linked,
   });
 
-const authRetryStory = (linked: boolean): Story => ({
-  parameters: Account.parameters ?? {},
-  beforeEach: async (context) => {
-    await prepareAppStory(context);
-    accountSession(linked);
-  },
-  play: async ({ canvas, userEvent, step }) => {
-    const name = linked ? "Sign out" : "Sign in with Google";
-    const success = linked ? "Signed out." : "Signed in.";
-    const failureMessage = linked ? "Unable to sign out." : "Unable to sign in.";
-    await step("STORYBOOK-ACCOUNT-10 Retry a failed authentication operation", async () => {
-      await canvas.findByRole("button", { name });
-      const operation = linked ? mocked(signOutCurrentUser) : mocked(signInWithGoogle);
-      operation.mockRejectedValueOnce(new Error("Authentication failed"));
-      if (linked) mocked(signOutCurrentUser).mockResolvedValueOnce(undefined);
-      else mocked(signInWithGoogle).mockResolvedValueOnce(successfulUser);
-      await userEvent.click(await canvas.findByRole("button", { name }));
-      await expect(await canvas.findByRole("alert")).toHaveTextContent(failureMessage);
-      await userEvent.click(canvas.getByRole("button", { name }));
-      await waitFor(() => expect(canvas.queryByRole("alert")).not.toBeInTheDocument());
-      await expect(canvas.getByRole("status", { name: "Toast notifications" })).toHaveTextContent(success);
-    });
-  },
-});
+const authRetryStory = (linked: boolean): Story =>
+  // Given: Use the inputs supplied by the calling scenario.
+  // When: Evaluate the shared verification expression.
+  // Then: Its assertions check the scenario's expected result.
+  ({
+    parameters: Account.parameters ?? {},
+    beforeEach: async (context) => {
+      await prepareAppStory(context);
+      accountSession(linked);
+    },
+    play: async ({ canvas, userEvent, step }) => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
+      const name = linked ? "Sign out" : "Sign in with Google";
+      const success = linked ? "Signed out." : "Signed in.";
+      const failureMessage = linked ? "Unable to sign out." : "Unable to sign in.";
+      await step("STORYBOOK-ACCOUNT-10 Retry a failed authentication operation", async () => {
+        // Given: Use the rendered story, its args, parameters, and any setup below.
+        await canvas.findByRole("button", { name });
+        const operation = linked ? mocked(signOutCurrentUser) : mocked(signInWithGoogle);
+        operation.mockRejectedValueOnce(new Error("Authentication failed"));
+        if (linked) mocked(signOutCurrentUser).mockResolvedValueOnce(undefined);
+        else mocked(signInWithGoogle).mockResolvedValueOnce(successfulUser);
+        // When: Exercise `userEvent.click` with the prepared inputs.
+        await userEvent.click(await canvas.findByRole("button", { name }));
+        // Then: Verify the expected result in the assertions below.
+        await expect(await canvas.findByRole("alert")).toHaveTextContent(failureMessage);
+        // When: Exercise `userEvent.click` with the prepared inputs.
+        await userEvent.click(canvas.getByRole("button", { name }));
+        // Then: Verify the expected result in the assertions below.
+        await waitFor(() => expect(canvas.queryByRole("alert")).not.toBeInTheDocument());
+        await expect(canvas.getByRole("status", { name: "Toast notifications" })).toHaveTextContent(success);
+      });
+    },
+  });
 export const SignInRetry = authRetryStory(false);
 export const SignOutRetry = authRetryStory(true);
 
 export const AccountFailureSurvivesNavigation: Story = {
   parameters: Account.parameters ?? {},
   play: async ({ canvas, userEvent, step }) => {
+    // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-ACCOUNT-11 Preserve a visible failure across navigation", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
       mocked(signInWithGoogle).mockRejectedValueOnce(new Error("Authentication failed"));
+      // When: Exercise `userEvent.click` with the prepared inputs.
       await userEvent.click(await canvas.findByRole("button", { name: "Sign in with Google" }));
+      // Then: Verify the expected result in the assertions below.
       await expect(await canvas.findByRole("alert")).toHaveTextContent("Unable to sign in.");
+      // When: Exercise `userEvent.keyboard` with the prepared inputs.
       await userEvent.keyboard("t");
+      // Then: Verify the expected result in the assertions below.
       await expect(await canvas.findByRole("heading", { level: 1, name: "Decks" })).toBeVisible();
       await expect(canvas.getByRole("alert")).toHaveTextContent("Unable to sign in.");
     });
   },
 };
 
-const authLateFailureStory = (linked: boolean): Story => ({
-  parameters: Account.parameters ?? {},
-  beforeEach: async (context) => {
-    await prepareAppStory(context);
-    accountSession(linked);
-  },
-  play: async ({ canvas, userEvent, step }) => {
-    await step("STORYBOOK-ACCOUNT-12 Announce an authentication failure after leaving the page", async () => {
-      await canvas.findByRole("button", { name: linked ? "Sign out" : "Sign in with Google" });
-      const pending = Promise.withResolvers<never>();
-      void pending.promise.catch(() => undefined);
-      if (linked) mocked(signOutCurrentUser).mockImplementationOnce(() => pending.promise);
-      else mocked(signInWithGoogle).mockImplementationOnce(() => pending.promise);
-      try {
-        await userEvent.click(await canvas.findByRole("button", { name: linked ? "Sign out" : "Sign in with Google" }));
-        await userEvent.keyboard("t");
-        await expect(await canvas.findByRole("heading", { level: 1, name: "Decks" })).toBeVisible();
-        pending.reject(new Error("Authentication failed"));
-        await expect(await canvas.findByRole("alert")).toHaveTextContent(
-          linked ? "Unable to sign out." : "Unable to sign in."
-        );
-        await expect(canvas.getByRole("heading", { level: 1, name: "Decks" })).toBeVisible();
-      } finally {
-        pending.reject(new Error("Story cleanup"));
-      }
-    });
-  },
-});
+const authLateFailureStory = (linked: boolean): Story =>
+  // Given: Use the inputs supplied by the calling scenario.
+  // When: Evaluate the shared verification expression.
+  // Then: Its assertions check the scenario's expected result.
+  ({
+    parameters: Account.parameters ?? {},
+    beforeEach: async (context) => {
+      await prepareAppStory(context);
+      accountSession(linked);
+    },
+    play: async ({ canvas, userEvent, step }) => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
+      await step("STORYBOOK-ACCOUNT-12 Announce an authentication failure after leaving the page", async () => {
+        // Given: Use the rendered story, its args, parameters, and any setup below.
+        await canvas.findByRole("button", { name: linked ? "Sign out" : "Sign in with Google" });
+        const pending = Promise.withResolvers<never>();
+        void pending.promise.catch(() => undefined);
+        if (linked) mocked(signOutCurrentUser).mockImplementationOnce(() => pending.promise);
+        else mocked(signInWithGoogle).mockImplementationOnce(() => pending.promise);
+        // When: Evaluate `userEvent.click` as part of the following checks.
+        // Then: Verify the expected result in the assertions below.
+        try {
+          await userEvent.click(
+            await canvas.findByRole("button", { name: linked ? "Sign out" : "Sign in with Google" })
+          );
+          await userEvent.keyboard("t");
+          // Then: Check the expected result after the operation in this branch.
+          await expect(await canvas.findByRole("heading", { level: 1, name: "Decks" })).toBeVisible();
+          pending.reject(new Error("Authentication failed"));
+          // Then: Check the expected result after the operation in this branch.
+          await expect(await canvas.findByRole("alert")).toHaveTextContent(
+            linked ? "Unable to sign out." : "Unable to sign in."
+          );
+          // Then: Check the expected result after the operation in this branch.
+          await expect(canvas.getByRole("heading", { level: 1, name: "Decks" })).toBeVisible();
+        } finally {
+          pending.reject(new Error("Story cleanup"));
+        }
+      });
+    },
+  });
 export const LateSignInFailure = authLateFailureStory(false);
 export const LateSignOutFailure = authLateFailureStory(true);
 
 export const JapaneseAuthenticationResult: Story = {
   parameters: { ...Account.parameters, locale: "ja" },
   play: async ({ canvas, userEvent, step }) => {
+    // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-ACCOUNT-13 Announce authentication success in Japanese", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
       await canvas.findByRole("button", { name: "Googleでログイン" });
       mocked(signInWithGoogle).mockResolvedValueOnce(successfulUser);
+      // When: Exercise `userEvent.click` with the prepared inputs.
       await userEvent.click(canvas.getByRole("button", { name: "Googleでログイン" }));
+      // Then: Verify the expected result in the assertions below.
       await expect(await canvas.findByRole("status", { name: "トースト通知" })).toHaveTextContent("ログインしました。");
     });
   },
@@ -356,20 +415,26 @@ export const JapaneseAuthenticationResult: Story = {
 export const IndependentAuthenticationPending: Story = {
   parameters: Account.parameters ?? {},
   play: async ({ canvas, userEvent, step }) => {
+    // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-ACCOUNT-07 Keep concurrent authentication operations independent", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
       await canvas.findByRole("button", { name: "Sign in with Google" });
       const signingIn = Promise.withResolvers<User>();
       const signingOut = Promise.withResolvers<void>();
       mocked(signInWithGoogle).mockImplementationOnce(() => signingIn.promise);
       mocked(signOutCurrentUser).mockImplementationOnce(() => signingOut.promise);
+      // When: Evaluate `userEvent.click` as part of the following checks.
+      // Then: Verify the expected result in the assertions below.
       try {
         await userEvent.click(await canvas.findByRole("button", { name: "Sign in with Google" }));
         accountSession(true);
         await userEvent.click(await canvas.findByRole("button", { name: "Sign out" }));
         signingIn.resolve(successfulUser);
+        // Then: Check the expected result after the operation in this branch.
         await expect(await canvas.findByRole("status", { name: "Toast notifications" })).toHaveTextContent(
           "Signed in."
         );
+        // Then: Check the expected result after the operation in this branch.
         await expect(canvas.getByRole("button", { name: "Sign out" })).toBeDisabled();
         signingOut.resolve();
         replaceAuthSession({
@@ -378,10 +443,13 @@ export const IndependentAuthenticationPending: Story = {
           displayName: null,
           isAnonymous: true,
         });
+        // Then: Check the expected result after the operation in this branch.
         await waitFor(() =>
           expect(canvas.getByRole("status", { name: "Toast notifications" })).toHaveTextContent("Signed out.")
         );
+        // Then: Check the expected result after the operation in this branch.
         await expect(canvas.getByText("next-anonymous-user")).toBeVisible();
+        // Then: Check the expected result after the operation in this branch.
         await expect(canvas.getByRole("button", { name: "Sign in with Google" })).toBeEnabled();
       } finally {
         signingIn.resolve(successfulUser);
@@ -391,50 +459,64 @@ export const IndependentAuthenticationPending: Story = {
   },
 };
 
-const authReentryStory = (linked: boolean, failure: boolean): Story => ({
-  parameters: Account.parameters ?? {},
-  beforeEach: async (context) => {
-    await prepareAppStory(context);
-    accountSession(linked);
-  },
-  play: async ({ canvas, userEvent, step }) => {
-    const name = linked ? "Sign out" : "Sign in with Google";
-    const success = linked ? "Signed out." : "Signed in.";
-    const failureMessage = linked ? "Unable to sign out." : "Unable to sign in.";
-    await step("STORYBOOK-ACCOUNT-14 Preserve pending authentication after re-entering the page", async () => {
-      await canvas.findByRole("button", { name });
-      const pending = Promise.withResolvers<User>();
-      if (linked)
-        mocked(signOutCurrentUser)
-          .mockImplementationOnce(async () => {
-            await pending.promise;
-          })
-          .mockResolvedValueOnce(undefined);
-      else
-        mocked(signInWithGoogle)
-          .mockImplementationOnce(() => pending.promise)
-          .mockResolvedValueOnce(successfulUser);
-      try {
-        await userEvent.click(await canvas.findByRole("button", { name }));
-        await userEvent.keyboard("t");
-        await expect(await canvas.findByRole("heading", { level: 1, name: "Decks" })).toBeVisible();
-        await userEvent.click(canvas.getByRole("button", { name: "Open account" }));
-        await expect(await canvas.findByRole("button", { name })).toBeDisabled();
-        if (failure) pending.reject(new Error("Authentication failed"));
-        else pending.resolve(successfulUser);
-        if (failure) await expect(await canvas.findByRole("alert")).toHaveTextContent(failureMessage);
+const authReentryStory = (linked: boolean, failure: boolean): Story =>
+  // Given: Use the inputs supplied by the calling scenario.
+  // When: Evaluate the shared verification expression.
+  // Then: Its assertions check the scenario's expected result.
+  ({
+    parameters: Account.parameters ?? {},
+    beforeEach: async (context) => {
+      await prepareAppStory(context);
+      accountSession(linked);
+    },
+    play: async ({ canvas, userEvent, step }) => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
+      const name = linked ? "Sign out" : "Sign in with Google";
+      const success = linked ? "Signed out." : "Signed in.";
+      const failureMessage = linked ? "Unable to sign out." : "Unable to sign in.";
+      await step("STORYBOOK-ACCOUNT-14 Preserve pending authentication after re-entering the page", async () => {
+        // Given: Use the rendered story, its args, parameters, and any setup below.
+        await canvas.findByRole("button", { name });
+        const pending = Promise.withResolvers<User>();
+        if (linked)
+          mocked(signOutCurrentUser)
+            .mockImplementationOnce(async () => {
+              await pending.promise;
+            })
+            .mockResolvedValueOnce(undefined);
         else
-          await expect(await canvas.findByRole("status", { name: "Toast notifications" })).toHaveTextContent(success);
-        await expect(canvas.getByRole("button", { name })).toBeEnabled();
-        await userEvent.click(canvas.getByRole("button", { name }));
-        await waitFor(() => expect(canvas.queryByRole("alert")).not.toBeInTheDocument());
-        await expect(canvas.getByRole("status", { name: "Toast notifications" })).toHaveTextContent(success);
-      } finally {
-        pending.resolve(successfulUser);
-      }
-    });
-  },
-});
+          mocked(signInWithGoogle)
+            .mockImplementationOnce(() => pending.promise)
+            .mockResolvedValueOnce(successfulUser);
+        // When: Evaluate `userEvent.click` as part of the following checks.
+        // Then: Verify the expected result in the assertions below.
+        try {
+          await userEvent.click(await canvas.findByRole("button", { name }));
+          await userEvent.keyboard("t");
+          // Then: Check the expected result after the operation in this branch.
+          await expect(await canvas.findByRole("heading", { level: 1, name: "Decks" })).toBeVisible();
+          await userEvent.click(canvas.getByRole("button", { name: "Open account" }));
+          // Then: Check the expected result after the operation in this branch.
+          await expect(await canvas.findByRole("button", { name })).toBeDisabled();
+          if (failure) pending.reject(new Error("Authentication failed"));
+          else pending.resolve(successfulUser);
+          // Then: Check the expected result after the operation in this branch.
+          if (failure) await expect(await canvas.findByRole("alert")).toHaveTextContent(failureMessage);
+          else
+            await expect(await canvas.findByRole("status", { name: "Toast notifications" })).toHaveTextContent(success);
+          // Then: Check the expected result after the operation in this branch.
+          await expect(canvas.getByRole("button", { name })).toBeEnabled();
+          await userEvent.click(canvas.getByRole("button", { name }));
+          // Then: Check the expected result after the operation in this branch.
+          await waitFor(() => expect(canvas.queryByRole("alert")).not.toBeInTheDocument());
+          // Then: Check the expected result after the operation in this branch.
+          await expect(canvas.getByRole("status", { name: "Toast notifications" })).toHaveTextContent(success);
+        } finally {
+          pending.resolve(successfulUser);
+        }
+      });
+    },
+  });
 export const SignInReentrySuccess = authReentryStory(false, false);
 export const SignInReentryFailure = authReentryStory(false, true);
 export const SignOutReentrySuccess = authReentryStory(true, false);

@@ -11,6 +11,8 @@ describe("CARD-MANAGEMENT-16 Code language changes", () => {
     { first: "python", second: "typescript", text: "interface Greeting { value: string; }", keyword: "interface" },
     { first: "ts", second: "py", text: "def greet():\n    return True", keyword: "def" },
   ])("uses the current grammar when switching $first to $second and back", ({ first, second, text, keyword }) => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Exercise `render` with the prepared inputs.
     const view = render(
       <StrictMode>
         <Code text={text} category={first} />
@@ -19,11 +21,13 @@ describe("CARD-MANAGEMENT-16 Code language changes", () => {
     const code = screen.getByRole("code");
 
     for (const category of [second, first, second]) {
+      // Given: Use the current iteration or branch inputs from the enclosing case.
       view.rerender(
         <StrictMode>
           <Code text={text} category={category} />
         </StrictMode>
       );
+      // Then: Verify the expected result in the assertions below.
       expect(screen.getByRole("code")).toBe(code);
       expect(code.textContent).toBe(text);
     }
@@ -34,6 +38,7 @@ describe("CARD-MANAGEMENT-16 Code language changes", () => {
   });
 
   it("preserves source, caller classes, and other elements across text and theme changes", () => {
+    // Given: Prepare `content`, `view`, `text` and any shared test state below.
     const content = (text: string, dark = false) => (
       <>
         <code className="language-typescript">const outside = true;</code>
@@ -46,8 +51,10 @@ describe("CARD-MANAGEMENT-16 Code language changes", () => {
     code.classList.add("caller-decoration", "hljs-custom-theme");
     const text = 'def second():\n    return "<span>source</span>"';
 
+    // When: Exercise `view.rerender` with the prepared inputs.
     view.rerender(content(text, true));
 
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getAllByRole("code")[1]).toBe(code);
     expect(code.textContent).toBe(text);
     expect(within(code).getByText("def")).toHaveClass("hljs-keyword");
@@ -56,9 +63,11 @@ describe("CARD-MANAGEMENT-16 Code language changes", () => {
     expect(outside).not.toHaveClass("hljs");
     expect(outside).toHaveTextContent("const outside = true;");
 
+    // When: Exercise `code.classList.add` with the prepared inputs.
     code.classList.add("language-caller-decoration");
     view.unmount();
 
+    // Then: Verify the expected result in the assertions below.
     expect(code).toHaveClass(
       "block",
       "min-w-max",

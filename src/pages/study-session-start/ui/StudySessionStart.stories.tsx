@@ -31,6 +31,9 @@ const filters = (selectedTags: string[] = [], tagAndFilter = false, tags: readon
   <Filters initialSelectedTags={selectedTags} initialTagAndFilter={tagAndFilter} tags={tags} />
 );
 
+// Given: Story args and parameters define the render scenarios below.
+// When: Storybook renders each exported variant and runs its play when present.
+// Then: Assertions are in the relevant plays; rendering alone adds no behavioral checks.
 const meta = {
   title: "Pages/Study Session Start/StudySessionStart",
   component: StudySessionStart,

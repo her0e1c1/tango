@@ -26,9 +26,12 @@ test.describe("import-sample", () => {
     (await listDocuments(collection)).filter((document) => document.fields.uid?.stringValue === uid);
 
   const previewSample = async (page: Page) => {
+    // Given: Use this case's inputs and any shared test setup.
     await page.goto("/import");
+    // When: Exercise `page.getByRole("button", { name: "Sample deck", exact: true }).click` with the prepared inputs.
     await page.getByRole("button", { name: "Sample deck", exact: true }).click();
     await page.getByRole("button", { name: "Try this example", exact: true }).click();
+    // Then: Verify the expected result in the assertions below.
     await expect(page.getByRole("heading", { name: "Review import", exact: true })).toBeVisible();
     await expect(page.getByText(`${sampleCards.length} valid`, { exact: true })).toBeVisible();
   };
@@ -37,6 +40,7 @@ test.describe("import-sample", () => {
     page.getByRole("button", { name: `Add ${sampleCards.length} cards`, exact: true }).click();
 
   test("DECK-IMPORT-10 A fresh anonymous session keeps the imported Sample deck local", async ({ fixture, page }) => {
+    // Given: Use this case's inputs and any shared test setup.
     await fixture.apply(page, { auth: false });
     await previewSample(page);
     await confirmSample(page);
@@ -45,23 +49,31 @@ test.describe("import-sample", () => {
     await expect(page.getByRole("heading", { level: 1, name: "Decks", exact: true })).toBeVisible();
     await expect(page.getByRole("button", { name: `Open cards in ${sampleName}`, exact: true })).toBeVisible();
 
+    // When: Exercise `page.getByRole("button", { name: "Open account", exact: true }).click` with the prepared inputs.
     await page.getByRole("button", { name: "Open account", exact: true }).click();
+    // Then: Verify the expected result in the assertions below.
     await expect(page.getByText("Anonymous account", { exact: true })).toBeVisible();
     await expect(page.getByRole("button", { name: "Sign in with Google", exact: true })).toBeVisible();
+    // When: Exercise `page.getByText("User ID", { exact: true }).locator` with the prepared inputs.
     const uid = (
       await page.getByText("User ID", { exact: true }).locator("xpath=parent::*").locator("dd").textContent()
     )?.trim();
     if (!uid) throw new Error("The anonymous account has no User ID");
+    // Then: Verify the expected result in the assertions below.
     expect(
       (await downloadDeckCards(page, sampleName)).sort((a, b) => String(a.uniqueKey).localeCompare(String(b.uniqueKey)))
     ).toEqual(expectedCards);
     expect(await documentsForUid("deck", uid)).toEqual([]);
     expect(await documentsForUid("card", uid)).toEqual([]);
 
+    // When: Exercise `page.getByRole("button", { name: "tango", exact: true }).click` with the prepared inputs.
     await page.getByRole("button", { name: "tango", exact: true }).click();
+    // Then: Verify the expected result in the assertions below.
     await expect(page).toHaveURL(/\/$/);
+    // When: Exercise `page.reload` with the prepared inputs.
     await page.reload();
     await page.getByRole("button", { name: `Open cards in ${sampleName}`, exact: true }).click();
+    // Then: Verify the expected result in the assertions below.
     await expect(page.getByRole("article")).toHaveCount(sampleCards.length);
   });
 
@@ -69,6 +81,7 @@ test.describe("import-sample", () => {
     fixture,
     page,
   }) => {
+    // Given: Use this case's inputs and any shared test setup.
     const { uid } = fixture.user();
     await fixture.apply(page);
     await previewSample(page);
@@ -83,8 +96,10 @@ test.describe("import-sample", () => {
     await expect(page.getByRole("status").filter({ hasText: `Imported ${sampleCards.length} cards.` })).toBeVisible();
     await expect(page.getByRole("heading", { level: 1, name: "Decks", exact: true })).toBeVisible();
     await expect(page.getByRole("button", { name: `Open cards in ${sampleName}`, exact: true })).toBeVisible();
+    // When: Exercise `page.reload` with the prepared inputs.
     await page.reload();
     await page.getByRole("button", { name: `Open cards in ${sampleName}`, exact: true }).click();
+    // Then: Verify the expected result in the assertions below.
     await expect(page.getByRole("article")).toHaveCount(sampleCards.length);
     await expect(page.getByText("What is bisect_left?", { exact: true })).toBeVisible();
 
@@ -94,15 +109,18 @@ test.describe("import-sample", () => {
     expect(await documentsForUid("deck", uid)).toEqual([]);
     expect(await documentsForUid("card", uid)).toEqual([]);
 
+    // When: Exercise `page.goto` with the prepared inputs.
     await page.goto("/");
     await page.getByRole("button", { name: `Study ${sampleName}`, exact: true }).click();
     await page.getByRole("button", { name: /^Start \d+ cards$/u }).click();
     await page.locator("#frontText").click();
+    // Then: Verify the expected result in the assertions below.
     await expect(page.getByRole("region", { name: "Study answer" })).toBeVisible();
     await expect(page.getByRole("region", { name: "Study answer" })).toContainText("import pytest");
   });
 
   test("DECK-IMPORT-09 A linked account syncs every Sample deck card without duplicates", async ({ fixture, page }) => {
+    // Given: Use this case's inputs and any shared test setup.
     const { uid } = fixture.user();
     await fixture.apply(page, { auth: { linked: true } });
     await previewSample(page);
@@ -111,18 +129,24 @@ test.describe("import-sample", () => {
     await expect(page.getByRole("status").filter({ hasText: `Imported ${sampleCards.length} cards.` })).toBeVisible();
     await expect(page.getByRole("heading", { level: 1, name: "Decks", exact: true })).toBeVisible();
     await expect(page.getByRole("button", { name: `Open cards in ${sampleName}`, exact: true })).toBeVisible();
+    // When: Exercise `page.reload` with the prepared inputs.
     await page.reload();
     await page.getByRole("button", { name: `Open cards in ${sampleName}`, exact: true }).click();
+    // Then: Verify the expected result in the assertions below.
     await expect(page.getByRole("article")).toHaveCount(sampleCards.length);
     await expect(page.getByText("What is bisect_left?", { exact: true })).toBeVisible();
 
     await expect
       .poll(async () => (await documentsForUid("deck", uid)).map(({ fields }) => fields.name?.stringValue))
       .toEqual([sampleName]);
+    // When: Exercise `documentsForUid` with the prepared inputs.
     const [savedDeck] = await documentsForUid("deck", uid);
     if (!savedDeck) throw new Error("Missing imported Deck");
+    // Then: Verify the expected result in the assertions below.
     await expect.poll(async () => (await documentsForUid("card", uid)).length).toBe(sampleCards.length);
+    // When: Exercise `documentsForUid` with the prepared inputs.
     const cards = await documentsForUid("card", uid);
+    // Then: Verify the expected result in the assertions below.
     expect(cards).toHaveLength(sampleCards.length);
     expect(cards.every((card) => card.fields.deckId?.stringValue === documentId(savedDeck))).toBe(true);
     const contents = cards.map(({ fields }) => ({
@@ -138,11 +162,15 @@ test.describe("import-sample", () => {
 
 test.describe("import", () => {
   const readSampleState = async (page: Page, sampleDeckId: string) => {
+    // Given: Use this case's inputs and any shared test setup.
     await page.goto("/");
     await expect(page.getByRole("button", { name: "Open cards in Sample Deck", exact: true })).toHaveCount(1);
+    // When: Apply the operation or event under test.
     await page.getByRole("button", { name: "Open cards in Sample Deck", exact: true }).click();
+    // Then: Verify the expected result in the assertions below.
     await expect(page).toHaveURL(`/deck/${sampleDeckId}`);
     await expect(page.getByRole("button", { name: /^View / })).toHaveCount(sampleCards.length);
+    // When: Exercise `page.getByRole("button", { name: /^View / }).allTextContents` with the prepared inputs.
     const names = await page.getByRole("button", { name: /^View / }).allTextContents();
     const contents = await downloadDeckCards(page, "Sample Deck", sampleCards.length);
     return { names, contents };
@@ -164,6 +192,7 @@ test.describe("import", () => {
     ]);
 
   test("DECK-IMPORT-01 A valid CSV is previewed without persistence", async ({ fixture, page, namespace }) => {
+    // Given: Prepare `upload`, `uploadArea` and any shared test state below.
     const { uid } = fixture.user();
     await fixture.apply(page);
     await page.goto("/import");
@@ -175,18 +204,26 @@ test.describe("import", () => {
     await expect(uploadArea).toHaveCSS("outline-width", "2px");
     await expect(uploadArea).toHaveCSS("outline-offset", "3px");
     await expect(uploadArea).toHaveCSS("opacity", "1");
+    // When: Exercise `page.keyboard.press` with the prepared inputs.
     await page.keyboard.press("Tab");
+    // Then: Verify the expected result in the assertions below.
     await expect(page.getByText("CSV format", { exact: true })).toBeFocused();
     await expect(uploadArea).toHaveCSS("outline-style", "none");
+    // When: Exercise `page.keyboard.press` with the prepared inputs.
     await page.keyboard.press("Shift+Tab");
+    // Then: Verify the expected result in the assertions below.
     await expect(upload).toBeFocused();
     await expect(uploadArea).toHaveCSS("outline-style", "solid");
+    // When: Exercise `page.keyboard.press` with the prepared inputs.
     await page.keyboard.press("Shift+Tab");
+    // Then: Verify the expected result in the assertions below.
     await expect(uploadArea).toHaveCSS("outline-style", "none");
 
+    // When: Exercise `validCsv` with the prepared inputs.
     const file = validCsv(namespace.id("preview"));
     await page.getByLabel("Upload a csv file").setInputFiles(file);
 
+    // Then: Verify the expected result in the assertions below.
     await expect(page.getByRole("heading", { level: 2, name: "Review import" })).toBeVisible();
     await expect(page.getByText(file.name, { exact: true }).first()).toBeVisible();
     await expect(page.getByText("2 valid")).toBeVisible();
@@ -210,9 +247,11 @@ test.describe("import", () => {
     },
   ]) {
     test(`DECK-IMPORT-02 ${invalid.name} block persistence`, async ({ fixture, page, namespace }) => {
+      // Given: Use this case's inputs and any shared test setup.
       const { uid } = fixture.user();
       await fixture.apply(page);
       await page.goto("/import");
+      // When: Exercise `page .getByLabel("Upload a csv file") .setInputFiles` with the prepared inputs.
       await page
         .getByLabel("Upload a csv file")
         .setInputFiles(
@@ -223,6 +262,7 @@ test.describe("import", () => {
         );
 
       const validation = page.getByRole("alert");
+      // Then: Verify the expected result in the assertions below.
       await expect(validation).toContainText("Row 2");
       await expect(validation).toContainText(invalid.message);
       await expect(page.getByText("1 invalid")).toBeVisible();
@@ -236,6 +276,7 @@ test.describe("import", () => {
     fixture,
     page,
   }, testInfo) => {
+    // Given: Prepare `path`, `upload` and any shared test state below.
     const { uid } = fixture.user();
     await fixture.apply(page);
     await page.goto("/import");
@@ -244,26 +285,37 @@ test.describe("import", () => {
     await writeFile(path, Buffer.from([0x82, 0xa0, 44, 98, 44, 44, 107]));
     const upload = page.getByLabel("Upload a csv file");
     for (let attempt = 0; attempt < 2; attempt += 1) {
+      // Given: Use the current iteration or branch inputs from the enclosing case.
+      // When: Exercise `upload.setInputFiles` with the prepared inputs.
       await upload.setInputFiles(path);
+      // Then: Verify the expected result in the assertions below.
       await expect(page.getByRole("alert")).toContainText("This CSV cannot be read as UTF-8.");
       await expect(upload).toHaveValue("");
     }
 
+    // When: Exercise `writeFile` with the prepared inputs.
     await writeFile(path, "corrected front,corrected back,,corrected-key");
     await upload.setInputFiles(path);
+    // Then: Verify the expected result in the assertions below.
     await expect(page.getByText("corrected front", { exact: true })).toBeVisible();
     await expect(page.getByRole("button", { name: "Add 1 card", exact: true })).toBeEnabled();
     // Model the picker's cancel event without clearing or replacing its selected files.
+    // When: Exercise `upload.dispatchEvent` with the prepared inputs.
     await upload.dispatchEvent("cancel");
+    // Then: Verify the expected result in the assertions below.
     await expect(page.getByText("corrected front", { exact: true })).toBeVisible();
     await expect(page.getByRole("button", { name: "Add 1 card", exact: true })).toBeEnabled();
 
+    // When: Exercise `writeFile` with the prepared inputs.
     await writeFile(path, "invalid front,back,,");
     await upload.setInputFiles(path);
+    // Then: Verify the expected result in the assertions below.
     await expect(page.getByRole("alert")).toContainText("Unique key is required.");
     await expect(page.getByRole("button", { name: "Add 0 cards", exact: true })).toBeDisabled();
+    // When: Exercise `writeFile` with the prepared inputs.
     await writeFile(path, "latest front,latest back,,latest-key");
     await upload.setInputFiles(path);
+    // Then: Verify the expected result in the assertions below.
     await expect(page.getByText("latest front", { exact: true })).toBeVisible();
     await expect(page.getByText("latest back", { exact: true })).toBeVisible();
     await expect(page.getByText("retry.csv", { exact: true }).first()).toBeVisible();
@@ -274,27 +326,36 @@ test.describe("import", () => {
   });
 
   test("DECK-IMPORT-03 A remote CSV import survives reload", async ({ fixture, page, namespace }) => {
+    // Given: Prepare `csvNamespace`, `file` and any shared test state below.
     const { uid } = fixture.user();
     await fixture.apply(page, { auth: { linked: true } });
     await page.goto("/import");
     const csvNamespace = namespace.id("remote");
     const file = validCsv(csvNamespace);
+    // When: Exercise `page.getByLabel("Upload a csv file").setInputFiles` with the prepared inputs.
     await page.getByLabel("Upload a csv file").setInputFiles(file);
+    // Then: Verify the expected result in the assertions below.
     await expect(page.getByText("2 valid")).toBeVisible();
+    // When: Exercise `page.getByRole("button", { name: /^Add \d+ cards?$/u }).click` with the prepared inputs.
     await page.getByRole("button", { name: /^Add \d+ cards?$/u }).click();
+    // Then: Verify the expected result in the assertions below.
     await expect(page).toHaveURL(/\/$/);
     await expect(page.getByRole("status").filter({ hasText: "Imported 2 cards." })).toBeVisible();
 
     await expect.poll(async () => (await documentsForUid("deck", uid)).length).toBe(1);
     await expect.poll(async () => (await documentsForUid("card", uid)).length).toBe(2);
+    // When: Exercise `documentsForUid` with the prepared inputs.
     const [remoteDeck] = await documentsForUid("deck", uid);
     if (remoteDeck == null) throw new Error("Imported remote Deck was not found");
+    // Then: Verify the expected result in the assertions below.
     expect(remoteDeck.fields.name?.stringValue).toBe(file.name);
+    // When: Exercise `documentId` with the prepared inputs.
     const deckId = documentId(remoteDeck);
     if (deckId === "") throw new Error("Imported remote Deck id was not found");
 
     await page.reload();
     await page.getByRole("button", { name: `Open cards in ${file.name}` }).click();
+    // Then: Verify the expected result in the assertions below.
     await expect(page.getByText(`front ${csvNamespace} one`, { exact: true })).toBeVisible();
     await expect(page.getByText(`front ${csvNamespace} two`, { exact: true })).toBeVisible();
     expect(
@@ -307,6 +368,7 @@ test.describe("import", () => {
     page,
     namespace,
   }) => {
+    // Given: Prepare `csvNamespace`, `file` and any shared test state below.
     const { uid } = fixture.user();
     await fixture.apply(page);
     await page.goto("/import");
@@ -315,42 +377,60 @@ test.describe("import", () => {
       '"日本語�","回答�","タグ","utf8-key"',
       `"front ${csvNamespace} two","back ${csvNamespace} two","","second-key"`,
     ]);
+    // When: Exercise `page.getByLabel("Upload a csv file").setInputFiles` with the prepared inputs.
     await page.getByLabel("Upload a csv file").setInputFiles(validCsv(namespace.id("previous")));
+    // Then: Verify the expected result in the assertions below.
     await expect(page.getByText("2 valid")).toBeVisible();
+    // When: Exercise `page.getByRole("button", { name: "Choose file or example" }).click` with the prepared inputs.
     await page.getByRole("button", { name: "Choose file or example" }).click();
     await page.getByLabel("Upload a csv file").setInputFiles({
       name: "invalid.csv",
       mimeType: "text/csv",
       buffer: Buffer.from([0x82, 0xa0, 44, 98, 44, 44, 107]),
     });
+    // Then: Verify the expected result in the assertions below.
     await expect(page.getByRole("alert")).toContainText(
       "This CSV cannot be read as UTF-8. Save it as UTF-8 and select it again."
     );
     await expect(page.getByRole("button", { name: /^Add \d+ cards?$/u })).toHaveCount(0);
+    // When: Exercise `page.goto` with the prepared inputs.
     await page.goto("/");
+    // Then: Verify the expected result in the assertions below.
     await expect(page.getByRole("article")).toHaveCount(0);
+    // When: Exercise `page.goto` with the prepared inputs.
     await page.goto("/import");
+    // Then: Verify the expected result in the assertions below.
     expect(await documentsForUid("deck", uid)).toEqual([]);
     expect(await documentsForUid("card", uid)).toEqual([]);
+    // When: Exercise `page.getByLabel("Upload a csv file").setInputFiles` with the prepared inputs.
     await page.getByLabel("Upload a csv file").setInputFiles(file);
+    // Then: Verify the expected result in the assertions below.
     await expect(page.getByText("2 valid")).toBeVisible();
     await expect(page.getByText("日本語�", { exact: true })).toBeVisible();
     await expect(page.getByText("回答�", { exact: true })).toBeVisible();
+    // When: Exercise `page.getByRole("button", { name: /^Add \d+ cards?$/u }).click` with the prepared inputs.
     await page.getByRole("button", { name: /^Add \d+ cards?$/u }).click();
+    // Then: Verify the expected result in the assertions below.
     await expect(page).toHaveURL(/\/$/);
     await expect(page.getByRole("status").filter({ hasText: "Imported 2 cards." })).toBeVisible();
 
+    // When: Exercise `page.reload` with the prepared inputs.
     await page.reload();
+    // Then: Verify the expected result in the assertions below.
     await expect(page.getByRole("button", { name: `Open cards in ${file.name}` })).toBeVisible();
     await expect(page.getByRole("button", { name: `Open cards in ${file.name}`, exact: true })).toHaveCount(1);
+    // When: Exercise `downloadDeckCards` with the prepared inputs.
     const contents = await downloadDeckCards(page, file.name);
+    // Then: Verify the expected result in the assertions below.
     expect(contents).toHaveLength(2);
     expect(contents).toContainEqual({ frontText: "日本語�", backText: "回答�", tags: ["タグ"], uniqueKey: "utf8-key" });
     expect(await documentsForUid("deck", uid)).toEqual([]);
     expect(await documentsForUid("card", uid)).toEqual([]);
 
+    // When: Exercise `page.getByRole("button", { name: `Study ${file.name}` }).click` with the prepared inputs.
     await page.getByRole("button", { name: `Study ${file.name}` }).click();
     await page.getByRole("button", { name: "Start 2 cards" }).click();
+    // Then: Verify the expected result in the assertions below.
     await expect(page.getByText(new RegExp(`^(日本語�|front ${csvNamespace} two)$`))).toBeVisible();
   });
 
@@ -360,6 +440,7 @@ test.describe("import", () => {
     namespace,
     page,
   }) => {
+    // Given: Prepare `file` and any shared test state below.
     allowExpectedFirestoreWriteFailure(browserErrors);
     const { uid } = fixture.user();
     await fixture.apply(page, { auth: { linked: true } });
@@ -367,21 +448,29 @@ test.describe("import", () => {
     const file = csvFile(`${namespace.id("retry")}.csv`, [
       `"retry front ${namespace.caseId}","retry back ${namespace.caseId}","","${namespace.id("retry-key")}"`,
     ]);
+    // When: Exercise `page.getByLabel("Upload a csv file").setInputFiles` with the prepared inputs.
     await page.getByLabel("Upload a csv file").setInputFiles(file);
+    // Then: Verify the expected result in the assertions below.
     await expect(page.getByText("1 valid")).toBeVisible();
+    // When: Exercise `failNextFirestoreWrite` with the prepared inputs.
     const fault = await failNextFirestoreWrite(page, { collection: "card" });
 
     await page.getByRole("button", { name: /^Add \d+ cards?$/u }).click();
+    // Then: Verify the expected result in the assertions below.
     await expect.poll(fault.wasTriggered).toBe(true);
     await fault.waitForFailure();
     await expect(page.getByRole("alert")).toContainText("You do not have permission to import this data.");
     await expect(page).toHaveURL(/\/import$/);
     await expect(page.getByRole("status").filter({ hasText: "Imported 1 card." })).toHaveCount(0);
     await expect(page.getByRole("button", { name: /^Add \d+ cards?$/u })).toBeEnabled();
+    // When: Exercise `fault.dispose` with the prepared inputs.
     await fault.dispose();
+    // Then: Verify the expected result in the assertions below.
     expect(await documentsForUid("card", uid)).toEqual([]);
     expect(await documentsForUid("deck", uid)).toHaveLength(1);
+    // When: Exercise `page.reload` with the prepared inputs.
     await page.reload();
+    // Then: Verify the expected result in the assertions below.
     expect(await documentsForUid("card", uid)).toEqual([]);
   });
 
@@ -426,49 +515,68 @@ test.describe("import", () => {
       fixture,
       page,
     }, testInfo) => {
+      // Given: Use this case's inputs and any shared test setup.
       const { uid } = fixture.user();
       await fixture.apply(page, { auth: { linked: true } });
       await page.goto("/import");
+      // When: Exercise `page.getByRole("button", { name: example.label, exact: true }).click` with the prepared inputs.
       await page.getByRole("button", { name: example.label, exact: true }).click();
       await page.getByText("View CSV source", { exact: true }).click();
       const downloadReady = page.waitForEvent("download");
       await page.getByRole("button", { name: "Download CSV", exact: true }).click();
       const download = await downloadReady;
+      // Then: Verify the expected result in the assertions below.
       expect(download.suggestedFilename()).toBe(example.file);
+      // When: Exercise `testInfo.outputPath` with the prepared inputs.
       const path = testInfo.outputPath(example.file);
       await download.saveAs(path);
       const csv = await readFile(path, "utf8");
       const displayedCsv = await page.locator("details[data-import-sample] code").textContent();
+      // Then: Verify the expected result in the assertions below.
       expect(displayedCsv?.replaceAll("\r\n", "\n")).toBe(csv.replaceAll("\r\n", "\n"));
+      // When: Exercise `Papa.parse` with the prepared inputs.
       const parsed = Papa.parse<string[]>(csv);
+      // Then: Verify the expected result in the assertions below.
       expect(parsed.errors).toEqual([]);
       // Generated sample cards follow filesystem traversal order; their contents must match regardless of position.
       expect(parsed.data).toContainEqual(example.representativeRow);
       expect(parsed.data).toHaveLength(example.count);
       expect(parsed.data.every((row) => row.length === 4 && row[3] !== "")).toBe(true);
 
+      // When: Exercise `page.getByRole("button", { name: "Try this example", exact: true }).click` with the prepared inputs.
       await page.getByRole("button", { name: "Try this example", exact: true }).click();
+      // Then: Verify the expected result in the assertions below.
       await expect(page.getByRole("heading", { name: "Review import" })).toBeVisible();
       await expect(page.getByText(`${example.count} valid`, { exact: true })).toBeVisible();
       const firstRow = parsed.data[0];
       if (firstRow === undefined) throw new Error("Example CSV has no cards");
       await expect(page.getByText(`uniqueKey: ${firstRow[3]}`, { exact: true })).toBeVisible();
+      // When: Apply the operation or event under test.
       await page.getByRole("button", { name: "Choose file or example", exact: true }).click();
+      // Then: Verify the expected result in the assertions below.
       await expect(page.getByRole("button", { name: "Basic", exact: true })).toBeVisible();
       await expect(page.getByRole("button", { name: "Sample deck", exact: true })).toBeVisible();
+      // When: Exercise `page.getByRole("button", { name: example.label, exact: true }).click` with the prepared inputs.
       await page.getByRole("button", { name: example.label, exact: true }).click();
       await page.getByRole("button", { name: "Try this example", exact: true }).click();
+      // Then: Verify the expected result in the assertions below.
       await expect(page.getByText(`uniqueKey: ${firstRow[3]}`, { exact: true })).toBeVisible();
       expect(
         (await documentsForUid("deck", uid)).some((document) => document.fields.name?.stringValue === example.file)
       ).toBe(false);
+      // When: Apply the operation or event under test.
       await page.getByRole("button", { name: `Add ${example.count} cards`, exact: true }).click();
+      // Then: Verify the expected result in the assertions below.
       await expect(page).toHaveURL(/\/$/);
       await expect(page.getByRole("status").filter({ hasText: `Imported ${example.count} cards.` })).toBeVisible();
+      // When: Exercise `page.reload` with the prepared inputs.
       await page.reload();
+      // Then: Verify the expected result in the assertions below.
       await expect(page.getByRole("button", { name: `Open cards in ${example.file}`, exact: true })).toBeVisible();
+      // When: Apply the operation or event under test.
       await page.getByRole("button", { name: `Open cards in ${example.file}`, exact: true }).click();
       const deckId = decodeURIComponent(new URL(page.url()).pathname.split("/").at(-1) ?? "");
+      // Then: Verify the expected result in the assertions below.
       await expect
         .poll(
           async () =>
@@ -481,6 +589,7 @@ test.describe("import", () => {
   }
 
   test("DECK-IMPORT-07 Sample Deck is initialized once", async ({ fixture, page }) => {
+    // Given: Prepare `sampleDeckId`, `initialSample` and any shared test state below.
     const sampleDeckId = `${fixture.user().uid}-sample-v1`;
     expect(fixture.state.browser.preferences.loadSample).toBe(true);
     await fixture.apply(page);
@@ -494,7 +603,9 @@ test.describe("import", () => {
     expect(initialSample.names.length).toBeGreaterThan(0);
     expect(initialSample.contents).toHaveLength(initialSample.names.length);
 
+    // When: Exercise `page.reload` with the prepared inputs.
     await page.reload();
+    // Then: Verify the expected result in the assertions below.
     await expect(page.getByText("Sample Deck", { exact: true })).toBeVisible();
     const reloadedSample = await readSampleState(page, sampleDeckId);
     expect(reloadedSample).toEqual(initialSample);

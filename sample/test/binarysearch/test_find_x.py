@@ -41,5 +41,10 @@ def find_x_naive(n):  # O(N)
     ],
 )
 def test(args, expected):
+    # Given: The parameterized row supplies args and the expected result.
+    # When: Evaluate find_x with this row's arguments inside the assertion.
+    # Then: The result matches the row's expected value.
     assert find_x(*args) == expected
+    # When: Evaluate find_x_naive with this row's arguments inside the assertion.
+    # Then: The result matches the row's expected value.
     assert find_x_naive(*args) == expected

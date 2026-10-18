@@ -33,5 +33,10 @@ def count_elements_naive(sl, a):  # O(N)
     ],
 )
 def test(args, expected):
+    # Given: The parameterized row supplies args and the expected result.
+    # When: Evaluate count_elements with this row's arguments inside the assertion.
+    # Then: The result matches the row's expected value.
     assert count_elements(*args) == expected
+    # When: Evaluate count_elements_naive with this row's arguments inside the assertion.
+    # Then: The result matches the row's expected value.
     assert count_elements_naive(*args) == expected

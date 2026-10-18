@@ -16,30 +16,41 @@ test("DECK-MANAGEMENT-07 creates one empty local-only Deck without a remote dupl
   page,
   namespace,
 }) => {
+  // Given: Prepare `name`, `category` and any shared test state below.
   const name = `${namespace.caseId} local deck`;
   const category = "typescript";
   await fixture.apply(page);
 
   await page.goto("/");
+  // When: Exercise `page.getByRole("button", { name: "Add", exact: true }).click` with the prepared inputs.
   await page.getByRole("button", { name: "Add", exact: true }).click();
   await page.getByRole("menuitem", { name: "Create deck" }).click();
   await page.getByRole("textbox", { name: "Name", exact: true }).fill(name);
   await page.getByRole("combobox").selectOption(category);
+  // Then: Verify the expected result in the assertions below.
   await expect(page.getByRole("radio")).toHaveCount(0);
+  // When: Exercise `page.getByRole("button", { name: "Create deck" }).click` with the prepared inputs.
   await page.getByRole("button", { name: "Create deck" }).click();
+  // Then: Verify the expected result in the assertions below.
   await expect(page).toHaveURL(/\/deck\/(?!new$)[^/]+$/);
   await expect(page.getByRole("status").filter({ hasText: `Created deck “${name}”.` })).toBeVisible();
+  // When: Exercise `new URL(page.url()).pathname.split` with the prepared inputs.
   const deckId = new URL(page.url()).pathname.split("/").at(-1);
   if (deckId === undefined) throw new Error("Created local-only Deck ID is missing");
+  // Then: Verify the expected result in the assertions below.
   await expect(page.getByText("0 cards")).toBeVisible();
 
+  // When: Exercise `page.goto` with the prepared inputs.
   await page.goto("/");
   await page.reload();
 
   const deckArticle = page.getByRole("button", { name: `Open cards in ${name}` }).locator("xpath=ancestor::article[1]");
+  // Then: Verify the expected result in the assertions below.
   await expect(deckArticle).toContainText("0 cards");
   await expect(page.getByRole("button", { name: `Open cards in ${name}`, exact: true })).toHaveCount(1);
+  // When: Apply the operation or event under test.
   await page.getByRole("button", { name: `Open cards in ${name}`, exact: true }).click();
+  // Then: Verify the expected result in the assertions below.
   await expect(page.getByText("0 cards", { exact: true })).toBeVisible();
   expect(
     (await listDocuments("deck")).filter(
@@ -61,29 +72,38 @@ test("DECK-MANAGEMENT-01 persists edited fields across reload without changing l
   page,
   namespace,
 }) => {
+  // Given: Prepare `deck`, `updatedName`, `originalCards` and any shared test state below.
   const deck = fixture.deck();
   await fixture.apply(page);
   const updatedName = `${namespace.caseId} updated`;
   const originalCards = (await listDocuments("card")).filter(({ fields }) => fields.deckId?.stringValue === deck.id);
 
   await page.goto("/");
+  // When: Exercise `page.getByRole("button", { name: `Open actions for ${deck.name}` }).click` with the prepared inputs.
   await page.getByRole("button", { name: `Open actions for ${deck.name}` }).click();
   await page.getByRole("menuitem", { name: "Edit" }).click();
   await page.getByRole("textbox", { name: "Name", exact: true }).fill(updatedName);
   await page.getByRole("combobox").selectOption("typescript");
+  // Then: Verify the expected result in the assertions below.
   await expect(page.getByRole("checkbox", { name: "Convert line breaks", includeHidden: true })).toHaveCount(0);
   await expect(page.getByText("More settings")).toHaveCount(0);
+  // When: Exercise `page.getByRole("button", { name: "Save changes" }).click` with the prepared inputs.
   await page.getByRole("button", { name: "Save changes" }).click();
+  // Then: Verify the expected result in the assertions below.
   await expect(page).toHaveURL(/\/$/);
   await expect(page.getByRole("status").filter({ hasText: `Updated deck “${updatedName}”.` })).toBeVisible();
+  // When: Exercise `page.reload` with the prepared inputs.
   await page.reload();
   await page.getByRole("button", { name: `Open actions for ${updatedName}` }).click();
   await page.getByRole("menuitem", { name: "Edit" }).click();
 
+  // Then: Verify the expected result in the assertions below.
   await expect(page.getByRole("textbox", { name: "Name", exact: true })).toHaveValue(updatedName);
   await expect(page.getByRole("combobox")).toHaveValue("typescript");
   await expect(page.getByRole("checkbox", { name: "Convert line breaks", includeHidden: true })).toHaveCount(0);
+  // When: Exercise `requireDocument` with the prepared inputs.
   const savedDeck = await requireDocument("deck", deck.id);
+  // Then: Verify the expected result in the assertions below.
   expect(savedDeck.fields.convertToBr?.booleanValue).toBe(deck.convertToBr);
   expect((await listDocuments("card")).filter(({ fields }) => fields.deckId?.stringValue === deck.id)).toEqual(
     originalCards
@@ -91,6 +111,7 @@ test("DECK-MANAGEMENT-01 persists edited fields across reload without changing l
 });
 
 test("DECK-MANAGEMENT-02 deletes one Deck and preserves unrelated Deck data", async ({ fixture, page }) => {
+  // Given: Prepare `deck`, `otherDeck`, `otherCards` and any shared test state below.
   const deck = fixture.deck("deck-a");
   const otherDeck = fixture.deck("deck-b");
   const otherCards = fixture.state.remote.cards.filter((card) => card.deckId === otherDeck.id);
@@ -99,19 +120,27 @@ test("DECK-MANAGEMENT-02 deletes one Deck and preserves unrelated Deck data", as
   await page.goto("/");
 
   const dialog = await openDeckDeleteDialog(page, deck.name);
+  // When: Exercise `dialog.getByRole("button", { name: "Delete deck" }).click` with the prepared inputs.
   await dialog.getByRole("button", { name: "Delete deck" }).click();
+  // Then: Verify the expected result in the assertions below.
   await expect(dialog).not.toBeVisible();
   await expect(page.getByRole("status").filter({ hasText: `Deleted deck “${deck.name}”.` })).toBeVisible();
+  // When: Exercise `page.reload` with the prepared inputs.
   await page.reload();
 
+  // Then: Verify the expected result in the assertions below.
   await expect(page.getByRole("button", { name: `Open cards in ${deck.name}` })).toHaveCount(0);
   await expect
     .poll(async () => Number((await requireDocument("deck", deck.id)).fields.deletedAt?.integerValue ?? 0))
     .toBeGreaterThan(0);
+  // When: Exercise `page.goto` with the prepared inputs.
   await page.goto(`/deck/${deck.id}`);
+  // Then: Verify the expected result in the assertions below.
   await expect(page.getByRole("heading", { name: "Deck not found" })).toBeVisible();
+  // When: Exercise `page.goto` with the prepared inputs.
   await page.goto("/");
 
+  // Then: Verify the expected result in the assertions below.
   expect(await getDocument("deck", otherDeck.id)).toBeDefined();
   expect((await Promise.all(otherCards.map((card) => getDocument("card", card.id)))).every(Boolean)).toBe(true);
   expect(await readSession(fixture.user().uid, otherDeck.id)).toEqual(otherSession);
@@ -125,28 +154,38 @@ test("DECK-MANAGEMENT-02 preserves deletion success when session cleanup is reje
   page,
   browserErrors,
 }) => {
+  // Given: Prepare `deck`, `fault` and any shared test state below.
   const deck = fixture.deck("deck-a");
   await fixture.apply(page);
   await page.goto("/");
   const fault = await failNextFirestoreWrite(page, { collection: "studySession" });
   allowExpectedFirestoreWriteFailure(browserErrors);
+  // When: Evaluate `dialog.getByRole("button", { name: "Delete deck" }).click` as part of the following checks.
+  // Then: Verify the expected result in the assertions below.
   try {
     const dialog = await openDeckDeleteDialog(page, deck.name);
     await dialog.getByRole("button", { name: "Delete deck" }).click();
+    // Then: Check the expected result after the operation in this branch.
     await expect(dialog).not.toBeVisible();
     await fault.waitForFailure();
+    // Then: Check the expected result after the operation in this branch.
     await expect(page.getByRole("alert")).toContainText(
       "The deck was deleted, but its study session could not be closed."
     );
+    // Then: Check the expected result after the operation in this branch.
     await expect(
       page.getByText("Unable to delete this deck. Check your connection and try again.", { exact: true })
     ).toHaveCount(0);
+    // Then: Check the expected result after the operation in this branch.
     await expect(page.getByRole("button", { name: `Open cards in ${deck.name}`, exact: true })).toHaveCount(0);
+    // Then: Check the expected result after the operation in this branch.
     await expect
       .poll(async () => Number((await requireDocument("deck", deck.id)).fields.deletedAt?.integerValue ?? 0))
       .toBeGreaterThan(0);
     await page.reload();
+    // Then: Check the expected result after the operation in this branch.
     await expect(page.getByRole("button", { name: `Open cards in ${deck.name}`, exact: true })).toHaveCount(0);
+    // Then: Check the expected result after the operation in this branch.
     await expect(page.getByRole("button", { name: `Continue ${deck.name}`, exact: true })).toHaveCount(0);
   } finally {
     await fault.dispose();
@@ -154,6 +193,7 @@ test("DECK-MANAGEMENT-02 preserves deletion success when session cleanup is reje
 });
 
 test("DECK-MANAGEMENT-03 cancels Deck deletion and preserves all related data", async ({ fixture, page }) => {
+  // Given: Prepare `deck`, `session`, `trigger` and any shared test state below.
   const deck = fixture.deck();
   const { cards } = fixture.state.remote;
   const session = fixture.session();
@@ -166,8 +206,10 @@ test("DECK-MANAGEMENT-03 cancels Deck deletion and preserves all related data", 
   await expect(dialog).toContainText(`${String(cards.length)} cards`);
   await expect(dialog).toContainText("in-progress study session");
   await expect(dialog).toContainText("cannot be undone");
+  // When: Exercise `dialog.getByRole("button", { name: "Cancel" }).click` with the prepared inputs.
   await dialog.getByRole("button", { name: "Cancel" }).click();
 
+  // Then: Verify the expected result in the assertions below.
   await expect(dialog).not.toBeVisible();
   await expect(trigger).toBeFocused();
   expect(await getDocument("deck", deck.id)).toBeDefined();
@@ -180,6 +222,7 @@ test("DECK-MANAGEMENT-04 retries the same Deck deletion after Firestore rollback
   page,
   browserErrors,
 }) => {
+  // Given: Prepare `deck`, `fault`, `dialog` and any shared test state below.
   const deck = fixture.deck();
   await fixture.apply(page);
   await page.goto("/");
@@ -187,15 +230,19 @@ test("DECK-MANAGEMENT-04 retries the same Deck deletion after Firestore rollback
   allowExpectedFirestoreWriteFailure(browserErrors);
 
   const dialog = await openDeckDeleteDialog(page, deck.name);
+  // When: Exercise `dialog.getByRole("button", { name: "Delete deck" }).click` with the prepared inputs.
   await dialog.getByRole("button", { name: "Delete deck" }).click();
+  // Then: Verify the expected result in the assertions below.
   await expect(dialog).not.toBeVisible();
   await expect.poll(fault.wasTriggered).toBe(true);
   await fault.waitForFailure();
+  // When: Exercise `fault.dispose` with the prepared inputs.
   await fault.dispose();
   const retryDialog = await openDeckDeleteDialog(page, deck.name);
   await retryDialog.getByRole("button", { name: "Delete deck" }).click();
 
   // Firestore reopens its write stream after the injected non-retryable error before accepting this retry.
+  // Then: Verify the expected result in the assertions below.
   await expect(retryDialog).not.toBeVisible({ timeout: 15_000 });
   await expect(page.getByRole("alert")).toHaveCount(0);
   await expect(page.getByRole("status").filter({ hasText: `Deleted deck “${deck.name}”.` })).toBeVisible();
@@ -203,9 +250,13 @@ test("DECK-MANAGEMENT-04 retries the same Deck deletion after Firestore rollback
   await expect
     .poll(async () => Number((await requireDocument("deck", deck.id)).fields.deletedAt?.integerValue ?? 0))
     .toBeGreaterThan(0);
+  // When: Exercise `page.goto` with the prepared inputs.
   await page.goto(`/deck/${deck.id}`);
+  // Then: Verify the expected result in the assertions below.
   await expect(page.getByRole("heading", { name: "Deck not found" })).toBeVisible();
+  // When: Exercise `page.goto` with the prepared inputs.
   await page.goto("/");
+  // Then: Verify the expected result in the assertions below.
   await expect(page.getByRole("button", { name: `Continue ${deck.name}` })).toHaveCount(0);
 });
 
@@ -214,29 +265,38 @@ test("DECK-MANAGEMENT-05 creates one empty remote Deck without a local duplicate
   page,
   namespace,
 }) => {
+  // Given: Prepare `name`, `category` and any shared test state below.
   const name = `${namespace.caseId} created`;
   const category = "typescript";
   const { uid } = fixture.user();
   await fixture.apply(page, { auth: { linked: true } });
 
   await page.goto("/");
+  // When: Exercise `page.getByRole("button", { name: "Add", exact: true }).click` with the prepared inputs.
   await page.getByRole("button", { name: "Add", exact: true }).click();
   await page.getByRole("menuitem", { name: "Create deck" }).click();
   await page.getByRole("textbox", { name: "Name", exact: true }).fill(name);
   await page.getByRole("combobox").selectOption(category);
+  // Then: Verify the expected result in the assertions below.
   await expect(page.getByRole("checkbox", { name: "Convert line breaks", includeHidden: true })).toHaveCount(0);
   await expect(page.getByText("More settings")).toHaveCount(0);
+  // When: Exercise `page.getByRole("button", { name: "Create deck" }).click` with the prepared inputs.
   await page.getByRole("button", { name: "Create deck" }).click();
+  // Then: Verify the expected result in the assertions below.
   await expect(page).toHaveURL(/\/deck\/(?!new$)[^/]+$/);
   await expect(page.getByRole("status").filter({ hasText: `Created deck “${name}”.` })).toBeVisible();
+  // When: Exercise `new URL(page.url()).pathname.split` with the prepared inputs.
   const deckId = new URL(page.url()).pathname.split("/").at(-1);
   if (deckId === undefined) throw new Error("Created Deck ID is missing");
+  // Then: Verify the expected result in the assertions below.
   await expect(page.getByText("0 cards")).toBeVisible();
 
+  // When: Exercise `page.goto` with the prepared inputs.
   await page.goto("/");
   await page.reload();
 
   const deckArticle = page.getByRole("button", { name: `Open cards in ${name}` }).locator("xpath=ancestor::article[1]");
+  // Then: Verify the expected result in the assertions below.
   await expect(deckArticle).toContainText("0 cards");
   await expect
     .poll(
@@ -259,8 +319,10 @@ test("DECK-MANAGEMENT-05 creates one empty remote Deck without a local duplicate
   );
   expect(ownedCardsForDeck).toEqual([]);
   await expect(page.getByRole("button", { name: `Open cards in ${name}`, exact: true })).toHaveCount(1);
+  // When: Exercise `page.getByRole("button", { name: `Open actions for ${name}` }).click` with the prepared inputs.
   await page.getByRole("button", { name: `Open actions for ${name}` }).click();
   await page.getByRole("menuitem", { name: "Edit" }).click();
+  // Then: Verify the expected result in the assertions below.
   await expect(page.getByRole("textbox", { name: "Name", exact: true })).toHaveValue(name);
   await expect(page.getByRole("combobox")).toHaveValue(category);
   await expect(page.getByRole("checkbox", { name: "Convert line breaks", includeHidden: true })).toHaveCount(0);
@@ -272,22 +334,28 @@ test("DECK-MANAGEMENT-06 rolls back a rejected remote create without locking the
   browserErrors,
   namespace,
 }) => {
+  // Given: Prepare `name`, `category` and any shared test state below.
   const name = `${namespace.caseId} failed deck`;
   const category = "typescript";
   const { uid } = fixture.user();
   await fixture.apply(page, { auth: { linked: true } });
   await page.goto("/");
+  // When: Exercise `page.getByRole("button", { name: "Add", exact: true }).click` with the prepared inputs.
   await page.getByRole("button", { name: "Add", exact: true }).click();
   await page.getByRole("menuitem", { name: "Create deck" }).click();
   const fault = await failNextFirestoreWrite(page, { collection: "deck" });
   allowExpectedFirestoreWriteFailure(browserErrors);
   await page.getByRole("textbox", { name: "Name", exact: true }).fill(name);
   await page.getByRole("combobox").selectOption(category);
+  // Then: Verify the expected result in the assertions below.
   await expect(page.getByRole("checkbox", { name: "Convert line breaks", includeHidden: true })).toHaveCount(0);
   await expect(page.getByText("More settings")).toHaveCount(0);
+  // When: Exercise `page.getByRole("button", { name: "Create deck" }).click` with the prepared inputs.
   await page.getByRole("button", { name: "Create deck" }).click();
+  // Then: Verify the expected result in the assertions below.
   await expect.poll(fault.wasTriggered).toBe(true);
   await fault.waitForFailure();
+  // When: Exercise `fault.dispose` with the prepared inputs.
   await fault.dispose();
 
   const remote = await listDocuments("deck");
@@ -295,16 +363,21 @@ test("DECK-MANAGEMENT-06 rolls back a rejected remote create without locking the
     ({ fields }) =>
       fields.uid?.stringValue === uid && (fields.name as { stringValue?: string } | undefined)?.stringValue === name
   );
+  // Then: Verify the expected result in the assertions below.
   expect(owned).toEqual([]);
+  // When: Exercise `page.goto` with the prepared inputs.
   await page.goto("/");
+  // Then: Verify the expected result in the assertions below.
   await expect(page.getByRole("button", { name: `Open cards in ${name}`, exact: true })).toHaveCount(0);
 });
 
 test("DECK-MANAGEMENT-08 confirms before discarding an unsaved Deck edit", async ({ fixture, page, namespace }) => {
+  // Given: Prepare `deck`, `unsavedName` and any shared test state below.
   const deck = fixture.deck();
   const unsavedName = `${namespace.caseId} unsaved`;
   await fixture.apply(page);
   await page.goto("/");
+  // When: Exercise `page.getByRole("button", { name: `Open actions for ${deck.name}` }).click` with the prepared inputs.
   await page.getByRole("button", { name: `Open actions for ${deck.name}` }).click();
   await page.getByRole("menuitem", { name: "Edit" }).click();
   const name = page.getByRole("textbox", { name: "Name", exact: true });
@@ -313,10 +386,13 @@ test("DECK-MANAGEMENT-08 confirms before discarding an unsaved Deck edit", async
   await page.getByRole("button", { name: "tango" }).click();
   const dialog = page.getByRole("alertdialog", { name: "Discard unsaved changes?" });
   await dialog.getByRole("button", { name: "Keep editing" }).click();
+  // Then: Verify the expected result in the assertions below.
   await expect(name).toHaveValue(unsavedName);
+  // When: Exercise `page.getByRole("button", { name: "tango" }).click` with the prepared inputs.
   await page.getByRole("button", { name: "tango" }).click();
   await dialog.getByRole("button", { name: "Discard changes" }).click();
 
+  // Then: Verify the expected result in the assertions below.
   await expect(page).toHaveURL(/\/$/);
   await expect(page.getByRole("button", { name: `Open cards in ${deck.name}` })).toBeVisible();
 });

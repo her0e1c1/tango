@@ -111,6 +111,7 @@ const staleMutationCases = [
 
 describe("CARD-VIEW-02 CARD-MANAGEMENT-02 CARD-MANAGEMENT-08 CARD-MANAGEMENT-03 CARD-LIST-ACTIONS-01 CARD-LIST-ACTIONS-02 CARD-LIST-ACTIONS-03 CardListPage interactions", () => {
   beforeEach(() => {
+    // Given: Establish the shared setup used by the following cases.
     dismissToast();
     vi.clearAllMocks();
     mocks.getAuthUid.mockReturnValue("user-id");
@@ -123,6 +124,7 @@ describe("CARD-VIEW-02 CARD-MANAGEMENT-02 CARD-MANAGEMENT-08 CARD-MANAGEMENT-03 
   });
 
   it("sorts by creation time with stable ties and restores the live standard order without writes", async () => {
+    // Given: Prepare `oldest`, `newest`, `tied` and any shared test state below.
     const oldest = createCard({ ...card, createdAt: 1000, updatedAt: 9000 });
     const newest = createCard({ ...card, id: "new", frontText: "New", createdAt: 3000 });
     const tied = createCard({ ...card, id: "tie", frontText: "Tie", createdAt: 3000 });
@@ -133,14 +135,20 @@ describe("CARD-VIEW-02 CARD-MANAGEMENT-02 CARD-MANAGEMENT-08 CARD-MANAGEMENT-03 
         .getAllByRole("button", { name: /^View / })
         .map((button) => button.getAttribute("aria-label")?.replace(/^View /, ""));
     expect(names()).toEqual(["Front", "New", "Tie"]);
+    // When: Exercise `userEvent.selectOptions` with the prepared inputs.
     await userEvent.selectOptions(screen.getByRole("combobox", { name: "Sort order" }), "newest");
+    // Then: Verify the expected result in the assertions below.
     expect(names()).toEqual(["New", "Tie", "Front"]);
     expect(source.map(({ id }) => id)).toEqual([oldest.id, newest.id, tied.id]);
     expect(screen.getByText("3 cards")).toBeVisible();
 
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByRole("button", { name: "View Front" }));
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByRole("button", { name: "Close card" })).toHaveTextContent(oldest.backText);
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByRole("button", { name: "Close card" }));
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByRole("combobox", { name: "Sort order" })).toHaveValue("newest");
 
     mocks.cards = [
@@ -148,30 +156,39 @@ describe("CARD-VIEW-02 CARD-MANAGEMENT-02 CARD-MANAGEMENT-08 CARD-MANAGEMENT-03 
       { ...tied, frontText: "Updated tie" },
       createCard({ ...card, id: "added", frontText: "Added", createdAt: 4000 }),
     ];
+    // When: Exercise `view.rerender` with the prepared inputs.
     view.rerender(createCardListPage(deck.id));
+    // Then: Verify the expected result in the assertions below.
     expect(names()).toEqual(["Added", "Updated tie", "Front"]);
+    // When: Exercise `userEvent.selectOptions` with the prepared inputs.
     await userEvent.selectOptions(screen.getByRole("combobox", { name: "Sort order" }), "standard");
+    // Then: Verify the expected result in the assertions below.
     expect(names()).toEqual(["Front", "Updated tie", "Added"]);
     expect(mocks.editDeck).not.toHaveBeenCalled();
     expect(mocks.deleteCard).not.toHaveBeenCalled();
   });
 
   it("retains sorting for empty filtered results and permits sorting during filter autosave", async () => {
+    // Given: Prepare `saving` and any shared test state below.
     const saving = Promise.withResolvers<void>();
     mocks.editDeck.mockReturnValue(saving.promise);
     renderCardList({ cards: [{ ...card, tags: ["typescript"] }] });
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByText("Filters"));
     await userEvent.click(screen.getByRole("checkbox", { name: "typescript" }));
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByText("0 cards")).toBeVisible();
     expect(screen.getByRole("button", { name: "Actions" })).toBeDisabled();
     const sort = screen.getByRole("combobox", { name: "Sort order" });
     expect(sort).toBeEnabled();
+    // When: Exercise `userEvent.selectOptions` with the prepared inputs.
     await userEvent.selectOptions(sort, "newest");
     await actAsync(async () => {
       saving.resolve();
       await saving.promise;
     });
     await userEvent.click(screen.getByRole("checkbox", { name: "typescript" }));
+    // Then: Verify the expected result in the assertions below.
     expect(await screen.findByRole("button", { name: "View Front" })).toBeVisible();
     expect(sort).toHaveValue("newest");
     expect(screen.getByRole("checkbox", { name: "typescript" })).toBeVisible();
@@ -179,6 +196,7 @@ describe("CARD-VIEW-02 CARD-MANAGEMENT-02 CARD-MANAGEMENT-08 CARD-MANAGEMENT-03 
   });
 
   it("removes a selected tag via keyboard, keeps focus on the remaining chip, and continues Tab navigation", async () => {
+    // Given: Prepare `user`, `otherMatchingCard`, `typescriptChip` and any shared test state below.
     const user = userEvent.setup();
     const otherMatchingCard = createCard({
       id: "card-2",
@@ -193,15 +211,19 @@ describe("CARD-VIEW-02 CARD-MANAGEMENT-02 CARD-MANAGEMENT-08 CARD-MANAGEMENT-03 
     typescriptChip.focus();
     expect(typescriptChip).toHaveFocus();
 
+    // When: Exercise `user.keyboard` with the prepared inputs.
     await user.keyboard("{Enter}");
 
     const reactChip = screen.getByRole("button", { name: "Remove react filter" });
+    // Then: Verify the expected result in the assertions below.
     expect(reactChip).toHaveFocus();
     expect(screen.queryByRole("button", { name: "Remove typescript filter" })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "View Front" })).toBeVisible();
     expect(screen.getByRole("button", { name: "View Second card" })).toBeVisible();
 
+    // When: Exercise `user.tab` with the prepared inputs.
     await user.tab();
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByRole("button", { name: "View Front" })).toHaveFocus();
 
     expect(mocks.editDeck).toHaveBeenCalledWith("user-id", {
@@ -211,6 +233,7 @@ describe("CARD-VIEW-02 CARD-MANAGEMENT-02 CARD-MANAGEMENT-08 CARD-MANAGEMENT-03 
   });
 
   it("removes the final selected tag via keyboard and moves focus to the closed filters summary", async () => {
+    // Given: Prepare `user`, `reactChip` and any shared test state below.
     const user = userEvent.setup();
     renderCardList({ deck: { ...deck, cardFilter: { selectedTags: ["react"], tagAndFilter: false } } });
 
@@ -218,8 +241,10 @@ describe("CARD-VIEW-02 CARD-MANAGEMENT-02 CARD-MANAGEMENT-08 CARD-MANAGEMENT-03 
     reactChip.focus();
     expect(reactChip).toHaveFocus();
 
+    // When: Exercise `user.keyboard` with the prepared inputs.
     await user.keyboard(" ");
 
+    // Then: Verify the expected result in the assertions below.
     expect(screen.queryByRole("button", { name: "Remove react filter" })).not.toBeInTheDocument();
     const summary = screen.getByText((_, element) => element?.textContent?.startsWith("Filters") === true, {
       selector: "summary",
@@ -234,6 +259,7 @@ describe("CARD-VIEW-02 CARD-MANAGEMENT-02 CARD-MANAGEMENT-08 CARD-MANAGEMENT-03 
   });
 
   it("keeps chips usable during autosave and does not steal focus when saving finishes", async () => {
+    // Given: Prepare `resolveSave`, `user`, `typescriptChip` and any shared test state below.
     let resolveSave: () => void = vi.fn();
     mocks.editDeck.mockImplementationOnce(
       () =>
@@ -246,25 +272,33 @@ describe("CARD-VIEW-02 CARD-MANAGEMENT-02 CARD-MANAGEMENT-08 CARD-MANAGEMENT-03 
 
     const typescriptChip = screen.getByRole("button", { name: "Remove typescript filter" });
     typescriptChip.focus();
+    // When: Exercise `user.keyboard` with the prepared inputs.
     await user.keyboard("{Enter}");
 
     const reactChip = screen.getByRole("button", { name: "Remove react filter" });
+    // Then: Verify the expected result in the assertions below.
     expect(reactChip).toHaveFocus();
     expect(reactChip).toBeEnabled();
+    // When: Exercise `user.keyboard` with the prepared inputs.
     await user.keyboard("{Enter}");
 
+    // Then: Verify the expected result in the assertions below.
     expect(screen.queryByRole("button", { name: "Remove react filter" })).not.toBeInTheDocument();
 
     const settingsButton = screen.getByRole("button", { name: "Open settings" });
+    // When: Exercise `settingsButton.focus` with the prepared inputs.
     settingsButton.focus();
+    // Then: Verify the expected result in the assertions below.
     expect(settingsButton).toHaveFocus();
 
+    // When: Exercise `actAsync` with the prepared inputs.
     await actAsync(async () => {
       if (mocks.deck) mocks.deck = { ...mocks.deck, cardFilter: { selectedTags: [], tagAndFilter: false } };
       resolveSave();
       await Promise.resolve();
     });
 
+    // Then: Verify the expected result in the assertions below.
     await waitFor(() => expect(screen.getByRole("button", { name: "View Front" })).toBeEnabled());
     expect(settingsButton).toHaveFocus();
     expect(mocks.editDeck).toHaveBeenLastCalledWith("user-id", {
@@ -274,6 +308,7 @@ describe("CARD-VIEW-02 CARD-MANAGEMENT-02 CARD-MANAGEMENT-08 CARD-MANAGEMENT-03 
   });
 
   it("preserves focus and does not alter filter state when tabbing through tags without removing them", async () => {
+    // Given: Prepare `user`, `typescriptChip` and any shared test state below.
     const user = userEvent.setup();
     renderCardList();
 
@@ -281,29 +316,39 @@ describe("CARD-VIEW-02 CARD-MANAGEMENT-02 CARD-MANAGEMENT-08 CARD-MANAGEMENT-03 
     typescriptChip.focus();
     expect(typescriptChip).toHaveFocus();
 
+    // When: Exercise `user.tab` with the prepared inputs.
     await user.tab();
     const reactChip = screen.getByRole("button", { name: "Remove react filter" });
+    // Then: Verify the expected result in the assertions below.
     expect(reactChip).toHaveFocus();
 
+    // When: Exercise `user.tab` with the prepared inputs.
     await user.tab({ shift: true });
+    // Then: Verify the expected result in the assertions below.
     expect(typescriptChip).toHaveFocus();
 
     expect(mocks.editDeck).not.toHaveBeenCalled();
   });
 
   it("coordinates Card view and edit navigation", async () => {
+    // Given: Use this case's inputs and any shared test setup.
     renderCardList();
 
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByRole("button", { name: "View Front" }));
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByText("Back")).toBeVisible();
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByRole("button", { name: "Close card" }));
 
     await userEvent.click(screen.getByRole("button", { name: "Open actions for Front" }));
     await userEvent.click(screen.getByRole("menuitem", { name: "Edit" }));
+    // Then: Verify the expected result in the assertions below.
     expect(await screen.findByRole("heading", { level: 1, name: "Card editor destination" })).toBeVisible();
   });
 
   it("renders a language Card answer in the overlay", async () => {
+    // Given: Prepare `languageCard` and any shared test state below.
     const languageCard = createCard({ ...card, backText: "const answer = 42;", tags: ["typescript"] });
     renderCardList({
       deck: { ...deck, cardFilter: { selectedTags: ["typescript"], tagAndFilter: false } },
@@ -311,26 +356,33 @@ describe("CARD-VIEW-02 CARD-MANAGEMENT-02 CARD-MANAGEMENT-08 CARD-MANAGEMENT-03 
       preferences: createPreferences({ appearance: { darkMode: true } }),
     });
 
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByRole("button", { name: "View Front" }));
 
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByLabelText("Close card")).toHaveTextContent(languageCard.backText);
   });
 
   it.each([true, false])(
     "keeps the confirmation snapshot when the Card disappears (confirmed: %s)",
     async (confirmed) => {
+      // Given: Prepare `write` and any shared test state below.
       const write = Promise.withResolvers<void>();
       if (confirmed) mocks.deleteCard.mockReturnValueOnce(write.promise);
       const { rerender } = renderCardList();
 
+      // When: Exercise `userEvent.click` with the prepared inputs.
       await userEvent.click(screen.getByRole("button", { name: "Open actions for Front" }));
       await userEvent.click(screen.getByRole("menuitem", { name: "Delete" }));
+      // Then: Verify the expected result in the assertions below.
       expect(screen.getByRole("alertdialog", { name: "Delete card?" })).toBeVisible();
+      // When: Exercise `userEvent.click` with the prepared inputs.
       if (confirmed) await userEvent.click(screen.getByRole("button", { name: "Delete card" }));
 
       mocks.cards = [];
       rerender(createCardListPage(deck.id));
       const dialog = screen.getByRole("alertdialog", { name: "Delete card?" });
+      // Then: Verify the expected result in the assertions below.
       expect(dialog).toBeVisible();
       expect(within(dialog).getByText("Front")).toBeVisible();
       expect(
@@ -339,51 +391,66 @@ describe("CARD-VIEW-02 CARD-MANAGEMENT-02 CARD-MANAGEMENT-08 CARD-MANAGEMENT-03 
       expect(within(dialog).getByRole("button", { name: "Cancel" })).toHaveProperty("disabled", confirmed);
       expect(screen.queryByRole("article")).not.toBeInTheDocument();
 
+      // When: Exercise `userEvent.click` with the prepared inputs.
       if (!confirmed) await userEvent.click(within(dialog).getByRole("button", { name: "Cancel" }));
+      // Then: Verify the expected result in the assertions below.
       expect(mocks.deleteCard).toHaveBeenCalledTimes(confirmed ? 1 : 0);
 
+      // When: Exercise `actAsync` with the prepared inputs.
       await actAsync(async () => {
         write.resolve();
         await write.promise;
       });
+      // Then: Verify the expected result in the assertions below.
       expect(screen.queryByRole("alertdialog", { name: "Delete card?" })).not.toBeInTheDocument();
       expect(screen.queryAllByText("Deleted card “Front”.")).toHaveLength(confirmed ? 1 : 0);
       expect(
         screen.queryByText("Unable to delete this card. Check your connection and try again.")
       ).not.toBeInTheDocument();
+      // When: Exercise `fireEvent.keyDown` with the prepared inputs.
       fireEvent.keyDown(window, { key: "t" });
+      // Then: Verify the expected result in the assertions below.
       expect(await screen.findByRole("heading", { name: "Deck list destination" })).toBeVisible();
     }
   );
 
   it("closes a failed deletion and retries after reopening the same Card", async () => {
+    // Given: Use this case's inputs and any shared test setup.
     mocks.deleteCard.mockRejectedValueOnce(new Error("delete failed"));
     renderCardList();
 
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByRole("button", { name: "Open actions for Front" }));
     await userEvent.click(screen.getByRole("menuitem", { name: "Delete" }));
     await userEvent.click(screen.getByRole("button", { name: "Delete card" }));
 
+    // Then: Verify the expected result in the assertions below.
     expect(await screen.findByText("Unable to delete this card. Check your connection and try again.")).toBeVisible();
     expect(screen.queryByRole("alertdialog", { name: "Delete card?" })).not.toBeInTheDocument();
 
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByRole("button", { name: "Open actions for Front" }));
     await userEvent.click(screen.getByRole("menuitem", { name: "Delete" }));
     await userEvent.click(screen.getByRole("button", { name: "Delete card" }));
 
+    // Then: Verify the expected result in the assertions below.
     await waitFor(() => expect(screen.queryByRole("alertdialog", { name: "Delete card?" })).not.toBeInTheDocument());
     expect(mocks.deleteCard).toHaveBeenCalledTimes(2);
     expect(screen.getByText("Deleted card “Front”.")).toBeVisible();
   });
 
   it.each(staleMutationCases)("ignores $mutation $outcome after leaving the page", async ({ outcome }) => {
+    // Given: Prepare `write`, `save`, `view` and any shared test state below.
     const write = Promise.withResolvers<void>();
     const save = mocks.deleteCard;
     save.mockReturnValueOnce(write.promise);
     const view = renderCardList();
+    // When: Exercise `startListMutation` with the prepared inputs.
     await startListMutation();
+    // Then: Verify the expected result in the assertions below.
     expect(save).toHaveBeenCalledOnce();
 
+    // When: Exercise `view.unmount` with the prepared inputs.
     view.unmount();
     render(<ToastViewport />);
     await actAsync(async () => {
@@ -392,9 +459,12 @@ describe("CARD-VIEW-02 CARD-MANAGEMENT-02 CARD-MANAGEMENT-08 CARD-MANAGEMENT-03 
       await write.promise.catch(() => undefined);
     });
 
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByRole("status", { name: "Toast notifications" })).toBeEmptyDOMElement();
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    // When: Exercise `renderCardList` with the prepared inputs.
     renderCardList();
+    // Then: Verify the expected result in the assertions below.
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Actions" })).toBeEnabled();
@@ -403,6 +473,7 @@ describe("CARD-VIEW-02 CARD-MANAGEMENT-02 CARD-MANAGEMENT-08 CARD-MANAGEMENT-03 
   it.each(staleMutationCases)(
     "keeps the new mutation and dialog pending when an old $mutation ends in $outcome after revisiting",
     async ({ outcome }) => {
+      // Given: Prepare `oldWrite`, `newWrite`, `oldSave` and any shared test state below.
       const oldWrite = Promise.withResolvers<void>();
       const newWrite = Promise.withResolvers<void>();
       const oldSave = mocks.deleteCard;
@@ -435,13 +506,17 @@ describe("CARD-VIEW-02 CARD-MANAGEMENT-02 CARD-MANAGEMENT-08 CARD-MANAGEMENT-03 
       expect(within(dialog).getByRole("button", { name: "Cancel" })).toBeDisabled();
       expect(screen.getByRole("status", { name: "Toast notifications" })).toBeEmptyDOMElement();
       expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+      // When: Exercise `fireEvent.click` with the prepared inputs.
       fireEvent.click(confirm);
+      // Then: Verify the expected result in the assertions below.
       expect(newSave).toHaveBeenCalledTimes(callsBeforeCompletion);
 
+      // When: Exercise `actAsync` with the prepared inputs.
       await actAsync(async () => {
         newWrite.resolve();
         await newWrite.promise;
       });
+      // Then: Verify the expected result in the assertions below.
       expect(dialog).not.toBeInTheDocument();
       expect(screen.getByRole("button", { name: "Actions" })).toBeEnabled();
       expect(screen.getByText("Deleted card “Front”.")).toBeVisible();

@@ -29,6 +29,7 @@ const ControlledTagFilter: React.FC<{ tags: string[]; initialSelectedTags?: stri
 
 describe("CARD-LIST-ACTIONS-01 STUDY-SESSION-08 TagFilter", () => {
   it("reports tag, clear, and explicit match-mode changes with a deduplicated selection count", async () => {
+    // Given: Prepare `user`, `onSelectedTagsChange`, `onMatchAllChange` and any shared test state below.
     const user = userEvent.setup();
     const onSelectedTagsChange = vi.fn();
     const onMatchAllChange = vi.fn();
@@ -50,6 +51,7 @@ describe("CARD-LIST-ACTIONS-01 STUDY-SESSION-08 TagFilter", () => {
     expect(within(region).getByRole("radio", { name: "All" })).not.toBeChecked();
     expect(within(region).getByRole("button", { name: "Clear" })).toBeEnabled();
 
+    // When: Exercise `user.click` with the prepared inputs.
     await user.click(within(region).getByRole("checkbox", { name: "two" }));
     await user.click(within(region).getByRole("checkbox", { name: "one" }));
     await user.click(within(region).getByRole("radio", { name: "All" }));
@@ -57,6 +59,7 @@ describe("CARD-LIST-ACTIONS-01 STUDY-SESSION-08 TagFilter", () => {
     await user.click(within(region).getByRole("radio", { name: "Any" }));
     await user.click(within(region).getByRole("button", { name: "Clear" }));
 
+    // Then: Verify the expected result in the assertions below.
     expect(onSelectedTagsChange).toHaveBeenNthCalledWith(1, ["one", "two"]);
     expect(onSelectedTagsChange).toHaveBeenNthCalledWith(2, []);
     expect(onSelectedTagsChange).toHaveBeenNthCalledWith(3, []);
@@ -65,6 +68,7 @@ describe("CARD-LIST-ACTIONS-01 STUDY-SESSION-08 TagFilter", () => {
   });
 
   it("keeps selected and stale tags first while progressively disclosing unselected tags", async () => {
+    // Given: Prepare `user`, `tags`, `showMore` and any shared test state below.
     const user = userEvent.setup();
     const tags = [
       "one",
@@ -88,7 +92,9 @@ describe("CARD-LIST-ACTIONS-01 STUDY-SESSION-08 TagFilter", () => {
     expect(showMore).toHaveAttribute("aria-expanded", "false");
     expect(showMore).toHaveAttribute("aria-controls");
 
+    // When: Exercise `user.click` with the prepared inputs.
     await user.click(showMore);
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByRole("button", { name: "Show fewer tags" })).toHaveAttribute("aria-expanded", "true");
     expect(tagNames()).toEqual([
       "stale",
@@ -106,10 +112,14 @@ describe("CARD-LIST-ACTIONS-01 STUDY-SESSION-08 TagFilter", () => {
       "twelve",
     ]);
 
+    // When: Exercise `user.click` with the prepared inputs.
     await user.click(screen.getByRole("checkbox", { name: "twelve" }));
+    // Then: Verify the expected result in the assertions below.
     expect(tagNames().slice(0, 3)).toEqual(["stale", "four", "twelve"]);
+    // When: Exercise `user.click` with the prepared inputs.
     await user.click(screen.getByRole("button", { name: "Show fewer tags" }));
 
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByRole("checkbox", { name: "twelve" })).toBeVisible();
     expect(screen.getByRole("checkbox", { name: "twelve" })).toBeChecked();
     expect(screen.queryByRole("checkbox", { name: "ten" })).not.toBeInTheDocument();
@@ -118,63 +128,83 @@ describe("CARD-LIST-ACTIONS-01 STUDY-SESSION-08 TagFilter", () => {
   });
 
   it("moves keyboard focus through newly revealed tags and keeps it on the disclosure when collapsing", async () => {
+    // Given: Prepare `user`, `tags`, `showMore` and any shared test state below.
     const user = userEvent.setup();
     const tags = Array.from({ length: 12 }, (_, index) => `tag-${String(index + 1)}`);
     render(<ControlledTagFilter tags={tags} />);
 
     const showMore = screen.getByRole("button", { name: "Show 4 more tags" });
     showMore.focus();
+    // When: Exercise `user.keyboard` with the prepared inputs.
     await user.keyboard("{Enter}");
 
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByRole("checkbox", { name: "tag-9" })).toHaveFocus();
+    // When: Exercise `user.tab` with the prepared inputs.
     await user.tab();
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByRole("checkbox", { name: "tag-10" })).toHaveFocus();
+    // When: Exercise `user.tab` with the prepared inputs.
     await user.tab();
     await user.tab();
     await user.tab();
 
     const showFewer = screen.getByRole("button", { name: "Show fewer tags" });
+    // Then: Verify the expected result in the assertions below.
     expect(showFewer).toHaveFocus();
+    // When: Exercise `user.keyboard` with the prepared inputs.
     await user.keyboard(" ");
 
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByRole("button", { name: "Show 4 more tags" })).toHaveFocus();
     expect(screen.queryByRole("checkbox", { name: "tag-9" })).not.toBeInTheDocument();
   });
 
   it("moves focus to a remaining tag when deselection removes a collapsed chip", async () => {
+    // Given: Prepare `user`, `tags` and any shared test state below.
     const user = userEvent.setup();
     const tags = Array.from({ length: 12 }, (_, index) => `tag-${String(index + 1)}`);
     render(<ControlledTagFilter tags={tags} initialSelectedTags={["tag-12"]} />);
 
     screen.getByRole("checkbox", { name: "tag-12" }).focus();
+    // When: Exercise `user.keyboard` with the prepared inputs.
     await user.keyboard(" ");
 
+    // Then: Verify the expected result in the assertions below.
     expect(screen.queryByRole("checkbox", { name: "tag-12" })).not.toBeInTheDocument();
     expect(screen.getByRole("checkbox", { name: "tag-1" })).toHaveFocus();
   });
 
   it("moves focus to the match controls when the last stale selected tag disappears", async () => {
+    // Given: Prepare `user` and any shared test state below.
     const user = userEvent.setup();
     render(<ControlledTagFilter tags={[]} initialSelectedTags={["stale"]} />);
 
     screen.getByRole("checkbox", { name: "stale" }).focus();
+    // When: Exercise `user.keyboard` with the prepared inputs.
     await user.keyboard(" ");
 
+    // Then: Verify the expected result in the assertions below.
     expect(screen.queryByRole("checkbox", { name: "stale" })).not.toBeInTheDocument();
     expect(screen.getByRole("radio", { name: "Any" })).toHaveFocus();
   });
 
   it("moves focus before Clear disables itself", async () => {
+    // Given: Prepare `user` and any shared test state below.
     const user = userEvent.setup();
     render(<ControlledTagFilter tags={["one"]} initialSelectedTags={["one"]} />);
 
+    // When: Exercise `user.click` with the prepared inputs.
     await user.click(screen.getByRole("button", { name: "Clear" }));
 
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByRole("button", { name: "Clear" })).toBeDisabled();
     expect(screen.getByRole("radio", { name: "Any" })).toHaveFocus();
   });
 
   it("omits disclosure when there are no more than eight unselected tags", () => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Exercise `render` with the prepared inputs.
     render(
       <TagFilter
         tags={Array.from({ length: 8 }, (_, index) => `tag-${String(index + 1)}`)}
@@ -185,6 +215,7 @@ describe("CARD-LIST-ACTIONS-01 STUDY-SESSION-08 TagFilter", () => {
       />
     );
 
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByText("No filter")).toBeVisible();
     expect(screen.getByRole("button", { name: "Clear" })).toBeDisabled();
     expect(screen.getAllByRole("checkbox")).toHaveLength(8);
@@ -192,6 +223,8 @@ describe("CARD-LIST-ACTIONS-01 STUDY-SESSION-08 TagFilter", () => {
   });
 
   it("shows a simple empty state when no tags are available", () => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Exercise `render` with the prepared inputs.
     render(
       <TagFilter
         tags={[]}
@@ -202,6 +235,7 @@ describe("CARD-LIST-ACTIONS-01 STUDY-SESSION-08 TagFilter", () => {
       />
     );
 
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByText("No tags available.")).toBeVisible();
     expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /Show/ })).not.toBeInTheDocument();
@@ -209,7 +243,9 @@ describe("CARD-LIST-ACTIONS-01 STUDY-SESSION-08 TagFilter", () => {
   });
 
   it("bounds a large all-selected tag list while keeping every selection available", () => {
+    // Given: Prepare `tags` and any shared test state below.
     const tags = Array.from({ length: 120 }, (_, index) => `tag-${String(index + 1)}`);
+    // When: Exercise `render` with the prepared inputs.
     render(
       <TagFilter
         tags={tags}
@@ -221,6 +257,7 @@ describe("CARD-LIST-ACTIONS-01 STUDY-SESSION-08 TagFilter", () => {
     );
 
     const tagChoices = screen.getByRole("group", { name: "Tag choices" });
+    // Then: Verify the expected result in the assertions below.
     expect(within(tagChoices).getAllByRole("checkbox")).toHaveLength(120);
     expect(tagChoices).toHaveClass("max-h-64", "overflow-y-auto");
     expect(screen.getByText("120 selected")).toBeVisible();
@@ -228,7 +265,9 @@ describe("CARD-LIST-ACTIONS-01 STUDY-SESSION-08 TagFilter", () => {
   });
 
   it("keeps a long tag available through its native checkbox", () => {
+    // Given: Prepare `longTag` and any shared test state below.
     const longTag = "averylongunbrokentag".repeat(12);
+    // When: Exercise `render` with the prepared inputs.
     render(
       <TagFilter
         tags={[longTag]}
@@ -239,13 +278,16 @@ describe("CARD-LIST-ACTIONS-01 STUDY-SESSION-08 TagFilter", () => {
       />
     );
 
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByRole("checkbox", { name: longTag })).toBeVisible();
   });
 
   it("keeps the expanded filter and tag controls mounted when the locale changes", async () => {
+    // Given: Prepare `user`, `tags` and any shared test state below.
     const user = userEvent.setup();
     const tags = Array.from({ length: 10 }, (_, index) => `tag-${String(index + 1)}`);
     render(<ControlledTagFilter tags={tags} />);
+    // When: Exercise `user.click` with the prepared inputs.
     await user.click(screen.getByRole("button", { name: "Show 2 more tags" }));
     const disclosure = screen.getByRole("button", { name: "Show fewer tags" });
     const revealedTag = screen.getByRole("checkbox", { name: "tag-9" });
@@ -254,6 +296,7 @@ describe("CARD-LIST-ACTIONS-01 STUDY-SESSION-08 TagFilter", () => {
       void getI18n().changeLanguage("ja");
     });
 
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByRole("button", { name: "表示するタグを減らす" })).toBe(disclosure);
     expect(screen.getByRole("checkbox", { name: "tag-9" })).toBe(revealedTag);
     expect(disclosure).toHaveAttribute("aria-expanded", "true");

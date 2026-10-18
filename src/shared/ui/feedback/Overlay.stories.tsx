@@ -2,6 +2,9 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { Overlay } from "./Overlay";
 
+// Given: Story args and parameters define the render scenarios below.
+// When: Storybook renders each exported variant and runs its play when present.
+// Then: Assertions are in the relevant plays; rendering alone adds no behavioral checks.
 const meta = {
   title: "Shared/Feedback/Overlay",
   component: Overlay,

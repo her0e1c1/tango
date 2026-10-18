@@ -137,6 +137,7 @@ describe("Firestore synchronization contracts", () => {
     );
   }
   beforeAll(async () => {
+    // Given: Establish the shared setup used by the following cases.
     environment = await initializeTestEnvironment({
       projectId: "test-incremental-sync",
       firestore: {
@@ -147,6 +148,7 @@ describe("Firestore synchronization contracts", () => {
     });
   });
   beforeEach(async () => {
+    // Given: Establish the shared setup used by the following cases.
     await environment.clearFirestore();
     uid = crypto.randomUUID();
     connection.user = { uid, isAnonymous: false };
@@ -170,52 +172,72 @@ describe("Firestore synchronization contracts", () => {
   afterAll(async () => environment.cleanup());
 
   it("[FIRESTORE-INCREMENTAL-SYNC-01] merges consecutive snapshots without losing unchanged or same-timestamp documents", async () => {
+    // Given: Use this case's inputs and any shared test setup.
     await startContent();
+    // When: Exercise `serverBarrier` with the prepared inputs.
     await serverBarrier("deck");
+    // Then: Verify the expected result in the assertions below.
     expect(getDecks()).toEqual([]);
     expect(getCards()).toEqual([]);
+    // When: Exercise `writeBatch` with the prepared inputs.
     const batch = writeBatch(remote);
     for (const id of ["deck", "unchanged"]) batch.set(doc(remote, "deck", id), deckData(id));
     for (const id of ["a", "b"]) batch.set(doc(remote, "card", id), cardData(id));
     await batch.commit();
     const boundary = (await getDoc(doc(remote, "card", "a"))).data()?.updatedAt as Timestamp;
+    // Then: Verify the expected result in the assertions below.
     expect(boundary).toEqual((await getDoc(doc(remote, "card", "b"))).data()?.updatedAt);
     await vi.waitFor(() => {
       expect(getCards()).toHaveLength(2);
       expect(getDecks()).toHaveLength(2);
     });
+    // When: Exercise `serverBarrier` with the prepared inputs.
     await serverBarrier("card");
     await updateDoc(doc(remote, "card", "a"), { frontText: "first edit", updatedAt: serverTimestamp() });
+    // Then: Verify the expected result in the assertions below.
     await vi.waitFor(() => expect(getCards().find(({ id }) => id === "a")?.frontText).toBe("first edit"));
+    // When: Exercise `serverBarrier` with the prepared inputs.
     await serverBarrier("card");
     await updateDoc(doc(remote, "card", "b"), { frontText: "second edit", updatedAt: serverTimestamp() });
+    // Then: Verify the expected result in the assertions below.
     await vi.waitFor(() => expect(getCards().find(({ id }) => id === "b")?.frontText).toBe("second edit"));
     expect(getCards().find(({ id }) => id === "a")?.frontText).toBe("first edit");
+    // When: Exercise `serverBarrier` with the prepared inputs.
     await serverBarrier("card");
+    // Then: Verify the expected result in the assertions below.
     expect(getCards().map(({ id }) => id)).toEqual(["a", "b"]);
   });
 
   it.each(["card", "deck"])("[FIRESTORE-INCREMENTAL-SYNC-02] applies a remote %s tombstone", async (kind) => {
+    // Given: Use this case's inputs and any shared test setup.
     await setDoc(doc(remote, "deck", "deck"), deckData("deck"));
     await setDoc(doc(remote, "deck", "other"), deckData("other"));
     await setDoc(doc(remote, "card", "a"), cardData("a"));
     await setDoc(doc(remote, "card", "other"), cardData("other", "other"));
+    // When: Exercise `startContent` with the prepared inputs.
     await startContent();
+    // Then: Verify the expected result in the assertions below.
     await vi.waitFor(() => expect(getCards()).toHaveLength(2));
+    // When: Exercise `serverBarrier` with the prepared inputs.
     await serverBarrier("card");
     await updateDoc(doc(remote, kind, kind === "deck" ? "deck" : "a"), {
       deletedAt: 1000,
       updatedAt: serverTimestamp(),
     });
+    // Then: Verify the expected result in the assertions below.
     await vi.waitFor(() => expect(getCards().map(({ id }) => id)).toEqual(["other"]));
     expect((await getDoc(doc(remote, kind, kind === "deck" ? "deck" : "a"))).data()?.deletedAt).toBe(1000);
   });
 
   it("[FIRESTORE-INCREMENTAL-SYNC-03] receives stopped changes when subscribing again", async () => {
+    // Given: Use this case's inputs and any shared test setup.
     await setDoc(doc(remote, "deck", "deck"), deckData("deck"));
     for (const id of ["a", "b", "unchanged"]) await setDoc(doc(remote, "card", id), cardData(id));
+    // When: Exercise `startContent` with the prepared inputs.
     await startContent();
+    // Then: Verify the expected result in the assertions below.
     await vi.waitFor(() => expect(getCards()).toHaveLength(3));
+    // When: Exercise `stopContent` with the prepared inputs.
     stopContent();
     const batch = writeBatch(remote);
     batch.update(doc(remote, "card", "a"), { frontText: "changed", updatedAt: serverTimestamp() });
@@ -223,6 +245,7 @@ describe("Firestore synchronization contracts", () => {
     batch.set(doc(remote, "card", "c"), cardData("c"));
     await batch.commit();
     await startContent();
+    // Then: Verify the expected result in the assertions below.
     await vi.waitFor(() => {
       expect(getCards().map(({ id }) => id)).toEqual(["a", "c", "unchanged"]);
       expect(getCards().find(({ id }) => id === "a")?.frontText).toBe("changed");
@@ -233,43 +256,60 @@ describe("Firestore synchronization contracts", () => {
   it.each([-31_536_000_000, 31_536_000_000])(
     "[FIRESTORE-SNAPSHOT-12] rolls back pending edits with clock offset %s",
     async (offset) => {
+      // Given: Use this case's inputs and any shared test setup.
       await setDoc(doc(remote, "deck", "deck"), deckData("deck"));
+      // When: Exercise `startContent` with the prepared inputs.
       await startContent();
+      // Then: Verify the expected result in the assertions below.
       await vi.waitFor(() => expect(getDecks().find(({ id }) => id === "deck")?.name).toBe("deck"));
+      // When: Exercise `serverBarrier` with the prepared inputs.
       await serverBarrier("deck");
       await disableNetwork(connection.db);
       const now = Date.now();
       const clock = vi.spyOn(Date, "now").mockReturnValue(now + offset);
       const rejection = editDeck(uid, { id: "deck", name: "pending" }).catch((error: unknown) => error);
       clock.mockRestore();
+      // Then: Verify the expected result in the assertions below.
       await vi.waitFor(() => expect(getDecks().find(({ id }) => id === "deck")?.name).toBe("pending"));
+      // When: Exercise `deckData` with the prepared inputs.
       await seed("deck", "deck", { ...deckData("deck"), uid: "different-owner" });
       await enableNetwork(connection.db);
+      // Then: Verify the expected result in the assertions below.
       await expect(rejection).resolves.toMatchObject({ code: "permission-denied" });
       await waitForPendingWrites(connection.db);
+      // When: Exercise `serverBarrier` with the prepared inputs.
       await serverBarrier("deck");
+      // Then: Verify the expected result in the assertions below.
       await vi.waitFor(() => expect(getDecks().some(({ name }) => name === "pending")).toBe(false));
     }
   );
 
   it("[FIRESTORE-SNAPSHOT-13] receives the complete repaired snapshot after a validation error", async () => {
+    // Given: Use this case's inputs and any shared test setup.
     await setDoc(doc(remote, "deck", "deck"), deckData("deck"));
+    // When: Exercise `subscribeDecks` with the prepared inputs.
     stops.push(subscribeDecks(uid, onError));
+    // Then: Verify the expected result in the assertions below.
     await vi.waitFor(() => expect(getDecks().find(({ id }) => id === "deck")?.name).toBe("deck"));
+    // When: Exercise `serverBarrier` with the prepared inputs.
     await serverBarrier("deck");
     const batch = writeBatch(remote);
     batch.update(doc(remote, "deck", "deck"), { name: "changed", updatedAt: serverTimestamp() });
     batch.set(doc(remote, "deck", "invalid"), { ...deckData("invalid"), name: 42 });
     await batch.commit();
+    // Then: Verify the expected result in the assertions below.
     await vi.waitFor(() => expect(errors.length).toBeGreaterThan(0));
     expect(getDecks().find(({ id }) => id === "deck")?.name).toBe("deck");
     expect(getDecks().map(({ name }) => name)).toEqual(["deck"]);
     expect(errors.length).toBeGreaterThan(0);
+    // When: Exercise `updateDoc` with the prepared inputs.
     await updateDoc(doc(remote, "deck", "invalid"), { name: "repaired", updatedAt: serverTimestamp() });
+    // Then: Verify the expected result in the assertions below.
     await vi.waitFor(() => expect(getDecks().map(({ name }) => name)).toEqual(["changed", "repaired"]));
   });
 
   it("[FIRESTORE-STUDY-SESSION-17] shares ended sessions with history while preserving event times", async () => {
+    // Given: Prepare `started`, `completed`, `input` and any shared test state below.
     let started: StudyHistoryRecord[] = [];
     let completed: StudyHistoryRecord[] = [];
     const input = { uid, period: { start: 0, end: 3000 }, deckId: "deck" };
@@ -291,17 +331,21 @@ describe("Firestore synchronization contracts", () => {
       )
     );
     stops.push(subscribeStudySessions(uid, onError));
+    // When: Exercise `startStudy` with the prepared inputs.
     await startStudy({ uid, deckId: "deck", cardOrderIds: ["a", "b"], now: 1000 });
+    // Then: Verify the expected result in the assertions below.
     await vi.waitFor(() => {
       expect(started).toHaveLength(1);
       expect(getStudySession("deck")?.lastStudiedAt).toBe(1000);
     });
+    // When: Exercise `stopStarted` with the prepared inputs.
     stopStarted();
     const foreignHistory = vi.fn();
     stops.push(subscribeStudyHistory({ ...input, uid: "another-owner", metric: "started" }, foreignHistory, onError));
     const session = getStudySession("deck");
     if (!session) throw new Error("Missing session");
     await writeStudySessionPosition({ ...session, lastStudiedAt: 2000 }, 2);
+    // Then: Verify the expected result in the assertions below.
     await vi.waitFor(() => {
       expect(completed).toHaveLength(1);
       expect(getStudySession("deck")).toBeUndefined();
@@ -318,6 +362,7 @@ describe("Firestore synchronization contracts", () => {
   it.each([2, 1000])(
     "[FIRESTORE-STUDY-HISTORY-05] merges more than %s new answers and keeps history scopes independent",
     async (maximum) => {
+      // Given: Prepare `initial`, `allDecks`, `past` and any shared test state below.
       await setDoc(doc(remote, "studyAnswer", "initial"), answerData(3000));
       const initial = history(maximum);
       const allDecks = history(maximum, null);
@@ -326,16 +371,21 @@ describe("Firestore synchronization contracts", () => {
       await serverHistory(allDecks, 1);
       await serverHistory(past, 0);
       for (let offset = 0; offset < maximum + 3; offset += 400) {
+        // Given: Prepare `batch` and any shared test state below.
         const batch = writeBatch(remote);
         for (let index = offset; index < Math.min(offset + 400, maximum + 3); index += 1)
           batch.set(doc(remote, "studyAnswer", `answer-${String(index).padStart(4, "0")}`), answerData(4000));
+        // When: Exercise `batch.commit` with the prepared inputs.
         await batch.commit();
+        // Then: The invoked verification helper checks the case's expected result.
       }
       await setDoc(doc(remote, "studyAnswer", "backdated"), answerData(1000));
       await setDoc(doc(remote, "studyAnswer", "foreign-deck"), answerData(5000, "other"));
       await serverHistory(initial, maximum);
       await serverHistory(allDecks, maximum);
       await serverHistory(past, 1);
+      // When: Evaluate `initial.get` as part of the following checks.
+      // Then: Verify the expected result in the assertions below.
       await vi.waitFor(() =>
         expect(initial.get()?.records[0]?.id).toBe(`answer-${String(maximum + 2).padStart(4, "0")}`)
       );
@@ -344,10 +394,14 @@ describe("Firestore synchronization contracts", () => {
       await vi.waitFor(() => expect(allDecks.get()?.records[0]?.id).toBe("foreign-deck"));
       expect(past.get()?.records.map(({ id }) => id)).toEqual(["backdated"]);
       expect(past.get()?.truncated).toBe(false);
+      // When: Exercise `setDoc` with the prepared inputs.
       await setDoc(doc(remote, "studyAnswer", "older-live"), answerData(500));
       await serverHistory(past, 2);
+      // Then: Verify the expected result in the assertions below.
       expect(initial.get()?.records.at(-1)?.id).toBe("answer-0003");
+      // When: Exercise `setDoc` with the prepared inputs.
       await setDoc(doc(remote, "studyAnswer", "newest-live"), answerData(6000));
+      // Then: Verify the expected result in the assertions below.
       await vi.waitFor(() => expect(initial.get()?.records[0]?.id).toBe("newest-live"));
       expect(initial.get()?.records).toHaveLength(maximum);
       expect(initial.get()?.records.at(-1)?.id).toBe("answer-0004");
@@ -359,9 +413,11 @@ describe("Firestore synchronization contracts", () => {
   it.each([false, true])(
     "[FIRESTORE-STUDY-HISTORY-06] receives answers arriving when the listener starts (existing=%s)",
     async (existing) => {
+      // Given: Prepare `current`, `added` and any shared test state below.
       if (existing) await setDoc(doc(remote, "studyAnswer", "initial"), answerData(3000));
       let current: StudyAnswerHistory | undefined;
       let added: Promise<void> | undefined;
+      // When: Exercise `subscribeStudyAnswerHistory` with the prepared inputs.
       stops.push(
         subscribeStudyAnswerHistory(
           { uid, from: 0, to: 10_000, deckId: "deck", limit: 1000 },
@@ -372,6 +428,7 @@ describe("Firestore synchronization contracts", () => {
           onError
         )
       );
+      // Then: Verify the expected result in the assertions below.
       await vi.waitFor(
         () => {
           expect(errors).toEqual([]);
@@ -387,6 +444,7 @@ describe("Firestore synchronization contracts", () => {
   );
 
   async function expectServerUpdateTime(kind: "deck" | "card" | "studySession" | "studyAnswer") {
+    // Given: Prepare `data`, `reference` and any shared test state below.
     await setDoc(doc(remote, "deck", "deck"), deckData("deck"));
     const data: DocumentData = {
       deck: deckData("new"),
@@ -407,12 +465,19 @@ describe("Firestore synchronization contracts", () => {
     }[kind];
     const reference = doc(remote, kind, "new");
     for (const updatedAt of [1000, Timestamp.fromMillis(1000), undefined]) {
+      // Given: Prepare `invalid` and any shared test state below.
       const invalid = Object.fromEntries(
         Object.entries({ ...data, updatedAt }).filter(([, value]) => value !== undefined)
       );
+      // When: Evaluate `setDoc` as part of the following checks.
+      // Then: Verify the expected result in the assertions below.
       await assertFails(setDoc(reference, invalid));
     }
+    // When: Evaluate `setDoc` as part of the following checks.
+    // Then: Verify the expected result in the assertions below.
     await assertSucceeds(setDoc(reference, data));
+    // When: Evaluate `updateDoc` as part of the following checks.
+    // Then: Verify the expected result in the assertions below.
     if (kind !== "studyAnswer") {
       const fields = { deck: { name: "edited" }, card: { fsrs: {} }, studySession: { currentIndex: 1 } }[kind];
       for (const updatedAt of [1000, Timestamp.fromMillis(1000), undefined])
@@ -422,21 +487,33 @@ describe("Firestore synchronization contracts", () => {
   }
 
   it("[FIRESTORE-RULES-DECK-27] requires server update times for deck writes", async () => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Observe the prepared result through the following checks.
+    // Then: Verify the expected result in the assertions below.
     await expectServerUpdateTime("deck");
     expect((await getDoc(doc(remote, "deck", "new"))).data()?.updatedAt).toBeInstanceOf(Timestamp);
   });
 
   it("[FIRESTORE-RULES-CARD-27] requires server update times for card writes", async () => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Observe the prepared result through the following checks.
+    // Then: Verify the expected result in the assertions below.
     await expectServerUpdateTime("card");
     expect((await getDoc(doc(remote, "card", "new"))).data()?.updatedAt).toBeInstanceOf(Timestamp);
   });
 
   it("[FIRESTORE-RULES-STUDY-SESSION-04] requires server update times for studySession writes", async () => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Observe the prepared result through the following checks.
+    // Then: Verify the expected result in the assertions below.
     await expectServerUpdateTime("studySession");
     expect((await getDoc(doc(remote, "studySession", "new"))).data()?.updatedAt).toBeInstanceOf(Timestamp);
   });
 
   it("[FIRESTORE-RULES-STUDY-ANSWER-05] requires server update times for studyAnswer writes", async () => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Observe the prepared result through the following checks.
+    // Then: Verify the expected result in the assertions below.
     await expectServerUpdateTime("studyAnswer");
     expect((await getDoc(doc(remote, "studyAnswer", "new"))).data()?.updatedAt).toBeInstanceOf(Timestamp);
   });

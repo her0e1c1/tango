@@ -8,6 +8,9 @@ describe("NAVIGATION-06 NAVIGATION-08 routes", () => {
     ["plan?draft=1", "plan%3Fdraft%3D1"],
     ["plan#draft", "plan%23draft"],
   ])("keeps %s inside one path parameter for every ID route", (id, encodedId) => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Evaluate `routes.cardList.to` as part of the following checks.
+    // Then: Verify the expected result in the assertions below.
     expect([
       routes.cardList.to(id),
       routes.cardCreate.to(id),
@@ -30,6 +33,9 @@ describe("NAVIGATION-06 NAVIGATION-08 routes", () => {
   });
 
   it("defines every page route and builds its destination", () => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Evaluate `routes.deckList.to` as part of the following checks.
+    // Then: Verify the expected result in the assertions below.
     expect([
       [routes.deckList.path, routes.deckList.to()],
       [routes.deckCreate.path, routes.deckCreate.to()],

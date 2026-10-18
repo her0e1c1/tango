@@ -62,12 +62,15 @@ const PreferencesFormHarness: React.FC = () => {
 
 describe("SETTINGS-01 SETTINGS-02 SETTINGS-04 settings page model", () => {
   beforeEach(() => {
+    // Given: Establish the shared setup used by the following cases.
     updatePreferences(preferences);
   });
 
   it("saves boolean and numeric changes as the user edits them", async () => {
+    // Given: Use this case's inputs and any shared test setup.
     render(<PreferencesFormHarness />, { wrapper: MemoryRouter });
 
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByRole("checkbox", { name: "Show playback controls" }));
     await userEvent.click(screen.getByRole("checkbox", { name: "Dark mode" }));
     await userEvent.selectOptions(screen.getByRole("combobox", { name: "Language" }), "ja");
@@ -78,6 +81,7 @@ describe("SETTINGS-01 SETTINGS-02 SETTINGS-04 settings page model", () => {
       target: { value: 10 },
     });
 
+    // Then: Verify the expected result in the assertions below.
     await waitFor(() => {
       expect(screen.getByLabelText("Saved playback controls preference")).toHaveTextContent("true");
       expect(screen.getByLabelText("Saved maximum cards")).toHaveTextContent("10");
@@ -88,13 +92,16 @@ describe("SETTINGS-01 SETTINGS-02 SETTINGS-04 settings page model", () => {
   });
 
   it("preserves preferences outside the form when autosaving a changed theme", async () => {
+    // Given: Use this case's inputs and any shared test setup.
     render(<PreferencesFormHarness />, { wrapper: MemoryRouter });
     act(() => {
       updatePreferences({ loadSample: false, controls: { showHelp: false } });
     });
 
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByRole("checkbox", { name: "Dark mode" }));
 
+    // Then: Verify the expected result in the assertions below.
     await waitFor(() => {
       expect(screen.getByLabelText("Saved dark mode preference")).toHaveTextContent("true");
       expect(screen.getByLabelText("Saved sample preference")).toHaveTextContent("false");
@@ -103,13 +110,18 @@ describe("SETTINGS-01 SETTINGS-02 SETTINGS-04 settings page model", () => {
   });
 
   it("reflects a theme change saved elsewhere in the application", async () => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Exercise `render` with the prepared inputs.
     render(<PreferencesFormHarness />, { wrapper: MemoryRouter });
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByRole("checkbox", { name: "Dark mode" })).not.toBeChecked();
 
+    // When: Exercise `act` with the prepared inputs.
     act(() => {
       setDarkMode(true);
     });
 
+    // Then: Verify the expected result in the assertions below.
     await waitFor(() => {
       expect(screen.getByRole("checkbox", { name: "Dark mode" })).toBeChecked();
     });

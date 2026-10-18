@@ -104,28 +104,38 @@ const RepositoryView = () => {
 
 describe("Firestore subscriptions [PERSISTENCE-01 PERSISTENCE-04 ACCOUNT-03]", () => {
   beforeEach(() => {
+    // Given: Establish the shared setup used by the following cases.
     clearRemoteCards();
     clearRemoteDecks();
   });
   it.each(["anonymous-uid", "linked-uid"])("publishes confirmed data for %s and clears it on cleanup", async (uid) => {
+    // Given: Use this case's inputs and any shared test setup.
     const { stop } = startFirestoreSubscriptions(uid);
+    // When: Exercise `render` with the prepared inputs.
     render(<RepositoryView />);
+    // Then: Verify the expected result in the assertions below.
     expect(await screen.findByText(`Deck for ${uid}`)).toBeVisible();
     expect(await screen.findByText(`Front for ${uid}`)).toBeVisible();
+    // When: Exercise `act` with the prepared inputs.
     act(() => stop());
+    // Then: Verify the expected result in the assertions below.
     expect(screen.queryByText(`Deck for ${uid}`)).not.toBeInTheDocument();
     expect(screen.queryByText(`Front for ${uid}`)).not.toBeInTheDocument();
   });
   it("replaces the visible UID after stopping the old subscriptions", async () => {
+    // Given: Prepare `stopSecond` and any shared test state below.
     const { stop: stopFirst } = startFirestoreSubscriptions("first");
     render(<RepositoryView />);
     act(() => stopFirst());
     let stopSecond: () => void = () => undefined;
+    // When: Exercise `act` with the prepared inputs.
     act(() => {
       stopSecond = startFirestoreSubscriptions("second").stop;
     });
+    // Then: Verify the expected result in the assertions below.
     expect(screen.queryByText("Deck for first")).not.toBeInTheDocument();
     expect(await screen.findByText("Deck for second")).toBeVisible();
+    // When: Exercise `act` with the prepared inputs.
     act(() => stopSecond());
   });
 });

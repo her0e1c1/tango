@@ -24,6 +24,9 @@ describe("planStudySessionSwipe [STUDY-ACTIONS-01] [STUDY-ACTIONS-02] [STUDY-ACT
     ["RateHard", "hard"],
     ["RateEasy", "easy"],
   ] as const)("plans %s with rating %s", (swipeAction, rating) => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Evaluate `planStudySessionSwipe` as part of the following checks.
+    // Then: Verify the expected result in the assertions below.
     expect(planStudySessionSwipe(session, cards, swipeAction)).toEqual({ effect: "next", rating });
   });
 
@@ -31,10 +34,16 @@ describe("planStudySessionSwipe [STUDY-ACTIONS-01] [STUDY-ACTIONS-02] [STUDY-ACT
     ["DoNothing", "none"],
     ["GoBack", "exit"],
   ] as const)("plans %s as %s without a progress edit", (swipeAction, effect) => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Evaluate `planStudySessionSwipe` as part of the following checks.
+    // Then: Verify the expected result in the assertions below.
     expect(planStudySessionSwipe(session, cards, swipeAction)).toEqual({ effect });
   });
 
   it("ignores swipes without a resolvable active session", () => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Evaluate `planStudySessionSwipe` as part of the following checks.
+    // Then: Verify the expected result in the assertions below.
     expect(planStudySessionSwipe(undefined, cards, "GoToNextCard")).toEqual({ effect: "none" });
     expect(planStudySessionSwipe(session, cards.slice(0, 1), "GoToNextCard")).toEqual({ effect: "none" });
     expect(planStudySessionSwipe({ ...session, currentIndex: 3 }, cards, "GoToNextCard")).toEqual({

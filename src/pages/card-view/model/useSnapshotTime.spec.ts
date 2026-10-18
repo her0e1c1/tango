@@ -9,6 +9,7 @@ vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 describe("CARD-VIEW-06 memory reference time", () => {
   afterEach(() => vi.restoreAllMocks());
   it("holds a snapshot until the card, schedule, or foreground changes", () => {
+    // Given: Prepare `at`, `clock`, `schedule` and any shared test state below.
     const at = Date.UTC(2026, 8, 21);
     const clock = vi.spyOn(Date, "now").mockReturnValue(at);
     const schedule = calculateFsrsState(null, "good", at);
@@ -28,10 +29,14 @@ describe("CARD-VIEW-06 memory reference time", () => {
     expect(result.current).toBe(at + 120_000);
     clock.mockReturnValue(at + 180_000);
     vi.spyOn(document, "visibilityState", "get").mockReturnValue("hidden");
+    // When: Exercise `act` with the prepared inputs.
     act(() => document.dispatchEvent(new Event("visibilitychange")));
+    // Then: Verify the expected result in the assertions below.
     expect(result.current).toBe(at + 120_000);
     vi.spyOn(document, "visibilityState", "get").mockReturnValue("visible");
+    // When: Exercise `act` with the prepared inputs.
     act(() => document.dispatchEvent(new Event("visibilitychange")));
+    // Then: Verify the expected result in the assertions below.
     expect(result.current).toBe(at + 180_000);
   });
 });

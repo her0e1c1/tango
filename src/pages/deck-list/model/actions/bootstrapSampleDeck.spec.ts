@@ -72,6 +72,7 @@ import { bootstrapSampleDeck } from "./bootstrapSampleDeck";
 
 describe("bootstrapSampleDeck [DECK-IMPORT-07]", () => {
   beforeEach(() => {
+    // Given: Establish the shared setup used by the following cases.
     deckListStore.setState({ bootstrapStatus: "idle" });
     repository.uid = "uid-a";
     repository.cards = [];
@@ -81,10 +82,13 @@ describe("bootstrapSampleDeck [DECK-IMPORT-07]", () => {
   });
 
   it("persists the sample locally without a signed-in user", async () => {
+    // Given: Use this case's inputs and any shared test setup.
     repository.uid = "anonymous-uid";
 
+    // When: Exercise `bootstrapSampleDeck` with the prepared inputs.
     await bootstrapSampleDeck();
 
+    // Then: Verify the expected result in the assertions below.
     expect(repository.loadSample).toBe(false);
     expect(repository.decks).toEqual([
       expect.objectContaining({ id: `${repository.uid}-sample-v1`, name: "Sample Deck" }),
@@ -94,51 +98,67 @@ describe("bootstrapSampleDeck [DECK-IMPORT-07]", () => {
   });
 
   it("preserves existing storage without adding a sample", async () => {
+    // Given: Prepare `existingDeck` and any shared test state below.
     const existingDeck = createDeck({ id: "existing-deck", uid: repository.uid, name: "Existing Deck" });
     repository.decks = [existingDeck];
 
+    // When: Exercise `bootstrapSampleDeck` with the prepared inputs.
     await bootstrapSampleDeck();
 
+    // Then: Verify the expected result in the assertions below.
     expect(repository.decks).toEqual([existingDeck]);
     expect(repository.cards).toEqual([]);
     expect(repository.loadSample).toBe(true);
   });
 
   it("does not add a sample when automatic loading is disabled", async () => {
+    // Given: Use this case's inputs and any shared test setup.
     repository.loadSample = false;
 
+    // When: Exercise `bootstrapSampleDeck` with the prepared inputs.
     await bootstrapSampleDeck();
 
+    // Then: Verify the expected result in the assertions below.
     expect(repository.decks).toEqual([]);
     expect(repository.cards).toEqual([]);
   });
 
   it("converges repeated bootstrap attempts and stays disabled after the sample is removed", async () => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Exercise `bootstrapSampleDeck` with the prepared inputs.
     await Promise.all([bootstrapSampleDeck(), bootstrapSampleDeck()]);
 
+    // Then: Verify the expected result in the assertions below.
     expect(repository.loadSample).toBe(false);
     expect(repository.decks).toHaveLength(1);
     expect(new Set(repository.cards.map((card) => card.uniqueKey)).size).toBe(repository.cards.length);
 
     repository.decks = [];
     repository.cards = [];
+    // When: Exercise `bootstrapSampleDeck` with the prepared inputs.
     await bootstrapSampleDeck();
 
+    // Then: Verify the expected result in the assertions below.
     expect(repository.decks).toEqual([]);
     expect(repository.cards).toEqual([]);
     expect(deckListStore.getState().bootstrapStatus).toBe("done");
   });
 
   it("sets error status on failure and allows retry", async () => {
+    // Given: Use this case's inputs and any shared test setup.
     repository.createDeckError = true;
+    // When: Exercise `bootstrapSampleDeck` with the prepared inputs.
     await bootstrapSampleDeck();
 
+    // Then: Verify the expected result in the assertions below.
     expect(deckListStore.getState().bootstrapStatus).toBe("error");
     expect(repository.loadSample).toBe(true);
 
     repository.createDeckError = false;
+    // When: Exercise `bootstrapSampleDeck` with the prepared inputs.
     await bootstrapSampleDeck();
 
+    // Then: Verify the expected result in the assertions below.
     expect(deckListStore.getState().bootstrapStatus).toBe("done");
     expect(repository.loadSample).toBe(false);
     expect(repository.decks).toHaveLength(1);

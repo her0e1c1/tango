@@ -16,6 +16,9 @@ const records = Array.from({ length: 11 }, (_, index): StudyHistoryRecord => {
     occurredAt: startedAt,
   };
 });
+// Given: Story args and parameters define the render scenarios below.
+// When: Storybook renders each exported variant and runs its play when present.
+// Then: Assertions are in the relevant plays; rendering alone adds no behavioral checks.
 const meta = {
   ...routeMeta,
   title: "Integration/Study history",
@@ -41,7 +44,11 @@ type Story = StoryObj<typeof meta>;
 
 export const Periods: Story = {
   play: async ({ canvas, userEvent, step }) => {
+    // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-STUDY-HISTORY-08 Explain the 30-day chart and scale", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
+      // When: Evaluate `canvas.findByText` as part of the following checks.
+      // Then: Verify the expected result in the assertions below.
       await expect(await canvas.findByText("Daily study counts")).toBeVisible();
       await expect(canvas.getByRole("button", { name: "30 days" })).toHaveAttribute("aria-pressed", "true");
       await expect(canvas.getByRole("img", { name: /Starts and completions in the selected period/ })).toBeVisible();
@@ -52,7 +59,10 @@ export const Periods: Story = {
       ).toHaveTextContent("10");
     });
     await step("STORYBOOK-STUDY-HISTORY-01 Change the preset and its aggregate", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
+      // When: Exercise `userEvent.click` with the prepared inputs.
       await userEvent.click(canvas.getByRole("button", { name: "7 days" }));
+      // Then: Verify the expected result in the assertions below.
       await expect(canvas.getByRole("button", { name: "7 days" })).toHaveAttribute("aria-pressed", "true");
       await expect(await canvas.findByText(/Jun 25, 2026 – Jul 1, 2026/)).toBeVisible();
       await expect(
@@ -63,10 +73,13 @@ export const Periods: Story = {
       ).toHaveTextContent("3");
     });
     await step("STORYBOOK-STUDY-HISTORY-02 Apply an explicit inclusive date range", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
+      // When: Exercise `userEvent.click` with the prepared inputs.
       await userEvent.click(canvas.getByRole("button", { name: "Custom range" }));
       await fireEvent.change(canvas.getByLabelText("Start date"), { target: { value: "2026-06-29" } });
       await fireEvent.change(canvas.getByLabelText("End date"), { target: { value: "2026-06-30" } });
       await userEvent.click(canvas.getByRole("button", { name: "Apply" }));
+      // Then: Verify the expected result in the assertions below.
       await expect(await canvas.findByText("Jun 29, 2026 – Jun 30, 2026")).toBeVisible();
       await expect(canvas.getByRole("button", { name: "Custom range" })).toHaveAttribute("aria-pressed", "true");
       await expect(
@@ -78,7 +91,11 @@ export const Periods: Story = {
 export const DailyPages: Story = {
   parameters: { page: { ...state, path: "/study-history?days=90" } },
   play: async ({ canvas, userEvent, step }) => {
+    // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-STUDY-HISTORY-09 Distinguish grouped 90-day counts", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
+      // When: Evaluate `canvas.findByText` as part of the following checks.
+      // Then: Verify the expected result in the assertions below.
       await expect(await canvas.findByText("Study counts per 7 days")).toBeVisible();
       await expect(canvas.getByRole("button", { name: "90 days" })).toHaveAttribute("aria-pressed", "true");
       await expect(
@@ -86,16 +103,22 @@ export const DailyPages: Story = {
       ).toHaveTextContent("11");
     });
     await step("STORYBOOK-STUDY-HISTORY-03 Expand the first 30 daily rows", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
+      // When: Exercise `userEvent.click` with the prepared inputs.
       await userEvent.click(canvas.getByText("Show daily counts · 90 days"));
       const table = canvas.getByRole("table", { name: "Daily counts" });
+      // Then: Verify the expected result in the assertions below.
       await expect(within(table).getAllByRole("row")).toHaveLength(31);
       await expect(canvas.getByText("1–30 of 90 days")).toBeVisible();
       await expect(canvas.getByRole("button", { name: "Older dates" })).toBeEnabled();
       await expect(within(table).getByRole("row", { name: "Jul 1, 2026 1 1" })).toBeVisible();
     });
     await step("STORYBOOK-STUDY-HISTORY-04 Page to older dates with their counts", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
+      // When: Exercise `userEvent.click` with the prepared inputs.
       await userEvent.click(canvas.getByRole("button", { name: "Older dates" }));
       const table = canvas.getByRole("table", { name: "Daily counts" });
+      // Then: Verify the expected result in the assertions below.
       await expect(canvas.getByText("31–60 of 90 days")).toBeVisible();
       await expect(within(table).queryByRole("row", { name: /Jul 1, 2026/ })).not.toBeInTheDocument();
       await expect(within(table).getByRole("row", { name: "Jun 1, 2026 0 0" })).toBeVisible();
@@ -105,20 +128,28 @@ export const DailyPages: Story = {
 };
 export const Sessions: Story = {
   play: async ({ canvas, userEvent, step }) => {
+    // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-STUDY-HISTORY-05 Display distinct session outcomes", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
+      // When: Evaluate `canvas.findAllByText` as part of the following checks.
+      // Then: Verify the expected result in the assertions below.
       await expect((await canvas.findAllByText("Completed", { exact: true }))[0]).toBeVisible();
       await expect(canvas.getByText("Abandoned")).toBeVisible();
       await expect(canvas.getByText("Unfinished")).toBeVisible();
       await expect(canvas.getAllByRole("listitem")).toHaveLength(3);
     });
     await step("STORYBOOK-STUDY-HISTORY-07 Expand every recent session", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
+      // When: Exercise `userEvent.click` with the prepared inputs.
       await userEvent.click(canvas.getByRole("button", { name: "Show all 10 sessions" }));
+      // Then: Verify the expected result in the assertions below.
       await expect(canvas.getAllByRole("listitem")).toHaveLength(10);
       await expect(canvas.getByRole("button", { name: "Show fewer sessions" })).toHaveAttribute(
         "aria-expanded",
         "true"
       );
       for (const item of canvas.getAllByRole("listitem")) {
+        // Given: Use the current iteration or branch inputs from the enclosing case.
         await expect(within(item).getByRole("heading", { name: deck.name })).toBeVisible();
         await expect(within(item).getByText("Target cards")).toBeVisible();
       }
@@ -128,7 +159,11 @@ export const Sessions: Story = {
 export const JapaneseSessions: Story = {
   parameters: { locale: "ja" },
   play: async ({ canvas, step }) => {
+    // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-STUDY-HISTORY-06 Translate outcomes while preserving deck names", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
+      // When: Evaluate `canvas.findAllByText` as part of the following checks.
+      // Then: Verify the expected result in the assertions below.
       await expect((await canvas.findAllByText("完了", { exact: true }))[0]).toBeVisible();
       await expect(canvas.getByText("中止")).toBeVisible();
       await expect(canvas.getByText("未完了")).toBeVisible();

@@ -13,6 +13,7 @@ vi.mock("@/shared/ui/toast", () => ({ showToast: vi.fn() }));
 
 describe("Deck deletion account guards [DECK-MANAGEMENT-02 DECK-MANAGEMENT-04]", () => {
   beforeEach(() => {
+    // Given: Establish the shared setup used by the following cases.
     vi.resetAllMocks();
     auth.uid = "owner";
   });
@@ -20,6 +21,7 @@ describe("Deck deletion account guards [DECK-MANAGEMENT-02 DECK-MANAGEMENT-04]",
   it.each(["deck success", "deck failure"])(
     "ignores %s after an account switch and releases the pending interaction",
     async (outcome) => {
+      // Given: Prepare `deck`, `pending`, `setTarget` and any shared test state below.
       const deck = createDeck({ id: "deck", uid: "owner" });
       vi.mocked(mustFindDeckById).mockReturnValue(deck);
       const pending = Promise.withResolvers<void>();
@@ -38,9 +40,11 @@ describe("Deck deletion account guards [DECK-MANAGEMENT-02 DECK-MANAGEMENT-04]",
       });
       await Promise.resolve();
       auth.uid = "next-user";
+      // When: Exercise `outcome.endsWith` with the prepared inputs.
       if (outcome.endsWith("failure")) pending.reject(new Error("denied"));
       else pending.resolve();
       await result;
+      // Then: Verify the expected result in the assertions below.
       expect(showToast).not.toHaveBeenCalled();
       expect(onDeleted).not.toHaveBeenCalled();
       expect(setTarget).not.toHaveBeenCalled();
@@ -49,6 +53,7 @@ describe("Deck deletion account guards [DECK-MANAGEMENT-02 DECK-MANAGEMENT-04]",
     }
   );
   it("reports deletion success and releases the interaction before session cleanup settles", async () => {
+    // Given: Prepare `deck`, `cleanup`, `setTarget` and any shared test state below.
     const deck = createDeck({ id: "deck", uid: "owner" });
     vi.mocked(mustFindDeckById).mockReturnValue(deck);
     const cleanup = Promise.withResolvers<void>();
@@ -56,6 +61,7 @@ describe("Deck deletion account guards [DECK-MANAGEMENT-02 DECK-MANAGEMENT-04]",
     const setTarget = vi.fn();
     const setPending = vi.fn();
     const onDeleted = vi.fn();
+    // When: Exercise `confirmDeckDeletion` with the prepared inputs.
     await confirmDeckDeletion({
       target: { deck, cardCount: 0 },
       pending: false,
@@ -64,12 +70,15 @@ describe("Deck deletion account guards [DECK-MANAGEMENT-02 DECK-MANAGEMENT-04]",
       onDeleted,
       isMounted: () => true,
     });
+    // Then: Verify the expected result in the assertions below.
     expect(setTarget).toHaveBeenCalledWith(undefined);
     expect(setPending).toHaveBeenLastCalledWith(false);
     expect(onDeleted).toHaveBeenCalledOnce();
     expect(showToast).toHaveBeenCalledWith(expect.objectContaining({ messageKey: "deckDeletion.toast.deleted" }));
+    // When: Exercise `cleanup.reject` with the prepared inputs.
     cleanup.reject(new Error("cleanup denied"));
     await cleanup.promise.catch(() => undefined);
+    // Then: Verify the expected result in the assertions below.
     expect(showToast).toHaveBeenLastCalledWith({ messageKey: "deckDeletion.toast.cleanupFailure", tone: "error" });
     expect(showToast).not.toHaveBeenCalledWith(expect.objectContaining({ messageKey: "deckDeletion.toast.failure" }));
     expect(onDeleted).toHaveBeenCalledOnce();

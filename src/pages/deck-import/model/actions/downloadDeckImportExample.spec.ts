@@ -24,12 +24,17 @@ describe("Example downloads [DECK-IMPORT-06]", () => {
       tags: ["py", "binarysearch"],
     },
   ] as const)("downloads all $count $id cards in valid CSV", async ({ id, count, front, back, tags }) => {
+    // Given: Use this case's inputs and any shared test setup.
     mocks.download.mockClear();
+    // When: Exercise `downloadDeckImportExample` with the prepared inputs.
     downloadDeckImportExample(id);
     const [csv, name, mime] = mocks.download.mock.calls[0] as [string, string, string];
+    // Then: Verify the expected result in the assertions below.
     expect(name).toBe(`${id}-sample.csv`);
     expect(mime).toBe("text/csv;charset=utf-8");
+    // When: Exercise `parseCsv` with the prepared inputs.
     const analysis = await parseCsv(csv);
+    // Then: Verify the expected result in the assertions below.
     expect(analysis.issues).toEqual([]);
     expect(analysis.rows).toHaveLength(count);
     const card = analysis.rows.find((row) => row.card.frontText === front)?.card;

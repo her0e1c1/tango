@@ -53,6 +53,7 @@ describe.each([
   ])(
     "explains zero and preserves autoplay=$defaultAutoPlay and playback controls=$showPlaybackControls",
     async ({ defaultAutoPlay, showPlaybackControls }) => {
+      // Given: Prepare `preferences`, `interval` and any shared test state below.
       await getI18n().changeLanguage(copy.language);
       const preferences = createPreferences({ cardInterval: 60, showPlaybackControls });
       preferences.study.defaultAutoPlay = defaultAutoPlay;
@@ -66,8 +67,11 @@ describe.each([
       expect(screen.getByText(copy.description)).toBeVisible();
 
       for (const value of copy.values) {
+        // Given: Use the current iteration or branch inputs from the enclosing case.
+        // When: Exercise `fireEvent.change` with the prepared inputs.
         fireEvent.change(interval, { target: { value: value.input } });
 
+        // Then: Verify the expected result in the assertions below.
         expect(interval).toHaveValue(value.input);
         expect(interval).toHaveAttribute("aria-valuetext", value.spoken);
         expect(screen.getByText(value.visible, { exact: true })).toBeVisible();

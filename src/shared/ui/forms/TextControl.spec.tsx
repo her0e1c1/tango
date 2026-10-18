@@ -16,6 +16,8 @@ import { Textarea } from "./Textarea";
 
 describe("shared text controls", () => {
   it("forwards an id so external labels can name the input", () => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Exercise `render` with the prepared inputs.
     render(
       <>
         <label htmlFor="github-token">GitHub access token</label>
@@ -23,10 +25,12 @@ describe("shared text controls", () => {
       </>
     );
 
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByRole("textbox", { name: "GitHub access token" })).toHaveAttribute("id", "github-token");
   });
 
   it("keeps native input values, refs, and handlers", () => {
+    // Given: Prepare `ref`, `onChange`, `onBlur` and any shared test state below.
     const ref = createRef<HTMLInputElement>();
     const onChange = vi.fn();
     const onBlur = vi.fn();
@@ -36,13 +40,16 @@ describe("shared text controls", () => {
     const input = screen.getByRole("textbox");
     expect(input).toHaveValue("Original");
     expect(ref.current).toBe(input);
+    // When: Exercise `fireEvent.change` with the prepared inputs.
     fireEvent.change(input, { target: { value: "Updated" } });
     fireEvent.blur(input);
+    // Then: Verify the expected result in the assertions below.
     expect(onChange).toHaveBeenCalledOnce();
     expect(onBlur).toHaveBeenCalledOnce();
   });
 
   it("keeps native select values, refs, and handlers", () => {
+    // Given: Prepare `ref`, `onChange`, `onBlur` and any shared test state below.
     const ref = createRef<HTMLSelectElement>();
     const onChange = vi.fn();
     const onBlur = vi.fn();
@@ -64,13 +71,16 @@ describe("shared text controls", () => {
     const select = screen.getByRole("combobox");
     expect(select).toHaveValue("secondary");
     expect(ref.current).toBe(select);
+    // When: Exercise `fireEvent.change` with the prepared inputs.
     fireEvent.change(select, { target: { value: "primary" } });
     fireEvent.blur(select);
+    // Then: Verify the expected result in the assertions below.
     expect(onChange).toHaveBeenCalledOnce();
     expect(onBlur).toHaveBeenCalledOnce();
   });
 
   it("keeps native textarea values, refs, and handlers", () => {
+    // Given: Prepare `ref`, `onChange`, `onBlur` and any shared test state below.
     const ref = createRef<HTMLTextAreaElement>();
     const onChange = vi.fn();
     const onBlur = vi.fn();
@@ -80,13 +90,17 @@ describe("shared text controls", () => {
     const textarea = screen.getByRole("textbox");
     expect(textarea).toHaveValue("Original notes");
     expect(ref.current).toBe(textarea);
+    // When: Exercise `fireEvent.change` with the prepared inputs.
     fireEvent.change(textarea, { target: { value: "Updated notes" } });
     fireEvent.blur(textarea);
+    // Then: Verify the expected result in the assertions below.
     expect(onChange).toHaveBeenCalledOnce();
     expect(onBlur).toHaveBeenCalledOnce();
   });
 
   it("forwards invalid state to native text controls", () => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Exercise `render` with the prepared inputs.
     render(
       <>
         <Input aria-invalid />
@@ -95,14 +109,19 @@ describe("shared text controls", () => {
     );
 
     for (const control of screen.getAllByRole("textbox")) {
+      // Given: Use the current iteration or branch inputs from the enclosing case.
+      // Then: Verify the expected result in the assertions below.
       expect(control).toHaveAttribute("aria-invalid", "true");
     }
   });
 
   it("forwards disabled, read-only, placeholder, and type input behavior", () => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Exercise `render` with the prepared inputs.
     render(<Input disabled readOnly placeholder="Deck title" type="email" defaultValue="not-an-email" />);
 
     const input = screen.getByRole("textbox");
+    // Then: Verify the expected result in the assertions below.
     expect(input).toBeDisabled();
     expect(input).toHaveAttribute("readonly");
     expect(input).toHaveAttribute("placeholder", "Deck title");
@@ -110,23 +129,30 @@ describe("shared text controls", () => {
   });
 
   it("forwards the disabled state to a select", () => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Exercise `render` with the prepared inputs.
     render(<Select disabled defaultValue="primary" options={[{ label: "Primary", value: "primary" }]} />);
 
     const select = screen.getByRole("combobox");
+    // Then: Verify the expected result in the assertions below.
     expect(select).toBeDisabled();
     expect(select).toHaveValue("primary");
   });
 
   it("forwards disabled, read-only, and placeholder textarea behavior", () => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Exercise `render` with the prepared inputs.
     render(<Textarea disabled readOnly placeholder="Card details" defaultValue="Long-form content" />);
 
     const textarea = screen.getByRole("textbox");
+    // Then: Verify the expected result in the assertions below.
     expect(textarea).toBeDisabled();
     expect(textarea).toHaveAttribute("readonly");
     expect(textarea).toHaveAttribute("placeholder", "Card details");
   });
 
   it("keeps each focusable control on the native focus path", () => {
+    // Given: Prepare `controls` and any shared test state below.
     render(
       <>
         <Input />
@@ -137,7 +163,10 @@ describe("shared text controls", () => {
 
     const controls = [...screen.getAllByRole("textbox"), screen.getByRole("combobox")];
     for (const control of controls) {
+      // Given: Use the current iteration or branch inputs from the enclosing case.
+      // When: Exercise `control.focus` with the prepared inputs.
       control.focus();
+      // Then: Verify the expected result in the assertions below.
       expect(control).toHaveFocus();
     }
   });
@@ -151,9 +180,12 @@ describe("shared text controls", () => {
     ],
     ["textarea", "textbox", () => render(<Textarea required />)],
   ])("reports native invalid state for the %s", (_name, role, renderControl) => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Exercise `renderControl` with the prepared inputs.
     renderControl();
     const element = screen.getByRole(role);
 
+    // Then: Verify the expected result in the assertions below.
     expect(element).toBeInvalid();
   });
 });

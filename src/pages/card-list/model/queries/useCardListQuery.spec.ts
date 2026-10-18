@@ -30,12 +30,14 @@ vi.mock("@/entities/preference", () => ({
 
 describe("useCardListQuery [CARD-FILTER-01 CARD-FILTER-03 CARD-FILTER-04]", () => {
   beforeEach(() => {
+    // Given: Establish the shared setup used by the following cases.
     repository.preferences = createPreferences({
       study: { useCardInterval: true, cardInterval: 1 },
     });
   });
 
   it("derives emptyReason across no-cards, filter-zero, and populated states", () => {
+    // Given: Prepare `deck`, `emptyFilter` and any shared test state below.
     const deck = createDeck({ id: "deck-1" });
     const emptyFilter = {
       selectedTags: [],
@@ -43,6 +45,8 @@ describe("useCardListQuery [CARD-FILTER-01 CARD-FILTER-03 CARD-FILTER-04]", () =
     };
 
     repository.cards = [createCard({ id: "c-1", deckId: "deck-1" })];
+    // When: Evaluate `renderHook` as part of the following checks.
+    // Then: Verify the expected result in the assertions below.
     expect(
       renderHook(() =>
         useCardListQuery({
@@ -77,6 +81,7 @@ describe("useCardListQuery [CARD-FILTER-01 CARD-FILTER-03 CARD-FILTER-04]", () =
         })
       ).result.current.emptyReason
     ).toBe("filter-zero");
+    // When: Exercise `calculateFsrsState` with the prepared inputs.
     const fsrs = { ...calculateFsrsState(null, "good", 0), dueAt: Date.now() + 100_000 };
 
     repository.cards = [
@@ -86,6 +91,7 @@ describe("useCardListQuery [CARD-FILTER-01 CARD-FILTER-03 CARD-FILTER-04]", () =
         deckId: "deck-1",
       }),
     ];
+    // Then: Verify the expected result in the assertions below.
     expect(
       renderHook(() =>
         useCardListQuery({
@@ -99,6 +105,7 @@ describe("useCardListQuery [CARD-FILTER-01 CARD-FILTER-03 CARD-FILTER-04]", () =
   });
 
   it("reports no-cards when the deck has no cards", () => {
+    // Given: Prepare `deck`, `filter` and any shared test state below.
     repository.cards = [];
     const deck = createDeck({ id: "deck-1" });
     const filter = {
@@ -106,6 +113,7 @@ describe("useCardListQuery [CARD-FILTER-01 CARD-FILTER-03 CARD-FILTER-04]", () =
       tagAndFilter: false,
     };
 
+    // When: Exercise `renderHook` with the prepared inputs.
     const { result } = renderHook(() =>
       useCardListQuery({
         deck,
@@ -115,12 +123,14 @@ describe("useCardListQuery [CARD-FILTER-01 CARD-FILTER-03 CARD-FILTER-04]", () =
       })
     );
 
+    // Then: Verify the expected result in the assertions below.
     expect(result.current.rawCount).toBe(0);
     expect(result.current.visibleCount).toBe(0);
     expect(result.current.emptyReason).toBe("no-cards");
   });
 
   it("reports filter-zero when cards exist but do not match the tag filter", () => {
+    // Given: Prepare `deck`, `filter` and any shared test state below.
     repository.cards = [
       createCard({
         id: "c-1",
@@ -133,6 +143,7 @@ describe("useCardListQuery [CARD-FILTER-01 CARD-FILTER-03 CARD-FILTER-04]", () =
       tagAndFilter: false,
     };
 
+    // When: Exercise `renderHook` with the prepared inputs.
     const { result } = renderHook(() =>
       useCardListQuery({
         deck,
@@ -142,12 +153,14 @@ describe("useCardListQuery [CARD-FILTER-01 CARD-FILTER-03 CARD-FILTER-04]", () =
       })
     );
 
+    // Then: Verify the expected result in the assertions below.
     expect(result.current.rawCount).toBe(1);
     expect(result.current.visibleCount).toBe(0);
     expect(result.current.emptyReason).toBe("filter-zero");
   });
 
   it("includes matching cards scheduled for future review", () => {
+    // Given: Prepare `fsrs`, `deck`, `filter` and any shared test state below.
     const fsrs = { ...calculateFsrsState(null, "good", 0), dueAt: Date.now() + 100_000 };
     repository.cards = [
       createCard({
@@ -162,6 +175,7 @@ describe("useCardListQuery [CARD-FILTER-01 CARD-FILTER-03 CARD-FILTER-04]", () =
       tagAndFilter: false,
     };
 
+    // When: Exercise `renderHook` with the prepared inputs.
     const { result } = renderHook(() =>
       useCardListQuery({
         deck,
@@ -171,6 +185,7 @@ describe("useCardListQuery [CARD-FILTER-01 CARD-FILTER-03 CARD-FILTER-04]", () =
       })
     );
 
+    // Then: Verify the expected result in the assertions below.
     expect(result.current.rawCount).toBe(1);
     expect(result.current.visibleCount).toBe(1);
     expect(result.current.emptyReason).toBeUndefined();

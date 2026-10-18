@@ -106,6 +106,7 @@ let storage: MemoryStorage;
 
 describe("preferences store", () => {
   beforeEach(async () => {
+    // Given: Establish the shared setup used by the following cases.
     ({ model, storage } = await loadPreferences());
   });
 
@@ -115,6 +116,9 @@ describe("preferences store", () => {
   });
 
   it("UNIT-STORE-PREF-01 provides standard preferences without saved settings", () => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Evaluate `model.getPreferences` as part of the following checks.
+    // Then: Verify the expected result in the assertions below.
     expect(model.getPreferences()).toEqual(defaultPreferences);
   });
 
@@ -209,13 +213,16 @@ describe("preferences store", () => {
   )(
     "UNIT-STORE-PREF-03 toggles $setting from $initial without changing other settings",
     ({ setting, action, initial }) => {
+      // Given: Use this case's inputs and any shared test setup.
       model.updatePreferences({
         ...changedPreferences,
         controls: { ...changedPreferences.controls, [setting]: initial },
       });
 
+      // When: Exercise `model[action]` with the prepared inputs.
       model[action]();
 
+      // Then: Verify the expected result in the assertions below.
       expect(model.getPreferences()).toEqual({
         ...changedPreferences,
         controls: { ...changedPreferences.controls, [setting]: !initial },
@@ -224,13 +231,16 @@ describe("preferences store", () => {
   );
 
   it.each([true, false])("UNIT-STORE-PREF-03 sets dark mode to %s without changing other settings", (darkMode) => {
+    // Given: Use this case's inputs and any shared test setup.
     model.updatePreferences({
       ...changedPreferences,
       appearance: { ...changedPreferences.appearance, darkMode: !darkMode },
     });
 
+    // When: Exercise `model.setDarkMode` with the prepared inputs.
     model.setDarkMode(darkMode);
 
+    // Then: Verify the expected result in the assertions below.
     expect(model.getPreferences()).toEqual({
       ...changedPreferences,
       appearance: { ...changedPreferences.appearance, darkMode },
@@ -272,10 +282,13 @@ describe("preferences store", () => {
     [101, 10],
     [1.5, 10],
   ])("UNIT-STORE-PREF-05 validates study limit %s as %s without discarding valid changes", (value, expected) => {
+    // Given: Use this case's inputs and any shared test setup.
     model.updatePreferences(numericPreferences);
 
+    // When: Exercise `model.updatePreferences` with the prepared inputs.
     model.updatePreferences({ language: "ja", study: { maxNumberOfCardsToLearn: value } });
 
+    // Then: Verify the expected result in the assertions below.
     expect(model.getPreferences()).toEqual({
       ...numericPreferences,
       language: "ja",
@@ -290,10 +303,13 @@ describe("preferences store", () => {
     [-1, 60],
     [61, 60],
   ])("UNIT-STORE-PREF-05 validates card interval %s as %s without discarding valid changes", (value, expected) => {
+    // Given: Use this case's inputs and any shared test setup.
     model.updatePreferences(numericPreferences);
 
+    // When: Exercise `model.updatePreferences` with the prepared inputs.
     model.updatePreferences({ language: "ja", study: { cardInterval: value } });
 
+    // Then: Verify the expected result in the assertions below.
     expect(model.getPreferences()).toEqual({
       ...numericPreferences,
       language: "ja",
@@ -306,10 +322,13 @@ describe("preferences store", () => {
     [1.5, 1.5],
     [-1, 0],
   ])("UNIT-STORE-PREF-05 validates back text size %s as %s without discarding valid changes", (value, expected) => {
+    // Given: Use this case's inputs and any shared test setup.
     model.updatePreferences(numericPreferences);
 
+    // When: Exercise `model.updatePreferences` with the prepared inputs.
     model.updatePreferences({ language: "ja", appearance: { sizeBackText: value } });
 
+    // Then: Verify the expected result in the assertions below.
     expect(model.getPreferences()).toEqual({
       ...numericPreferences,
       language: "ja",
@@ -372,10 +391,13 @@ describe("preferences store", () => {
       expected: { ...changedPreferences, appearance: defaultPreferences.appearance },
     },
   ])("UNIT-STORE-PREF-06 repairs $name without losing valid saved settings", async ({ persisted, expected }) => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Exercise `loadPreferences` with the prepared inputs.
     const { model: restartedModel } = await loadPreferences({
       "tango-config": JSON.stringify({ state: { preferences: persisted }, version: 1 }),
     });
 
+    // Then: Verify the expected result in the assertions below.
     expect(restartedModel.getPreferences()).toEqual(expected);
   });
 
@@ -386,6 +408,7 @@ describe("preferences store", () => {
   ])(
     "UNIT-STORE-PREF-07 restores version-1 swipe mapping with up=$up while preserving other preferences",
     async ({ up, expectedUp, expectedRight }) => {
+      // Given: Prepare `persisted` and any shared test state below.
       const persisted = {
         ...changedPreferences,
         language: "ja",
@@ -397,10 +420,12 @@ describe("preferences store", () => {
           cardSwipeRight: "GoToNextCard",
         },
       };
+      // When: Exercise `loadPreferences` with the prepared inputs.
       const { model: restartedModel } = await loadPreferences({
         "tango-config": JSON.stringify({ state: { preferences: persisted }, version: 1 }),
       });
 
+      // Then: Verify the expected result in the assertions below.
       expect(restartedModel.getPreferences()).toEqual({
         ...persisted,
         controls: {
@@ -415,6 +440,7 @@ describe("preferences store", () => {
   );
 
   it("UNIT-STORE-PREF-07 preserves valid custom swipe grades and other saved preferences", async () => {
+    // Given: Prepare `persisted` and any shared test state below.
     const persisted: Preferences = {
       ...changedPreferences,
       language: "ja",
@@ -427,10 +453,12 @@ describe("preferences store", () => {
       },
     };
 
+    // When: Exercise `loadPreferences` with the prepared inputs.
     const { model: restartedModel } = await loadPreferences({
       "tango-config": JSON.stringify({ state: { preferences: persisted }, version: 1 }),
     });
 
+    // Then: Verify the expected result in the assertions below.
     expect(restartedModel.getPreferences()).toEqual(persisted);
   });
 
@@ -441,10 +469,13 @@ describe("preferences store", () => {
     ["incompatible envelope", JSON.stringify({ state: { config: { darkMode: true } }, version: 1 })],
   ])("UNIT-STORE-PREF-08 starts with standard settings for %s", async (_case, persistedValue) => {
     // Zustand reports rejected versions; recovery is verified through the public preferences query.
+    // Given: Use this case's inputs and any shared test setup.
     vi.spyOn(console, "error").mockImplementation(() => undefined);
 
+    // When: Exercise `loadPreferences` with the prepared inputs.
     const { model: restartedModel } = await loadPreferences({ "tango-config": persistedValue });
 
+    // Then: Verify the expected result in the assertions below.
     expect(restartedModel.getPreferences()).toEqual(defaultPreferences);
   });
 

@@ -75,6 +75,7 @@ describe("STUDY-SESSION-01 STUDY-SESSION-02 STUDY-SESSION-08 StudySessionStartPa
     );
 
   beforeEach(() => {
+    // Given: Establish the shared setup used by the following cases.
     clearStudySessions();
     mocks.preferences = createPreferences({ appearance: { darkMode: false }, study: { maxNumberOfCardsToLearn: 1 } });
     mocks.deck = createDeck({ id: deckId, name: "Japanese vocabulary" });
@@ -84,25 +85,34 @@ describe("STUDY-SESSION-01 STUDY-SESSION-02 STUDY-SESSION-08 StudySessionStartPa
   });
 
   it("composes route data, the application shell, and the study view", () => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Exercise `renderPage` with the prepared inputs.
     renderPage();
 
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByRole("heading", { level: 1, name: "Japanese vocabulary" })).toBeVisible();
     expect(screen.getByRole("button", { name: "Start 1 card" })).toBeVisible();
     expect(screen.getByRole("button", { name: "tango" })).toBeVisible();
   });
 
   it("starts from Enter only outside interactive controls", async () => {
+    // Given: Use this case's inputs and any shared test setup.
     renderPage();
 
+    // When: Exercise `fireEvent.keyDown` with the prepared inputs.
     fireEvent.keyDown(screen.getByRole("checkbox", { name: "tag" }), { key: "Enter" });
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByRole("heading", { level: 1, name: "Japanese vocabulary" })).toBeVisible();
 
+    // When: Exercise `fireEvent.keyDown` with the prepared inputs.
     fireEvent.keyDown(document.body, { key: "Enter" });
+    // Then: Verify the expected result in the assertions below.
     expect(await screen.findByRole("heading", { level: 1, name: "Study session" })).toBeVisible();
     expect(screen.getByText(`Studying ${cardId}`)).toBeVisible();
   });
 
   it("updates the session size immediately when a tag filter changes", async () => {
+    // Given: Prepare `tag` and any shared test state below.
     mocks.preferences = createPreferences({ appearance: { darkMode: false }, study: { maxNumberOfCardsToLearn: 0 } });
     mocks.cards = [
       createCard({ id: "easy-card", deckId, tags: ["other"] }),
@@ -113,11 +123,15 @@ describe("STUDY-SESSION-01 STUDY-SESSION-02 STUDY-SESSION-08 StudySessionStartPa
     expect(screen.getByRole("button", { name: "Start 2 cards" })).toBeVisible();
     const tag = screen.getByRole("checkbox", { name: "tag" });
 
+    // When: Exercise `fireEvent.keyDown` with the prepared inputs.
     fireEvent.keyDown(tag, { key: "Enter" });
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByRole("heading", { level: 1, name: "Japanese vocabulary" })).toBeVisible();
 
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(tag);
 
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByRole("button", { name: "Start 1 card" })).toBeVisible();
     expect(screen.getByText("1 card matches your filters.")).toBeVisible();
     expect(mocks.editDeck).toHaveBeenCalledWith("user-id", {
@@ -127,13 +141,16 @@ describe("STUDY-SESSION-01 STUDY-SESSION-02 STUDY-SESSION-08 StudySessionStartPa
   });
 
   it("reveals additional tags and persists a newly selected tag", async () => {
+    // Given: Use this case's inputs and any shared test setup.
     mocks.tags = Array.from({ length: 12 }, (_, index) => `tag-${index + 1}`);
     renderPage();
 
     expect(screen.queryByRole("checkbox", { name: "tag-12" })).not.toBeInTheDocument();
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByRole("button", { name: "Show 4 more tags" }));
     await userEvent.click(screen.getByRole("checkbox", { name: "tag-12" }));
 
+    // Then: Verify the expected result in the assertions below.
     expect(mocks.editDeck).toHaveBeenCalledWith("user-id", {
       id: deckId,
       studyFilter: { selectedTags: ["tag-12"], tagAndFilter: false },
@@ -141,53 +158,70 @@ describe("STUDY-SESSION-01 STUDY-SESSION-02 STUDY-SESSION-08 StudySessionStartPa
   });
 
   it("creates a study session before navigating to it", async () => {
+    // Given: Use this case's inputs and any shared test setup.
     renderPage();
 
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByRole("button", { name: "Start 1 card" }));
 
+    // Then: Verify the expected result in the assertions below.
     expect(await screen.findByRole("heading", { level: 1, name: "Study session" })).toBeVisible();
     expect(screen.getByText(`Studying ${cardId}`)).toBeVisible();
   });
 
   it("uses current Cards and preferences when starting from the displayed filter draft", async () => {
+    // Given: Prepare `start` and any shared test state below.
     renderPage();
     const start = screen.getByRole("button", { name: "Start 1 card" });
     mocks.cards = [createCard({ id: "latest-first", deckId }), createCard({ id: "latest-second", deckId })];
     mocks.preferences = createPreferences({ study: { shuffled: false, maxNumberOfCardsToLearn: 0 } });
 
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(start);
 
+    // Then: Verify the expected result in the assertions below.
     expect(await screen.findByRole("heading", { name: "Study session" })).toBeVisible();
     expect(screen.getByText("Studying latest-first, latest-second")).toBeVisible();
   });
 
   it("stays on the start page when no cards match", () => {
+    // Given: Use this case's inputs and any shared test setup.
     mocks.cards = [];
     renderPage();
 
+    // When: Exercise `fireEvent.keyDown` with the prepared inputs.
     fireEvent.keyDown(document.body, { key: "Enter" });
 
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByRole("heading", { level: 1, name: "Japanese vocabulary" })).toBeVisible();
     expect(screen.getByRole("button", { name: "Start 0 cards" })).toBeDisabled();
     expect(screen.queryByRole("heading", { level: 1, name: "Study session" })).not.toBeInTheDocument();
   });
 
   it("navigates with both recovery actions when the deck is unavailable", async () => {
+    // Given: Prepare `view` and any shared test state below.
     mocks.deck = null;
     const view = renderPage();
 
     expect(screen.getByRole("heading", { level: 1, name: "Deck not found" })).toBeVisible();
     expect(screen.queryByRole("button", { name: "tango" })).not.toBeInTheDocument();
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByRole("button", { name: "Go home" }));
+    // Then: Verify the expected result in the assertions below.
     expect(await screen.findByRole("heading", { level: 1, name: "Deck list" })).toBeVisible();
 
+    // When: Exercise `view.unmount` with the prepared inputs.
     view.unmount();
     renderPage();
     await userEvent.click(screen.getByRole("button", { name: "Go back" }));
+    // Then: Verify the expected result in the assertions below.
     expect(await screen.findByRole("heading", { level: 1, name: "Previous page" })).toBeVisible();
   });
 
   it("rejects a route without a deck id", () => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Evaluate `render` as part of the following checks.
+    // Then: Verify the expected result in the assertions below.
     expect(() =>
       render(
         <MemoryRouter>

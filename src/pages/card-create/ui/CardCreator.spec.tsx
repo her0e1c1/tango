@@ -79,6 +79,7 @@ const deferred = () => {
 
 describe("CARD-MANAGEMENT-05 CARD-MANAGEMENT-06 CARD-MANAGEMENT-07 CardCreator", () => {
   beforeEach(async () => {
+    // Given: Establish the shared setup used by the following cases.
     dismissToast();
     await createDeck("user-id", deck);
     savedCards.length = 0;
@@ -91,11 +92,14 @@ describe("CARD-MANAGEMENT-05 CARD-MANAGEMENT-06 CARD-MANAGEMENT-07 CardCreator",
   });
 
   it("saves the entered Card", async () => {
+    // Given: Use this case's inputs and any shared test setup.
     render(<CardCreatorHarness />);
     await enterRequiredValues();
 
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByRole("button", { name: "Create card" }));
 
+    // Then: Verify the expected result in the assertions below.
     expect(savedCards).toEqual([
       {
         uid: "user-id",
@@ -113,6 +117,7 @@ describe("CARD-MANAGEMENT-05 CARD-MANAGEMENT-06 CARD-MANAGEMENT-07 CardCreator",
   });
 
   it("keeps both inputs after rejection and retries with a new Card identity", async () => {
+    // Given: Prepare `rejectedCardId` and any shared test state below.
     let rejectedCardId: string | undefined;
     writes.createCard.mockImplementationOnce((_uid, card) => {
       rejectedCardId = card.id;
@@ -121,16 +126,22 @@ describe("CARD-MANAGEMENT-05 CARD-MANAGEMENT-06 CARD-MANAGEMENT-07 CardCreator",
     render(<CardCreatorHarness />);
     await enterRequiredValues();
 
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByRole("button", { name: "Create card" }));
 
+    // Then: Verify the expected result in the assertions below.
     expect(await screen.findByText("Unable to create this card. Try again.")).toBeVisible();
     expect(savedCards).toEqual([]);
     expect(screen.getByRole("textbox", { name: "Back text" })).toHaveValue("Back value");
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByRole("tab", { name: "Front" }));
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByRole("textbox", { name: "Front text" })).toHaveValue("Front value");
 
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByRole("button", { name: "Create card" }));
 
+    // Then: Verify the expected result in the assertions below.
     expect(savedCards).toHaveLength(1);
     expect(rejectedCardId).toBeDefined();
     expect(savedCards[0]?.card).toEqual({
@@ -146,6 +157,7 @@ describe("CARD-MANAGEMENT-05 CARD-MANAGEMENT-06 CARD-MANAGEMENT-07 CardCreator",
   });
 
   it("saves one Card for immediately repeated clicks", async () => {
+    // Given: Prepare `write`, `createButton` and any shared test state below.
     const write = deferred();
     writes.createCard.mockImplementation(async (uid, card) => {
       await write.promise;
@@ -155,33 +167,43 @@ describe("CARD-MANAGEMENT-05 CARD-MANAGEMENT-06 CARD-MANAGEMENT-07 CardCreator",
     await enterRequiredValues();
     const createButton = screen.getByRole("button", { name: "Create card" });
 
+    // When: Exercise `fireEvent.click` with the prepared inputs.
     fireEvent.click(createButton);
     fireEvent.click(createButton);
 
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByRole("button", { name: "Creating…" })).toBeDisabled();
+    // When: Exercise `act` with the prepared inputs.
     act(() => write.resolve());
 
+    // Then: Verify the expected result in the assertions below.
     await waitFor(() => expect(screen.getByRole("button", { name: "Create card" })).toBeEnabled());
     expect(savedCards).toHaveLength(1);
   });
 
   it("disables repeated clicks while asynchronous validation is pending", async () => {
+    // Given: Prepare `ready` and any shared test state below.
     const ready = deferred();
     validation.ready = ready.promise;
     render(<CardCreatorHarness />);
     await enterRequiredValues();
 
+    // When: Exercise `userEvent.dblClick` with the prepared inputs.
     await userEvent.dblClick(screen.getByRole("button", { name: "Create card" }));
 
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByRole("button", { name: "Creating…" })).toBeDisabled();
     expect(savedCards).toEqual([]);
+    // When: Exercise `act` with the prepared inputs.
     act(() => ready.resolve());
 
+    // Then: Verify the expected result in the assertions below.
     await waitFor(() => expect(screen.getByRole("button", { name: "Create card" })).toBeEnabled());
     expect(savedCards).toHaveLength(1);
   });
 
   it("disables repeated clicks until the pending save finishes", async () => {
+    // Given: Prepare `write` and any shared test state below.
     const write = deferred();
     writes.createCard.mockImplementation(async (uid, card) => {
       await write.promise;
@@ -189,15 +211,21 @@ describe("CARD-MANAGEMENT-05 CARD-MANAGEMENT-06 CARD-MANAGEMENT-07 CardCreator",
     });
     render(<CardCreatorHarness />);
     await enterRequiredValues();
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByRole("button", { name: "Create card" }));
 
     const createButton = screen.getByRole("button", { name: "Creating…" });
+    // Then: Verify the expected result in the assertions below.
     expect(createButton).toBeDisabled();
+    // When: Exercise `userEvent.dblClick` with the prepared inputs.
     await userEvent.dblClick(createButton);
 
+    // Then: Verify the expected result in the assertions below.
     expect(savedCards).toEqual([]);
+    // When: Exercise `act` with the prepared inputs.
     act(() => write.resolve());
 
+    // Then: Verify the expected result in the assertions below.
     await waitFor(() => expect(screen.getByRole("button", { name: "Create card" })).toBeEnabled());
     expect(savedCards).toHaveLength(1);
   });

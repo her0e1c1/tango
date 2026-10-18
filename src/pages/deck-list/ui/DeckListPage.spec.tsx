@@ -91,6 +91,7 @@ describe("NAVIGATION-17 NAVIGATION-02 NAVIGATION-06 DECK-MANAGEMENT-02 DECK-MANA
     );
 
   beforeEach(async () => {
+    // Given: Establish the shared setup used by the following cases.
     dismissToast();
     clearStudySessions();
     mocks.deleteDeck.mockClear();
@@ -110,39 +111,53 @@ describe("NAVIGATION-17 NAVIGATION-02 NAVIGATION-06 DECK-MANAGEMENT-02 DECK-MANA
   });
 
   it("shows held-data counts and opens Study new without replacing an active session", async () => {
+    // Given: Prepare `session` and any shared test state below.
     mocks.preferences = createPreferences({ useCardInterval: true });
     const session = getStudySession(activeDeck.id);
     renderPage();
     expect(screen.getByText("0 due · 2 new")).toBeVisible();
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByText("About counts"));
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByText("Counts use data currently held on this device and saved filters.")).toBeVisible();
     expect(screen.getByRole("button", { name: "Continue Active deck" })).toBeVisible();
     expect(screen.getByText("Studying · Card 1 of 1")).toBeVisible();
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByRole("button", { name: "Study new cards in Fresh deck" }));
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByRole("heading", { name: "Study start destination" })).toBeVisible();
     expect(getStudySession(freshDeck.id)).toBeUndefined();
     expect(getStudySession(activeDeck.id)).toEqual(session);
   });
 
   it("navigates from each visible Deck action", async () => {
+    // Given: Prepare `view` and any shared test state below.
     let view = renderPage();
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByRole("button", { name: "Open cards in Active deck" }));
+    // Then: Verify the expected result in the assertions below.
     expect(await screen.findByRole("heading", { level: 1, name: "Card list destination" })).toBeVisible();
 
+    // When: Exercise `view.unmount` with the prepared inputs.
     view.unmount();
     view = renderPage();
     await userEvent.click(screen.getByRole("button", { name: "Continue Active deck" }));
+    // Then: Verify the expected result in the assertions below.
     expect(await screen.findByRole("heading", { level: 1, name: "Study destination" })).toBeVisible();
 
+    // When: Exercise `view.unmount` with the prepared inputs.
     view.unmount();
     view = renderPage();
     await userEvent.click(screen.getByRole("button", { name: "Study Fresh deck" }));
+    // Then: Verify the expected result in the assertions below.
     expect(await screen.findByRole("heading", { level: 1, name: "Study start destination" })).toBeVisible();
 
+    // When: Exercise `view.unmount` with the prepared inputs.
     view.unmount();
     renderPage();
     await userEvent.click(screen.getByRole("button", { name: "Open actions for Fresh deck" }));
     await userEvent.click(screen.getByRole("menuitem", { name: "Edit" }));
+    // Then: Verify the expected result in the assertions below.
     expect(await screen.findByRole("heading", { level: 1, name: "Deck editor destination" })).toBeVisible();
   });
 
@@ -152,8 +167,10 @@ describe("NAVIGATION-17 NAVIGATION-02 NAVIGATION-06 DECK-MANAGEMENT-02 DECK-MANA
     ["Create deck", "Deck creator destination"],
     ["Import decks", "Import destination"],
   ])("navigates from the %s list action", async (label, destination) => {
+    // Given: Use this case's inputs and any shared test setup.
     renderPage();
 
+    // When: Exercise `userEvent.click` with the prepared inputs.
     if (label.startsWith("View cards")) {
       await userEvent.click(
         screen.getByRole("button", { name: `Open actions for ${label.replace("View cards in ", "")}` })
@@ -164,31 +181,38 @@ describe("NAVIGATION-17 NAVIGATION-02 NAVIGATION-06 DECK-MANAGEMENT-02 DECK-MANA
       await userEvent.click(screen.getByRole("menuitem", { name: label }));
     }
 
+    // Then: Verify the expected result in the assertions below.
     expect(await screen.findByRole("heading", { level: 1, name: destination })).toBeVisible();
   });
 
   it.each(["latest-user", ""])("rejects deleting a Deck after identity changes at confirmation (%s)", async (uid) => {
+    // Given: Prepare `trigger` and any shared test state below.
     renderPage();
 
     const trigger = screen.getByRole("button", { name: "Open actions for Fresh deck" });
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(trigger);
     await userEvent.click(screen.getByRole("menuitem", { name: "Delete" }));
     await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
 
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByRole("button", { name: "Open cards in Fresh deck" })).toBeVisible();
     expect(trigger).toHaveFocus();
 
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(trigger);
     await userEvent.click(screen.getByRole("menuitem", { name: "Delete" }));
     mocks.uid = uid;
     await userEvent.click(screen.getByRole("button", { name: "Delete deck" }));
 
+    // Then: Verify the expected result in the assertions below.
     expect(mocks.deleteDeck).not.toHaveBeenCalled();
     expect(await screen.findByRole("alert")).toBeVisible();
     expect(screen.getByRole("button", { name: "Open cards in Fresh deck" })).toBeVisible();
   });
 
   it("refreshes recency before Continue navigates while preserving the current card", async () => {
+    // Given: Prepare `nextCard`, `now`, `router` and any shared test state below.
     const nextCard = createLocalCard({ id: "next-card", deckId: activeDeck.id, uniqueKey: "next-card" });
     await createCard("user-id", nextCard);
     const now = vi.spyOn(Date, "now").mockReturnValue(1000);
@@ -210,14 +234,18 @@ describe("NAVIGATION-17 NAVIGATION-02 NAVIGATION-06 DECK-MANAGEMENT-02 DECK-MANA
     ).toEqual(["Continue Fresh deck", "Continue Active deck"]);
 
     now.mockReturnValue(3000);
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByRole("button", { name: "Continue Active deck" }));
 
+    // Then: Verify the expected result in the assertions below.
     expect(await screen.findByRole("heading", { name: "Study destination" })).toBeVisible();
     expect(screen.getByText("Current card: next-card")).toBeVisible();
     expect(screen.getByText("Last studied: 3000")).toBeVisible();
 
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByRole("link", { name: "Back to decks" }));
 
+    // Then: Verify the expected result in the assertions below.
     expect(
       screen.getAllByRole("button", { name: /^Continue / }).map((button) => button.getAttribute("aria-label"))
     ).toEqual(["Continue Active deck", "Continue Fresh deck"]);
@@ -226,6 +254,7 @@ describe("NAVIGATION-17 NAVIGATION-02 NAVIGATION-06 DECK-MANAGEMENT-02 DECK-MANA
   it.each(["identity change", "unmount"])(
     "[STUDY-SESSION-03] cancels Continue navigation after a queued %s",
     async (change) => {
+      // Given: Prepare `router`, `view` and any shared test state below.
       const router = createMemoryRouter([
         { path: "/", element: <DeckListPage /> },
         { path: "/deck/:id/study", element: <h1>Study destination</h1> },
@@ -235,20 +264,25 @@ describe("NAVIGATION-17 NAVIGATION-02 NAVIGATION-06 DECK-MANAGEMENT-02 DECK-MANA
         if (change === "identity change") mocks.uid = "other-user";
         else view.unmount();
       });
+      // When: Exercise `fireEvent.click` with the prepared inputs.
       fireEvent.click(screen.getByRole("button", { name: "Continue Active deck" }));
       await actAsync(async () => {
         await Promise.resolve();
       });
+      // Then: Verify the expected result in the assertions below.
       expect(router.state.location.pathname).toBe("/");
     }
   );
 
   it("downloads a visible Deck", async () => {
+    // Given: Use this case's inputs and any shared test setup.
     renderPage();
 
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByRole("button", { name: "Open actions for Fresh deck" }));
     await userEvent.click(screen.getByRole("menuitem", { name: "Download" }));
 
+    // Then: Verify the expected result in the assertions below.
     expect(mocks.downloadTextFile).toHaveBeenCalledExactlyOnceWith(
       expect.any(String),
       "Fresh deck.csv",
@@ -257,44 +291,57 @@ describe("NAVIGATION-17 NAVIGATION-02 NAVIGATION-06 DECK-MANAGEMENT-02 DECK-MANA
   });
 
   it("closes a failed deletion and retries after reopening the same Deck", async () => {
+    // Given: Use this case's inputs and any shared test setup.
     mocks.deleteDeck.mockRejectedValueOnce(new Error("delete failed"));
     renderPage();
 
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByRole("button", { name: "Open actions for Fresh deck" }));
     await userEvent.click(screen.getByRole("menuitem", { name: "Delete" }));
     await userEvent.click(screen.getByRole("button", { name: "Delete deck" }));
 
+    // Then: Verify the expected result in the assertions below.
     expect(await screen.findByText("Unable to delete this deck. Check your connection and try again.")).toBeVisible();
     expect(screen.getByRole("alert")).toHaveTextContent(
       "Unable to delete this deck. Check your connection and try again."
     );
     expect(screen.queryByRole("alertdialog", { name: "Delete deck?" })).not.toBeInTheDocument();
 
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByRole("button", { name: "Open actions for Fresh deck" }));
     await userEvent.click(screen.getByRole("menuitem", { name: "Delete" }));
     await userEvent.click(screen.getByRole("button", { name: "Delete deck" }));
 
+    // Then: Verify the expected result in the assertions below.
     await waitFor(() => expect(screen.queryByRole("alertdialog", { name: "Delete deck?" })).not.toBeInTheDocument());
     expect(mocks.deleteDeck).toHaveBeenCalledTimes(2);
   });
 
   it("navigates from both route shortcuts", async () => {
+    // Given: Prepare `view` and any shared test state below.
     const view = renderPage();
+    // When: Exercise `fireEvent.keyDown` with the prepared inputs.
     fireEvent.keyDown(window, { key: "s" });
+    // Then: Verify the expected result in the assertions below.
     expect(await screen.findByRole("heading", { level: 1, name: "Settings destination" })).toBeVisible();
 
+    // When: Exercise `view.unmount` with the prepared inputs.
     view.unmount();
     renderPage();
     fireEvent.keyDown(window, { key: "i" });
+    // Then: Verify the expected result in the assertions below.
     expect(await screen.findByRole("heading", { level: 1, name: "Import destination" })).toBeVisible();
   });
 
   it("renders an empty list after all Decks are removed", async () => {
+    // Given: Use this case's inputs and any shared test setup.
     mocks.preferences.loadSample = false;
     await deleteDeck("user-id", activeDeck.id);
     await deleteDeck("user-id", freshDeck.id);
+    // When: Exercise `renderPage` with the prepared inputs.
     renderPage();
 
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByRole("heading", { level: 1, name: "Decks" })).toBeVisible();
     expect(screen.getByText("0 decks")).toBeVisible();
     expect(screen.getByRole("button", { name: "tango" })).toBeVisible();

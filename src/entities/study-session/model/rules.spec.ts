@@ -19,6 +19,7 @@ describe("study card selection [STUDY-SESSION-01] [NAVIGATION-17] [NAVIGATION-18
   const due = calculateFsrsState(null, "good", 0);
   const card = { ...createCard({ id: "due", tags: ["selected"] }), fsrs: due };
   it.each([true, false])("applies tags and deadlines with interval=%s", (useInterval) => {
+    // Given: Prepare `cards`, `before` and any shared test state below.
     const cards = [
       card,
       { ...card, id: "future-latest", fsrs: { ...due, dueAt: due.dueAt + 30 } },
@@ -30,8 +31,10 @@ describe("study card selection [STUDY-SESSION-01] [NAVIGATION-17] [NAVIGATION-18
     ];
     const before = structuredClone(cards);
 
+    // When: Exercise `selectStudyCardsWithDeadline` with the prepared inputs.
     const selected = selectStudyCardsWithDeadline(cards, filter, useInterval, due.dueAt);
 
+    // Then: Verify the expected result in the assertions below.
     expect(selected.cards.map(({ id }) => id)).toEqual(
       useInterval ? ["due", "new"] : ["due", "future-latest", "new", "future-earliest", "future-middle"]
     );
@@ -39,6 +42,9 @@ describe("study card selection [STUDY-SESSION-01] [NAVIGATION-17] [NAVIGATION-18
     expect(cards).toEqual(before);
   });
   it("rejects malformed FSRS state instead of classifying it as new", () => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Evaluate `selectStudyCardsWithDeadline` as part of the following checks.
+    // Then: Verify the expected result in the assertions below.
     expect(() =>
       selectStudyCardsWithDeadline([{ ...card, fsrs: { ...due, reps: 0 } }], filter, true, due.dueAt)
     ).toThrow();
@@ -47,6 +53,9 @@ describe("study card selection [STUDY-SESSION-01] [NAVIGATION-17] [NAVIGATION-18
 
 describe("canMoveStudySession [STUDY-ACTIONS-03] [STUDY-ACTIONS-04]", () => {
   it("reports whether movement stays inside the Card order", () => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Evaluate `canMoveStudySession` as part of the following checks.
+    // Then: Verify the expected result in the assertions below.
     expect(canMoveStudySession(session)).toBe(true);
     expect(canMoveStudySession({ ...session, currentIndex: 2 })).toBe(false);
   });
@@ -56,8 +65,11 @@ describe("resolveStudySession [STUDY-ACTIONS-03]", () => {
   const cards = [{ id: "card-1", frontText: "front" }];
 
   it("resolves the Card at the active session position", () => {
+    // Given: Prepare `activeSession` and any shared test state below.
     const activeSession = { ...session, currentIndex: 0 };
 
+    // When: Evaluate `resolveStudySession` as part of the following checks.
+    // Then: Verify the expected result in the assertions below.
     expect(resolveStudySession(activeSession, cards)).toEqual({
       status: "studying",
       session: activeSession,
@@ -66,10 +78,16 @@ describe("resolveStudySession [STUDY-ACTIONS-03]", () => {
   });
 
   it("waits while Cards have not loaded", () => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Evaluate `resolveStudySession` as part of the following checks.
+    // Then: Verify the expected result in the assertions below.
     expect(resolveStudySession(session, [])).toEqual({ status: "preparing" });
   });
 
   it("rejects a missing session, empty position, or absent loaded Card", () => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Evaluate `resolveStudySession` as part of the following checks.
+    // Then: Verify the expected result in the assertions below.
     expect(resolveStudySession(undefined, cards)).toEqual({ status: "invalid" });
     expect(resolveStudySession({ ...session, cardOrderIds: [] }, [])).toEqual({ status: "invalid" });
     expect(resolveStudySession(session, cards)).toEqual({ status: "invalid" });

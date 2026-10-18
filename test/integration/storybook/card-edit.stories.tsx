@@ -21,30 +21,43 @@ function pageFor(value: Partial<Card> = {}, category = "math") {
     path: `/card/${card.id}/edit`,
   };
 }
+// Given: Story args and parameters define the render scenarios below.
+// When: Storybook renders each exported variant and runs its play when present.
+// Then: Assertions are in the relevant plays; rendering alone adds no behavioral checks.
 const meta = { ...routeMeta, title: "Integration/Card edit", parameters: { ...routeMeta.parameters, page: pageFor() } };
 export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const TabsAndTags: Story = {
   play: async ({ canvas, userEvent, step }) => {
+    // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-CARD-FORM-01 Retain the prompt across tab changes", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
       const input = await canvas.findByRole("textbox", { name: "Front text" });
+      // When: Exercise `userEvent.clear` with the prepared inputs.
       await userEvent.clear(input);
       await userEvent.type(input, "Updated prompt");
       await userEvent.click(canvas.getByRole("tab", { name: "Back" }));
       await userEvent.click(canvas.getByRole("tab", { name: "Front" }));
+      // Then: Verify the expected result in the assertions below.
       await expect(canvas.getByRole("textbox", { name: "Front text" })).toHaveValue("Updated prompt");
     });
     await step("STORYBOOK-CARD-FORM-02 Select the raw tag and update its summary", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
+      // When: Exercise `userEvent.click` with the prepared inputs.
       await userEvent.click(canvas.getByRole("button", { name: "Edit tags" }));
       await userEvent.click(canvas.getByRole("checkbox", { name: "raw" }));
+      // Then: Verify the expected result in the assertions below.
       await expect(canvas.getByRole("checkbox", { name: "raw" })).toBeChecked();
+      // When: Exercise `userEvent.keyboard` with the prepared inputs.
       await userEvent.keyboard("{Escape}");
+      // Then: Verify the expected result in the assertions below.
       await expect(canvas.getByRole("button", { name: "Edit tags" })).toHaveAccessibleDescription(
         "language, custom, raw"
       );
     });
     await step("STORYBOOK-CARD-FORM-08 Switch tab selection and focus by keyboard", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
       canvas.getByRole("tab", { name: "Front" }).focus();
       for (const [key, side] of [
         ["ArrowRight", "Back"],
@@ -52,7 +65,10 @@ export const TabsAndTags: Story = {
         ["End", "Back"],
         ["ArrowLeft", "Front"],
       ] as const) {
+        // Given: Use the current iteration or branch inputs from the enclosing case.
+        // When: Exercise `userEvent.keyboard` with the prepared inputs.
         await userEvent.keyboard(`{${key}}`);
+        // Then: Verify the expected result in the assertions below.
         await expect(canvas.getByRole("tab", { name: side })).toHaveFocus();
         await expect(canvas.getByRole("tab", { name: side })).toHaveAttribute("aria-selected", "true");
         await expect(canvas.getByRole("textbox", { name: `${side} text` })).toBeVisible();
@@ -62,8 +78,11 @@ export const TabsAndTags: Story = {
 };
 export const ExpandedDraft: Story = {
   play: async ({ canvas, userEvent, step }) => {
+    // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-CARD-FORM-06 Preserve both sides after expanded editing", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
       const front = await canvas.findByRole("textbox", { name: "Front text" });
+      // When: Exercise `userEvent.clear` with the prepared inputs.
       await userEvent.clear(front);
       await userEvent.type(front, "Updated front");
       await userEvent.click(canvas.getByRole("tab", { name: "Back" }));
@@ -72,29 +91,42 @@ export const ExpandedDraft: Story = {
       await userEvent.clear(back);
       await userEvent.type(back, "Updated back");
       await userEvent.keyboard("{Escape}");
+      // Then: Verify the expected result in the assertions below.
       await expect(canvas.getByRole("button", { name: "Expand Back" })).toHaveFocus();
       await expect(canvas.getByRole("textbox", { name: "Back text" })).toHaveValue("Updated back");
+      // When: Exercise `userEvent.click` with the prepared inputs.
       await userEvent.click(canvas.getByRole("tab", { name: "Front" }));
+      // Then: Verify the expected result in the assertions below.
       await expect(front).toHaveValue("Updated front");
     });
   },
 };
 export const CustomTags: Story = {
   play: async ({ canvas, userEvent, step }) => {
+    // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-CARD-FORM-07 Preserve custom tags through reopening and save", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
       const trigger = await canvas.findByRole("button", { name: "Edit tags" });
+      // When: Exercise `userEvent.click` with the prepared inputs.
       await userEvent.click(trigger);
       await userEvent.click(canvas.getByRole("checkbox", { name: "custom" }));
+      // Then: Verify the expected result in the assertions below.
       await expect(canvas.getByRole("checkbox", { name: "custom" })).not.toBeChecked();
+      // When: Exercise `userEvent.click` with the prepared inputs.
       await userEvent.click(canvas.getByRole("checkbox", { name: "custom" }));
       await userEvent.click(canvas.getByRole("checkbox", { name: "math" }));
       await userEvent.keyboard("{Escape}");
       await userEvent.click(trigger);
+      // Then: Verify the expected result in the assertions below.
       for (const name of ["language", "custom", "math"])
         await expect(canvas.getByRole("checkbox", { name })).toBeChecked();
+      // When: Exercise `userEvent.keyboard` with the prepared inputs.
       await userEvent.keyboard("{Escape}");
+      // Then: Verify the expected result in the assertions below.
       await expect(trigger).toHaveAccessibleDescription("language, custom, math");
+      // When: Exercise `userEvent.click` with the prepared inputs.
       await userEvent.click(canvas.getByRole("button", { name: "Save changes" }));
+      // Then: Verify the expected result in the assertions below.
       await expect(await canvas.findByRole("heading", { name: "Cards" })).toBeVisible();
       const row = canvas.getByRole("button", { name: "View Front" }).closest("article")!;
       for (const name of ["language", "custom", "math"])
@@ -105,18 +137,26 @@ export const CustomTags: Story = {
 export const BackError: Story = {
   parameters: { page: pageFor({ backText: "" }) },
   play: async ({ canvas, userEvent, step }) => {
+    // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-CARD-FORM-09 Reveal and describe invalid back inputs", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
+      // When: Exercise `userEvent.click` with the prepared inputs.
       await userEvent.click(await canvas.findByRole("button", { name: "Save changes" }));
       const back = canvas.getByRole("textbox", { name: "Back text" });
+      // Then: Verify the expected result in the assertions below.
       await waitFor(() => expect(back).toHaveFocus());
       await expect(back).toHaveAccessibleDescription("Back text is required.");
       await expect(canvas.getByRole("tab", { name: "Back" })).toHaveAttribute("aria-selected", "true");
+      // When: Exercise `userEvent.click` with the prepared inputs.
       await userEvent.click(canvas.getByRole("button", { name: "Expand Back" }));
+      // Then: Verify the expected result in the assertions below.
       await expect(
         within(canvas.getByRole("dialog")).getByRole("textbox", { name: "Back text" })
       ).toHaveAccessibleDescription("Back text is required.");
+      // When: Exercise `userEvent.keyboard` with the prepared inputs.
       await userEvent.keyboard("{Escape}");
       await userEvent.click(canvas.getByRole("tab", { name: "Front" }));
+      // Then: Verify the expected result in the assertions below.
       await expect(canvas.getByRole("textbox", { name: "Front text" })).toHaveValue("Front");
     });
   },
@@ -124,13 +164,19 @@ export const BackError: Story = {
 export const BothErrors: Story = {
   parameters: { page: pageFor({ frontText: "", backText: "" }) },
   play: async ({ canvas, userEvent, step }) => {
+    // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-CARD-FORM-22 Focus the invalid front before showing the back error", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
+      // When: Exercise `userEvent.click` with the prepared inputs.
       await userEvent.click(await canvas.findByRole("button", { name: "Save changes" }));
+      // Then: Verify the expected result in the assertions below.
       await waitFor(() => expect(canvas.getByRole("textbox", { name: "Front text" })).toHaveFocus());
       await expect(canvas.getByRole("textbox", { name: "Front text" })).toHaveAccessibleDescription(
         "Front text is required."
       );
+      // When: Exercise `userEvent.click` with the prepared inputs.
       await userEvent.click(canvas.getByRole("tab", { name: "Back" }));
+      // Then: Verify the expected result in the assertions below.
       await expect(canvas.getByRole("textbox", { name: "Back text" })).toHaveAccessibleDescription(
         "Back text is required."
       );
@@ -140,8 +186,12 @@ export const BothErrors: Story = {
 export const JapaneseError: Story = {
   parameters: { locale: "ja", page: pageFor({ frontText: "" }) },
   play: async ({ canvas, userEvent, step }) => {
+    // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-CARD-FORM-03 Associate the Japanese required error", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
+      // When: Exercise `userEvent.click` with the prepared inputs.
       await userEvent.click(await canvas.findByRole("button", { name: "変更を保存" }));
+      // Then: Verify the expected result in the assertions below.
       await expect(canvas.getByRole("textbox", { name: "表面のテキスト" })).toHaveAccessibleDescription(
         "表面のテキストは必須です。"
       );
@@ -152,24 +202,36 @@ export const JapaneseError: Story = {
 export const LocalizedDraft: Story = {
   parameters: { page: pageFor({ frontText: "", backText: "未保存の回答" }) },
   play: async ({ canvas, userEvent, step }) => {
+    // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-CARD-FORM-11 Keep draft values while translating and correcting an error", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
+      // When: Exercise `userEvent.click` with the prepared inputs.
       await userEvent.click(await canvas.findByRole("button", { name: "Save changes" }));
       await appI18n.changeLanguage("ja");
+      // Then: Verify the expected result in the assertions below.
       await expect(canvas.getByRole("heading", { name: "カードを編集" })).toBeVisible();
       await expect(canvas.getByRole("button", { name: "タグを編集" })).toHaveAccessibleDescription("language, custom");
+      // When: Exercise `userEvent.type` with the prepared inputs.
       await userEvent.type(canvas.getByRole("textbox", { name: "表面のテキスト" }), "修正した問題");
       await userEvent.click(canvas.getByRole("tab", { name: "裏面" }));
+      // Then: Verify the expected result in the assertions below.
       await expect(canvas.getByRole("textbox", { name: "裏面のテキスト" })).toHaveValue("未保存の回答");
+      // When: Exercise `userEvent.click` with the prepared inputs.
       await userEvent.click(canvas.getByRole("button", { name: "変更を保存" }));
+      // Then: Verify the expected result in the assertions below.
       await expect(await canvas.findByRole("button", { name: "修正した問題を表示" })).toBeVisible();
+      // When: Exercise `userEvent.click` with the prepared inputs.
       await userEvent.click(canvas.getByRole("button", { name: "修正した問題を表示" }));
+      // Then: Verify the expected result in the assertions below.
       await expect(await canvas.findByText("未保存の回答")).toBeVisible();
     });
   },
 };
 export const SavePending: Story = {
   play: async ({ canvas, userEvent, step }) => {
+    // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-CARD-FORM-20 Disable editing and departure during a pending save", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
       const original = mocked(editCard).getMockImplementation()!;
       let finish!: () => void;
       mocked(editCard).mockImplementationOnce(async (...args) => {
@@ -179,12 +241,16 @@ export const SavePending: Story = {
         await original(...args);
       });
       const input = await canvas.findByRole("textbox", { name: "Front text" });
+      // When: Exercise `userEvent.type` with the prepared inputs.
       await userEvent.type(input, " changed");
       await userEvent.click(canvas.getByRole("button", { name: "Save changes" }));
+      // Then: Verify the expected result in the assertions below.
       for (const name of ["Saving…", "Cancel", "Back to cards"])
         await expect(canvas.getByRole("button", { name })).toBeDisabled();
       await expect(input).toBeDisabled();
+      // When: Exercise `finish` with the prepared inputs.
       finish();
+      // Then: Verify the expected result in the assertions below.
       await expect(await canvas.findByRole("heading", { name: "Cards" })).toBeVisible();
       await expect(canvas.getByRole("button", { name: "View Front changed" })).toBeEnabled();
     });
@@ -193,48 +259,70 @@ export const SavePending: Story = {
 export const ExternalUpdate: Story = {
   parameters: { page: pageFor({ frontText: "Front text", backText: "Back text" }) },
   play: async ({ canvas, userEvent, step }) => {
+    // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-CARD-FORM-21 Keep the opening snapshot after subscription updates", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
       const input = await canvas.findByRole("textbox", { name: "Front text" });
+      // When: Exercise `userEvent.clear` with the prepared inputs.
       await userEvent.clear(input);
       await userEvent.type(input, "Unsaved front");
       replaceRemoteCards([{ ...card, frontText: "Remote front", backText: "Remote back" }]);
+      // Then: Verify the expected result in the assertions below.
       await expect(input).toHaveValue("Unsaved front");
+      // When: Exercise `userEvent.click` with the prepared inputs.
       await userEvent.click(canvas.getByRole("tab", { name: "Back" }));
+      // Then: Verify the expected result in the assertions below.
       await expect(canvas.getByRole("textbox", { name: "Back text" })).toHaveValue("Back text");
     });
   },
 };
 export const Retry: Story = {
   play: async ({ canvas, userEvent, step }) => {
+    // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-CARD-FORM-23 Retry the failed edit with the same draft", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
       mocked(editCard).mockRejectedValueOnce(new Error("Unavailable"));
       const input = await canvas.findByRole("textbox", { name: "Front text" });
+      // When: Exercise `userEvent.clear` with the prepared inputs.
       await userEvent.clear(input);
       await userEvent.type(input, "Retry front");
       await userEvent.click(canvas.getByRole("button", { name: "Save changes" }));
+      // Then: Verify the expected result in the assertions below.
       await expect(await canvas.findByRole("alert")).toHaveTextContent("Unable to save changes. Try again.");
       await expect(input).toHaveValue("Retry front");
       await expect(input).toBeEnabled();
+      // When: Exercise `userEvent.click` with the prepared inputs.
       await userEvent.click(canvas.getByRole("button", { name: "Save changes" }));
+      // Then: Verify the expected result in the assertions below.
       await expect(await canvas.findByRole("button", { name: "View Retry front" })).toBeVisible();
     });
   },
 };
 export const DirectTags: Story = {
   play: async ({ canvas, userEvent, step }) => {
+    // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-CARD-FORM-24 Update tag drafts without a confirmation step", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
+      // When: Exercise `userEvent.click` with the prepared inputs.
       await userEvent.click(await canvas.findByRole("button", { name: "Edit tags" }));
       const name = canvas.getByRole("textbox", { name: "Tag name 1" });
       await userEvent.clear(name);
       await userEvent.type(name, "renamed");
+      // Then: Verify the expected result in the assertions below.
       await expect(name).toHaveFocus();
+      // When: Exercise `userEvent.click` with the prepared inputs.
       await userEvent.click(canvas.getByRole("button", { name: "Remove tag 2" }));
       await userEvent.click(canvas.getByRole("button", { name: "Add tag" }));
       await userEvent.type(canvas.getByRole("textbox", { name: "Tag name 2" }), "new");
+      // Then: Verify the expected result in the assertions below.
       await expect(canvas.queryByRole("button", { name: /^(Done|OK|Confirm)$/ })).not.toBeInTheDocument();
+      // When: Exercise `userEvent.keyboard` with the prepared inputs.
       await userEvent.keyboard("{Escape}");
+      // Then: Verify the expected result in the assertions below.
       await expect(canvas.getByRole("button", { name: "Edit tags" })).toHaveAccessibleDescription("renamed, new");
+      // When: Exercise `userEvent.click` with the prepared inputs.
       await userEvent.click(canvas.getByRole("button", { name: "Edit tags" }));
+      // Then: Verify the expected result in the assertions below.
       await expect(canvas.getByRole("textbox", { name: "Tag name 1" })).toHaveValue("renamed");
       await expect(canvas.getByRole("textbox", { name: "Tag name 2" })).toHaveValue("new");
       await expect(canvas.getByRole("status", { name: "Toast notifications" })).toBeEmptyDOMElement();
@@ -243,7 +331,10 @@ export const DirectTags: Story = {
 };
 export const InvalidTags: Story = {
   play: async ({ canvas, userEvent, step }) => {
+    // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-CARD-FORM-25 Reject blank and duplicate tags before accepting a correction", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
+      // When: Exercise `userEvent.click` with the prepared inputs.
       await userEvent.click(await canvas.findByRole("button", { name: "Edit tags" }));
       await userEvent.click(canvas.getByRole("button", { name: "Add tag" }));
       for (const [value, message] of [
@@ -251,14 +342,19 @@ export const InvalidTags: Story = {
         ["custom", "Tag names must be unique."],
         [" custom ", "Tag names must be unique."],
       ] as const) {
+        // Given: Prepare `input` and any shared test state below.
         const input = canvas.getByRole("textbox", { name: "Tag name 3" });
         await userEvent.clear(input);
         await userEvent.type(input, value);
         await userEvent.tab();
+        // Then: Verify the expected result in the assertions below.
         await expect(input).toHaveAccessibleDescription(message);
+        // When: Exercise `userEvent.keyboard` with the prepared inputs.
         await userEvent.keyboard("{Escape}");
         await userEvent.click(canvas.getByRole("button", { name: "Save changes" }));
+        // Then: Verify the expected result in the assertions below.
         await expect(canvas.getByRole("heading", { name: "Edit card" })).toBeVisible();
+        // When: Exercise `userEvent.click` with the prepared inputs.
         await userEvent.click(canvas.getByRole("button", { name: "Edit tags" }));
       }
       const input = canvas.getByRole("textbox", { name: "Tag name 3" });
@@ -266,6 +362,7 @@ export const InvalidTags: Story = {
       await userEvent.type(input, " new tag ");
       await userEvent.keyboard("{Escape}");
       await userEvent.click(canvas.getByRole("button", { name: "Save changes" }));
+      // Then: Verify the expected result in the assertions below.
       await expect(await canvas.findByRole("heading", { name: "Cards" })).toBeVisible();
       await expect(
         within(canvas.getByRole("button", { name: "View Front" }).closest("article")!).getByText("new tag", {
@@ -293,16 +390,22 @@ function UnknownErrorPage() {
 export const UnknownError: Story = {
   render: () => <UnknownErrorRoute />,
   play: async ({ canvas, userEvent, step }) => {
+    // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-CARD-FORM-10 Translate an unknown error without exposing its internal message", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
+      // When: Exercise `userEvent.click` with the prepared inputs.
       await userEvent.click(await canvas.findByRole("button", { name: "Expand Front" }));
       await appI18n.changeLanguage("ja");
       const dialog = within(canvas.getByRole("dialog"));
+      // Then: Verify the expected result in the assertions below.
       await expect(dialog.getByRole("textbox", { name: "表面のテキスト" })).toHaveValue("Front");
       await expect(dialog.getByRole("textbox", { name: "表面のテキスト" })).toHaveAccessibleDescription(
         "入力内容が正しくありません。"
       );
       await expect(canvas.queryByText("private diagnostic")).not.toBeInTheDocument();
+      // When: Exercise `userEvent.keyboard` with the prepared inputs.
       await userEvent.keyboard("{Escape}");
+      // Then: Verify the expected result in the assertions below.
       await expect(canvas.getByRole("textbox", { name: "表面のテキスト" })).toHaveAccessibleDescription(
         "入力内容が正しくありません。"
       );
@@ -332,15 +435,22 @@ const mathDraft = "**Draft**\n\n$x^2$\n\n| A | B |\n| --- | --- |\n| 1 | 2 |";
 export const Preview: Story = {
   parameters: { page: pageFor({ backText: mathDraft, tags: [] }) },
   play: async ({ canvas, userEvent, step }) => {
+    // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-CARD-FORM-04 Render the draft as bold text and math", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
+      // When: Exercise `userEvent.click` with the prepared inputs.
       await userEvent.click(await canvas.findByRole("tab", { name: "Back" }));
       await userEvent.click(canvas.getByRole("button", { name: "Preview answer" }));
       const preview = canvas.getByRole("region", { name: "Answer preview" });
+      // Then: Verify the expected result in the assertions below.
       await expect(within(preview).getByText("Draft").tagName).toBe("STRONG");
       await expect(preview.querySelector(".katex")).toBeVisible();
     });
     await step("STORYBOOK-CARD-FORM-16 Keep the preview open when its language changes", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
+      // When: Exercise `appI18n.changeLanguage` with the prepared inputs.
       await appI18n.changeLanguage("ja");
+      // Then: Verify the expected result in the assertions below.
       await expect(canvas.getByRole("region", { name: "解答プレビュー" })).toBeVisible();
       await expect(canvas.getByRole("button", { name: "プレビューを閉じる" })).toHaveAttribute("aria-expanded", "true");
     });
@@ -350,19 +460,27 @@ export const MobilePreview: Story = { ...Preview, globals: { viewport: { value: 
 export const IncompletePreview: Story = {
   parameters: { page: pageFor({ frontText: "", backText: "First\nSecond", tags: ["raw"] }) },
   play: async ({ canvas, userEvent, step }) => {
+    // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-CARD-FORM-12 Preview an incomplete draft without saving or validating", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
+      // When: Exercise `userEvent.click` with the prepared inputs.
       await userEvent.click(await canvas.findByRole("tab", { name: "Back" }));
       const trigger = canvas.getByRole("button", { name: "Preview answer" });
       await userEvent.click(trigger);
       const preview = canvas.getByRole("region", { name: "Answer preview" });
+      // Then: Verify the expected result in the assertions below.
       await expect(preview).toHaveTextContent("First Second");
       await expect(preview.querySelector("pre")).toHaveTextContent("First Second");
+      // When: Exercise `userEvent.keyboard` with the prepared inputs.
       await userEvent.keyboard("{Enter}");
+      // Then: Verify the expected result in the assertions below.
       await expect(trigger).toHaveFocus();
       await expect(trigger).toHaveAttribute("aria-expanded", "false");
       await expect(canvas.getByRole("textbox", { name: "Back text" })).toHaveValue("First\nSecond");
       await expect(canvas.queryByRole("alert")).not.toBeInTheDocument();
+      // When: Exercise `userEvent.click` with the prepared inputs.
       await userEvent.click(canvas.getByRole("tab", { name: "Front" }));
+      // Then: Verify the expected result in the assertions below.
       await expect(canvas.getByRole("textbox", { name: "Front text" })).toHaveValue("");
       await expect(canvas.getByRole("heading", { name: "Edit card" })).toBeVisible();
     });
@@ -371,7 +489,10 @@ export const IncompletePreview: Story = {
 export const ExpandedMath: Story = {
   parameters: { page: pageFor({ frontText: "", tags: [] }) },
   play: async ({ canvas, userEvent, step }) => {
+    // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-CARD-FORM-13 Update the expanded math preview while retaining a front error", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
+      // When: Exercise `userEvent.click` with the prepared inputs.
       await userEvent.click(await canvas.findByRole("button", { name: "Save changes" }));
       await userEvent.click(canvas.getByRole("tab", { name: "Back" }));
       await userEvent.click(canvas.getByRole("button", { name: "Expand Back" }));
@@ -381,17 +502,24 @@ export const ExpandedMath: Story = {
       await userEvent.type(input, mathDraft);
       await userEvent.click(dialog.getByRole("button", { name: "Preview answer" }));
       const preview = dialog.getByRole("region", { name: "Answer preview" });
+      // Then: Verify the expected result in the assertions below.
       await expect(within(preview).getByText("Draft").tagName).toBe("STRONG");
       await expect(preview.querySelector(".katex")).toBeVisible();
       await expect(within(preview).getByRole("table")).toBeVisible();
+      // When: Exercise `userEvent.clear` with the prepared inputs.
       await userEvent.clear(input);
       await userEvent.type(input, mathDraft.replace("Draft", "Changed"));
+      // Then: Verify the expected result in the assertions below.
       await expect(within(preview).getByText("Changed")).toBeVisible();
+      // When: Exercise `userEvent.keyboard` with the prepared inputs.
       await userEvent.keyboard("{Escape}");
+      // Then: Verify the expected result in the assertions below.
       await expect(canvas.getByRole("textbox", { name: "Back text" })).toHaveValue(
         mathDraft.replace("Draft", "Changed")
       );
+      // When: Exercise `userEvent.click` with the prepared inputs.
       await userEvent.click(canvas.getByRole("tab", { name: "Front" }));
+      // Then: Verify the expected result in the assertions below.
       await expect(canvas.getByRole("textbox", { name: "Front text" })).toHaveAccessibleDescription(
         "Front text is required."
       );
@@ -399,19 +527,28 @@ export const ExpandedMath: Story = {
   },
 };
 function codeStory(category: string, tags: string[], language: string): Story {
+  // Given: Use this case's inputs and any shared test setup.
+  // When: Evaluate `pageFor` as part of the following checks.
+  // Then: Verify the expected result in the assertions below.
   return {
     parameters: { page: pageFor({ backText: "const answer = 42;", tags }, category) },
     play: async ({ canvas, userEvent, step }) => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
       await step("STORYBOOK-CARD-FORM-14 Choose the code language and update the open preview theme", async () => {
+        // Given: Use the rendered story, its args, parameters, and any setup below.
+        // When: Exercise `userEvent.click` with the prepared inputs.
         await userEvent.click(await canvas.findByRole("tab", { name: "Back" }));
         await userEvent.click(canvas.getByRole("button", { name: "Preview answer" }));
         const preview = canvas.getByRole("region", { name: "Answer preview" });
         const code = preview.querySelector("code");
+        // Then: Verify the expected result in the assertions below.
         await expect(code).toHaveAttribute("data-language", language);
         await expect(code).toHaveTextContent("const answer = 42;");
         await expect(code).toHaveAttribute("data-theme", "light");
         await expect(preview.querySelector(".katex")).toBeNull();
+        // When: Exercise `userEvent.click` with the prepared inputs.
         await userEvent.click(canvas.getByRole("button", { name: "Switch to dark mode" }));
+        // Then: Verify the expected result in the assertions below.
         await expect(code).toHaveAttribute("data-theme", "dark");
       });
     },
@@ -423,18 +560,26 @@ export const TaggedMarkdown = codeStory("math", ["md"], "md");
 export const PreviewTags: Story = {
   parameters: { page: pageFor({ backText: "**Draft**", tags: ["python"] }) },
   play: async ({ canvas, userEvent, step }) => {
+    // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-CARD-FORM-15 Update an open preview after changing format tags", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
+      // When: Exercise `userEvent.click` with the prepared inputs.
       await userEvent.click(await canvas.findByRole("tab", { name: "Back" }));
       await userEvent.click(canvas.getByRole("button", { name: "Preview answer" }));
       const preview = canvas.getByRole("region", { name: "Answer preview" });
+      // Then: Verify the expected result in the assertions below.
       await expect(preview.querySelector("code")).toHaveAttribute("data-language", "python");
+      // When: Exercise `userEvent.click` with the prepared inputs.
       await userEvent.click(canvas.getByRole("button", { name: "Edit tags" }));
       await userEvent.click(canvas.getByRole("checkbox", { name: "python" }));
       await userEvent.keyboard("{Escape}");
+      // Then: Verify the expected result in the assertions below.
       await expect(within(preview).getByText("Draft").tagName).toBe("STRONG");
+      // When: Exercise `userEvent.click` with the prepared inputs.
       await userEvent.click(canvas.getByRole("button", { name: "Edit tags" }));
       await userEvent.click(canvas.getByRole("checkbox", { name: "raw" }));
       await userEvent.keyboard("{Escape}");
+      // Then: Verify the expected result in the assertions below.
       await expect(preview).toHaveTextContent("**Draft**");
       await expect(preview.querySelector("strong")).toBeNull();
       await expect(canvas.getByRole("textbox", { name: "Back text" })).toHaveValue("**Draft**");
@@ -452,23 +597,33 @@ export const LongPreview: Story = {
     }),
   },
   play: async ({ canvas, userEvent, step }) => {
+    // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-CARD-EDIT-01 Reach an overflowing preview before other controls", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
+      // When: Exercise `userEvent.click` with the prepared inputs.
       await userEvent.click(await canvas.findByRole("tab", { name: "Back" }));
       await userEvent.click(canvas.getByRole("button", { name: "Preview answer" }));
       await userEvent.tab();
       const preview = canvas.getByRole("region", { name: "Answer preview" });
+      // Then: Verify the expected result in the assertions below.
       await expect(preview).toHaveFocus();
       await expect(preview.scrollHeight).toBeGreaterThan(preview.clientHeight);
     });
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(canvas.getByRole("button", { name: "Hide preview" }));
     await userEvent.click(canvas.getByRole("button", { name: "Expand Back" }));
     await step("STORYBOOK-CARD-EDIT-02 Cycle focus inside expanded editing with a hidden preview", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
       const dialog = within(canvas.getByRole("dialog"));
       const trigger = dialog.getByRole("button", { name: "Preview answer" });
       trigger.focus();
+      // When: Exercise `userEvent.tab` with the prepared inputs.
       await userEvent.tab();
+      // Then: Verify the expected result in the assertions below.
       await expect(dialog.getByRole("button", { name: "Done" })).toHaveFocus();
+      // When: Exercise `userEvent.tab` with the prepared inputs.
       await userEvent.tab({ shift: true });
+      // Then: Verify the expected result in the assertions below.
       await expect(trigger).toHaveFocus();
     });
   },

@@ -12,12 +12,18 @@ import {
 
 describe("Card content input schema [CARD-MANAGEMENT-05 CARD-MANAGEMENT-10]", () => {
   it("accepts content without asking for an identity", () => {
+    // Given: Prepare `content` and any shared test state below.
     const content = { frontText: "Front", backText: "Back", tags: ["custom"] };
 
+    // When: Evaluate `cardContentInputSchema.parse` as part of the following checks.
+    // Then: Verify the expected result in the assertions below.
     expect(cardContentInputSchema.parse(content)).toEqual(content);
   });
 
   it("reports the required fields when both sides are empty", () => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Evaluate `cardContentInputSchema.safeParse` as part of the following checks.
+    // Then: Verify the expected result in the assertions below.
     expect(cardContentInputSchema.safeParse({ frontText: "", backText: "", tags: [] })).toMatchObject({
       success: false,
       error: {
@@ -32,18 +38,27 @@ describe("Card content input schema [CARD-MANAGEMENT-05 CARD-MANAGEMENT-10]", ()
 
 describe("Card content schema [CARD-VIEW-01]", () => {
   it.each(["", "   ", "\n\t"])("rejects blank front text: %j", (frontText) => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Evaluate `cardContentSchema.parse` as part of the following checks.
+    // Then: Verify the expected result in the assertions below.
     expect(() => cardContentSchema.parse({ frontText, backText: "back", tags: [], uniqueKey: "key" })).toThrow(
       "Front text is required."
     );
   });
 
   it.each(["", "   ", "\n\t"])("rejects blank back text: %j", (backText) => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Evaluate `cardContentSchema.parse` as part of the following checks.
+    // Then: Verify the expected result in the assertions below.
     expect(() => cardContentSchema.parse({ frontText: "front", backText, tags: [], uniqueKey: "key" })).toThrow(
       "Back text is required."
     );
   });
 
   it.each(["", "   ", "\n\t"])("rejects blank unique keys: %j", (uniqueKey) => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Evaluate `cardContentSchema.parse` as part of the following checks.
+    // Then: Verify the expected result in the assertions below.
     expect(() => cardContentSchema.parse({ frontText: "front", backText: "back", tags: [], uniqueKey })).toThrow(
       "Unique key is required."
     );
@@ -54,6 +69,9 @@ describe("Card operation schemas [CARD-VIEW-01]", () => {
   const card = createCardFixture({ id: "card", deckId: "deck", uid: "uid-a" });
 
   it("applies entity defaults without adding persistence timestamps", () => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Evaluate `createCardSchema.parse` as part of the following checks.
+    // Then: Verify the expected result in the assertions below.
     expect(
       createCardSchema.parse({
         uid: "uid-a",
@@ -83,10 +101,16 @@ describe("Card operation schemas [CARD-VIEW-01]", () => {
   });
 
   it("validates create ownership", () => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Evaluate `createCardSchema.parse` as part of the following checks.
+    // Then: Verify the expected result in the assertions below.
     expect(() => createCardSchema.parse({ uid: "uid-b", card })).toThrow("owner does not match");
   });
 
   it("applies Card content validation to creates and edits", () => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Evaluate `createCardSchema.parse` as part of the following checks.
+    // Then: Verify the expected result in the assertions below.
     expect(() => createCardSchema.parse({ uid: "uid-a", card: { ...card, uniqueKey: " " } })).toThrow(
       "Unique key is required."
     );
@@ -96,6 +120,9 @@ describe("Card operation schemas [CARD-VIEW-01]", () => {
   });
 
   it("keeps ordinary edits within Card-owned editable fields", () => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Evaluate `editCardSchema.parse` as part of the following checks.
+    // Then: Verify the expected result in the assertions below.
     expect(
       editCardSchema.parse({
         uid: "uid-a",
@@ -117,6 +144,9 @@ describe("Card operation schemas [CARD-VIEW-01]", () => {
   });
 
   it("validates delete ownership and returns only Card identity", () => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Evaluate `deleteCardSchema.parse` as part of the following checks.
+    // Then: Verify the expected result in the assertions below.
     expect(deleteCardSchema.parse({ uid: "uid-a", card })).toEqual({
       uid: "uid-a",
       card: { id: "card", uid: "uid-a" },

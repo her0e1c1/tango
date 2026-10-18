@@ -97,6 +97,7 @@ const selectLocalFile = async (name: string, backText = "back") => {
 
 describe("DeckImportPage [DECK-IMPORT-01 DECK-IMPORT-04 DECK-IMPORT-05 DECK-IMPORT-06 DECK-IMPORT-11 SETTINGS-09]", () => {
   beforeEach(() => {
+    // Given: Establish the shared setup used by the following cases.
     deckImportStore.setState(deckImportStore.getInitialState(), true);
     dismissToast();
     controls.nextMutationError = undefined;
@@ -105,11 +106,15 @@ describe("DeckImportPage [DECK-IMPORT-01 DECK-IMPORT-04 DECK-IMPORT-05 DECK-IMPO
   });
 
   it("has no destination selector for anonymous imports", () => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Exercise `renderPage` with the prepared inputs.
     renderPage();
+    // Then: Verify the expected result in the assertions below.
     expect(screen.queryByRole("radio", { name: /Local only/ })).not.toBeInTheDocument();
   });
 
   it("translates cached CSV diagnostics without reading again or changing the selected source", async () => {
+    // Given: Prepare `file` and any shared test state below.
     renderPage();
     const file = new File([], "日本語.csv", { type: "text/csv" });
     Object.defineProperty(file, "arrayBuffer", {
@@ -117,11 +122,15 @@ describe("DeckImportPage [DECK-IMPORT-01 DECK-IMPORT-04 DECK-IMPORT-05 DECK-IMPO
         .fn()
         .mockResolvedValue(new TextEncoder().encode('問題,回答,個人タグ,key-1\n,,,key-2\n"unterminated').buffer),
     });
+    // When: Exercise `actAsync` with the prepared inputs.
     await actAsync(() => selectDeckImportFile(file));
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByRole("alert")).toHaveTextContent("Front text is required.");
     const source = deckImportStore.getState().source;
+    // When: Exercise `actAsync` with the prepared inputs.
     await actAsync(() => getI18n().changeLanguage("ja"));
     const alert = screen.getByRole("alert");
+    // Then: Verify the expected result in the assertions below.
     expect(alert).toHaveTextContent("表面のテキストは必須です。");
     expect(alert).toHaveTextContent("裏面のテキストは必須です。");
     expect(alert).toHaveTextContent("引用符で囲まれたフィールドが閉じられていません。");
@@ -135,47 +144,64 @@ describe("DeckImportPage [DECK-IMPORT-01 DECK-IMPORT-04 DECK-IMPORT-05 DECK-IMPO
   });
 
   it("localizes invalid UTF-8 and recovers with a valid file", async () => {
+    // Given: Use this case's inputs and any shared test setup.
     renderPage();
     await selectLocalFile("previous.csv");
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByRole("button", { name: "Choose file or example" }));
     await userEvent.upload(
       screen.getByLabelText("Upload a csv file"),
       new File([new Uint8Array([0x82, 0xa0, 44, 98, 44, 44, 107])], "invalid.csv", { type: "text/csv" })
     );
+    // Then: Verify the expected result in the assertions below.
     expect(await screen.findByRole("alert")).toHaveTextContent(
       "This CSV cannot be read as UTF-8. Save it as UTF-8 and select it again."
     );
     expect(screen.queryByRole("button", { name: "Add 1 card" })).not.toBeInTheDocument();
     expect(screen.getByLabelText("Upload a csv file")).toBeEnabled();
     const upload = screen.getByLabelText("Upload a csv file");
+    // When: Exercise `actAsync` with the prepared inputs.
     await actAsync(() => getI18n().changeLanguage("ja"));
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByRole("alert")).toHaveTextContent(
       "このCSVはUTF-8として読み取れません。UTF-8で保存し直して、もう一度選択してください。"
     );
+    // When: Exercise `actAsync` with the prepared inputs.
     await actAsync(() => getI18n().changeLanguage("en"));
     await userEvent.upload(upload, new File(["front,日本語�,,key"], "invalid.csv", { type: "text/csv" }));
+    // Then: Verify the expected result in the assertions below.
     expect(await screen.findByText("日本語�", { exact: true })).toBeVisible();
+    // When: Exercise `fireEvent` with the prepared inputs.
     fireEvent(screen.getByLabelText("Upload a csv file"), new Event("cancel", { bubbles: true }));
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByText("日本語�", { exact: true })).toBeVisible();
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByRole("button", { name: "Add 1 card" }));
+    // Then: Verify the expected result in the assertions below.
     expect(await screen.findByText("front: 日本語�")).toBeVisible();
   });
 
   it("retains prepared import identities when the preview language changes", async () => {
+    // Given: Prepare `source` and any shared test state below.
     renderPage();
     await selectLocalFile("language.csv", "回答");
     const source = deckImportStore.getState().source;
     await actAsync(() => getI18n().changeLanguage("ja"));
     expect(deckImportStore.getState().source).toBe(source);
     expect(screen.getByRole("button", { name: "1枚のカードを追加" })).toBeEnabled();
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByRole("button", { name: "1枚のカードを追加" }));
+    // Then: Verify the expected result in the assertions below.
     expect(await screen.findByRole("heading", { name: "Deck list destination" })).toBeVisible();
     expect(screen.getByText("front: 回答")).toBeVisible();
   });
 
   it("renders the import screen in the application shell", () => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Exercise `renderPage` with the prepared inputs.
     renderPage();
 
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByRole("heading", { level: 1, name: "Add a deck" })).toBeVisible();
     expect(screen.getByRole("button", { name: "tango" })).toBeVisible();
   });
@@ -184,14 +210,18 @@ describe("DeckImportPage [DECK-IMPORT-01 DECK-IMPORT-04 DECK-IMPORT-05 DECK-IMPO
     { key: "t", destination: "Deck list destination" },
     { key: "s", destination: "Settings destination" },
   ])("opens $destination with the $key shortcut", ({ key, destination }) => {
+    // Given: Use this case's inputs and any shared test setup.
     renderPage();
 
+    // When: Exercise `fireEvent.keyDown` with the prepared inputs.
     fireEvent.keyDown(window, { key });
 
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByRole("heading", { level: 1, name: destination })).toBeVisible();
   });
 
   it("saves a reviewed local CSV before navigating to the Deck list", async () => {
+    // Given: Prepare `name` and any shared test state below.
     const name = "page-behavior-import.csv";
     renderPage();
 
@@ -199,8 +229,10 @@ describe("DeckImportPage [DECK-IMPORT-01 DECK-IMPORT-04 DECK-IMPORT-05 DECK-IMPO
 
     expect(screen.getByText("1 valid")).toBeVisible();
     expect(screen.queryByRole("heading", { level: 1, name: "Deck list destination" })).not.toBeInTheDocument();
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByRole("button", { name: "Add 1 card" }));
 
+    // Then: Verify the expected result in the assertions below.
     expect(await screen.findByRole("heading", { level: 1, name: "Deck list destination" })).toBeVisible();
     expect(screen.getByText(name)).toBeVisible();
     expect(screen.getByText("front: saved back")).toBeVisible();
@@ -208,18 +240,23 @@ describe("DeckImportPage [DECK-IMPORT-01 DECK-IMPORT-04 DECK-IMPORT-05 DECK-IMPO
   });
 
   it("shows a failed save in place and retries the same import", async () => {
+    // Given: Prepare `name` and any shared test state below.
     const name = "page-behavior-retry.csv";
     renderPage();
     await selectLocalFile(name, "retry back");
     controls.nextMutationError = new Error("card mutation failed");
 
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByRole("button", { name: "Add 1 card" }));
 
+    // Then: Verify the expected result in the assertions below.
     expect(await screen.findByRole("alert")).toHaveTextContent("Import failed. The import could not be completed.");
     expect(screen.getByRole("heading", { level: 1, name: "Add a deck" })).toBeVisible();
 
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByRole("button", { name: "Add 1 card" }));
 
+    // Then: Verify the expected result in the assertions below.
     expect(await screen.findByRole("heading", { level: 1, name: "Deck list destination" })).toBeVisible();
     expect(screen.getByText(name)).toBeVisible();
     expect(screen.getByText("front: retry back")).toBeVisible();
@@ -227,52 +264,69 @@ describe("DeckImportPage [DECK-IMPORT-01 DECK-IMPORT-04 DECK-IMPORT-05 DECK-IMPO
   });
 
   it("reviews the sample deck and waits for the common save before navigating", async () => {
+    // Given: Prepare `request` and any shared test state below.
     const request = Promise.withResolvers<void>();
     renderPage();
 
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByRole("button", { name: "Sample deck" }));
     await userEvent.click(screen.getByRole("button", { name: "Try this example" }));
+    // Then: Verify the expected result in the assertions below.
     expect(await screen.findByRole("heading", { name: "Review import" })).toBeVisible();
     expect(screen.queryByRole("heading", { name: "Deck list destination" })).not.toBeInTheDocument();
     controls.nextMutationWait = request.promise;
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByRole("button", { name: "Add 11 cards" }));
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByRole("button", { name: "Add 11 cards" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Add 11 cards" })).toHaveAttribute("aria-busy", "true");
+    // When: Exercise `request.resolve` with the prepared inputs.
     request.resolve();
+    // Then: Verify the expected result in the assertions below.
     expect(await screen.findByRole("heading", { name: "Deck list destination" })).toBeVisible();
     expect(screen.getByText("deck-sample.csv")).toBeVisible();
     expect(screen.getByRole("status")).toHaveTextContent("Imported 11 cards.");
   });
 
   it("preserves an App-owned import failure when leaving the import page", async () => {
+    // Given: Use this case's inputs and any shared test setup.
     renderPage();
     await selectLocalFile("page-behavior-leave.csv");
     controls.nextMutationError = new Error("card mutation failed");
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByRole("button", { name: "Add 1 card" }));
+    // Then: Verify the expected result in the assertions below.
     expect(await screen.findByRole("alert")).toHaveTextContent("Import failed. The import could not be completed.");
 
+    // When: Exercise `fireEvent.keyDown` with the prepared inputs.
     fireEvent.keyDown(window, { key: "s" });
 
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByRole("heading", { level: 1, name: "Settings destination" })).toBeVisible();
     expect(screen.getByRole("alert")).toHaveTextContent("Import failed.");
   });
 
   it("shows an App-owned import failure that arrives after leaving the import page", async () => {
+    // Given: Prepare `request` and any shared test state below.
     const request = Promise.withResolvers<void>();
     renderPage();
     await selectLocalFile("page-behavior-late-failure.csv");
     controls.nextMutationWait = request.promise;
     controls.nextMutationError = new Error("late card mutation failure");
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByRole("button", { name: "Add 1 card" }));
 
     fireEvent.keyDown(window, { key: "s" });
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByRole("heading", { level: 1, name: "Settings destination" })).toBeVisible();
+    // When: Exercise `actAsync` with the prepared inputs.
     await actAsync(async () => {
       request.resolve();
       await request.promise;
       await Promise.resolve();
     });
 
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByRole("alert")).toHaveTextContent("Import failed.");
   });
 });

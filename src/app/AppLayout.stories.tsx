@@ -4,6 +4,9 @@ import { expect } from "storybook/test";
 import { type AppStoryParameters, prepareAppStory, withPageStory } from "@/storybook/appStory";
 import { AppLayout } from "@/widgets/app-layout";
 
+// Given: Story args and parameters define the render scenarios below.
+// When: Storybook renders each exported variant and runs its play when present.
+// Then: Assertions are in the relevant plays; rendering alone adds no behavioral checks.
 const meta = {
   title: "Integration/AppLayout",
   component: AppLayout,
@@ -31,16 +34,22 @@ export const FixedByDefault: Story = {
     )),
   },
   play: async ({ canvas, step }) => {
+    // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-APP-LAYOUT-01 Fixed header", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
       const shell = canvas.getByRole("region", { name: "Application shell" });
       const header = canvas.getByRole("banner");
       const firstSection = canvas.getByRole("heading", { name: "Application section 1" }).closest("section");
 
+      // When: Observe the prepared result through the following checks.
+      // Then: Verify the expected result in the assertions below.
       await expect(firstSection).not.toBeNull();
       if (firstSection === null) return;
 
       await expect(getComputedStyle(header).position).toBe("fixed");
+      // When: Exercise `header.getBoundingClientRect` with the prepared inputs.
       const initialHeaderTop = header.getBoundingClientRect().top;
+      // Then: Verify the expected result in the assertions below.
       await expect(firstSection.getBoundingClientRect().top).toBeGreaterThanOrEqual(
         header.getBoundingClientRect().bottom
       );
@@ -60,10 +69,14 @@ export const FixedHeaderDisabled: Story = {
     children: <h1 className="text-title font-bold text-ink">Non-fixed application content</h1>,
   },
   play: async ({ canvas, step }) => {
+    // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-APP-LAYOUT-02 Non-fixed header", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
       const header = canvas.getByRole("banner");
       const content = canvas.getByRole("heading", { name: "Non-fixed application content" });
 
+      // When: Evaluate `getComputedStyle` as part of the following checks.
+      // Then: Verify the expected result in the assertions below.
       await expect(getComputedStyle(header).position).toBe("static");
       await expect(content.getBoundingClientRect().top).toBeGreaterThanOrEqual(header.getBoundingClientRect().bottom);
     });

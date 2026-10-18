@@ -13,12 +13,15 @@ const session: StudySession = {
 
 describe("compareActiveDecks [STUDY-SESSION-06]", () => {
   it("orders recent sessions first and uses deck name as the tie breaker", () => {
+    // Given: Prepare `activeDecks` and any shared test state below.
     const activeDecks = [
       { deck: { name: "Bravo" }, session: { ...session, lastStudiedAt: 100 } },
       { deck: { name: "Charlie" }, session: { ...session, lastStudiedAt: 200 } },
       { deck: { name: "Alpha" }, session: { ...session, lastStudiedAt: 200 } },
     ];
 
+    // When: Evaluate `activeDecks.sort` as part of the following checks.
+    // Then: Verify the expected result in the assertions below.
     expect(activeDecks.sort(compareActiveDecks).map(({ deck }) => deck.name)).toEqual(["Alpha", "Charlie", "Bravo"]);
   });
 });

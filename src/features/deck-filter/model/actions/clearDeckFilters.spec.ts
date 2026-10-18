@@ -11,6 +11,7 @@ vi.mock("./updateDeckFilterDraft", () => ({
 
 describe("clearDeckFilters [CARD-LIST-ACTIONS-01]", () => {
   it("clears selected tags", () => {
+    // Given: Prepare `draft`, `setState`, `options` and any shared test state below.
     const draft: DeckFilterValues = {
       selectedTags: ["tag1", "tag2"],
       tagAndFilter: true,
@@ -23,8 +24,10 @@ describe("clearDeckFilters [CARD-LIST-ACTIONS-01]", () => {
       setState,
     };
 
+    // When: Exercise `clearDeckFilters` with the prepared inputs.
     clearDeckFilters(options);
 
+    // Then: Verify the expected result in the assertions below.
     expect(updateDeckFilterDraft).toHaveBeenCalledWith(
       {
         selectedTags: [],

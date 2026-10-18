@@ -31,6 +31,9 @@ const longSections = {
   other: otherItems(fixture.decks.long.slice(4)),
 } satisfies DeckListProps["sections"];
 
+// Given: Story args and parameters define the render scenarios below.
+// When: Storybook renders each exported variant and runs its play when present.
+// Then: Assertions are in the relevant plays; rendering alone adds no behavioral checks.
 const meta = {
   title: "Pages/Deck List/DeckList",
   component: DeckList,
@@ -59,17 +62,24 @@ export const Default: Story = {};
 
 export const ListActions: Story = {
   play: async ({ args, canvas, userEvent, step }) => {
+    // Given: Use the rendered story, its args, parameters, and any setup below.
     const trigger = canvas.getByRole("button", { name: "Add" });
     await step("STORYBOOK-DECK-LIST-01 Request deck creation", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
+      // When: Exercise `userEvent.click` with the prepared inputs.
       await userEvent.click(trigger);
       await userEvent.click(canvas.getByRole("menuitem", { name: "Create deck" }));
+      // Then: Verify the expected result in the assertions below.
       await expect(args.onCreateDeck).toHaveBeenCalled();
       await expect(canvas.queryByRole("menu")).not.toBeInTheDocument();
     });
 
     await step("STORYBOOK-DECK-LIST-02 Request deck import", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
+      // When: Exercise `userEvent.click` with the prepared inputs.
       await userEvent.click(trigger);
       await userEvent.click(canvas.getByRole("menuitem", { name: "Import decks" }));
+      // Then: Verify the expected result in the assertions below.
       await expect(args.onImportDeck).toHaveBeenCalled();
       await expect(canvas.queryByRole("menu")).not.toBeInTheDocument();
     });
@@ -79,9 +89,13 @@ export const ListActions: Story = {
 export const Japanese: Story = {
   parameters: { locale: "ja" },
   play: async ({ canvas, userEvent, step }) => {
+    // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-DECK-LIST-03 Japanese deck list", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
       await expect(canvas.getByRole("heading", { level: 1, name: "デッキ" })).toBeVisible();
+      // When: Exercise `userEvent.click` with the prepared inputs.
       await userEvent.click(canvas.getByRole("button", { name: "追加" }));
+      // Then: Verify the expected result in the assertions below.
       await expect(canvas.getByRole("menuitem", { name: "デッキを作成" })).toBeVisible();
       await expect(canvas.getByRole("menuitem", { name: "デッキをインポート" })).toBeVisible();
       const [firstDeck] = mixed.studying;
@@ -96,14 +110,18 @@ export const Japanese: Story = {
 export const ViewDeck: Story = {
   args: { deckCard: { onClickView: fn() } },
   play: async ({ args, canvas, userEvent, step }) => {
+    // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-DECK-LIST-04 View selected deck", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
       const [trigger] = canvas.getAllByRole("button", { name: /^Open actions for / });
       const [firstDeck] = mixed.studying;
       if (trigger == null || firstDeck == null) throw new Error("ViewDeck requires at least one Deck");
 
+      // When: Exercise `userEvent.click` with the prepared inputs.
       await userEvent.click(trigger);
       await userEvent.click(canvas.getByRole("menuitem", { name: "View" }));
 
+      // Then: Verify the expected result in the assertions below.
       await expect(args.deckCard?.onClickView).toHaveBeenCalledWith(firstDeck.deck.id);
     });
   },
@@ -125,11 +143,15 @@ export const Empty: Story = {
     },
   },
   play: async ({ canvas, userEvent, step }) => {
+    // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-DECK-LIST-05 Empty deck list", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
       await expect(canvas.getByText("0 decks")).toBeVisible();
       await expect(canvas.getByRole("heading", { name: "No decks yet" })).toBeVisible();
       await expect(canvas.getByRole("button", { name: "Create deck" })).toBeVisible();
+      // When: Exercise `userEvent.click` with the prepared inputs.
       await userEvent.click(canvas.getByRole("button", { name: "Add" }));
+      // Then: Verify the expected result in the assertions below.
       await expect(canvas.getByRole("menuitem", { name: "Create deck" })).toBeEnabled();
       await expect(canvas.getByRole("menuitem", { name: "Import decks" })).toBeEnabled();
     });
@@ -192,9 +214,13 @@ const reviewSections: DeckListProps["sections"] = {
 export const ReviewCounts: Story = {
   args: { sections: reviewSections },
   play: async ({ canvas, userEvent, step }) => {
+    // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-DECK-LIST-06 Review counts", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
       await expect(canvas.getByRole("region", { name: "Decks" })).toBeVisible();
+      // When: Exercise `userEvent.click` with the prepared inputs.
       await userEvent.click(canvas.getByText("About counts"));
+      // Then: Verify the expected result in the assertions below.
       await expect(canvas.getByText("Counts use data currently held on this device and saved filters.")).toBeVisible();
       await expect(canvas.getByText("5 due · 5 new")).toBeVisible();
     });
@@ -229,11 +255,16 @@ export const TabletCards: Story = {
 
 export const ExclusiveMenus: Story = {
   play: async ({ canvas, userEvent, step }) => {
+    // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-DECK-LIST-10 Keep only the last requested menu open", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
       const triggers = canvas.getAllByRole("button", { name: /^Open actions for / });
       for (const trigger of [triggers[0], triggers[1], canvas.getByRole("button", { name: "Add" }), triggers[0]]) {
+        // Given: Use the current iteration or branch inputs from the enclosing case.
         if (!trigger) throw new Error("Two decks are required");
+        // When: Exercise `userEvent.click` with the prepared inputs.
         await userEvent.click(trigger);
+        // Then: Verify the expected result in the assertions below.
         await expect(canvas.getAllByRole("menu")).toHaveLength(1);
         await expect(trigger).toHaveAttribute("aria-expanded", "true");
       }
@@ -243,22 +274,33 @@ export const ExclusiveMenus: Story = {
 
 export const KeyboardAddMenu: Story = {
   play: async ({ args, canvas, userEvent, step }) => {
+    // Given: Use the rendered story, its args, parameters, and any setup below.
     const add = canvas.getByRole("button", { name: "Add" });
     await step("STORYBOOK-DECK-LIST-11 Navigate and dismiss the add menu", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
       add.focus();
+      // When: Exercise `userEvent.keyboard` with the prepared inputs.
       await userEvent.keyboard("{Enter}");
+      // Then: Verify the expected result in the assertions below.
       await expect(canvas.getByRole("menuitem", { name: "Create deck" })).toHaveFocus();
+      // When: Exercise `userEvent.keyboard` with the prepared inputs.
       await userEvent.keyboard("{ArrowDown}");
+      // Then: Verify the expected result in the assertions below.
       await expect(canvas.getByRole("menuitem", { name: "Import decks" })).toHaveFocus();
+      // When: Exercise `userEvent.keyboard` with the prepared inputs.
       await userEvent.keyboard("{Escape}");
+      // Then: Verify the expected result in the assertions below.
       await expect(canvas.queryByRole("menu")).not.toBeInTheDocument();
       await expect(add).toHaveFocus();
       await expect(args.onCreateDeck).not.toHaveBeenCalled();
       await expect(args.onImportDeck).not.toHaveBeenCalled();
     });
     await step("STORYBOOK-DECK-LIST-12 Restore focus after requesting creation", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
+      // When: Exercise `userEvent.click` with the prepared inputs.
       await userEvent.click(add);
       await userEvent.click(canvas.getByRole("menuitem", { name: "Create deck" }));
+      // Then: Verify the expected result in the assertions below.
       await expect(args.onCreateDeck).toHaveBeenCalledOnce();
       await expect(args.onImportDeck).not.toHaveBeenCalled();
       await expect(canvas.queryByRole("menu")).not.toBeInTheDocument();
@@ -270,7 +312,11 @@ export const KeyboardAddMenu: Story = {
 export const CheckingContract: Story = {
   args: Checking.args ?? {},
   play: async ({ canvas, step }) => {
+    // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-DECK-LIST-13 Distinguish checking from confirmed empty", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
+      // When: Evaluate `canvas.getByRole` as part of the following checks.
+      // Then: Verify the expected result in the assertions below.
       await expect(canvas.getByRole("status")).toHaveTextContent("Checking for sample deck…");
       await expect(canvas.queryByText("No decks yet")).not.toBeInTheDocument();
     });
@@ -280,14 +326,22 @@ export const CheckingContract: Story = {
 export const BootstrapRecovery: Story = {
   args: BootstrapError.args ?? {},
   play: async ({ args, canvas, userEvent, step }) => {
+    // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-DECK-LIST-14 Request recovery actions after bootstrap failure", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
       await expect(canvas.getByRole("alert")).toBeVisible();
       await expect(canvas.getByText("Unable to load sample deck")).toBeVisible();
+      // When: Exercise `userEvent.click` with the prepared inputs.
       await userEvent.click(canvas.getByRole("button", { name: "Retry" }));
+      // Then: Verify the expected result in the assertions below.
       await expect(args.empty?.onRetry).toHaveBeenCalledOnce();
+      // When: Exercise `userEvent.click` with the prepared inputs.
       await userEvent.click(canvas.getByRole("button", { name: "Create deck" }));
+      // Then: Verify the expected result in the assertions below.
       await expect(args.onCreateDeck).toHaveBeenCalledOnce();
+      // When: Exercise `userEvent.click` with the prepared inputs.
       await userEvent.click(canvas.getByRole("button", { name: "Import decks" }));
+      // Then: Verify the expected result in the assertions below.
       await expect(args.onImportDeck).toHaveBeenCalledOnce();
     });
   },
@@ -301,14 +355,20 @@ export const OnePendingDeck: Story = {
     deckCard: { isPending: (id) => id === "active-deck" },
   },
   play: async ({ canvas, step }) => {
+    // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-DECK-LIST-21 Disable only the pending deck", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
       for (const [name, pending] of [
         ["Active deck", true],
         ["Other deck", false],
       ] as const) {
+        // Given: Prepare `row` and any shared test state below.
         const row = canvas.getByRole("article", { name });
+        // When: Evaluate `String` as part of the following checks.
+        // Then: Verify the expected result in the assertions below.
         await expect(row).toHaveAttribute("aria-busy", String(pending));
         for (const button of within(row).getAllByRole("button")) {
+          // Given: Use the current iteration or branch inputs from the enclosing case.
           if (pending) await expect(button).toBeDisabled();
           else await expect(button).toBeEnabled();
         }

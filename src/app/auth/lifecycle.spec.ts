@@ -98,6 +98,7 @@ async function publish(value: User | null) {
 
 describe("Authentication and sync lifecycle [ACCOUNT-01 ACCOUNT-03 ACCOUNT-04 PERSISTENCE-04]", () => {
   beforeEach(() => {
+    // Given: Establish the shared setup used by the following cases.
     control.auth.currentUser = null;
     control.network = false;
     control.pendingChanges = [];
@@ -112,14 +113,20 @@ describe("Authentication and sync lifecycle [ACCOUNT-01 ACCOUNT-03 ACCOUNT-04 PE
   afterEach(() => stop());
 
   it("keeps anonymous startup offline before making editing available", async () => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Exercise `publish` with the prepared inputs.
     await publish(user("anonymous"));
+    // Then: Verify the expected result in the assertions below.
     expect(control.network).toBe(false);
     expect(control.subscribed).toBe("anonymous");
     expect(getAuthSession()).toMatchObject({ uid: "anonymous", isAnonymous: true });
   });
   it("enables sync after the same UID is linked", async () => {
+    // Given: Use this case's inputs and any shared test setup.
     await publish(user("same"));
+    // When: Exercise `publish` with the prepared inputs.
     await publish(user("same", false, "Account Owner"));
+    // Then: Verify the expected result in the assertions below.
     await vi.waitFor(() => expect(control.network).toBe(true));
     expect(control.stops).toEqual(["same"]);
     expect(control.subscribed).toBe("same");
@@ -131,11 +138,14 @@ describe("Authentication and sync lifecycle [ACCOUNT-01 ACCOUNT-03 ACCOUNT-04 PE
     });
   });
   it("ACCOUNT-03 blocks signout while restored cache changes are pending in all collections", async () => {
+    // Given: Use this case's inputs and any shared test setup.
     await publish(user("account", false));
     control.pendingChanges = ["deck", "card", "studySession", "studyAnswer"].map((collection) => ({
       collection,
       uid: "account",
     }));
+    // When: Evaluate `control.before` as part of the following checks.
+    // Then: Verify the expected result in the assertions below.
     await expect(control.before?.(null)).rejects.toThrow("Sync changes");
     expect(getAuthSession()).toMatchObject({ status: "authenticated", uid: "account" });
     expect(control.subscribed).toBe("account");
@@ -145,9 +155,12 @@ describe("Authentication and sync lifecycle [ACCOUNT-01 ACCOUNT-03 ACCOUNT-04 PE
   it.each(["deck", "card", "studySession", "studyAnswer"])(
     "ACCOUNT-03 blocks signout when only the current account's %s changes are pending",
     async (collection) => {
+      // Given: Use this case's inputs and any shared test setup.
       await publish(user("account", false, "Account Owner"));
       control.pendingChanges = [{ collection, uid: "account" }];
 
+      // When: Evaluate `control.before` as part of the following checks.
+      // Then: Verify the expected result in the assertions below.
       await expect(control.before?.(null)).rejects.toThrow("Sync changes");
 
       expect(getAuthSession()).toEqual({
@@ -163,12 +176,15 @@ describe("Authentication and sync lifecycle [ACCOUNT-01 ACCOUNT-03 ACCOUNT-04 PE
     }
   );
   it("ACCOUNT-03 permits signout when cached pending changes belong only to another account", async () => {
+    // Given: Use this case's inputs and any shared test setup.
     await publish(user("account", false));
     control.pendingChanges = ["deck", "card", "studySession", "studyAnswer"].map((collection) => ({
       collection,
       uid: "other-account",
     }));
 
+    // When: Evaluate `control.before` as part of the following checks.
+    // Then: Verify the expected result in the assertions below.
     await expect(control.before?.(null)).resolves.toBeUndefined();
 
     expect(control.auth.currentUser?.uid).toBe("account");
@@ -180,19 +196,24 @@ describe("Authentication and sync lifecycle [ACCOUNT-01 ACCOUNT-03 ACCOUNT-04 PE
   it.each(["pending changes", "cache read failure"])(
     "ACCOUNT-03 closes editing while checking sync and restores the account after %s",
     async (outcome) => {
+      // Given: Prepare `cacheRead`, `expectedError` and any shared test state below.
       await publish(user("account", false, "Account Owner"));
       const cacheRead = Promise.withResolvers<void>();
       control.cacheRead = cacheRead.promise;
       control.pendingChanges = [{ collection: "card", uid: "account" }];
       const expectedError = outcome === "pending changes" ? "Sync changes" : "cache read failed";
+      // When: Exercise `control.before` with the prepared inputs.
       const authChange = control.before?.(null);
 
+      // Then: Verify the expected result in the assertions below.
       await vi.waitFor(() => expect(getAuthSession().status).toBe("initializing"));
       expect(control.subscribed).toBe("account");
       expect(control.network).toBe(true);
       expect(control.stops).toEqual([]);
+      // When: Exercise `cacheRead.resolve` with the prepared inputs.
       if (outcome === "pending changes") cacheRead.resolve();
       else cacheRead.reject(new Error(expectedError));
+      // Then: Verify the expected result in the assertions below.
       await expect(authChange).rejects.toThrow(expectedError);
 
       expect(getAuthSession()).toEqual({
@@ -207,113 +228,158 @@ describe("Authentication and sync lifecycle [ACCOUNT-01 ACCOUNT-03 ACCOUNT-04 PE
     }
   );
   it("stops networking and old subscriptions before switching identity", async () => {
+    // Given: Use this case's inputs and any shared test setup.
     await publish(user("account", false));
+    // When: Exercise `control.before` with the prepared inputs.
     await control.before?.(null);
+    // Then: Verify the expected result in the assertions below.
     expect(control.auth.currentUser?.uid).toBe("account");
     expect(control.network).toBe(false);
     expect(control.subscribed).toBe("");
     expect(getAuthSession().status).toBe("initializing");
+    // When: Exercise `publish` with the prepared inputs.
     await publish(null);
+    // Then: Verify the expected result in the assertions below.
     expect(control.anonymous).toHaveBeenCalledOnce();
   });
   it("waits for cached data through a same-UID token refresh", async () => {
+    // Given: Prepare `ready` and any shared test state below.
     const ready = Promise.withResolvers<void>();
     control.ready = ready.promise;
     control.auth.currentUser = user("same");
+    // When: Exercise `control.observe` with the prepared inputs.
     control.observe?.(control.auth.currentUser);
+    // Then: Verify the expected result in the assertions below.
     await vi.waitFor(() => expect(control.subscribed).toBe("same"));
+    // When: Exercise `control.observe` with the prepared inputs.
     control.observe?.(control.auth.currentUser);
     await Promise.resolve();
+    // Then: Verify the expected result in the assertions below.
     expect(getAuthSession().status).toBe("initializing");
+    // When: Exercise `ready.resolve` with the prepared inputs.
     ready.resolve();
+    // Then: Verify the expected result in the assertions below.
     await vi.waitFor(() => expect(getAuthSession()).toMatchObject({ status: "authenticated", uid: "same" }));
     expect(control.stops).toEqual([]);
   });
   it("ignores an old identity's delayed startup failure", async () => {
+    // Given: Prepare `oldReady` and any shared test state below.
     const oldReady = Promise.withResolvers<void>();
     control.ready = oldReady.promise;
     control.auth.currentUser = user("old");
+    // When: Exercise `control.observe` with the prepared inputs.
     control.observe?.(control.auth.currentUser);
+    // Then: Verify the expected result in the assertions below.
     await vi.waitFor(() => expect(control.subscribed).toBe("old"));
+    // When: Apply the operation or event under test.
     control.ready = Promise.resolve();
     await control.before?.(user("new"));
     await publish(user("new"));
     oldReady.reject(new Error("old subscription failure"));
     await Promise.resolve();
     await Promise.resolve();
+    // Then: Verify the expected result in the assertions below.
     expect(getAuthSession()).toMatchObject({ status: "authenticated", uid: "new" });
     expect(control.subscribed).toBe("new");
   });
   it("reports a shared anonymous bootstrap failure after repeated initialization notifications", async () => {
+    // Given: Prepare `bootstrap` and any shared test state below.
     const bootstrap = Promise.withResolvers<void>();
     control.anonymous.mockReturnValueOnce(bootstrap.promise);
     await publish(null);
+    // When: Exercise `publish` with the prepared inputs.
     await publish(null);
     const error = new Error("anonymous sign-in failed");
     bootstrap.reject(error);
+    // Then: Verify the expected result in the assertions below.
     await vi.waitFor(() => expect(getAuthSession()).toEqual({ status: "error", source: "auth", error }));
     expect(control.anonymous).toHaveBeenCalledOnce();
     expect(control.network).toBe(false);
     expect(control.subscribed).toBe("");
   });
   it("ACCOUNT-04 reports the auth observer failure and retains the error after cleanup", () => {
+    // Given: Prepare `error` and any shared test state below.
     const error = new Error("auth observer failed");
+    // When: Exercise `control.authError` with the prepared inputs.
     control.authError?.(error);
+    // Then: Verify the expected result in the assertions below.
     expect(getAuthSession()).toEqual({ status: "error", source: "auth", error });
 
+    // When: Exercise `stop` with the prepared inputs.
     stop();
 
+    // Then: Verify the expected result in the assertions below.
     expect(getAuthSession()).toEqual({ status: "error", source: "auth", error });
   });
   it.each(["success", "failure"])(
     "ACCOUNT-04 prevents a delayed subscription startup %s from publishing after cleanup",
     async (outcome) => {
+      // Given: Prepare `ready` and any shared test state below.
       const ready = Promise.withResolvers<void>();
       control.ready = ready.promise;
       control.auth.currentUser = user("account", false);
+      // When: Exercise `control.observe` with the prepared inputs.
       control.observe?.(control.auth.currentUser);
+      // Then: Verify the expected result in the assertions below.
       await vi.waitFor(() => expect(control.subscribed).toBe("account"));
 
+      // When: Exercise `stop` with the prepared inputs.
       stop();
+      // Then: Verify the expected result in the assertions below.
       expect(getAuthSession()).toEqual({ status: "initializing" });
       expect(control.subscribed).toBe("");
       expect(control.stops).toEqual(["account"]);
+      // When: Exercise `ready.resolve` with the prepared inputs.
       if (outcome === "success") ready.resolve();
       else ready.reject(new Error("late subscription failure"));
       await ready.promise.catch(() => undefined);
       await Promise.resolve();
 
+      // Then: Verify the expected result in the assertions below.
       expect(getAuthSession()).toEqual({ status: "initializing" });
       expect(control.subscribed).toBe("");
     }
   );
   it("ACCOUNT-03 returns a successful authenticated lifecycle to initialization after cleanup", async () => {
+    // Given: Use this case's inputs and any shared test setup.
     await publish(user("account", false));
 
+    // When: Exercise `stop` with the prepared inputs.
     stop();
 
+    // Then: Verify the expected result in the assertions below.
     expect(getAuthSession()).toEqual({ status: "initializing" });
     expect(control.subscribed).toBe("");
     expect(control.stops).toEqual(["account"]);
   });
   it("restores the current account after a later auth callback aborts the switch", async () => {
+    // Given: Use this case's inputs and any shared test setup.
     await publish(user("account", false));
+    // When: Exercise `control.before` with the prepared inputs.
     await control.before?.(null);
+    // Then: Verify the expected result in the assertions below.
     expect(control.network).toBe(false);
     expect(control.subscribed).toBe("");
+    // When: Exercise `control.abort` with the prepared inputs.
     control.abort?.();
+    // Then: Verify the expected result in the assertions below.
     await vi.waitFor(() => expect(getAuthSession()).toMatchObject({ status: "authenticated", uid: "account" }));
     expect(control.network).toBe(true);
     expect(control.subscribed).toBe("account");
   });
   it("NAVIGATION-22 identifies subscription startup failures for local data recovery", async () => {
+    // Given: Prepare `ready` and any shared test state below.
     const ready = Promise.withResolvers<void>();
     control.ready = ready.promise;
     control.auth.currentUser = user("anonymous");
+    // When: Exercise `control.observe` with the prepared inputs.
     control.observe?.(control.auth.currentUser);
+    // Then: Verify the expected result in the assertions below.
     await vi.waitFor(() => expect(control.subscribed).toBe("anonymous"));
     const cause = new Error("cached data could not be loaded");
+    // When: Exercise `ready.reject` with the prepared inputs.
     ready.reject(cause);
+    // Then: Verify the expected result in the assertions below.
     await vi.waitFor(() =>
       expect(getAuthSession()).toMatchObject({
         status: "error",
@@ -321,9 +387,13 @@ describe("Authentication and sync lifecycle [ACCOUNT-01 ACCOUNT-03 ACCOUNT-04 PE
         error: cause,
       })
     );
+    // When: Exercise `getAuthSession` with the prepared inputs.
     const session = getAuthSession();
+    // Then: Verify the expected result in the assertions below.
     expect(session.status === "error" && session.error).toBe(cause);
+    // When: Exercise `stop` with the prepared inputs.
     stop();
+    // Then: Verify the expected result in the assertions below.
     expect(getAuthSession()).toEqual(session);
   });
 });

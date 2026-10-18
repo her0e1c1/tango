@@ -27,4 +27,7 @@ def find_largest_index(sl, a):
     ],
 )
 def test(args, expected):
+    # Given: The parameterized row supplies args and the expected result.
+    # When: Evaluate find_largest_index with this row's arguments inside the assertion.
+    # Then: The result matches the row's expected value.
     assert find_largest_index(*args) == expected
