@@ -53,8 +53,6 @@ jobs:
           fail-on-severity: high
 
   e2e:
-    needs: changes
-    if: ${{ needs.changes.outputs.run-tests == 'true' }}
     name: E2E
     uses: ./.github/workflows/e2e.yaml
 
@@ -147,7 +145,7 @@ jobs:
             fi
           } >> "$GITHUB_STEP_SUMMARY"
 
-  # Accept skipped jobs only when the successful change classifier explicitly permits them.
+  # E2E must succeed; accept other skipped suites only when the change classifier permits them.
   test:
     name: Test
     if: ${{ always() }}
@@ -168,13 +166,13 @@ jobs:
         run: |
           test "$CHANGES_RESULT" = success
           test "$LINTER_RESULT" = success
+          test "$E2E_RESULT" = success
           case "$RUN_TESTS" in
             false) expected=skipped ;;
             true) expected=success ;;
             *) exit 1 ;;
           esac
           test "$CHECKS_RESULT" = "$expected"
-          test "$E2E_RESULT" = "$expected"
           test "$INTEGRATION_RESULT" = "$expected"
           test "$STORYBOOK_RESULT" = "$expected"
           if [ "$EVENT_NAME" = pull_request ]; then
