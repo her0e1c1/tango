@@ -1,5 +1,10 @@
 # E2E Test Instructions
 
+- Group preparation, actions, and expected-result checks with native `await test.step(...)` blocks named `Given: ...`, `When: ...`, and `Then: ...`. Use concise English names describing the scenario, and preserve repeated action/check cycles in execution order.
+- Keep precondition assertions in Given. Make fixture and helper roles clear through the surrounding steps; reuse existing steps and helper boundaries without redundant wrappers, empty phases, or deep nesting.
+- Return values needed by later steps and destructure their results instead of introducing mutable outer state, definite-assignment assertions, or casts. Remove duplicate phase comments while retaining explanations of non-obvious intent or constraints.
+- A grouping-only change preserves operations, assertions, inputs, expected values, test titles and case IDs, fixtures, selectors, timeouts, retries, and skip/TODO status.
+
 - Pair each `test/e2e/<name>.spec.ts` with exactly one `docs/test/e2e/<name>.md` using the same basename.
 - Keep every referenced case ID in that paired specification. Multiple tests may share an ID; a test may cover multiple IDs only within the same specification file.
 - Preserve fixture IDs when moving tests. Helpers, fixtures, `AGENTS.md`, and `README.md` are outside the file-pairing contract.
