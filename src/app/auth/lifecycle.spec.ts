@@ -137,7 +137,7 @@ describe("Authentication and sync lifecycle [ACCOUNT-01 ACCOUNT-03 ACCOUNT-04 PE
       displayName: "Account Owner",
     });
   });
-  it("ACCOUNT-03 blocks signout while restored cache changes are pending in all collections", async () => {
+  it("ACCOUNT-15 blocks signout while restored cache changes are pending in all collections", async () => {
     // Given: Use this case's inputs and any shared test setup.
 
     await publish(user("account", false));
@@ -154,7 +154,7 @@ describe("Authentication and sync lifecycle [ACCOUNT-01 ACCOUNT-03 ACCOUNT-04 PE
     expect(control.network).toBe(true);
   });
   it.each(["deck", "card", "studySession", "studyAnswer"])(
-    "ACCOUNT-03 blocks signout when only the current account's %s changes are pending",
+    "ACCOUNT-15 blocks signout when only the current account's %s changes are pending",
     async (collection) => {
       // Given: Use this case's inputs and any shared test setup.
 
@@ -199,7 +199,7 @@ describe("Authentication and sync lifecycle [ACCOUNT-01 ACCOUNT-03 ACCOUNT-04 PE
     expect(getAuthSession().status).toBe("initializing");
   });
   it.each(["pending changes", "cache read failure"])(
-    "ACCOUNT-03 closes editing while checking sync and restores the account after %s",
+    "ACCOUNT-15 ACCOUNT-17 closes editing while checking sync and restores the account after %s",
     async (outcome) => {
       // Given: Prepare `cacheRead`, `expectedError` and any shared test state below.
       await publish(user("account", false, "Account Owner"));

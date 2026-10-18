@@ -84,7 +84,7 @@
 
 ### 認証操作
 
-以下は ACCOUNT-01、ACCOUNT-02、ACCOUNT-03 に共通する。
+以下は ACCOUNT-01〜ACCOUNT-03、ACCOUNT-06〜ACCOUNT-08、ACCOUNT-10〜ACCOUNT-17 に共通する。
 
 - sign-in / sign-out の実行中は、同じ操作のボタンが無効になり、二重実行できない。
 - 操作が完了する前に Account 画面を離れて戻っても、その操作の実行中表示が維持される。
