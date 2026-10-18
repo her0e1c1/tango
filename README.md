@@ -132,12 +132,13 @@ repository default.
 The existing Storybook Pages workflow runs E2E once for its source SHA, then combines that exact run and attempt's
 complete report under [`e2e/`](https://her0e1c1.github.io/tango/e2e/) with Storybook at the site root. A completed failing
 suite may publish its evidence while E2E CI stays red. Missing, interrupted, incomplete, mismatched, or unverified
-reports block publication; stale candidates cannot replace a newer candidate. Build and test jobs have no production
-credentials, and the deployment job only publishes the combined artifact.
+reports are excluded while Storybook delivery continues; stale candidates cannot replace a newer candidate. Build and
+test jobs have no production credentials, and the deployment job only publishes the combined artifact.
 
-**Public E2E publication is currently blocked** in `scripts/prepare-e2e-pages.py` until generated DOM snapshots,
-screenshots, request/response headers and bodies, and attachments have been inspected for test-only data. Do not enable
-it without that verification, tracing-overhead/size measurements, and a browser check of the staged site. In particular,
+**Public E2E publication is currently disabled** in `scripts/prepare-e2e-pages.py`; Storybook continues to publish
+without `e2e/`. The workflow summary reports the exclusion and does not link an old report. Before enabling E2E
+publication, inspect generated DOM snapshots, screenshots, request/response headers and bodies, and attachments for
+test-only data. Do not enable it without that verification, tracing-overhead/size measurements, and a browser check of the staged site. In particular,
 real tokens, sessions, secrets, and personal data must never be published.
 
 **Pages keeps only the latest published snapshot**, replaced on the next eligible publication. It is not a seven-day

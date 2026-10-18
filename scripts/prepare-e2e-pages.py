@@ -76,7 +76,7 @@ with zipfile.ZipFile(io.BytesIO(base64.b64decode(encoded[1], validate=True))) as
 # Keep this closed if the required generated-content inspection cannot be completed.
 public_content_verified = False
 if not public_content_verified:
-    raise SystemExit("Public E2E content safety is unverified; Pages publication is blocked (issue #1984)")
+    raise SystemExit("Public E2E content safety is unverified; E2E report excluded from Pages (issue #1984)")
 
 shutil.copytree(report, site / "e2e")
 size = sum(path.stat().st_size for path in site.rglob("*") if path.is_file())
