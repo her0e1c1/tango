@@ -16,6 +16,22 @@ COMPOSE_FILE = ".devcontainer/compose.yaml:.devcontainer/compose.local.yaml"
 # Compose files live under .devcontainer, so use the project-root env file.
 COMPOSE_ENV_FILES = ".env"
 
+[vars]
+# Expand setup and its EXIT trap into the same shell as each runner.
+e2e_setup = """
+export COMPOSE_FILE=".devcontainer/compose.yaml:.devcontainer/compose.e2e.yaml"
+export COMPOSE_PROJECT_NAME="tango-e2e-$$"
+
+cleanup() {
+  docker compose down --volumes --remove-orphans
+}
+trap cleanup EXIT
+
+# The E2E override forbids remote pulls, so local runs must create the same image that CI loads before startup.
+docker compose build app
+docker compose up --wait --wait-timeout 120 --remove-orphans
+"""
+
 [tasks]
 up = "docker compose up --wait --wait-timeout 120 --remove-orphans -d db"
 dev-up = "docker compose --env-file .env.dev up --wait --wait-timeout 120 --remove-orphans -d db auth"
@@ -114,20 +130,23 @@ run = "npm run build:storybook"
 [tasks.e2e]
 alias = "e"
 depends = ["//sample:build"]
-env = { COMPOSE_FILE = ".devcontainer/compose.yaml:.devcontainer/compose.e2e.yaml" }
 run = """
-export COMPOSE_PROJECT_NAME="tango-e2e-$$"
-
-cleanup() {
-  docker compose down --volumes --remove-orphans
-}
-trap cleanup EXIT
-
-# The E2E override forbids remote pulls, so local runs must create the same image that CI loads before startup.
-docker compose build app
-docker compose up --wait --wait-timeout 120 --remove-orphans
+{{vars.e2e_setup}}
 docker compose run --rm --remove-orphans --env CI --entrypoint npm dev run e2e
 """
+
+[tasks."e2e:ui"]
+description = "Run the existing E2E environment in Playwright UI mode"
+interactive = true
+depends = ["init"]
+run = [
+  { task = "//sample:build" },
+  """
+{{vars.e2e_setup}}
+echo "Playwright UI: http://127.0.0.1:${E2E_UI_PORT:-8077}/ (open after the runner starts; Ctrl-C to stop)"
+docker compose run --rm --remove-orphans --publish "127.0.0.1:${E2E_UI_PORT:-8077}:8077" --entrypoint npm dev run e2e:ui -- --ui-host=0.0.0.0 --ui-port=8077
+""",
+]
 
 [tasks.check]
 alias = "c"
