@@ -112,6 +112,9 @@ Actions artifacts.
 
 ### E2E Test
 
+For a specification-to-manual-check walkthrough of one representative case, use the
+[W66 Playwright demo](./test/e2e/demo/README.md).
+
 Playwright runs the browser-level acceptance suite documented in `docs/test/e2e/`. `mise run e2e` starts isolated
 Firestore and Firebase Auth emulators, a healthy Vite dev server from the project image, and the official Playwright
 Docker image as a remote browser server before running the complete suite. The tests use emulator-backed remote data,
