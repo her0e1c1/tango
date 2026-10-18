@@ -205,6 +205,7 @@ describe("CardPlayer [STUDY-CONTROLS-05] [STUDY-CONTROLS-06] [STUDY-CONTROLS-07]
   it("hides the edit link on the answer and does not add editing to Study", () => {
     // Given: Prepare `props`, `view` and any shared test state below.
     const props = toolbarProps();
+    // When: Render the answer with an edit link configured.
     const view = render(
       <CardPlayer
         {...props}
@@ -212,7 +213,6 @@ describe("CardPlayer [STUDY-CONTROLS-05] [STUDY-CONTROLS-06] [STUDY-CONTROLS-07]
         editLink={{ visible: true, onToggle: vi.fn(), element: <a href="/edit">Edit</a> }}
       />
     );
-    // When: Render the answer with an edit link configured.
     // Then: Hide the configured edit link on the answer.
     expect(screen.queryByRole("link", { name: "Edit" })).not.toBeInTheDocument();
     // When: Switch to Study and open its actions menu.

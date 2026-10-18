@@ -54,7 +54,7 @@ test.describe("import-sample", () => {
     // Then: Verify the expected result in the assertions below.
     await expect(page.getByText("Anonymous account", { exact: true })).toBeVisible();
     await expect(page.getByRole("button", { name: "Sign in with Google", exact: true })).toBeVisible();
-    // When: Exercise `page.getByText("User ID", { exact: true }).locator` with the prepared inputs.
+    // Then: Read the rendered state for the following checks.
     const uid = (
       await page.getByText("User ID", { exact: true }).locator("xpath=parent::*").locator("dd").textContent()
     )?.trim();
@@ -170,7 +170,7 @@ test.describe("import", () => {
     // Then: Verify the expected result in the assertions below.
     await expect(page).toHaveURL(`/deck/${sampleDeckId}`);
     await expect(page.getByRole("button", { name: /^View / })).toHaveCount(sampleCards.length);
-    // When: Exercise `page.getByRole("button", { name: /^View / }).allTextContents` with the prepared inputs.
+    // Then: Read the rendered state for the following checks.
     const names = await page.getByRole("button", { name: /^View / }).allTextContents();
     const contents = await downloadDeckCards(page, "Sample Deck", sampleCards.length);
     return { names, contents };

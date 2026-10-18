@@ -442,7 +442,7 @@ for (const allInvalid of [false, true]) {
     await expect(page.getByRole("button", { name: `View ${first.frontText}` })).toHaveCount(allInvalid ? 0 : 1);
     await expect(page.getByRole("button", { name: `View ${second.frontText}` })).toHaveCount(0);
     await expect(page.getByText(warning)).toBeVisible();
-    // When: Exercise `page.getByText(warning).boundingBox` with the prepared inputs.
+    // Then: Read the rendered state for the following checks.
     const warningBounds = await page.getByText(warning).boundingBox();
     const headerBounds = await page
       .locator("header")
@@ -452,7 +452,7 @@ for (const allInvalid of [false, true]) {
     expect(warningBounds).not.toBeNull();
     expect(headerBounds).not.toBeNull();
     expect(warningBounds!.y).toBeGreaterThanOrEqual(headerBounds!.y + headerBounds!.height);
-    // When: Exercise `testInfo.attach` with the prepared inputs.
+
     await testInfo.attach("partial-startup-after-reload", {
       body: await page.screenshot(),
       contentType: "image/png",
@@ -492,7 +492,7 @@ test("PERSISTENCE-10 keeps healthy study controls inside the mobile viewport wit
   const warning = page.getByText(
     "Some saved cards could not be loaded (1). Their saved data is unchanged. Other saved data is still available."
   );
-  // When: Exercise `page.locator` with the prepared inputs.
+  // Then: Read the rendered state for the following checks.
   const controls = [
     { name: "warning", locator: warning },
     { name: "front", locator: page.locator("#frontText") },
@@ -507,7 +507,7 @@ test("PERSISTENCE-10 keeps healthy study controls inside the mobile viewport wit
     // Given: Use the current iteration or branch inputs from the enclosing case.
     // Then: Verify the expected result in the assertions below.
     await expect(control.locator).toBeVisible();
-    // When: Exercise `control.locator.boundingBox` with the prepared inputs.
+    // Then: Read the rendered state for the following checks.
     const bounds = await control.locator.boundingBox();
     if (bounds === null) throw new Error(`${control.name} has no visible bounds`);
     geometry.push({ name: control.name, ...bounds });
@@ -525,7 +525,7 @@ test("PERSISTENCE-10 keeps healthy study controls inside the mobile viewport wit
     expect(bounds.y + bounds.height, bounds.name).toBeLessThanOrEqual(viewport.height);
   }
   expect(await page.evaluate(() => window.scrollY)).toBe(0);
-  // When: Exercise `testInfo.attach` with the prepared inputs.
+
   await testInfo.attach("mobile-study-before-interaction", {
     body: await page.screenshot(),
     contentType: "image/png",
@@ -569,7 +569,7 @@ test("PERSISTENCE-10 retains the recovery warning on quarantined Card view and e
     // Then: Verify the expected result in the assertions below.
     await expect(page.getByRole("heading", { name: "Card not found", exact: true })).toBeVisible();
     await expect(warning).toBeVisible();
-    // When: Exercise `testInfo.attach` with the prepared inputs.
+
     await testInfo.attach(suffix === "" ? "quarantined-card-view" : "quarantined-card-edit", {
       body: await page.screenshot(),
       contentType: "image/png",
@@ -608,7 +608,7 @@ test("PERSISTENCE-10 retains the warning on a Deck view with all Cards quarantin
   await expect(page.getByRole("heading", { name: "No cards yet", exact: true })).toBeVisible();
   await expect(warning).toBeVisible();
   await expect(page.getByRole("button", { name: "Next card", exact: true })).toHaveCount(0);
-  // When: Exercise `testInfo.attach` with the prepared inputs.
+
   await testInfo.attach("all-quarantined-deck-view", {
     body: await page.screenshot(),
     contentType: "image/png",

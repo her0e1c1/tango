@@ -34,7 +34,7 @@ test("DECK-MANAGEMENT-07 creates one empty local-only Deck without a remote dupl
   // Then: Verify the expected result in the assertions below.
   await expect(page).toHaveURL(/\/deck\/(?!new$)[^/]+$/);
   await expect(page.getByRole("status").filter({ hasText: `Created deck “${name}”.` })).toBeVisible();
-  // When: Exercise `new URL(page.url()).pathname.split` with the prepared inputs.
+  // Then: Read the rendered state for the following checks.
   const deckId = new URL(page.url()).pathname.split("/").at(-1);
   if (deckId === undefined) throw new Error("Created local-only Deck ID is missing");
   // Then: Verify the expected result in the assertions below.
@@ -281,7 +281,7 @@ test("DECK-MANAGEMENT-05 creates one empty remote Deck without a local duplicate
   // Then: Verify the expected result in the assertions below.
   await expect(page).toHaveURL(/\/deck\/(?!new$)[^/]+$/);
   await expect(page.getByRole("status").filter({ hasText: `Created deck “${name}”.` })).toBeVisible();
-  // When: Exercise `new URL(page.url()).pathname.split` with the prepared inputs.
+  // Then: Read the rendered state for the following checks.
   const deckId = new URL(page.url()).pathname.split("/").at(-1);
   if (deckId === undefined) throw new Error("Created Deck ID is missing");
   // Then: Verify the expected result in the assertions below.

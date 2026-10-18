@@ -396,7 +396,7 @@ test("NAVIGATION-13 scrolls one long answer with touch and exits at either horiz
   const answer = page.getByRole("region", { name: "Card answer", exact: true });
   // Then: Verify the expected result in the assertions below.
   await expect(answer).toBeVisible();
-  // When: Exercise `answer.evaluate` with the prepared inputs.
+  // Then: Measure the displayed answer and confirm that it overflows.
   const height = await answer.evaluate((element) => ({ client: element.clientHeight, scroll: element.scrollHeight }));
   // Then: Verify the expected result in the assertions below.
   expect(height.scroll).toBeGreaterThan(height.client);
@@ -848,8 +848,9 @@ test("NAVIGATION-03 Generic recovery offers only reload and preserves anonymous 
   await expect(page.getByText(/匿名データは復元できません/)).toBeVisible();
   await expect(page.getByRole("button", { name: /ローカルデータを削除|Clear local data/ })).toHaveCount(0);
   await expect(page.locator("html")).toHaveAttribute("lang", "ja");
-  // When: Exercise `page.evaluate` with the prepared inputs.
+  // Given: Record the saved preferences before reloading through recovery.
   const preferences = await page.evaluate(() => localStorage.getItem("tango-config"));
+  // When: Choose Reload in the recovery screen.
   await page.getByRole("button", { name: "再読み込み", exact: true }).click();
   // Then: Verify the expected result in the assertions below.
   await expect(page).toHaveURL(/\/settings\?recovery=reload#preserved$/);
@@ -1047,7 +1048,7 @@ test("NAVIGATION-22 Clears anonymous local data after storage initialization fai
   await page.goto("/account");
   // Then: Verify the expected result in the assertions below.
   await expect(page.getByText(uid, { exact: true })).toHaveCount(0);
-  // When: Exercise `page.getByText("User ID", { exact: true }).locator` with the prepared inputs.
+  // Then: Read the rendered state for the following checks.
   const newUid = page.getByText("User ID", { exact: true }).locator("xpath=parent::*").locator("dd");
   // Then: Verify the expected result in the assertions below.
   await expect(newUid).toHaveText(/\S+/);

@@ -572,7 +572,7 @@ test.describe("card", () => {
     // Then: Verify the expected result in the assertions below.
     await expect(tagsDialog).toBeVisible();
     expect(await page.getByTestId("card-fields-backdrop").boundingBox()).toEqual(viewportBounds);
-    // When: Exercise `tagsDialog.boundingBox` with the prepared inputs.
+    // Then: Read the rendered state for the following checks.
     const tagsBounds = await tagsDialog.boundingBox();
     if (tagsBounds === null) throw new Error("Tag selection dialog bounding box is unavailable");
     // Then: Verify the expected result in the assertions below.
@@ -649,12 +649,12 @@ test.describe("card", () => {
     await expect(page).toHaveURL(new RegExp(`/deck/${deck.id}$`));
     await expect(page.getByRole("status").filter({ hasText: `Created card “${frontText}”.` })).toBeVisible();
     const dismiss = page.getByRole("button", { name: "Dismiss notification" });
-    // When: Exercise `dismiss.locator` with the prepared inputs.
+    // Then: Read the rendered state for the following checks.
     const toast = dismiss.locator("..");
     const message = toast.getByText(`Created card “${frontText}”.`, { exact: true });
     for (const target of [toast, message, dismiss]) {
       // Given: Use the current iteration or branch inputs from the enclosing case.
-      // When: Exercise `target.boundingBox` with the prepared inputs.
+      // Then: Read the rendered state for the following checks.
       const box = await target.boundingBox();
       if (box === null) throw new Error("Toast content has no rendered bounds");
       // Then: Verify the expected result in the assertions below.
@@ -663,7 +663,7 @@ test.describe("card", () => {
       expect(box.x + box.width).toBeLessThanOrEqual(360);
       expect(box.y + box.height).toBeLessThanOrEqual(640);
     }
-    // When: Exercise `message.evaluate` with the prepared inputs.
+    // Then: Measure the rendered notification text and verify its clipping bounds.
     const preview = await message.evaluate((element) => {
       const text = element.firstChild;
       if (text === null) throw new Error("Toast message is empty");
@@ -778,8 +778,9 @@ test.describe("card", () => {
     await page.goto(`/deck/${deck.id}/card/new`);
     // Then: Verify the expected result in the assertions below.
     await expect(page.getByRole("heading", { name: "Create card" })).toBeVisible();
-    // When: Exercise `page.url` with the prepared inputs.
+    // Given: Record the URL before editing and previewing the unsaved answer.
     const url = page.url();
+    // When: Edit the Back text and open its preview with the keyboard.
     await page.getByRole("tab", { name: "Back", exact: true }).click();
     const input = page.getByRole("textbox", { name: "Back text" });
     await input.fill("First line\nSecond line");
@@ -856,7 +857,7 @@ test.describe("card", () => {
     // Then: Verify the expected result in the assertions below.
     await expect(preview.locator("code")).toHaveAttribute("data-language", "typescript");
     await expect(preview.locator(".hljs-keyword")).toHaveText("const");
-    // When: Exercise `page.locator("html").evaluate` with the prepared inputs.
+    // Then: Read the active theme and verify the code preview follows it.
     const dark = await page.locator("html").evaluate((element) => element.classList.contains("dark"));
     // Then: Verify the expected result in the assertions below.
     await expect(preview.locator("code")).toHaveAttribute("data-theme", dark ? "dark" : "light");

@@ -508,7 +508,7 @@ test("SETTINGS-07 Advanced disclosure keeps keyboard focus visible without chang
           // When: Observe the prepared result through the following checks.
           // Then: Verify the expected result in the assertions below.
           await expect(summary).toBeInViewport();
-          // When: Exercise `summary.evaluate` with the prepared inputs.
+          // Then: Measure the focused disclosure's visible outline.
           const ring = await summary.evaluate((element) => {
             const style = getComputedStyle(element);
             return {
@@ -522,7 +522,7 @@ test("SETTINGS-07 Advanced disclosure keeps keyboard focus visible without chang
           expect(ring.width).toBeGreaterThan(0);
           // An inset ring must fit inside the clipping disclosure in both open states.
           expect(ring.offset + ring.width).toBeLessThanOrEqual(0);
-          // When: Exercise `testInfo.attach` with the prepared inputs.
+
           await testInfo.attach(`${viewport.width}-${darkMode ? "dark" : "light"}-${state}`, {
             body: await details.screenshot(),
             contentType: "image/png",
@@ -603,9 +603,10 @@ test("SETTINGS-08 Existing Card errors follow language changes without losing dr
   await expect(page.getByRole("textbox", { name: "Front text" })).toHaveAccessibleDescription(
     "Front text is required."
   );
-  // When: Exercise `page.url` with the prepared inputs.
+  // Given: Record the current URL and session before the browser locale changes.
   const url = page.url();
   const session = await page.evaluate(() => localStorage.getItem("tango-study"));
+  // When: Change the browser language and dispatch its change event.
   await page.evaluate(() => {
     Object.defineProperty(navigator, "language", { configurable: true, get: () => "ja-JP" });
     window.dispatchEvent(new Event("languagechange"));
@@ -648,8 +649,9 @@ test("SETTINGS-09 Cached CSV diagnostics follow the current language", async ({ 
   });
   // Then: Verify the expected result in the assertions below.
   await expect(page.getByRole("alert")).toContainText("Front text is required.");
-  // When: Exercise `page.getByRole("alert").locator("code").allTextContents` with the prepared inputs.
+  // Given: Record the existing error context before changing the browser locale.
   const context = await page.getByRole("alert").locator("code").allTextContents();
+  // When: Change the browser locale while making any unintended file reread fail.
   // Any accidental file read during the locale update now fails the preview.
   await page.evaluate(() => {
     File.prototype.text = () => Promise.reject(new Error("Unexpected file reread"));

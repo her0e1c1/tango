@@ -428,7 +428,7 @@ test("STUDY-SESSION-07 preserves local-only progress and session position across
   await page.goto(`/card/${currentCard.id}`);
   // Then: Verify the expected result in the assertions below.
   await expect(page.getByRole("img", { name: /Forgetting curve/ })).toBeVisible();
-  // When: Exercise `page.getByRole("term").filter({ hasText: /^Next review$/ }).locator` with the prepared inputs.
+  // Then: Read the rendered state for the following checks.
   const nextReview = await page
     .getByRole("term")
     .filter({ hasText: /^Next review$/ })

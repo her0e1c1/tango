@@ -232,8 +232,8 @@ describe("StudyAnswer persistence and access [STUDY-ACTIONS-01] [STUDY-ACTIONS-0
     let final = operation();
     for (const [index, cardId] of cardIds.entries()) {
       // Given: Use the current iteration or branch inputs from the enclosing case.
-      // When: Exercise `operation` with the prepared inputs.
       final = operation({ cardId, currentIndex: index, answeredAt: 2000 + index });
+      // When: Save the answer prepared for this Card and session position.
       await saveStudyOperation(final);
     }
     // Then: Verify the expected result in the assertions below.

@@ -243,7 +243,7 @@ test("STUDY-BACK-TEXT-08 scrolls a long answer with wheel and touch from edge ov
   const rightOverlay = page.getByRole("button", { name: "Swipe right" });
   await expect(leftOverlay).toBeVisible();
   await expect(rightOverlay).toBeVisible();
-  // When: Exercise `rightOverlay.boundingBox` with the prepared inputs.
+  // Then: Read the rendered state for the following checks.
   const rightOverlayBounds = await rightOverlay.boundingBox();
   if (rightOverlayBounds == null) throw new Error("Expected a visible right back text overlay");
   // Then: Verify the expected result in the assertions below.

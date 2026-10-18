@@ -518,7 +518,7 @@ test("STUDY-CONTROLS-11 allows touch scrolling and pinch enlargement without car
   await session.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
   // Then: Verify the expected result in the assertions below.
   await expect.poll(() => page.evaluate(() => window.visualViewport?.scale ?? 1)).toBeGreaterThan(scale);
-  // When: Exercise `session.detach` with the prepared inputs.
+
   await session.detach();
   // Then: Verify the expected result in the assertions below.
   await expect.poll(() => readViewMode(page)).toBe(true);
