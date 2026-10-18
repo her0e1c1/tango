@@ -70,6 +70,14 @@ Delegate independent reviews of the same commit to three reviewers: [simplicity]
 - Do not add tests for non-application code. Assert observable behavior through the tested level's public boundary, not implementation details.
 - Design production interfaces for production requirements. Do not add or change parameters, dependency objects, callbacks, factories, optional overrides, or exports solely for tests or mocks; use test-side module mocks or spies instead.
 
+### Given / When / Then の対応
+
+- テストの追加・変更時は、参照する仕様の Given / When / Then とコードの準備・操作・検証の対応を、各段階の先頭に英語の `// Given: ...`、`// When: ...`、`// Then: ...` コメントで示す。
+- Given（準備）は仕様の前提状態を用意する処理、When（操作）は検証対象の操作・イベント、Then（検証）は仕様の期待結果を確認する assertion に対応させる。同じ更新関数でも、前提状態を作る呼び出しは Given に含める。
+- fixture、`beforeEach`、ヘルパーが準備を担う場合も、コメントからその役割を追えるようにする。前提を確認する assertion は Given に含め、検証対象の期待結果と区別する。
+- パラメーター化テストでは各行の入力・期待結果と同じ段階を対応させる。操作と検証を繰り返すケースでは、仕様の流れに沿って When / Then のコメントを繰り返す。
+- 既存テストへの対応コメント追加だけを目的とする変更では、処理順序・入力・期待値を変えず、仕様やケース ID を作り替えない。
+
 ### Firestore Integration Tests
 
 - Keep persistence, subscription, and security-rule tests under `test/integration/firestore`, based on contracts in `docs/test/integration/firestore`. Keep browser-facing user flows in E2E tests.

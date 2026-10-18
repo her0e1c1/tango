@@ -182,10 +182,13 @@ describe("preferences store", () => {
   ] satisfies { name: string; input: PartialPreferences; expected: Preferences }[])(
     "UNIT-STORE-PREF-02 updates $name while preserving unspecified settings",
     ({ input, expected }) => {
+      // Given: Each row starts with changed preferences, including settings outside the partial update.
       model.updatePreferences(changedPreferences);
 
+      // When: Apply the row's partial update.
       model.updatePreferences(input);
 
+      // Then: Only the specified settings change; unspecified settings retain their previous values.
       expect(model.getPreferences()).toEqual(expected);
     }
   );
@@ -237,6 +240,7 @@ describe("preferences store", () => {
   it.each(["system", "en", "ja"] as const)(
     "UNIT-STORE-PREF-04 restores saved %s preferences in fresh memory",
     async (language) => {
+      // Given: Save changed preferences for this language, including toggled controls, and confirm saved data exists.
       model.updatePreferences({
         ...changedPreferences,
         language,
@@ -248,8 +252,10 @@ describe("preferences store", () => {
       const saved = storage.getItem("tango-config");
       expect(saved).not.toBeNull();
 
+      // When: Restart with fresh memory using only the saved preferences.
       const { model: restartedModel } = await loadPreferences({ "tango-config": saved ?? "" });
 
+      // Then: The restored settings match their values before the restart.
       expect(restartedModel.getPreferences()).toEqual({
         ...changedPreferences,
         language,
@@ -443,12 +449,15 @@ describe("preferences store", () => {
   });
 
   it.each(["adding", "removing"])("UNIT-STORE-PREF-09 isolates selected tags from %s input tags", (change) => {
+    // Given: Confirm the tag selection using the caller's input array.
     const selectedTags = ["go", "typescript"];
     model.updatePreferences({ study: { selectedTags } });
 
+    // When: Add or remove an input tag without another preference update.
     if (change === "adding") selectedTags.push("rust");
     else selectedTags.shift();
 
+    // Then: The confirmed selection stays unchanged.
     expect(model.getPreferences().study.selectedTags).toEqual(["go", "typescript"]);
   });
 });
