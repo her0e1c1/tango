@@ -17,24 +17,51 @@ permissions:
   contents: read
 
 jobs:
-  build:
+  e2e:
     if: >-
       github.ref == 'refs/heads/main' &&
       (github.event_name != 'repository_dispatch' || github.event.client_payload.sha != '')
+    uses: ./.github/workflows/e2e.yaml
+
+  build:
+    needs: e2e
+    # A completed failing suite may still publish its evidence; its E2E job stays red.
+    if: >-
+      !cancelled() && github.ref == 'refs/heads/main' &&
+      (needs.e2e.result == 'success' || needs.e2e.result == 'failure')
     runs-on: ubuntu-latest
+    outputs:
+      base-url: ${{ steps.pages.outputs.base_url }}
     permissions:
       contents: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Require this attempt's report artifact
+        env:
+          ARTIFACT_ID: ${{ needs.e2e.outputs.artifact-id }}
+        run: test -n "$ARTIFACT_ID"
+
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          # Never search other runs or download an arbitrary latest artifact.
+          artifact-ids: ${{ needs.e2e.outputs.artifact-id }}
+          path: e2e-results
+          merge-multiple: true
 
       - uses: jdx/mise-action@08ae2a091c038e1e05ec6f5115dc5c69d5a2a6b8 # v5.1.2
 
       - run: mise run init
       - run: mise run build-storybook
 
+      - name: Validate and combine the complete report
+        run: python3 scripts/prepare-e2e-pages.py
+
       - uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
+        id: pages
 
       - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
@@ -51,11 +78,35 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
-      - name: Record deployment candidate
-        env:
-          REQUESTED_SHA: ${{ github.event.client_payload.sha }}
-        run: |
-          printf 'Requested merge: %s\nDeployment candidate: %s\n' "${REQUESTED_SHA:-not a repository dispatch}" "$GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+      - name: Reject stale deployment candidates
+        id: candidate
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            // The repository is public; these read-only lookups need no additional token permissions.
+            // The Pages concurrency group serializes publication, including reruns of old commits.
+            const { data: main } = await github.rest.git.getRef({ ...context.repo, ref: 'heads/main' });
+            const { data: runs } = await github.rest.actions.listWorkflowRuns({
+              ...context.repo, workflow_id: 'storybook-pages.yml', branch: 'main', per_page: 1,
+            });
+            if (main.object.sha !== context.sha || runs.workflow_runs[0]?.id !== context.runId) {
+              await core.summary.addRaw(`Skipped stale candidate ${context.sha} (run ${context.runId}).`).write();
+              return;
+            }
+            core.setOutput('current', 'true');
 
       - id: deployment
+        if: ${{ steps.candidate.outputs.current == 'true' }}
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
+
+      - name: Link the published snapshot
+        if: ${{ steps.deployment.outcome == 'success' }}
+        env:
+          BASE_URL: ${{ needs.build.outputs.base-url }}
+        run: |
+          {
+            echo "[Latest E2E report and traces](${BASE_URL%/}/e2e/)"
+            echo "Source: $GITHUB_SHA; [run $GITHUB_RUN_ID, attempt $GITHUB_RUN_ATTEMPT]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/attempts/$GITHUB_RUN_ATTEMPT)."
+            echo "Pages keeps one latest published snapshot; Actions keeps main E2E artifacts for seven days."
+            echo "Artifact expiry does not delete the Pages snapshot."
+          } >> "$GITHUB_STEP_SUMMARY"

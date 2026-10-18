@@ -124,7 +124,25 @@ mise run e2e
 
 `npm run e2e:ui` only opens Playwright's UI and does not start the required app and emulators. Use the
 compose-backed `mise run e2e` task for the acceptance suite. Failed local runs retain screenshots under
-`test-results/`; CI also writes an HTML report and captures a trace on the first retry.
+`test-results/`. PR CI writes an HTML report and captures a trace on the first retry. Trusted `main` CI records
+traces for every attempt, including tests passing the first time, and retains the complete `playwright-report`
+Actions artifact (HTML, attachments, traces, and `test-results/`) for **seven days**. PR artifact retention keeps the
+repository default.
+
+The existing Storybook Pages workflow runs E2E once for its source SHA, then combines that exact run and attempt's
+complete report under [`e2e/`](https://her0e1c1.github.io/tango/e2e/) with Storybook at the site root. A completed failing
+suite may publish its evidence while E2E CI stays red. Missing, interrupted, incomplete, mismatched, or unverified
+reports block publication; stale candidates cannot replace a newer candidate. Build and test jobs have no production
+credentials, and the deployment job only publishes the combined artifact.
+
+**Public E2E publication is currently blocked** in `scripts/prepare-e2e-pages.py` until generated DOM snapshots,
+screenshots, request/response headers and bodies, and attachments have been inspected for test-only data. Do not enable
+it without that verification, tracing-overhead/size measurements, and a browser check of the staged site. In particular,
+real tokens, sessions, secrets, and personal data must never be published.
+
+**Pages keeps only the latest published snapshot**, replaced on the next eligible publication. It is not a seven-day
+public history: expiring the seven-day Actions artifacts does not remove an idle Pages snapshot. The workflow summary
+links the published report and identifies its source SHA and run/attempt.
 
 Each test and retry uses isolated identifiers and storage, so the suite can run fully in parallel locally. CI runs the
 same acceptance suite with its configured worker and retry limits.

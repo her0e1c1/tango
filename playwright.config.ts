@@ -8,10 +8,12 @@ export default defineConfig({
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 2 : 0,
   ...(process.env.CI ? { workers: 4 } : {}),
-  reporter: process.env.CI ? [["github"], ["html", { open: "never" }]] : "list",
+  reporter: process.env.CI
+    ? [["github"], ["html", { open: "never" }], ["json", { outputFile: "test-results/report.json" }]]
+    : "list",
   use: {
     baseURL: process.env.PLAYWRIGHT_BASE_URL ?? "http://127.0.0.1:4173",
-    trace: "on-first-retry",
+    trace: process.env.CI && process.env.PLAYWRIGHT_MAIN_TRACE === "true" ? "on" : "on-first-retry",
     screenshot: "only-on-failure",
   },
   projects: [
