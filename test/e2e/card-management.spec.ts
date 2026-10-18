@@ -180,7 +180,6 @@ test.describe("card-resilience", () => {
           .map((document) => document.fields.backText?.stringValue)
       )
       .toEqual(["Pending back"]);
-    // When: Exercise `page.reload` with the prepared inputs.
     await page.reload();
     // Then: Verify the expected result in the assertions below.
     await expect(page.getByRole("button", { name: `View ${frontText}`, exact: true })).toBeVisible();

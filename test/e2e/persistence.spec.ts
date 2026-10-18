@@ -370,26 +370,31 @@ test("PERSISTENCE-09 receives remote edits and tombstones after reopening", asyn
   await page.goto(`/deck/${deck.id}`);
   for (const card of fixture.state.remote.cards) {
     // Given: Use the current iteration or branch inputs from the enclosing case.
-    // When: Observe the prepared result through the following checks.
-    // Then: Verify the expected result in the assertions below.
+    // Given: Confirm that each remote Card has been loaded into this browser.
     await expect(page.getByRole("button", { name: `View ${card.frontText}` })).toBeVisible();
   }
+  // When: Reopen the Deck after leaving the application.
   await page.goto("/storage-maintenance");
   await page.goto(`/deck/${deck.id}`);
+  // Then: Restore every saved Card.
   for (const card of fixture.state.remote.cards)
     await expect(page.getByRole("button", { name: `View ${card.frontText}` })).toBeVisible();
 
   await page.goto("/storage-maintenance");
+  // When: Edit one Card and tombstone another remotely while the application is closed.
   await setDocument("card", edited.id, { ...edited, frontText: "Changed while closed", updatedAt: new Date() });
   await setDocument("card", deleted.id, { ...deleted, deletedAt: Date.now(), updatedAt: new Date() });
   await page.goto(`/deck/${deck.id}`);
+  // Then: Show the remote edit, hide the tombstone, and retain the untouched Card.
   await expect(page.getByRole("button", { name: "View Changed while closed" })).toBeVisible();
   await expect(page.getByRole("button", { name: `View ${deleted.frontText}` })).toHaveCount(0);
   await expect(page.getByRole("button", { name: `View ${unchanged.frontText}` })).toBeVisible();
 
   await page.goto("/storage-maintenance");
+  // When: Tombstone the Deck remotely and reopen the home page.
   await setDocument("deck", deck.id, { ...deck, deletedAt: Date.now(), updatedAt: new Date() });
   await page.goto("/");
+  // Then: Hide the deleted Deck and its navigation entry.
   await expect(page.getByRole("heading", { name: "No decks yet" })).toBeVisible();
   await expect(page.getByRole("button", { name: `Open cards in ${deck.name}` })).toHaveCount(0);
   // When: Exercise `page.reload` with the prepared inputs.

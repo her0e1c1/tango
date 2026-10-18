@@ -545,6 +545,7 @@ for (const language of ["en", "ja"] as const) {
             : {}),
         },
       });
+      // When: Open Study with the configured language and direction mappings.
       await page.goto(`/deck/${deck.id}/study`);
       await expect(page.getByRole("button", { name: card.frontText, exact: true })).toBeVisible();
       // Entering Study records its visit independently of the label-only interactions below.
@@ -566,7 +567,6 @@ for (const language of ["en", "ja"] as const) {
       );
       for (const [index, button] of buttons.entries()) {
         // Given: Use the current iteration or branch inputs from the enclosing case.
-        // When: Observe the prepared result through the following checks.
         // Then: Verify the expected result in the assertions below.
         await expect(button).toBeVisible();
         await expect(button).toHaveText(actions[index]!);

@@ -68,7 +68,6 @@ const openView = async (page: Page, deckName: string) => {
 
 const expectFront = async (page: Page, frontText: string) => {
   // Given: Use this case's inputs and any shared test setup.
-  // When: Observe the prepared result through the following checks.
   // Then: Verify the expected result in the assertions below.
   await expect(page.getByRole("button", { name: "Card front", exact: true })).toContainText(frontText);
   await expect(page.getByRole("region", { name: "Card answer", exact: true })).toHaveCount(0);
@@ -719,7 +718,7 @@ test("NAVIGATION-06 navigates from the Deck list to its Card list", async ({ fix
       await expect(page).toHaveURL(destination.href);
       for (const candidate of specialCards) {
         // Given: Prepare `button` and any shared test state below.
-        // When: Apply the operation or event under test.
+        // Then: Check which Cards are visible after the preceding navigation.
         const button = page.getByRole("button", { name: `View ${candidate.frontText}`, exact: true });
         // Then: Verify the expected result in the assertions below.
         await expect(button).toHaveCount(Number(candidate.deckId === selected.id));

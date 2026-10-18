@@ -21,8 +21,8 @@ describe("Card deletion account guards [CARD-MANAGEMENT-02 CARD-MANAGEMENT-08]",
     // Given: Prepare `pending` and any shared test state below.
     const pending = Promise.withResolvers<void>();
     vi.mocked(deleteCard).mockReturnValue(pending.promise);
-    // When: Exercise `cardListStore.setState` with the prepared inputs.
     cardListStore.setState({ deletionTarget: { id: "old-card", frontText: "Old" } });
+    // When: Start deletion, switch owners, and deliver the old request's outcome.
     const result = confirmCardDeletion();
     auth.uid = "next-user";
     const selection = { id: "new-card", frontText: "New" };

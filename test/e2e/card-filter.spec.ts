@@ -47,7 +47,6 @@ async function expectSaved(deckId: string, selectedTags: string[], tagAndFilter:
 
 async function expectList(page: Page, names: string[]) {
   // Given: Use this case's inputs and any shared test setup.
-  // When: Observe the prepared result through the following checks.
   // Then: Verify the expected result in the assertions below.
   await expect(page.getByRole("button", { name: /^View / })).toHaveCount(names.length);
   for (const name of names) await expect(page.getByRole("button", { name: `View ${name}`, exact: true })).toBeVisible();
@@ -58,6 +57,7 @@ async function expectList(page: Page, names: string[]) {
 
 async function expectView(page: Page, deckId: string, names: string[], reload = false) {
   // Given: Use this case's inputs and any shared test setup.
+  // When: Open the Deck in View mode and optionally reload it.
   await page.goto(`/deck/${deckId}/view`);
   // When: Exercise `page.reload` with the prepared inputs.
   if (reload) await page.reload();
@@ -69,8 +69,8 @@ async function expectView(page: Page, deckId: string, names: string[], reload = 
       "aria-valuetext",
       `${index + 1} of ${names.length}`
     );
-    // When: Exercise `page.getByRole("button", { name: "Card front" }).innerText` with the prepared inputs.
     seen.push(await page.getByRole("button", { name: "Card front" }).innerText());
+    // When: Advance to the next Card when one remains.
     if (index + 1 < names.length) await page.getByRole("button", { name: "Next card" }).click();
   }
   // Then: Verify the expected result in the assertions below.

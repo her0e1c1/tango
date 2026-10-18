@@ -3,7 +3,6 @@ import type { Locator, Page } from "@playwright/test";
 
 const expectOrder = async (rows: Locator, names: string[]) => {
   // Given: Use this case's inputs and any shared test setup.
-  // When: Observe the prepared result through the following checks.
   // Then: Verify the expected result in the assertions below.
   await expect(rows).toHaveCount(names.length);
   for (const [index, name] of names.entries()) {

@@ -64,7 +64,6 @@ type Story = StoryObj<typeof meta>;
 const expectFrontTextCentered = async (canvasElement: HTMLElement, expectedOffset = 0) => {
   // Given: Prepare `frontText` and any shared test state below.
   const frontText = canvasElement.querySelector<HTMLElement>("#frontText > *");
-  // When: Observe the prepared result through the following checks.
   // Then: Verify the expected result in the assertions below.
   await expect(frontText).not.toBeNull();
   if (frontText === null) return;

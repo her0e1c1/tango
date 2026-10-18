@@ -254,6 +254,7 @@ describe("Card replica and Store deltas", () => {
       await loaded(["boundary", "old"]);
       await disableNetwork(connection.db);
       // Changing the immutable creation time makes Rules reject without changing the owner/query match.
+      // When: Issue an offline create, edit, or tombstone that Rules will reject.
       const pending =
         kind === "create"
           ? setDoc(doc(connection.db, "card", "ghost"), {
@@ -266,7 +267,6 @@ describe("Card replica and Store deltas", () => {
               updatedAt: serverTimestamp(),
               ...(kind === "edit" ? { frontText: "pending" } : { deletedAt: 3000 }),
             });
-      // When: Exercise `pending.catch` with the prepared inputs.
       const rejected = pending.catch((error: unknown) => error);
       await localPending();
       // Then: Verify the expected result in the assertions below.
@@ -347,7 +347,7 @@ describe("Card replica and Store deltas", () => {
       expect(getCards().map(({ frontText }) => frontText)).toEqual(["old"]);
       await checkpoint(1000);
       let rejection: unknown;
-      // When: Exercise `card` with the prepared inputs.
+      // When: Repair the invalid document or reject the pending write and deliver repaired server data.
       if (source === "repair") {
         await seed([card("invalid", 3000)]);
       } else {
@@ -374,13 +374,13 @@ describe("Card replica and Store deltas", () => {
 
   it("[FIRESTORE-CARD-REPLICA-06] regular: cancels a restoring owner before switching UID", async () => {
     // Given: Use this case's inputs and any shared test setup.
-    // When: Exercise `card` with the prepared inputs.
     await seed([card("a")]);
     start();
     await loaded(["a"]);
     await checkpoint(1000);
     stop();
     const ready = vi.fn();
+    // When: Cancel a restoring subscription and switch to a different owner.
     const unsubscribe = subscribeCards(uid, vi.fn(), ready);
     unsubscribe();
     uid = "second-owner";
@@ -402,7 +402,6 @@ describe("Card replica and Store deltas", () => {
     start();
     await loaded(["old"]);
     await checkpoint(1000);
-    // When: Exercise `stop` with the prepared inputs.
     stop();
     const put = IDBObjectStore.prototype.put;
     const failure = vi.spyOn(IDBObjectStore.prototype, "put").mockImplementation(function (
@@ -414,7 +413,8 @@ describe("Card replica and Store deltas", () => {
       if (this.name === "metadata") this.transaction.abort();
       return request;
     });
-    // Then: Verify the expected result in the assertions below.
+    // When: Save confirmed Cards while the metadata transaction is forced to abort.
+    // Then: Reject the save and retain the previous replica and checkpoint.
     await expect(
       saveConfirmedCards(uid, [createCard({ id: "old", uid, frontText: "new", updatedAt: 2000 })], 2000, {
         replace: false,
@@ -449,12 +449,13 @@ describe("Card replica and Store deltas", () => {
       start();
       await loaded(values.map(({ id }) => id));
       if (!isAnonymous) await checkpoint(1000);
-      // When: Exercise `getCards` with the prepared inputs.
+      // Given: Capture unchanged Cards and observe the following remote update.
       const unchanged = getCards().slice(1);
       const parse = vi.spyOn(documents, "parseCardDocument");
       const parseLocal = vi.spyOn(documents, "parseLocalCardDocuments");
       const apply = vi.spyOn(store, "applyCardChanges");
       const put = vi.spyOn(IDBObjectStore.prototype, "put");
+      // When: Deliver a confirmed remote edit to Card A only.
       await environment.withSecurityRulesDisabled(async (context) => {
         await updateDoc(doc(context.firestore(), "card", cardA.id), {
           frontText: "changed",
@@ -472,7 +473,7 @@ describe("Card replica and Store deltas", () => {
       expect(put.mock.calls.filter(([value]) => "id" in value).map(([value]) => value.id)).toEqual(
         isAnonymous ? [] : [cardA.id]
       );
-      // When: Exercise `getCards` with the prepared inputs.
+      // Then: Read the updated store and preserve the other 999 Card identities.
       const updated = getCards();
       // Then: Verify the expected result in the assertions below.
       expect(updated).toHaveLength(1000);

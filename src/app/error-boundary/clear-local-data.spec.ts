@@ -56,9 +56,8 @@ describe("NAVIGATION-22 Local data recovery", () => {
     const database = await createDatabase("other-tab");
     localStorage.setItem("settings", "old");
     sessionStorage.setItem("session", "old");
-    // When: Evaluate `clearLocalDataBeforeStartup` as part of the following checks.
-    // When: Attempt startup cleanup while another connection holds the database.
-    // Then: Reject the blocked reset and preserve the remaining storage.
+    // When: Attempt startup cleanup while database enumeration fails.
+    // Then: Report the enumeration error and preserve the remaining session storage.
     await expect(clearLocalDataBeforeStartup()).rejects.toThrow("Close other Tango tabs");
     expect(localStorage.getItem("settings")).toBe("old");
     expect(sessionStorage.getItem("session")).toBe("old");
@@ -75,9 +74,8 @@ describe("NAVIGATION-22 Local data recovery", () => {
     // Given: Use this case's inputs and any shared test setup.
     vi.spyOn(indexedDB, "databases").mockRejectedValueOnce(new Error("storage unavailable"));
     sessionStorage.setItem("session", "old");
-    // When: Evaluate `clearLocalDataBeforeStartup` as part of the following checks.
-    // When: Attempt startup cleanup while another connection holds the database.
-    // Then: Reject the blocked reset and preserve the remaining storage.
+    // When: Attempt startup cleanup while database enumeration fails.
+    // Then: Report the enumeration error and preserve the remaining session storage.
     await expect(clearLocalDataBeforeStartup()).rejects.toThrow("storage unavailable");
     expect(sessionStorage.getItem("session")).toBe("old");
   });

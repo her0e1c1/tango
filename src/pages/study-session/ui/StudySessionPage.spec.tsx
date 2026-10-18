@@ -318,6 +318,7 @@ describe("StudySessionPage [STUDY-CONTROLS-07] [STUDY-ACTIONS-04] [STUDY-SESSION
       </>
     );
     for (const field of screen.getAllByRole("textbox")) {
+      // When: Apply the user interaction for this prepared input.
       await user.click(field);
       await user.keyboard("b b{ArrowLeft}{ArrowRight}{ArrowUp}{ArrowDown}{Enter}");
     }
@@ -390,6 +391,7 @@ describe("StudySessionPage [STUDY-CONTROLS-07] [STUDY-ACTIONS-04] [STUDY-SESSION
     async ({ controls, en, ja }) => {
       // Given: Prepare `session`, `preferences`, `directions` and any shared test state below.
       mocks.preferences = createPreferences({ controls });
+      // When: Render Study with this row's configured direction actions.
       renderPage();
       const session = getStudySession(deckId);
       const preferences = structuredClone(mocks.preferences);
@@ -400,7 +402,6 @@ describe("StudySessionPage [STUDY-CONTROLS-07] [STUDY-ACTIONS-04] [STUDY-SESSION
       );
       for (const [index, button] of buttons.entries()) {
         // Given: Use the current iteration or branch inputs from the enclosing case.
-        // When: Observe the prepared result through the following checks.
         // Then: Verify the expected result in the assertions below.
         expect(button).toHaveTextContent(en[index]!);
         expect(button).toHaveAccessibleDescription(en[index]!);

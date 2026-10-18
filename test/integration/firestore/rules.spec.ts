@@ -264,7 +264,7 @@ describe("Firestore ownership and guest write restrictions", () => {
         // When: Evaluate `batch.commit` as part of the following checks.
         // Then: Verify the expected result in the assertions below.
         await assertSucceeds(batch.commit());
-        // When: Evaluate `String` as part of the following checks.
+        // When: Read the saved answer using the owner's credentials.
         // Then: Verify the expected result in the assertions below.
         await assertSucceeds(getDoc(doc(db, "studyAnswer", `session-${String(index)}`)));
       }
@@ -421,10 +421,10 @@ describe("Firestore ownership and guest write restrictions", () => {
         await createData("deck", "deleted", { uid: "uid", isPublic: true, deletedAt: 1000 });
         await createData("deck", "other-public", { uid: "another-user", isPublic: true, deletedAt: null });
         await createData("deck", "other-private", { uid: "another-user", isPublic: false, deletedAt: null });
+        // When: List Decks using the owner's UID-constrained query.
         const snapshot = await assertSucceeds(
           getDocs(query(firestoreCollection(db, "deck"), where("uid", "==", "uid")))
         );
-        // When: Evaluate `snapshot.docs.map((document) => document.id).sort` as part of the following checks.
         // Then: Verify the expected result in the assertions below.
         expect(snapshot.docs.map((document) => document.id).sort()).toEqual(["deleted", "private", "public"]);
       });

@@ -45,10 +45,10 @@ describe("Query realtime subscriptions", () => {
     await createCardCommand(uid, card);
 
     const onError = vi.fn();
+    // When: Subscribe to the prepared owner's Card content.
     const stopCards = subscribeCards(uid, onError);
     try {
       // Given: Use the current iteration or branch inputs from the enclosing case.
-      // When: Observe the prepared result through the following checks.
       // Then: Verify the expected result in the assertions below.
       await vi.waitFor(() => {
         expect(Object.values(cardStore.getState().cardsById)).toContainEqual(

@@ -62,14 +62,14 @@ describe("Firestore history reads", () => {
     batch.set(doc(testDb, "studySession", crypto.randomUUID()), document(deckId, start - 1, start, "completed"));
     batch.set(doc(testDb, "studySession", crypto.randomUUID()), document(deckId, start - 1, start, "abandoned"));
     batch.set(doc(testDb, "studySession", crypto.randomUUID()), document(deckId, start + 1, start + 1, "completed"));
-    // When: Exercise `batch.commit` with the prepared inputs.
     await batch.commit();
 
-    // Then: Verify the expected result in the assertions below.
+    // Given: Read each requested history scope through the public subscription helper below.
     async function read(deck: string | null, metric: "started" | "completed", cached = false) {
       let records: StudyHistoryRecord[] | undefined;
       let fromCache: boolean | undefined;
       let failure: Error | undefined;
+      // When: Subscribe to the requested owner, period, Deck, and metric.
       const stop = subscribeStudyHistory(
         { uid: "uid", period, deckId: deck, metric },
         (value, cache) => {
@@ -83,6 +83,7 @@ describe("Firestore history reads", () => {
         }
       );
       try {
+        // Then: Wait for the requested cache/server snapshot or propagate its error.
         await vi.waitFor(
           () => {
             if (failure) throw failure;
@@ -95,10 +96,10 @@ describe("Firestore history reads", () => {
         stop();
       }
     }
-    // When: Exercise `subscribeStudySessions` with the prepared inputs.
     const stopSessions = subscribeStudySessions("uid", () => undefined);
     onTestFinished(stopSessions);
-    // Then: Verify the expected result in the assertions below.
+    // When: Read the parameterized server history scopes through the helper.
+    // Then: Verify boundaries, Deck filtering, and independent start/completion records.
     expect((await read(null, "started")).records).toHaveLength(131);
     expect((await read(null, "completed")).records.map((record) => record.deckId).sort()).toEqual(
       [deckId, otherDeck].sort()
@@ -130,9 +131,8 @@ describe("Firestore history reads", () => {
     // When: Exercise `disableNetwork` with the prepared inputs.
     await disableNetwork(testDb);
     try {
-      // Given: Prepare `cached` and any shared test state below.
+      // When: Read the saved start history while offline.
       const cached = await read(deckId, "started", true);
-      // When: Observe the prepared result through the following checks.
       // Then: Verify the expected result in the assertions below.
       expect(cached.fromCache).toBe(true);
       expect(cached.records).toHaveLength(130);
@@ -230,9 +230,9 @@ describe("Bounded answer history", () => {
         updatedAt: serverTimestamp(),
       });
     }
-    // When: Exercise `batch.commit` with the prepared inputs.
     await batch.commit();
     const input = { uid: "uid", from, to: from + 1, deckId, limit: 10 };
+    // When: Read answer history from the prepared server fixtures.
     const online = await readAnswerHistory(input);
     // Then: Verify the expected result in the assertions below.
     expect(online).toMatchObject({ source: "server", truncated: false, invalidCount: 1, hasPendingWrites: false });
@@ -254,9 +254,8 @@ describe("Bounded answer history", () => {
     // When: Exercise `disableNetwork` with the prepared inputs.
     await disableNetwork(testDb);
     try {
-      // Given: Use the current iteration or branch inputs from the enclosing case.
-      // When: Observe the prepared result through the following checks.
-      // Then: Verify the expected result in the assertions below.
+      // When: Read answer history from cache while offline.
+      // Then: Return the same records as the server read with a cache source.
       expect(await readAnswerHistory(input, true)).toMatchObject({ source: "cache", records: online.records });
       const user = auth.currentUser;
       if (!user) throw new Error("Missing test user");
@@ -306,6 +305,7 @@ describe("Bounded answer history", () => {
     });
     const snapshots: StudyAnswerHistory[] = [];
     const errors: Error[] = [];
+    // When: Subscribe to the requested answer history scope.
     const stop = subscribeStudyAnswerHistory(
       input,
       (value) => snapshots.push(value),
@@ -314,11 +314,11 @@ describe("Bounded answer history", () => {
     let stopObserver: (() => void) | undefined;
     try {
       // Given: Use the current iteration or branch inputs from the enclosing case.
-      // When: Observe the prepared result through the following checks.
       // Then: Verify the expected result in the assertions below.
       await vi.waitFor(() => expect(snapshots.at(-1)).toMatchObject({ source: "server", records: [] }));
       // When: Exercise `disableNetwork` with the prepared inputs.
       await disableNetwork(testDb);
+      // When: Save a new answer while offline.
       const committed = writeStudyAnswer({
         id: crypto.randomUUID(),
         uid: "uid",

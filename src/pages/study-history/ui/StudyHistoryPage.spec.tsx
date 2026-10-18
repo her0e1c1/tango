@@ -308,7 +308,7 @@ describe("STUDY-SESSION-09 STUDY-SESSION-10 STUDY-SESSION-11 STUDY-SESSION-12 ST
     );
     // Then: Verify the expected result in the assertions below.
     expect(screen.queryByRole("img")).not.toBeInTheDocument();
-    // When: Exercise `completedRecord` with the prepared inputs.
+    // Given: Prepare records for the newly selected period.
     const older = {
       ...completedRecord(),
       sessionId: "older",
@@ -316,6 +316,7 @@ describe("STUDY-SESSION-09 STUDY-SESSION-10 STUDY-SESSION-11 STUDY-SESSION-12 ST
       endedAt: new Date(2026, 7, 1, 12).getTime(),
       occurredAt: new Date(2026, 7, 1, 12).getTime(),
     };
+    // When: Deliver records for the currently selected period.
     emit([older, completedRecord()]);
     // Then: Verify the expected result in the assertions below.
     expect(screen.getByText("Jun 25, 2026 – Sep 22, 2026")).toBeVisible();
@@ -333,6 +334,7 @@ describe("STUDY-SESSION-09 STUDY-SESSION-10 STUDY-SESSION-11 STUDY-SESSION-12 ST
     expect(screen.getByRole("button", { name: "Older dates" })).toBeDisabled();
     // When: Exercise `user.click` with the prepared inputs.
     await user.click(screen.getByRole("button", { name: "7 days" }));
+    // When: Deliver records for the currently selected period.
     emit([older, completedRecord()]);
     // Then: Verify the expected result in the assertions below.
     expect(screen.getAllByRole("definition")[0]).toHaveTextContent("1");

@@ -139,13 +139,14 @@ describe("Authentication and sync lifecycle [ACCOUNT-01 ACCOUNT-03 ACCOUNT-04 PE
   });
   it("ACCOUNT-03 blocks signout while restored cache changes are pending in all collections", async () => {
     // Given: Use this case's inputs and any shared test setup.
-    // When: Exercise `publish` with the prepared inputs.
+
     await publish(user("account", false));
     control.pendingChanges = ["deck", "card", "studySession", "studyAnswer"].map((collection) => ({
       collection,
       uid: "account",
     }));
-    // Then: Verify the expected result in the assertions below.
+    // When: Attempt to sign out of the prepared account.
+    // Then: Enforce the pending-change guard and retain or release the account as specified.
     await expect(control.before?.(null)).rejects.toThrow("Sync changes");
     expect(getAuthSession()).toMatchObject({ status: "authenticated", uid: "account" });
     expect(control.subscribed).toBe("account");
@@ -156,11 +157,13 @@ describe("Authentication and sync lifecycle [ACCOUNT-01 ACCOUNT-03 ACCOUNT-04 PE
     "ACCOUNT-03 blocks signout when only the current account's %s changes are pending",
     async (collection) => {
       // Given: Use this case's inputs and any shared test setup.
-      // When: Exercise `publish` with the prepared inputs.
+
       await publish(user("account", false, "Account Owner"));
       control.pendingChanges = [{ collection, uid: "account" }];
 
-      // Then: Verify the expected result in the assertions below.
+      // When: Attempt to sign out of the prepared account.
+
+      // Then: Enforce the pending-change guard and retain or release the account as specified.
       await expect(control.before?.(null)).rejects.toThrow("Sync changes");
 
       expect(getAuthSession()).toEqual({
@@ -177,14 +180,16 @@ describe("Authentication and sync lifecycle [ACCOUNT-01 ACCOUNT-03 ACCOUNT-04 PE
   );
   it("ACCOUNT-03 permits signout when cached pending changes belong only to another account", async () => {
     // Given: Use this case's inputs and any shared test setup.
-    // When: Exercise `publish` with the prepared inputs.
+
     await publish(user("account", false));
     control.pendingChanges = ["deck", "card", "studySession", "studyAnswer"].map((collection) => ({
       collection,
       uid: "other-account",
     }));
 
-    // Then: Verify the expected result in the assertions below.
+    // When: Attempt to sign out of the prepared account.
+
+    // Then: Enforce the pending-change guard and retain or release the account as specified.
     await expect(control.before?.(null)).resolves.toBeUndefined();
 
     expect(control.auth.currentUser?.uid).toBe("account");

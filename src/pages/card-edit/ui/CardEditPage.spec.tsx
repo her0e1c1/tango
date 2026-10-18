@@ -174,6 +174,7 @@ describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 CARD-VIEW-05 CARD-MANAGEMENT-09 
     renderPage(`/card/${delayedCardId}/edit`);
 
     expect(screen.getByRole("heading", { level: 1, name: "Card not found" })).toBeVisible();
+    // When: Deliver the route's Card after the editor has mounted.
     await actAsync(async () => {
       await createCard(
         "user-id",
@@ -181,6 +182,7 @@ describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 CARD-VIEW-05 CARD-MANAGEMENT-09 
       );
     });
 
+    // Then: Initialize the editor from the arriving Card.
     expect(screen.getByRole("textbox", { name: "Front text" })).toHaveValue("Delayed front");
     // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByRole("tab", { name: "Back" }));

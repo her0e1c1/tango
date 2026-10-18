@@ -483,32 +483,32 @@ describe("Firestore synchronization contracts", () => {
 
   it("[FIRESTORE-RULES-DECK-27] requires server update times for deck writes", async () => {
     // Given: Use this case's inputs and any shared test setup.
-    // When: Observe the prepared result through the following checks.
-    // Then: Verify the expected result in the assertions below.
+    // When: Attempt the timestamp variants through the shared write helper.
+    // Then: The helper checks Rules authorization and the saved server timestamp.
     await expectServerUpdateTime("deck");
     expect((await getDoc(doc(remote, "deck", "new"))).data()?.updatedAt).toBeInstanceOf(Timestamp);
   });
 
   it("[FIRESTORE-RULES-CARD-27] requires server update times for card writes", async () => {
     // Given: Use this case's inputs and any shared test setup.
-    // When: Observe the prepared result through the following checks.
-    // Then: Verify the expected result in the assertions below.
+    // When: Attempt the timestamp variants through the shared write helper.
+    // Then: The helper checks Rules authorization and the saved server timestamp.
     await expectServerUpdateTime("card");
     expect((await getDoc(doc(remote, "card", "new"))).data()?.updatedAt).toBeInstanceOf(Timestamp);
   });
 
   it("[FIRESTORE-RULES-STUDY-SESSION-04] requires server update times for studySession writes", async () => {
     // Given: Use this case's inputs and any shared test setup.
-    // When: Observe the prepared result through the following checks.
-    // Then: Verify the expected result in the assertions below.
+    // When: Attempt the timestamp variants through the shared write helper.
+    // Then: The helper checks Rules authorization and the saved server timestamp.
     await expectServerUpdateTime("studySession");
     expect((await getDoc(doc(remote, "studySession", "new"))).data()?.updatedAt).toBeInstanceOf(Timestamp);
   });
 
   it("[FIRESTORE-RULES-STUDY-ANSWER-05] requires server update times for studyAnswer writes", async () => {
     // Given: Use this case's inputs and any shared test setup.
-    // When: Observe the prepared result through the following checks.
-    // Then: Verify the expected result in the assertions below.
+    // When: Attempt the timestamp variants through the shared write helper.
+    // Then: The helper checks Rules authorization and the saved server timestamp.
     await expectServerUpdateTime("studyAnswer");
     expect((await getDoc(doc(remote, "studyAnswer", "new"))).data()?.updatedAt).toBeInstanceOf(Timestamp);
   });

@@ -68,13 +68,14 @@ test("ACCOUNT-01 Google linking preserves the anonymous identity and its data", 
 
   for (const collection of ["deck", "card", "studySession", "studyAnswer"] as const) {
     // Given: Use the current iteration or branch inputs from the enclosing case.
-    // When: Observe the prepared result through the following checks.
-    // Then: Verify the expected result in the assertions below.
+    // Given: Confirm that the anonymous data has not been saved remotely yet.
     expect((await listDocuments(collection)).filter(({ fields }) => fields.uid?.stringValue === anonymousUid)).toEqual(
       []
     );
   }
+  // When: Link Google authentication to the existing anonymous identity.
   await completeGooglePopup(page, namespace.uid);
+  // Then: Retain the identity and data while announcing the linked account.
   await expect(page.getByRole("status").filter({ hasText: "Signed in." })).toBeVisible();
   await expect(page.getByText("Signed in with Google")).toBeVisible();
   await expect(page.getByText(anonymousUid, { exact: true })).toBeVisible();

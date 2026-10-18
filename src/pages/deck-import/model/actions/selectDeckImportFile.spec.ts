@@ -39,10 +39,10 @@ describe("Deck import selection and saving [DECK-IMPORT-01 DECK-IMPORT-03 DECK-I
     "rejects invalid UTF-8 bytes %j before parsing and releases the selection lock",
     async (...bytes) => {
       // Given: Use this case's inputs and any shared test setup.
-      // When: Exercise `selectDeckImportFile` with the prepared inputs.
       await selectDeckImportFile(file("previous.csv"));
       vi.mocked(parseCsv).mockClear();
       const invalid = new File([new Uint8Array([...bytes, 44, 98, 44, 44, 107])], "invalid.csv");
+      // When: Replace the previous preview with the invalid UTF-8 file.
       await selectDeckImportFile(invalid);
       // Then: Verify the expected result in the assertions below.
       expect(parseCsv).not.toHaveBeenCalled();
