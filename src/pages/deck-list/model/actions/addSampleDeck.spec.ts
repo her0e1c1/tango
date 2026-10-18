@@ -60,14 +60,18 @@ import { addSampleDeck } from "./addSampleDeck";
 
 describe("addSampleDeck [DECK-IMPORT-07]", () => {
   beforeEach(() => {
+    // Given: Establish the shared setup used by the following cases.
     repository.uid = "uid-a";
     repository.cards = [];
     repository.decks = [];
   });
 
   it("creates a sample deck and Card writes for the current user", async () => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Exercise `addSampleDeck` with the prepared inputs.
     const result = await addSampleDeck();
 
+    // Then: Verify the expected result in the assertions below.
     expect(result.created).toBeGreaterThan(0);
     expect(result.deckId).toBe(`${repository.uid}-sample-v1`);
     expect(repository.decks).toEqual([
@@ -78,10 +82,13 @@ describe("addSampleDeck [DECK-IMPORT-07]", () => {
   });
 
   it("creates a sample Deck and Cards for an anonymous user", async () => {
+    // Given: Use this case's inputs and any shared test setup.
     repository.uid = "anonymous-uid";
 
+    // When: Exercise `addSampleDeck` with the prepared inputs.
     const result = await addSampleDeck();
 
+    // Then: Verify the expected result in the assertions below.
     expect(result.created).toBeGreaterThan(0);
     expect(result.deckId).toBe(`${repository.uid}-sample-v1`);
     expect(repository.decks).toEqual([

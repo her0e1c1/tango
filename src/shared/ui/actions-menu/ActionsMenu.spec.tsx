@@ -68,6 +68,7 @@ const labels = {
 
 describe("ActionsMenu", () => {
   it("renders supplied labels and runs items before returning focus", async () => {
+    // Given: Prepare `edit`, `remove`, `trigger` and any shared test state below.
     const edit = vi.fn();
     const remove = vi.fn();
     render(<ControlledMenu {...labels} items={items(edit, remove)} />);
@@ -75,41 +76,61 @@ describe("ActionsMenu", () => {
 
     expect(screen.getByRole("group", { name: labels.groupLabel })).toBeInTheDocument();
     expect(trigger).toHaveAttribute("aria-expanded", "false");
+    // When: Exercise `fireEvent.click` with the prepared inputs.
     fireEvent.click(trigger);
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByRole("menu", { name: labels.menuLabel })).toBeInTheDocument();
+    // When: Exercise `fireEvent.click` with the prepared inputs.
     fireEvent.click(screen.getByRole("menuitem", { name: "Edit" }));
+    // Then: Verify the expected result in the assertions below.
     expect(edit).toHaveBeenCalledOnce();
     await waitFor(() => expect(trigger).toHaveFocus());
 
+    // When: Exercise `fireEvent.click` with the prepared inputs.
     fireEvent.click(trigger);
     const deleteItem = screen.getByRole("menuitem", { name: "Delete" });
     fireEvent.click(deleteItem);
+    // Then: Verify the expected result in the assertions below.
     expect(remove).toHaveBeenCalledOnce();
     await waitFor(() => expect(trigger).toHaveFocus());
   });
 
   it("supports wrapping arrows, Home, End, and Escape", async () => {
+    // Given: Prepare `trigger` and any shared test state below.
     render(<ControlledMenu {...labels} items={items()} />);
     const trigger = screen.getByRole("button", { name: labels.triggerLabel });
+    // When: Exercise `fireEvent.click` with the prepared inputs.
     fireEvent.click(trigger);
     const edit = screen.getByRole("menuitem", { name: "Edit" });
     const remove = screen.getByRole("menuitem", { name: "Delete" });
 
+    // Then: Verify the expected result in the assertions below.
     await waitFor(() => expect(edit).toHaveFocus());
+    // When: Exercise `fireEvent.keyDown` with the prepared inputs.
     fireEvent.keyDown(edit, { key: "ArrowUp" });
+    // Then: Verify the expected result in the assertions below.
     expect(remove).toHaveFocus();
+    // When: Exercise `fireEvent.keyDown` with the prepared inputs.
     fireEvent.keyDown(remove, { key: "Home" });
+    // Then: Verify the expected result in the assertions below.
     expect(edit).toHaveFocus();
+    // When: Exercise `fireEvent.keyDown` with the prepared inputs.
     fireEvent.keyDown(edit, { key: "End" });
+    // Then: Verify the expected result in the assertions below.
     expect(remove).toHaveFocus();
+    // When: Exercise `fireEvent.keyDown` with the prepared inputs.
     fireEvent.keyDown(remove, { key: "ArrowDown" });
+    // Then: Verify the expected result in the assertions below.
     expect(edit).toHaveFocus();
+    // When: Exercise `fireEvent.keyDown` with the prepared inputs.
     fireEvent.keyDown(edit, { key: "Escape" });
+    // Then: Verify the expected result in the assertions below.
     expect(screen.queryByRole("menu")).not.toBeInTheDocument();
     expect(trigger).toHaveFocus();
   });
 
   it("keeps menu items out of the Tab sequence and moves Tab to the next external control", async () => {
+    // Given: Use this case's inputs and any shared test setup.
     render(
       <>
         <button type="button">Previous control</button>
@@ -117,20 +138,25 @@ describe("ActionsMenu", () => {
         <button type="button">Next control</button>
       </>
     );
+    // When: Exercise `fireEvent.click` with the prepared inputs.
     fireEvent.click(screen.getByRole("button", { name: labels.triggerLabel }));
     const edit = screen.getByRole("menuitem", { name: "Edit" });
     const remove = screen.getByRole("menuitem", { name: "Delete" });
+    // Then: Verify the expected result in the assertions below.
     await waitFor(() => expect(edit).toHaveFocus());
 
     expect(edit).toHaveAttribute("tabindex", "-1");
     expect(remove).toHaveAttribute("tabindex", "-1");
+    // When: Exercise `actAsync` with the prepared inputs.
     await actAsync(async () => fireEvent.keyDown(edit, { key: "Tab" }));
 
+    // Then: Verify the expected result in the assertions below.
     expect(screen.queryByRole("menu")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Next control" })).toHaveFocus();
   });
 
   it("moves Shift+Tab to the previous external control before the trigger", async () => {
+    // Given: Use this case's inputs and any shared test setup.
     render(
       <>
         <button type="button">Previous control</button>
@@ -138,17 +164,22 @@ describe("ActionsMenu", () => {
         <button type="button">Next control</button>
       </>
     );
+    // When: Exercise `fireEvent.click` with the prepared inputs.
     fireEvent.click(screen.getByRole("button", { name: labels.triggerLabel }));
     const edit = screen.getByRole("menuitem", { name: "Edit" });
+    // Then: Verify the expected result in the assertions below.
     await waitFor(() => expect(edit).toHaveFocus());
 
+    // When: Exercise `actAsync` with the prepared inputs.
     await actAsync(async () => fireEvent.keyDown(edit, { key: "Tab", shiftKey: true }));
 
+    // Then: Verify the expected result in the assertions below.
     expect(screen.queryByRole("menu")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Previous control" })).toHaveFocus();
   });
 
   it("skips disabled, hidden, and inert controls before focusing an explicit tab stop", async () => {
+    // Given: Use this case's inputs and any shared test setup.
     render(
       <>
         <ControlledMenu {...labels} items={items()} />
@@ -167,48 +198,63 @@ describe("ActionsMenu", () => {
         <button type="button">Next enabled control</button>
       </>
     );
+    // When: Exercise `fireEvent.click` with the prepared inputs.
     fireEvent.click(screen.getByRole("button", { name: labels.triggerLabel }));
     const edit = screen.getByRole("menuitem", { name: "Edit" });
+    // Then: Verify the expected result in the assertions below.
     await waitFor(() => expect(edit).toHaveFocus());
 
+    // When: Exercise `actAsync` with the prepared inputs.
     await actAsync(async () => fireEvent.keyDown(edit, { key: "Tab" }));
 
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByText("Explicit tab stop")).toHaveFocus();
   });
 
   it("keeps the menu open when an ambiguous blur settles inside", async () => {
+    // Given: Use this case's inputs and any shared test setup.
     render(<ControlledMenu {...labels} items={items()} />);
+    // When: Exercise `fireEvent.click` with the prepared inputs.
     fireEvent.click(screen.getByRole("button", { name: labels.triggerLabel }));
     const edit = screen.getByRole("menuitem", { name: "Edit" });
     const remove = screen.getByRole("menuitem", { name: "Delete" });
+    // Then: Verify the expected result in the assertions below.
     await waitFor(() => expect(edit).toHaveFocus());
 
+    // When: Exercise `act` with the prepared inputs.
     act(() => {
       edit.blur();
       remove.focus();
     });
 
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByRole("menu", { name: labels.menuLabel })).toBeInTheDocument();
     expect(remove).toHaveFocus();
   });
 
   it("keeps Edit active when an ambiguous blur microtask runs before the click", async () => {
+    // Given: Prepare `editAction`, `trigger` and any shared test state below.
     const editAction = vi.fn();
     render(<ControlledMenu {...labels} items={items(editAction)} />);
     const trigger = screen.getByRole("button", { name: labels.triggerLabel });
 
+    // When: Exercise `fireEvent.click` with the prepared inputs.
     fireEvent.click(trigger);
     const edit = screen.getByRole("menuitem", { name: "Edit" });
+    // Then: Verify the expected result in the assertions below.
     await waitFor(() => expect(edit).toHaveFocus());
 
     vi.useFakeTimers({ toFake: ["setTimeout"] });
     try {
+      // Given: Use the current iteration or branch inputs from the enclosing case.
       await actAsync(async () => {
         edit.blur();
         await Promise.resolve();
       });
+      // When: Exercise `fireEvent.click` with the prepared inputs.
       fireEvent.click(edit);
 
+      // Then: Verify the expected result in the assertions below.
       expect(editAction).toHaveBeenCalledOnce();
     } finally {
       act(() => {
@@ -219,19 +265,27 @@ describe("ActionsMenu", () => {
   });
 
   it("keeps a newly opened sibling menu open after a stale blur timer runs", async () => {
+    // Given: Use this case's inputs and any shared test setup.
     render(<SharedOpenMenus />);
+    // When: Exercise `fireEvent.click` with the prepared inputs.
     fireEvent.click(screen.getByRole("button", { name: "Open first actions" }));
     const firstEdit = screen.getByRole("menuitem", { name: "Edit" });
+    // Then: Verify the expected result in the assertions below.
     await waitFor(() => expect(firstEdit).toHaveFocus());
 
     vi.useFakeTimers({ toFake: ["setTimeout"] });
     try {
+      // Given: Use the current iteration or branch inputs from the enclosing case.
       act(() => firstEdit.blur());
+      // When: Exercise `fireEvent.click` with the prepared inputs.
       fireEvent.click(screen.getByRole("button", { name: "Open second actions" }));
 
       const secondMenu = screen.getByRole("menu", { name: `second ${labels.menuLabel}` });
+      // Then: Verify the expected result in the assertions below.
       expect(secondMenu).toBeInTheDocument();
+      // When: Exercise `act` with the prepared inputs.
       act(() => vi.runOnlyPendingTimers());
+      // Then: Verify the expected result in the assertions below.
       expect(secondMenu).toBeInTheDocument();
     } finally {
       vi.useRealTimers();
@@ -239,17 +293,22 @@ describe("ActionsMenu", () => {
   });
 
   it("does not close after its root unmounts during an ambiguous blur", () => {
+    // Given: Prepare `onClose`, `view`, `edit` and any shared test state below.
     const onClose = vi.fn();
     const view = render(<ActionsMenu {...labels} items={items()} open onToggle={vi.fn()} onClose={onClose} />);
     const edit = screen.getByRole("menuitem", { name: "Edit" });
+    // When: Exercise `edit.focus` with the prepared inputs.
     edit.focus();
 
     vi.useFakeTimers({ toFake: ["setTimeout"] });
     try {
+      // Given: Use the current iteration or branch inputs from the enclosing case.
+      // When: Exercise `act` with the prepared inputs.
       act(() => edit.blur());
       view.unmount();
       act(() => vi.runOnlyPendingTimers());
 
+      // Then: Verify the expected result in the assertions below.
       expect(onClose).not.toHaveBeenCalled();
     } finally {
       vi.useRealTimers();
@@ -257,29 +316,37 @@ describe("ActionsMenu", () => {
   });
 
   it("closes when an ambiguous blur settles outside", async () => {
+    // Given: Use this case's inputs and any shared test setup.
     render(
       <>
         <button type="button">External target</button>
         <ControlledMenu {...labels} items={items()} />
       </>
     );
+    // When: Exercise `fireEvent.click` with the prepared inputs.
     fireEvent.click(screen.getByRole("button", { name: labels.triggerLabel }));
     const edit = screen.getByRole("menuitem", { name: "Edit" });
     const external = screen.getByRole("button", { name: "External target" });
+    // Then: Verify the expected result in the assertions below.
     await waitFor(() => expect(edit).toHaveFocus());
 
+    // When: Exercise `act` with the prepared inputs.
     act(() => {
       edit.blur();
       external.focus();
     });
 
+    // Then: Verify the expected result in the assertions below.
     await waitFor(() => expect(screen.queryByRole("menu")).not.toBeInTheDocument());
     expect(external).toHaveFocus();
   });
 
   it("disables the trigger and hides an open menu", () => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Exercise `render` with the prepared inputs.
     render(<ActionsMenu {...labels} items={items()} open disabled onToggle={vi.fn()} onClose={vi.fn()} />);
 
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByRole("button", { name: labels.triggerLabel })).toBeDisabled();
     expect(screen.queryByRole("menu")).not.toBeInTheDocument();
   });

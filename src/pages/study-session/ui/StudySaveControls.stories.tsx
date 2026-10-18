@@ -2,6 +2,9 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { expect, fn } from "storybook/test";
 import { StudySaveControls } from "./StudySaveControls";
 
+// Given: Story args and parameters define the render scenarios below.
+// When: Storybook renders each exported variant and runs its play when present.
+// Then: Assertions are in the relevant plays; rendering alone adds no behavioral checks.
 const meta = {
   title: "Pages/Study Session/StudySaveControls",
   component: StudySaveControls,
@@ -13,8 +16,12 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   play: async ({ canvas, userEvent, args, step }) => {
+    // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-STUDY-CONTROLS-02 Skip card", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
+      // When: Exercise `userEvent.click` with the prepared inputs.
       await userEvent.click(canvas.getByRole("button", { name: "Skip" }));
+      // Then: Verify the expected result in the assertions below.
       await expect(args.onSkip).toHaveBeenCalledOnce();
     });
   },

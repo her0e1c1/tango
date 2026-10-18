@@ -22,9 +22,12 @@ const visible = new Set(["deck"]);
 
 describe("STUDY-SESSION-09 STUDY-SESSION-13 daily study counts", () => {
   it("counts a completed session once in both metrics and includes 30 calendar days", () => {
+    // Given: Prepare `started`, `completed` and any shared test state below.
     const started = record(new Date(2026, 8, 21, 10).getTime());
     const completed = record(new Date(2026, 8, 21, 11).getTime());
+    // When: Exercise `aggregateStudyHistory` with the prepared inputs.
     const result = aggregateStudyHistory(period, [started], [completed], visible);
+    // Then: Verify the expected result in the assertions below.
     expect(result).toMatchObject({ started: 1, completed: 1 });
     expect(result.days).toHaveLength(30);
     expect(result.days.at(-1)).toEqual({ date: new Date(2026, 8, 21).getTime(), started: 1, completed: 1 });
@@ -32,6 +35,7 @@ describe("STUDY-SESSION-09 STUDY-SESSION-13 daily study counts", () => {
   });
 
   it("counts independent starts and completions on their own calendar dates", () => {
+    // Given: Prepare `started`, `completed` and any shared test state below.
     const started = [
       record(new Date(2026, 8, 20, 23).getTime()),
       record(period.start),
@@ -39,7 +43,9 @@ describe("STUDY-SESSION-09 STUDY-SESSION-13 daily study counts", () => {
       record(period.start),
     ];
     const completed = [record(new Date(2026, 8, 21, 1).getTime()), record(period.start)];
+    // When: Exercise `aggregateStudyHistory` with the prepared inputs.
     const result = aggregateStudyHistory(period, started, completed, visible);
+    // Then: Verify the expected result in the assertions below.
     expect(result).toMatchObject({ started: 4, completed: 2 });
     expect(result.days[0]).toMatchObject({ started: 2, completed: 1 });
     expect(result.days.at(-2)).toMatchObject({ started: 1, completed: 0 });
@@ -47,8 +53,11 @@ describe("STUDY-SESSION-09 STUDY-SESSION-13 daily study counts", () => {
   });
 
   it("retains more than 100 records and excludes unavailable decks without displacing visible records", () => {
+    // Given: Prepare `records`, `hidden` and any shared test state below.
     const records = Array.from({ length: 130 }, () => record(period.start));
     const hidden = Array.from({ length: 200 }, () => record(period.start, "deleted"));
+    // When: Evaluate `aggregateStudyHistory` as part of the following checks.
+    // Then: Verify the expected result in the assertions below.
     expect(aggregateStudyHistory(period, [...hidden, ...records], hidden, visible)).toMatchObject({
       started: 130,
       completed: 0,
@@ -58,8 +67,11 @@ describe("STUDY-SESSION-09 STUDY-SESSION-13 daily study counts", () => {
   it.each([new Date(2026, 2, 15), new Date(2026, 10, 10), new Date(2026, 0, 5)])(
     "uses local midnights across month, year and daylight-saving boundaries (%s)",
     (today) => {
+      // Given: Prepare `range` and any shared test state below.
       const range = getStudyHistoryPeriod(today);
+      // When: Exercise `aggregateStudyHistory` with the prepared inputs.
       const result = aggregateStudyHistory(range, [], [], visible);
+      // Then: Verify the expected result in the assertions below.
       expect(result.days).toHaveLength(30);
       expect(new Date(range.start).getHours()).toBe(0);
       expect(new Date(range.end).getHours()).toBe(0);
@@ -74,18 +86,23 @@ describe("STUDY-SESSION-09 STUDY-SESSION-13 daily study counts", () => {
     ["2025-11-01", "2025-11-03", 3],
     ["2026-01-01", "2026-01-01", 1],
   ] as const)("includes both local date boundaries in %s–%s", (start, end, length) => {
+    // Given: Prepare `range` and any shared test state below.
     const range = getStudyHistoryRange(new URLSearchParams({ start, end }), new Date(2026, 8, 22)).period;
     if (range === null) throw new Error("Expected a valid custom period");
+    // When: Exercise `aggregateStudyHistory` with the prepared inputs.
     const empty = aggregateStudyHistory(range, [], [], visible);
+    // Then: Verify the expected result in the assertions below.
     expect(empty.days).toHaveLength(length);
     expect(empty.started).toBe(0);
     expect(empty.completed).toBe(0);
+    // When: Exercise `aggregateStudyHistory` with the prepared inputs.
     const result = aggregateStudyHistory(
       range,
       [record(range.start - 1), record(range.start), record(range.end - 1), record(range.end)],
       [record(range.start), record(range.end - 1)],
       visible
     );
+    // Then: Verify the expected result in the assertions below.
     expect(result.started).toBe(2);
     expect(result.completed).toBe(2);
     expect(result.days[0]?.date).toBe(new Date(`${start}T00:00:00`).getTime());
@@ -120,21 +137,29 @@ describe("STUDY-SESSION-09 STUDY-SESSION-13 daily study counts", () => {
     ] as const)(
       "spans $hours hours and three New York calendar days in $start–$end",
       ({ start, end, midnights, hours }) => {
+        // Given: Use this case's inputs and any shared test setup.
+        // Given: Confirm that this subprocess uses the requested New York timezone.
         expect(Intl.DateTimeFormat().resolvedOptions().timeZone).toBe("America/New_York");
+        // When: Exercise `getStudyHistoryRange` with the prepared inputs.
         const range = getStudyHistoryRange(new URLSearchParams({ start, end }), new Date(2026, 8, 22)).period;
         if (range === null) throw new Error("Expected a valid custom period");
+        // Then: Verify the expected result in the assertions below.
         expect(range).toEqual({ start: Date.parse(midnights[0]), end: Date.parse(midnights[3]) });
         expect(range.end - range.start).toBe(hours * 60 * 60 * 1000);
         for (const boundary of [range.start, range.end]) {
+          // Given: Prepare `date` and any shared test state below.
           const date = new Date(boundary);
+          // Then: Verify the expected result in the assertions below.
           expect([date.getHours(), date.getMinutes(), date.getSeconds(), date.getMilliseconds()]).toEqual([0, 0, 0, 0]);
         }
+        // When: Exercise `aggregateStudyHistory` with the prepared inputs.
         const result = aggregateStudyHistory(
           range,
           [record(range.start - 1), record(range.start), record(range.end - 1), record(range.end)],
           [record(range.start - 1), record(range.start), record(range.end - 1), record(range.end)],
           visible
         );
+        // Then: Verify the expected result in the assertions below.
         expect(result.days).toHaveLength(3);
         expect(result.days.map((day) => day.date)).toEqual(midnights.slice(0, 3).map((date) => Date.parse(date)));
         expect(result.days.map(({ started, completed }) => ({ started, completed }))).toEqual([
@@ -147,6 +172,8 @@ describe("STUDY-SESSION-09 STUDY-SESSION-13 daily study counts", () => {
     );
   } else {
     it("verifies DST boundaries in a TZ=America/New_York subprocess", () => {
+      // Given: Prepare `output` and any shared test state below.
+      // When: Run the DST cases in an isolated New York timezone subprocess.
       const output = execFileSync(
         process.execPath,
         [
@@ -164,6 +191,7 @@ describe("STUDY-SESSION-09 STUDY-SESSION-13 daily study counts", () => {
         }
       );
       console.info(output);
+      // Then: Verify the expected result in the assertions below.
       expect(output).toContain("spans 71 hours");
       expect(output).toContain("spans 73 hours");
     }, 35_000);

@@ -6,11 +6,16 @@ describe("authSessionStore [ACCOUNT-03] [ACCOUNT-04]", () => {
   beforeEach(() => replaceAuthSession({ status: "initializing" }));
 
   it("starts without an identity", () => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Evaluate `getAuthSession` as part of the following checks.
+    // Then: Verify the expected result in the assertions below.
     expect(getAuthSession()).toEqual({ status: "initializing" });
     expect("uid" in getAuthSession()).toBe(false);
   });
 
   it("replaces the current session", () => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Exercise `replaceAuthSession` with the prepared inputs.
     replaceAuthSession({
       status: "authenticated",
       uid: "uid-a",
@@ -18,6 +23,7 @@ describe("authSessionStore [ACCOUNT-03] [ACCOUNT-04]", () => {
       displayName: null,
     });
 
+    // Then: Verify the expected result in the assertions below.
     expect(getAuthSession()).toEqual({
       status: "authenticated",
       uid: "uid-a",
@@ -27,9 +33,12 @@ describe("authSessionStore [ACCOUNT-03] [ACCOUNT-04]", () => {
   });
 
   it("represents anonymous authentication without an SDK credential", () => {
+    // Given: Prepare `attemptId` and any shared test state below.
     const attemptId = Symbol("attempt-a");
+    // When: Exercise `replaceAuthSession` with the prepared inputs.
     replaceAuthSession({ status: "authenticating", attemptId });
 
+    // Then: Verify the expected result in the assertions below.
     expect(getAuthSession()).toEqual({ status: "authenticating", attemptId });
   });
 });
@@ -38,6 +47,8 @@ describe("getAuthUid [ACCOUNT-01] [ACCOUNT-03] [ACCOUNT-04] [DECK-MANAGEMENT-07]
   beforeEach(() => replaceAuthSession({ status: "initializing" }));
 
   it("returns the linked account UID", () => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Exercise `replaceAuthSession` with the prepared inputs.
     replaceAuthSession({
       status: "authenticated",
       uid: "uid-a",
@@ -45,17 +56,23 @@ describe("getAuthUid [ACCOUNT-01] [ACCOUNT-03] [ACCOUNT-04] [DECK-MANAGEMENT-07]
       displayName: null,
     });
 
+    // Then: Verify the expected result in the assertions below.
     expect(getAuthUid()).toBe("uid-a");
   });
 
   it("preserves the same persistence identity when an anonymous account is linked", () => {
+    // Given: Prepare `session` and any shared test state below.
     const session = { status: "authenticated" as const, uid: "uid-a", isAnonymous: true, displayName: null };
+    // When: Exercise `replaceAuthSession` with the prepared inputs.
     replaceAuthSession(session);
 
+    // Then: Verify the expected result in the assertions below.
     expect(getAuthUid()).toBe("uid-a");
 
+    // When: Exercise `replaceAuthSession` with the prepared inputs.
     replaceAuthSession({ ...session, isAnonymous: false });
 
+    // Then: Verify the expected result in the assertions below.
     expect(getAuthUid()).toBe("uid-a");
   });
 
@@ -65,8 +82,11 @@ describe("getAuthUid [ACCOUNT-01] [ACCOUNT-03] [ACCOUNT-04] [DECK-MANAGEMENT-07]
     { status: "authenticating" as const, attemptId: Symbol("attempt-a") },
     { status: "error" as const, source: "auth" as const, error: new Error("authentication failed") },
   ])("returns an empty string when the session is $status", (session) => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Exercise `replaceAuthSession` with the prepared inputs.
     replaceAuthSession(session);
 
+    // Then: Verify the expected result in the assertions below.
     expect(getAuthUid()).toBe("");
   });
 });

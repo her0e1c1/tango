@@ -40,6 +40,7 @@ const deck = createDeck({
 
 describe("NAVIGATION-17 NAVIGATION-08 DeckListCard [STUDY-SESSION-03]", () => {
   beforeEach(() => {
+    // Given: Establish the shared setup used by the following cases.
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-07-18T00:10:00Z"));
   });
@@ -57,9 +58,12 @@ describe("NAVIGATION-17 NAVIGATION-08 DeckListCard [STUDY-SESSION-03]", () => {
       `Next review: ${new Intl.DateTimeFormat("en", { dateStyle: "medium", timeStyle: "short" }).format(Date.UTC(2026, 8, 23, 12))}`,
     ],
   ])("distinguishes zero-count decks (%s cards)", (cardCount, nextDueAt, note) => {
+    // Given: Use this case's inputs and any shared test setup.
     render(<DeckListCard deck={deck} cardCount={cardCount} review={{ due: 0, new: 0, nextDueAt }} />);
     expect(screen.getByText(note)).not.toBeVisible();
+    // When: Exercise `fireEvent.click` with the prepared inputs.
     fireEvent.click(screen.getByText("No due or new cards"));
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByText(note)).toBeVisible();
     expect(screen.getByRole("button", { name: "Study Deck name" })).toBeEnabled();
   });
@@ -68,6 +72,7 @@ describe("NAVIGATION-17 NAVIGATION-08 DeckListCard [STUDY-SESSION-03]", () => {
     [1, 2, "Review Deck name"],
     [0, 2, "Study new cards in Deck name"],
   ])("opens study settings for due=%s and new=%s", (due, newCount, label) => {
+    // Given: Prepare `onClickStudy` and any shared test state below.
     const onClickStudy = vi.fn();
     render(
       <DeckListCard
@@ -77,11 +82,15 @@ describe("NAVIGATION-17 NAVIGATION-08 DeckListCard [STUDY-SESSION-03]", () => {
         onClickStudy={onClickStudy}
       />
     );
+    // When: Exercise `fireEvent.click` with the prepared inputs.
     fireEvent.click(screen.getByRole("button", { name: label }));
+    // Then: Verify the expected result in the assertions below.
     expect(onClickStudy).toHaveBeenCalledWith(deck.id);
   });
 
   it("renders compact progress for an active deck", () => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Exercise `render` with the prepared inputs.
     render(
       <DeckListCard
         deck={deck}
@@ -97,6 +106,7 @@ describe("NAVIGATION-17 NAVIGATION-08 DeckListCard [STUDY-SESSION-03]", () => {
       />
     );
 
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByText("8 cards")).toBeVisible();
     expect(screen.getByText("Studying · Card 2 of 3")).toBeVisible();
     expect(screen.queryByText("math")).not.toBeInTheDocument();
@@ -108,12 +118,17 @@ describe("NAVIGATION-17 NAVIGATION-08 DeckListCard [STUDY-SESSION-03]", () => {
   });
 
   it("does not show the remote mode icon for a local deck", () => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Exercise `render` with the prepared inputs.
     render(<DeckListCard deck={createLocalDeck()} cardCount={0} />);
 
+    // Then: Verify the expected result in the assertions below.
     expect(screen.queryByLabelText("Remote deck")).not.toBeInTheDocument();
   });
 
   it("shows the restored position without inventing a last-studied time", () => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Exercise `render` with the prepared inputs.
     render(
       <DeckListCard
         deck={deck}
@@ -128,6 +143,7 @@ describe("NAVIGATION-17 NAVIGATION-08 DeckListCard [STUDY-SESSION-03]", () => {
         }}
       />
     );
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByRole("button", { name: "Open cards in Deck name" })).toHaveAccessibleDescription(
       "2 cards Studying · Card 2 of 2"
     );
@@ -135,17 +151,21 @@ describe("NAVIGATION-17 NAVIGATION-08 DeckListCard [STUDY-SESSION-03]", () => {
   });
 
   it("renders the card count and Study action for an inactive deck", () => {
+    // Given: Use this case's inputs and any shared test setup.
     render(<ControlledDeckListCard deck={deck} cardCount={8} />);
 
     expect(screen.getByText("8 cards")).toBeInTheDocument();
     expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Study Deck name" })).toBeInTheDocument();
 
+    // When: Exercise `fireEvent.click` with the prepared inputs.
     fireEvent.click(screen.getByRole("button", { name: "Open actions for Deck name" }));
+    // Then: Verify the expected result in the assertions below.
     expect(screen.queryByRole("menuitem", { name: "Restart" })).not.toBeInTheDocument();
   });
 
   it("passes the deck id to navigation and management actions", () => {
+    // Given: Prepare `actions` and any shared test state below.
     const actions = {
       onClickName: vi.fn(),
       onClickView: vi.fn(),
@@ -172,9 +192,12 @@ describe("NAVIGATION-17 NAVIGATION-08 DeckListCard [STUDY-SESSION-03]", () => {
       />
     );
 
+    // When: Exercise `fireEvent.click` with the prepared inputs.
     fireEvent.click(screen.getByRole("button", { name: "Open cards in Deck name" }));
     fireEvent.click(screen.getByRole("button", { name: "Continue Deck name" }));
+    // Then: Verify the expected result in the assertions below.
     expect(screen.queryByRole("button", { name: "View" })).not.toBeInTheDocument();
+    // When: Exercise `fireEvent.click` with the prepared inputs.
     fireEvent.click(screen.getByRole("button", { name: "Open actions for Deck name" }));
     fireEvent.click(screen.getByRole("menuitem", { name: "View" }));
     fireEvent.click(screen.getByRole("button", { name: "Open actions for Deck name" }));
@@ -186,6 +209,7 @@ describe("NAVIGATION-17 NAVIGATION-08 DeckListCard [STUDY-SESSION-03]", () => {
     fireEvent.click(screen.getByRole("button", { name: "Open actions for Deck name" }));
     fireEvent.click(screen.getByRole("menuitem", { name: "Delete" }));
 
+    // Then: Verify the expected result in the assertions below.
     expect(actions.onClickName).toHaveBeenCalledExactlyOnceWith(deck.id);
     expect(actions.onClickView).toHaveBeenCalledExactlyOnceWith(deck.id);
     expect(actions.onClickContinue).toHaveBeenCalledExactlyOnceWith(deck.id);
@@ -197,18 +221,23 @@ describe("NAVIGATION-17 NAVIGATION-08 DeckListCard [STUDY-SESSION-03]", () => {
   });
 
   it("routes inactive Study without opening the row", () => {
+    // Given: Prepare `onClickName`, `onClickStudy` and any shared test state below.
     const onClickName = vi.fn();
     const onClickStudy = vi.fn();
     render(<DeckListCard deck={deck} cardCount={1} onClickName={onClickName} onClickStudy={onClickStudy} />);
 
+    // When: Exercise `fireEvent.click` with the prepared inputs.
     fireEvent.click(screen.getByRole("button", { name: "Study Deck name" }));
 
+    // Then: Verify the expected result in the assertions below.
     expect(onClickStudy).toHaveBeenCalledExactlyOnceWith(deck.id);
     expect(onClickName).not.toHaveBeenCalled();
   });
 
   it("makes only the pending Deck row unavailable", () => {
+    // Given: Prepare `otherDeck` and any shared test state below.
     const otherDeck = createDeck({ id: "other-deck", name: "Other deck" });
+    // When: Exercise `render` with the prepared inputs.
     render(
       <>
         <ControlledDeckListCard deck={deck} cardCount={8} isPending={(id) => id === deck.id} />
@@ -216,6 +245,7 @@ describe("NAVIGATION-17 NAVIGATION-08 DeckListCard [STUDY-SESSION-03]", () => {
       </>
     );
 
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByRole("button", { name: "Open cards in Deck name" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Study Deck name" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Open actions for Deck name" })).toBeDisabled();

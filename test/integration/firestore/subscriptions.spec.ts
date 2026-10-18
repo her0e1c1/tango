@@ -21,6 +21,7 @@ vi.mock("@/shared/firebase", async () => ({
 
 describe("Query realtime subscriptions", () => {
   beforeEach(() => {
+    // Given: Establish the shared setup used by the following cases.
     cardStore.setState({ cardsById: {} });
     deckStore.setState({ remoteDecks: [] });
   });
@@ -30,6 +31,7 @@ describe("Query realtime subscriptions", () => {
   });
 
   it("[FIRESTORE-SUBSCRIPTIONS-01] loads Card content from the initial snapshot", async () => {
+    // Given: Prepare `uid`, `deck`, `card` and any shared test state below.
     const uid = "uid";
     const deck = createDeckFixture({ id: crypto.randomUUID(), uid, name: "Fetched Deck" });
     const card = createCard({
@@ -43,8 +45,11 @@ describe("Query realtime subscriptions", () => {
     await createCardCommand(uid, card);
 
     const onError = vi.fn();
+    // When: Subscribe to the prepared owner's Card content.
     const stopCards = subscribeCards(uid, onError);
     try {
+      // Given: Use the current iteration or branch inputs from the enclosing case.
+      // Then: Verify the expected result in the assertions below.
       await vi.waitFor(() => {
         expect(Object.values(cardStore.getState().cardsById)).toContainEqual(
           expect.objectContaining({ id: card.id, frontText: "Fetched Card" })
@@ -57,25 +62,33 @@ describe("Query realtime subscriptions", () => {
   });
 
   it("[FIRESTORE-SUBSCRIPTIONS-02] delivers initial, update, and delete snapshots without a cursor", async () => {
+    // Given: Prepare `uid`, `errors`, `stopDecks` and any shared test state below.
     const uid = "uid";
     const errors: Error[] = [];
     const stopDecks = subscribeDecks(uid, (error) => errors.push(error));
     const stopCards = subscribeCards(uid, (error) => errors.push(error));
 
     try {
+      // Given: Prepare `deck`, `card` and any shared test state below.
       const deck = createDeckFixture({ id: crypto.randomUUID(), uid });
       const card = createCard({ id: crypto.randomUUID(), deckId: deck.id, uid });
+      // When: Exercise `createDeck` with the prepared inputs.
       await createDeck(uid, createRemoteDeckInput({ id: deck.id, name: deck.name }));
+      // Then: Verify the expected result in the assertions below.
       await vi.waitFor(() => {
         expect(deckStore.getState().remoteDecks).toContainEqual(expect.objectContaining({ id: deck.id }));
       });
+      // When: Exercise `createCardCommand` with the prepared inputs.
       await createCardCommand(uid, card);
+      // Then: Verify the expected result in the assertions below.
       await vi.waitFor(() => {
         expect(Object.values(cardStore.getState().cardsById)).toContainEqual(expect.objectContaining({ id: card.id }));
       });
 
+      // When: Exercise `editDeck` with the prepared inputs.
       await editDeck(uid, { ...deck, name: "Updated" });
       await editCard(uid, { ...card, frontText: "Updated" });
+      // Then: Verify the expected result in the assertions below.
       await vi.waitFor(() => {
         expect(deckStore.getState().remoteDecks).toContainEqual(
           expect.objectContaining({ id: deck.id, name: "Updated" })
@@ -85,8 +98,10 @@ describe("Query realtime subscriptions", () => {
         );
       });
 
+      // When: Exercise `deleteCard` with the prepared inputs.
       await deleteCard(uid, card.id);
       await deleteDeck(uid, deck.id);
+      // Then: Verify the expected result in the assertions below.
       await vi.waitFor(() => {
         expect(deckStore.getState().remoteDecks.find((candidate) => candidate.id === deck.id)).toBeUndefined();
         expect(
@@ -101,6 +116,7 @@ describe("Query realtime subscriptions", () => {
   });
 
   it("[FIRESTORE-SUBSCRIPTIONS-03] stops changing stores after unsubscribe", async () => {
+    // Given: Prepare `uid`, `errors`, `stopDecks` and any shared test state below.
     const uid = "uid";
     const errors: Error[] = [];
     const stopDecks = subscribeDecks(uid, (error) => errors.push(error));
@@ -109,23 +125,28 @@ describe("Query realtime subscriptions", () => {
     const card = createCard({ id: crypto.randomUUID(), deckId: deck.id, uid, frontText: "Before stop" });
 
     await createDeck(uid, createRemoteDeckInput({ id: deck.id, name: deck.name }));
+
     await vi.waitFor(() => {
       expect(deckStore.getState().remoteDecks).toContainEqual(
         expect.objectContaining({ id: deck.id, name: "Before stop" })
       );
     });
+
     await createCardCommand(uid, card);
+
     await vi.waitFor(() => {
       expect(Object.values(cardStore.getState().cardsById)).toContainEqual(
         expect.objectContaining({ id: card.id, frontText: "Before stop" })
       );
     });
 
+    // When: Stop both subscriptions and edit their saved Deck and Card.
     stopCards();
     stopDecks();
     await editDeck(uid, { ...deck, name: "After stop" });
     await editCard(uid, { ...card, frontText: "After stop" });
 
+    // Then: Preserve the previously received Before stop values without notifying errors.
     expect(deckStore.getState().remoteDecks).toContainEqual(
       expect.objectContaining({ id: deck.id, name: "Before stop" })
     );

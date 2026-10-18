@@ -3,6 +3,9 @@ import { expect } from "storybook/test";
 
 import { Layout } from "./Layout";
 
+// Given: Story args and parameters define the render scenarios below.
+// When: Storybook renders each exported variant and runs its play when present.
+// Then: Assertions are in the relevant plays; rendering alone adds no behavioral checks.
 const meta = {
   title: "Shared/Layout/Layout",
   component: Layout,
@@ -38,10 +41,13 @@ export const FixedHeaderLongContent: Story = {
     )),
   },
   play: async ({ canvas }) => {
+    // Given: Use the rendered story, its args, parameters, and any setup below.
     const shell = canvas.getByRole("region", { name: "Application shell" });
     const header = canvas.getByRole("banner");
     const firstSection = canvas.getByRole("heading", { name: "Section 1" }).closest("section");
 
+    // When: Storybook renders this scenario with its configured args and parameters.
+    // Then: Verify the expected result in the assertions below.
     await expect(firstSection).not.toBeNull();
     if (firstSection === null) return;
 

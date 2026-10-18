@@ -25,6 +25,7 @@ vi.mock("firebase/auth");
 
 describe("ACCOUNT-01 ACCOUNT-02 ACCOUNT-03 AccountPage pending lifetime", () => {
   beforeEach(async () => {
+    // Given: Establish the shared setup used by the following cases.
     await getI18n().changeLanguage("en");
     dismissToast();
     accountPageStore.setState(accountPageStore.getInitialState(), true);
@@ -42,6 +43,7 @@ describe("ACCOUNT-01 ACCOUNT-02 ACCOUNT-03 AccountPage pending lifetime", () => 
     it.each(["success", "failure"] as const)(
       "keeps pending across remounts until %s and allows another attempt",
       async (outcome) => {
+        // Given: Prepare `request`, `router` and any shared test state below.
         const request = Promise.withResolvers<void>();
         vi.mocked(linkWithPopup).mockImplementationOnce(async () => {
           await request.promise;
@@ -68,30 +70,40 @@ describe("ACCOUNT-01 ACCOUNT-02 ACCOUNT-03 AccountPage pending lifetime", () => 
           </>
         );
 
+        // When: Exercise `userEvent.click` with the prepared inputs.
         await userEvent.click(screen.getByRole("button", { name: button }));
+        // Then: Verify the expected result in the assertions below.
         expect(screen.getByRole("button", { name: button })).toBeDisabled();
 
+        // When: Exercise `actAsync` with the prepared inputs.
         await actAsync(async () => {
           await router.navigate("/");
         });
+        // Then: Verify the expected result in the assertions below.
         expect(screen.getByText("Home Page")).toBeVisible();
+        // When: Exercise `actAsync` with the prepared inputs.
         await actAsync(async () => {
           await router.navigate("/account");
         });
+        // Then: Verify the expected result in the assertions below.
         expect(screen.getByRole("button", { name: button })).toBeDisabled();
 
+        // When: Exercise `actAsync` with the prepared inputs.
         await actAsync(async () => {
           if (outcome === "success") request.resolve();
           else request.reject(new Error("Action failed"));
           await request.promise.catch(() => undefined);
         });
 
+        // Then: Verify the expected result in the assertions below.
         expect(screen.getByRole("button", { name: button })).toBeEnabled();
         expect(screen.getByRole(outcome === "success" ? "status" : "alert")).toHaveTextContent(
           outcome === "success" ? success : failure
         );
 
+        // When: Exercise `userEvent.click` with the prepared inputs.
         await userEvent.click(screen.getByRole("button", { name: button }));
+        // Then: Verify the expected result in the assertions below.
         await waitFor(() => expect(screen.queryByRole("alert")).not.toBeInTheDocument());
         expect(screen.getByRole("status", { name: "Toast notifications" })).toHaveTextContent(success);
         expect(screen.getByRole("button", { name: button })).toBeEnabled();

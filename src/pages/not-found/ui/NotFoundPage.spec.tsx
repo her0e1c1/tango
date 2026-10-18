@@ -19,15 +19,20 @@ describe("NotFoundPage", () => {
     );
 
   it("offers routes back to safety", async () => {
+    // Given: Prepare `view` and any shared test state below.
     const view = renderPage();
 
     expect(screen.getByRole("heading", { level: 1, name: "Page not found" })).toBeVisible();
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByRole("button", { name: "Go home" }));
+    // Then: Verify the expected result in the assertions below.
     expect(await screen.findByRole("heading", { level: 1, name: "Deck list destination" })).toBeVisible();
 
+    // When: Exercise `view.unmount` with the prepared inputs.
     view.unmount();
     renderPage();
     await userEvent.click(screen.getByRole("button", { name: "Go back" }));
+    // Then: Verify the expected result in the assertions below.
     expect(await screen.findByRole("heading", { level: 1, name: "Previous page" })).toBeVisible();
   });
 });

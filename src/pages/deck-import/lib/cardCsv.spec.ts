@@ -7,8 +7,11 @@ import { parseCsv } from "./cardCsv";
 describe("DECK-IMPORT-01 DECK-IMPORT-02 card CSV import", () => {
   describe("parseCsv", () => {
     it("parses, normalizes, and validates string content", async () => {
+      // Given: Use this case's inputs and any shared test setup.
+      // When: Exercise `parseCsv` with the prepared inputs.
       const analysis = await parseCsv('"front","back"," foo,foo, bar "," key "\n,,,');
 
+      // Then: Verify the expected result in the assertions below.
       expect(analysis).toEqual({
         rows: [
           {
@@ -23,8 +26,11 @@ describe("DECK-IMPORT-01 DECK-IMPORT-02 card CSV import", () => {
     });
 
     it("rejects whitespace-only card sides and trimmed duplicate keys", async () => {
+      // Given: Use this case's inputs and any shared test setup.
+      // When: Exercise `parseCsv` with the prepared inputs.
       const analysis = await parseCsv('" ","back",""," same "\n"front"," ","","same"');
 
+      // Then: Verify the expected result in the assertions below.
       expect(analysis.invalidCount).toBe(2);
       expect(analysis.rows).toEqual([]);
       expect(analysis.issues).toEqual([
@@ -47,8 +53,11 @@ describe("DECK-IMPORT-01 DECK-IMPORT-02 card CSV import", () => {
     });
 
     it("rejects a blank Card unique key with CSV row context", async () => {
+      // Given: Use this case's inputs and any shared test setup.
+      // When: Exercise `parseCsv` with the prepared inputs.
       const analysis = await parseCsv('"front","back",""," "');
 
+      // Then: Verify the expected result in the assertions below.
       expect(analysis).toMatchObject({
         rows: [],
         invalidCount: 1,
@@ -63,6 +72,9 @@ describe("DECK-IMPORT-01 DECK-IMPORT-02 card CSV import", () => {
     });
 
     it("keeps an empty tag column as an untagged valid Card", async () => {
+      // Given: Use this case's inputs and any shared test setup.
+      // When: Evaluate `parseCsv` as part of the following checks.
+      // Then: Verify the expected result in the assertions below.
       expect(await parseCsv("front,back,,key")).toEqual({
         rows: [{ rowNumber: 1, card: { frontText: "front", backText: "back", tags: [], uniqueKey: "key" } }],
         skippedRows: [],
@@ -72,6 +84,9 @@ describe("DECK-IMPORT-01 DECK-IMPORT-02 card CSV import", () => {
     });
 
     it("counts a three-column row as invalid and retains its diagnostic", async () => {
+      // Given: Use this case's inputs and any shared test setup.
+      // When: Evaluate `parseCsv` as part of the following checks.
+      // Then: Verify the expected result in the assertions below.
       expect(await parseCsv("front,back,key")).toEqual({
         rows: [],
         skippedRows: [],
@@ -81,10 +96,13 @@ describe("DECK-IMPORT-01 DECK-IMPORT-02 card CSV import", () => {
     });
 
     it("keeps logical record numbers and original column context after multiline fields and blank records", async () => {
+      // Given: Use this case's inputs and any shared test setup.
+      // When: Exercise `parseCsv` with the prepared inputs.
       const analysis = await parseCsv(
         '"front\ncontinued","back"," foo,foo, bar "," key "\n\n"bad ""front""","back"," key "\n" "," "," foo,foo, bar "," key "'
       );
 
+      // Then: Verify the expected result in the assertions below.
       expect(analysis).toEqual({
         rows: [
           {
@@ -123,8 +141,11 @@ describe("DECK-IMPORT-01 DECK-IMPORT-02 card CSV import", () => {
       { record: '"unterminated', code: "MissingQuotes", context: '["unterminated"]' },
       { record: '"bad"tail,back,,key', code: "InvalidQuotes", context: '["bad\\"tail,back,,key"]' },
     ])("reports $code from real CSV with logical record context", async ({ record, code, context }) => {
+      // Given: Use this case's inputs and any shared test setup.
+      // When: Exercise `parseCsv` with the prepared inputs.
       const analysis = await parseCsv(`"front\ncontinued",back,,key\n\n${record}`);
 
+      // Then: Verify the expected result in the assertions below.
       expect(analysis.rows).toEqual([
         {
           rowNumber: 1,
@@ -140,11 +161,16 @@ describe("DECK-IMPORT-01 DECK-IMPORT-02 card CSV import", () => {
     });
 
     it("keeps file-level empty-input diagnostics separate from record diagnostics", async () => {
+      // Given: Use this case's inputs and any shared test setup.
+      // When: Exercise `parseCsv` with the prepared inputs.
       const analysis = await parseCsv("   ");
 
+      // Then: Verify the expected result in the assertions below.
       expect(analysis.rows).toEqual([]);
       expect(analysis.issues).toEqual(expect.arrayContaining([{ diagnostic: { kind: "empty" } }]));
       for (const issue of analysis.issues) {
+        // Given: Use the current iteration or branch inputs from the enclosing case.
+        // Then: Verify the expected result in the assertions below.
         expect(issue).not.toHaveProperty("rowNumber");
         expect(issue).not.toHaveProperty("context");
       }
@@ -152,6 +178,9 @@ describe("DECK-IMPORT-01 DECK-IMPORT-02 card CSV import", () => {
 
     it("rejects unsupported input at the parser boundary", async () => {
       // @ts-expect-error Verifies the runtime boundary for untyped callers.
+      // Given: Use this case's inputs and any shared test setup.
+      // When: Evaluate `parseCsv` as part of the following checks.
+      // Then: Verify the expected result in the assertions below.
       await expect(parseCsv({ content: "front,back" })).rejects.toThrow("CSV content must be a string");
     });
   });

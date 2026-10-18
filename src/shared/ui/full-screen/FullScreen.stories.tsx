@@ -3,6 +3,9 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { FullScreen } from "./FullScreen";
 import { Container } from "@/storybook/Decorator";
 
+// Given: Story args and parameters define the render scenarios below.
+// When: Storybook renders each exported variant and runs its play when present.
+// Then: Assertions are in the relevant plays; rendering alone adds no behavioral checks.
 const meta = {
   title: "Shared/Layout/FullScreen",
   component: FullScreen,

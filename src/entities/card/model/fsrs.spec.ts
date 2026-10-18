@@ -48,9 +48,12 @@ describe("Card FSRS scheduling", () => {
   it.each(["again", "hard", "good", "easy"] as const)(
     "UNIT-FSRS-SCHEDULING-01 starts learning with the selected %s rating",
     (rating) => {
+      // Given: Prepare `expected` and any shared test state below.
       const expected = library.next(createEmptyCard(new Date(at)), at, grades[rating]).card;
+      // When: Exercise `calculateFsrsState` with the prepared inputs.
       const result = calculateFsrsState(null, rating, at);
 
+      // Then: Verify the expected result in the assertions below.
       expect(result).toEqual(referenceState(expected));
       expect(result).toMatchObject({ state: rating === "easy" ? "review" : "learning", reps: 1, lapses: 0 });
       expect(result.dueAt).toBeGreaterThan(at);
@@ -74,6 +77,7 @@ describe("Card FSRS scheduling", () => {
   ] as const)(
     "UNIT-FSRS-SCHEDULING-02 updates %s with %s to %s and adds %i lapses",
     (phase, rating, nextPhase, addedLapses) => {
+      // Given: Prepare `learning`, `review`, `relearning` and any shared test state below.
       const learning = library.next(createEmptyCard(new Date(at)), at, Rating.Again).card;
       const review = library.next(learning, learning.due, Rating.Easy).card;
       const relearning = library.next(review, review.due, Rating.Again).card;
@@ -82,8 +86,10 @@ describe("Card FSRS scheduling", () => {
       const unchanged = structuredClone(input);
       const answeredAt = previous.due.getTime();
 
+      // When: Exercise `calculateFsrsState` with the prepared inputs.
       const result = calculateFsrsState(input, rating, answeredAt);
 
+      // Then: Verify the expected result in the assertions below.
       expect(result).toEqual(referenceState(library.next(previous, answeredAt, grades[rating]).card));
       expect(result).toMatchObject({
         state: nextPhase,
@@ -102,6 +108,7 @@ describe("Card FSRS scheduling", () => {
     [["again", "hard", "easy"], "again"],
     [["again", "hard", "easy", "again"], "good"],
   ] as const)("UNIT-FSRS-SCHEDULING-03 continues restored history %j with %s", (history, rating) => {
+    // Given: Prepare `previous`, `input`, `unchanged` and any shared test state below.
     let previous = createEmptyCard(new Date(at));
     for (const priorRating of history) {
       previous = library.next(previous, previous.due.getTime() + day, grades[priorRating]).card;
@@ -111,8 +118,10 @@ describe("Card FSRS scheduling", () => {
     const answeredAt = previous.due.getTime() + day;
     const expected = library.next(previous, answeredAt, grades[rating]).card;
 
+    // When: Exercise `calculateFsrsState` with the prepared inputs.
     const result = calculateFsrsState(input, rating, answeredAt);
 
+    // Then: Verify the expected result in the assertions below.
     expect(result).toEqual(referenceState(expected));
     expect(calculateFsrsState(input, rating, answeredAt)).toEqual(result);
     expect(input).toEqual(unchanged);
@@ -126,7 +135,10 @@ describe("Card FSRS scheduling", () => {
     ["difficulty outside the range", { ...reviewed, difficulty: 11 }, reviewed.dueAt],
     ["lapses exceeding reviews", { ...reviewed, lapses: 4 }, reviewed.dueAt],
   ])("UNIT-FSRS-SCHEDULING-04 rejects %s", (_label, input, answeredAt) => {
+    // Given: Prepare `unchanged` and any shared test state below.
     const unchanged = structuredClone(input);
+    // When: Evaluate `calculateFsrsState` as part of the following checks.
+    // Then: Verify the expected result in the assertions below.
     expect(() => calculateFsrsState(input, "good", answeredAt)).toThrow();
     expect(input).toEqual(unchanged);
   });
@@ -134,14 +146,20 @@ describe("Card FSRS scheduling", () => {
 
 describe("Card FSRS classification", () => {
   it("UNIT-FSRS-CLASSIFICATION-01 classifies explicit absence as new", () => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Evaluate `classifyFsrsState` as part of the following checks.
+    // Then: Verify the expected result in the assertions below.
     expect(classifyFsrsState(null, at)).toEqual({ status: "new" });
   });
 
   it.each(["learning", "review", "relearning"] as const)(
     "UNIT-FSRS-CLASSIFICATION-02 compares the exact deadline during %s",
     (state) => {
+      // Given: Prepare `input`, `unchanged` and any shared test state below.
       const input = { ...reviewed, state };
       const unchanged = structuredClone(input);
+      // When: Evaluate `classifyFsrsState` as part of the following checks.
+      // Then: Verify the expected result in the assertions below.
       expect(classifyFsrsState(input, input.dueAt - 1)).toEqual({ status: "future", dueAt: input.dueAt });
       expect(classifyFsrsState(input, input.dueAt)).toEqual({ status: "due", dueAt: input.dueAt });
       expect(classifyFsrsState(input, input.dueAt + 1)).toEqual({ status: "due", dueAt: input.dueAt });
@@ -154,31 +172,47 @@ describe("Card FSRS classification", () => {
     ["empty state", {}],
     ["NaN deadline", { ...reviewed, dueAt: NaN }],
   ])("UNIT-FSRS-CLASSIFICATION-03 rejects %s", (_label, input) => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Evaluate `classifyFsrsState` as part of the following checks.
+    // Then: Verify the expected result in the assertions below.
     expect(() => classifyFsrsState(input as FsrsState, at)).toThrow();
   });
 
   it.each([null, reviewed])("UNIT-FSRS-CLASSIFICATION-04 rejects invalid reference times for %j", (input) => {
+    // Given: Prepare `unchanged` and any shared test state below.
     const unchanged = structuredClone(input);
     for (const invalidAt of [-1, NaN, at + 0.5]) {
+      // Given: Use the current iteration or branch inputs from the enclosing case.
+      // When: Evaluate `classifyFsrsState` as part of the following checks.
+      // Then: Verify the expected result in the assertions below.
       expect(() => classifyFsrsState(input, invalidAt)).toThrow();
     }
+    // When: Observe the prepared result through the following checks.
+    // Then: Verify the expected result in the assertions below.
     expect(input).toEqual(unchanged);
   });
 });
 
 describe("Card FSRS retrievability", () => {
   it.each([at - 1, at])("UNIT-FSRS-RETRIEVABILITY-01 returns full retrievability at %i", (calculatedAt) => {
+    // Given: Prepare `input`, `unchanged` and any shared test state below.
     const input = { ...reviewed };
     const unchanged = structuredClone(input);
+    // When: Evaluate `getStudyRetrievability` as part of the following checks.
+    // Then: Verify the expected result in the assertions below.
     expect(getStudyRetrievability(input, calculatedAt)).toBe(1);
     expect(input).toEqual(unchanged);
   });
 
   it("UNIT-FSRS-RETRIEVABILITY-02 continuously reflects fractional days", () => {
+    // Given: Prepare `elapsedTimes`, `previousProbability` and any shared test state below.
     const elapsedTimes = [6 * 60 * 60 * 1000, 12 * 60 * 60 * 1000, day - 1, day];
     let previousProbability = 1;
     for (const elapsed of elapsedTimes) {
+      // Given: Use the current iteration or branch inputs from the enclosing case.
+      // When: Exercise `getStudyRetrievability` with the prepared inputs.
       const probability = getStudyRetrievability(reviewed, at + elapsed);
+      // Then: Verify the expected result in the assertions below.
       expect(Number.isFinite(probability)).toBe(true);
       expect(probability).toBeGreaterThan(0);
       expect(probability).toBeLessThan(1);
@@ -186,16 +220,22 @@ describe("Card FSRS retrievability", () => {
       expect(previousProbability).toBeGreaterThan(probability);
       previousProbability = probability;
     }
+    // When: Evaluate `getStudyRetrievability` as part of the following checks.
+    // Then: Verify the expected result in the assertions below.
     expect(getStudyRetrievability(reviewed, at + day - 1) - getStudyRetrievability(reviewed, at + day)).toBeLessThan(
       1e-6
     );
   });
 
   it("UNIT-FSRS-RETRIEVABILITY-03 reflects stability relative to ninety percent retention", () => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Exercise `getStudyRetrievability` with the prepared inputs.
     const lessStable = getStudyRetrievability({ ...reviewed, stability: 5 }, at + 10 * day);
     const target = getStudyRetrievability({ ...reviewed, stability: 10 }, at + 10 * day);
     const moreStable = getStudyRetrievability({ ...reviewed, stability: 20 }, at + 10 * day);
     for (const probability of [lessStable, target, moreStable]) {
+      // Given: Use the current iteration or branch inputs from the enclosing case.
+      // Then: Verify the expected result in the assertions below.
       expect(Number.isFinite(probability)).toBe(true);
       expect(probability).toBeGreaterThanOrEqual(0);
       expect(probability).toBeLessThanOrEqual(1);
@@ -211,7 +251,10 @@ describe("Card FSRS retrievability", () => {
     ["fractional calculation time", reviewed, at + 0.5],
     ["zero stability", { ...reviewed, stability: 0 }, at + day],
   ])("UNIT-FSRS-RETRIEVABILITY-04 rejects %s", (_label, input, calculatedAt) => {
+    // Given: Prepare `unchanged` and any shared test state below.
     const unchanged = structuredClone(input);
+    // When: Evaluate `getStudyRetrievability` as part of the following checks.
+    // Then: Verify the expected result in the assertions below.
     expect(() => getStudyRetrievability(input, calculatedAt)).toThrow();
     expect(input).toEqual(unchanged);
   });

@@ -93,6 +93,7 @@ async function relatedDocuments(deckId: string) {
 
 describe("Card filter persistence", () => {
   beforeEach(() => {
+    // Given: Establish the shared setup used by the following cases.
     clearRemoteDecks();
     errors.length = 0;
     start();
@@ -106,14 +107,17 @@ describe("Card filter persistence", () => {
   });
 
   it.each([false, true])("[FIRESTORE-CARD-FILTER-01] defaults independently with cards: %s", async (withCards) => {
+    // Given: Prepare `id`, `other`, `before` and any shared test state below.
     const id = await seed();
     const other = await seed({ selectedTags: ["tag-other"], tagAndFilter: true });
     if (withCards) await relatedDocuments(id);
     const before = await saved(id);
+    // When: Exercise `restore` with the prepared inputs.
     await restore([
       [id, empty],
       [other, { selectedTags: ["tag-other"], tagAndFilter: true }],
     ]);
+    // Then: Verify the expected result in the assertions below.
     expect(await saved(id)).toEqual(before);
     expect(await saved(id)).not.toHaveProperty("cardFilter");
   });
@@ -123,61 +127,85 @@ describe("Card filter persistence", () => {
     original,
     { selectedTags: ["tag-a", "tag-b"], tagAndFilter: false },
   ])("[FIRESTORE-CARD-FILTER-02] saves and restores $selectedTags / $tagAndFilter", async (value) => {
+    // Given: Prepare `id`, `before` and any shared test state below.
     const id = await seed();
     const before = await saved(id);
+    // When: Exercise `editDeck` with the prepared inputs.
     await editDeck(uid, { id, cardFilter: value });
+    // Then: Verify the expected result in the assertions below.
     expect(await saved(id)).toEqual({ ...before, cardFilter: value, updatedAt: expect.any(Timestamp) });
+    // When: Exercise `restore` with the prepared inputs.
     await restore([[id, value]]);
   });
 
   it("[FIRESTORE-CARD-FILTER-03] replaces selections without changing study data", async () => {
+    // Given: Prepare `id`, `related`, `before` and any shared test state below.
     const id = await seed(original);
     const related = await relatedDocuments(id);
     const before = await saved(id);
+    // When: Exercise `editDeck` with the prepared inputs.
     await editDeck(uid, { id, cardFilter: replacement });
+    // Then: Verify the expected result in the assertions below.
     expect(await saved(id)).toEqual({ ...before, cardFilter: replacement, updatedAt: expect.any(Timestamp) });
+    // When: Exercise `restore` with the prepared inputs.
     await restore([[id, replacement]]);
+    // Then: Verify the expected result in the assertions below.
     expect(await related.read()).toEqual(related.before);
   });
 
   it("[FIRESTORE-CARD-FILTER-04] persists cleared filters without changing study data", async () => {
+    // Given: Prepare `id`, `related`, `before` and any shared test state below.
     const id = await seed(original);
     const related = await relatedDocuments(id);
     const before = await saved(id);
+    // When: Exercise `editDeck` with the prepared inputs.
     await editDeck(uid, { id, cardFilter: empty });
+    // Then: Verify the expected result in the assertions below.
     expect(await saved(id)).toEqual({ ...before, cardFilter: empty, updatedAt: expect.any(Timestamp) });
+    // When: Exercise `restore` with the prepared inputs.
     await restore([[id, empty]]);
+    // Then: Verify the expected result in the assertions below.
     expect(await related.read()).toEqual(related.before);
   });
 
   it.each([{ selectedTags: ["tag-c"], tagAndFilter: false }, empty])(
     "[FIRESTORE-CARD-FILTER-05] isolates Deck changes: $selectedTags",
     async (value) => {
+      // Given: Prepare `a`, `bFilter`, `b` and any shared test state below.
       const a = await seed({ selectedTags: ["tag-a"], tagAndFilter: true });
       const bFilter = { selectedTags: ["tag-b"], tagAndFilter: false };
       const b = await seed(bFilter);
       const c = await seed();
       const unchanged = await Promise.all([saved(b), saved(c)]);
+      // When: Exercise `editDeck` with the prepared inputs.
       await editDeck(uid, { id: a, cardFilter: value });
+      // Then: Verify the expected result in the assertions below.
       expect((await saved(a))?.cardFilter).toEqual(value);
+      // When: Exercise `restore` with the prepared inputs.
       await restore([
         [a, value],
         [b, bFilter],
         [c, empty],
       ]);
+      // Then: Verify the expected result in the assertions below.
       expect(await Promise.all([saved(b), saved(c)])).toEqual(unchanged);
     }
   );
 
   it("[FIRESTORE-CARD-FILTER-06] keeps browsing filters when study tags change", async () => {
+    // Given: Prepare `browse`, `id` and any shared test state below.
     const browse = { selectedTags: ["browse-a", "browse-b"], tagAndFilter: true };
     const id = await seed(browse);
+    // When: Exercise `editDeck` with the prepared inputs.
     await editDeck(uid, { id, studyFilter: { selectedTags: ["study-b"], tagAndFilter: false } });
+    // Then: Verify the expected result in the assertions below.
     expect(await saved(id)).toMatchObject({
       cardFilter: browse,
       studyFilter: { selectedTags: ["study-b"], tagAndFilter: false },
     });
+    // When: Exercise `restore` with the prepared inputs.
     await restore([[id, browse]]);
+    // Then: Verify the expected result in the assertions below.
     expect(getDecks().find((deck) => deck.id === id)?.studyFilter).toEqual({
       selectedTags: ["study-b"],
       tagAndFilter: false,
@@ -187,6 +215,7 @@ describe("Card filter persistence", () => {
   it.each([{ selectedTags: ["tag-c", "tag-d"], tagAndFilter: true }, empty])(
     "[FIRESTORE-CARD-FILTER-07] receives independent connection updates: $selectedTags",
     async (value) => {
+      // Given: Prepare `a`, `bFilter`, `b` and any shared test state below.
       const a = await seed({ selectedTags: ["tag-a"], tagAndFilter: false });
       const bFilter = { selectedTags: ["tag-b"], tagAndFilter: true };
       const b = await seed(bFilter);
@@ -197,8 +226,11 @@ describe("Card filter persistence", () => {
         mockUserToken: { user_id: uid, firebase: { sign_in_provider: "google.com", identities: {} } },
       });
       try {
+        // Given: Use the current iteration or branch inputs from the enclosing case.
+        // When: Exercise `updateDoc` with the prepared inputs.
         await updateDoc(doc(writer, "deck", a), { cardFilter: value, updatedAt: serverTimestamp() });
         await waitForPendingWrites(writer);
+        // Then: Verify the expected result in the assertions below.
         expect((await getDocFromServer(doc(writer, "deck", a))).data()?.cardFilter).toEqual(value);
         await vi.waitFor(() => expect(filter(a)).toEqual(value));
         expect(filter(b)).toEqual(bFilter);

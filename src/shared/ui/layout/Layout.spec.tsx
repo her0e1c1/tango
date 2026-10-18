@@ -8,6 +8,7 @@ import { Layout } from "./Layout";
 
 describe("shared app shell", () => {
   it("renders the standard branch in shell order and ignores fullscreen-only interaction props", () => {
+    // Given: Prepare `onClick`, `content` and any shared test state below.
     const onClick = vi.fn();
     render(
       <Layout showHeader scroll onClick={onClick}>
@@ -18,11 +19,14 @@ describe("shared app shell", () => {
 
     expect(screen.getByText("tango")).toBeInTheDocument();
     expect(screen.getByRole("region", { name: "Application shell" })).toContainElement(content);
+    // When: Exercise `fireEvent.click` with the prepared inputs.
     fireEvent.click(content);
+    // Then: Verify the expected result in the assertions below.
     expect(onClick).not.toHaveBeenCalled();
   });
 
   it("renders the fullscreen branch without Main or the bottom spacer", () => {
+    // Given: Prepare `onClick`, `fullScreen`, `content` and any shared test state below.
     const onClick = vi.fn();
     render(
       <Layout fullscreen showHeader scroll onClick={onClick}>
@@ -34,7 +38,9 @@ describe("shared app shell", () => {
 
     expect(fullScreen).toContainElement(content);
 
+    // When: Exercise `fireEvent.click` with the prepared inputs.
     fireEvent.click(content);
+    // Then: Verify the expected result in the assertions below.
     expect(onClick).toHaveBeenCalledOnce();
   });
 });

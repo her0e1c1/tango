@@ -33,6 +33,7 @@ afterAll(async () => {
 describe("Firestore history reads", () => {
   it("[FIRESTORE-STUDY-HISTORY-01] reads period and Deck filters online and from cache", async () => {
     // A unique narrow interval isolates this query from other emulator tests without limiting record count.
+    // Given: Prepare `start`, `period`, `deckId` and any shared test state below.
     const start = Date.now() + 1_000_000_000;
     const period = { start, end: start + 1 };
     const deckId = crypto.randomUUID();
@@ -63,10 +64,12 @@ describe("Firestore history reads", () => {
     batch.set(doc(testDb, "studySession", crypto.randomUUID()), document(deckId, start + 1, start + 1, "completed"));
     await batch.commit();
 
+    // Given: Read each requested history scope through the public subscription helper below.
     async function read(deck: string | null, metric: "started" | "completed", cached = false) {
       let records: StudyHistoryRecord[] | undefined;
       let fromCache: boolean | undefined;
       let failure: Error | undefined;
+      // When: Subscribe to the requested owner, period, Deck, and metric.
       const stop = subscribeStudyHistory(
         { uid: "uid", period, deckId: deck, metric },
         (value, cache) => {
@@ -80,6 +83,7 @@ describe("Firestore history reads", () => {
         }
       );
       try {
+        // Then: Wait for the requested cache/server snapshot or propagate its error.
         await vi.waitFor(
           () => {
             if (failure) throw failure;
@@ -94,6 +98,8 @@ describe("Firestore history reads", () => {
     }
     const stopSessions = subscribeStudySessions("uid", () => undefined);
     onTestFinished(stopSessions);
+    // When: Read the parameterized server history scopes through the helper.
+    // Then: Verify boundaries, Deck filtering, and independent start/completion records.
     expect((await read(null, "started")).records).toHaveLength(131);
     expect((await read(null, "completed")).records.map((record) => record.deckId).sort()).toEqual(
       [deckId, otherDeck].sort()
@@ -122,15 +128,19 @@ describe("Firestore history reads", () => {
         cardCount: 1,
       }),
     ]);
+    // When: Exercise `disableNetwork` with the prepared inputs.
     await disableNetwork(testDb);
     try {
+      // When: Read the saved start history while offline.
       const cached = await read(deckId, "started", true);
+      // Then: Verify the expected result in the assertions below.
       expect(cached.fromCache).toBe(true);
       expect(cached.records).toHaveLength(130);
       expect((await read(deckId, "completed", true)).records).toHaveLength(1);
     } finally {
       await enableNetwork(testDb);
     }
+    // When: Exercise `stopSessions` with the prepared inputs.
     stopSessions();
     const stopForeign = subscribeStudySessions("another-user", () => undefined);
     onTestFinished(stopForeign);
@@ -149,6 +159,7 @@ describe("Firestore history reads", () => {
         }
       );
     });
+    // Then: Verify the expected result in the assertions below.
     expect(denied).toMatchObject({ code: "permission-denied" });
   }, 30_000);
 });
@@ -179,6 +190,7 @@ async function readAnswerHistory(input: Parameters<typeof subscribeStudyAnswerHi
 
 describe("Bounded answer history", () => {
   it("[FIRESTORE-STUDY-HISTORY-02] reads bounded answers in stable order with source metadata", async () => {
+    // Given: Prepare `from`, `deckId`, `prefix` and any shared test state below.
     const from = Date.now() + 2_000_000_000;
     const deckId = crypto.randomUUID();
     const prefix = crypto.randomUUID();
@@ -220,7 +232,9 @@ describe("Bounded answer history", () => {
     }
     await batch.commit();
     const input = { uid: "uid", from, to: from + 1, deckId, limit: 10 };
+    // When: Read answer history from the prepared server fixtures.
     const online = await readAnswerHistory(input);
+    // Then: Verify the expected result in the assertions below.
     expect(online).toMatchObject({ source: "server", truncated: false, invalidCount: 1, hasPendingWrites: false });
     expect(online.records.map((record) => record.id)).toEqual(["d", "c", "b", "a"].map((id) => `${prefix}-${id}`));
     expect((await readAnswerHistory({ ...input, deckId: null })).records).toHaveLength(5);
@@ -237,8 +251,11 @@ describe("Bounded answer history", () => {
         rating: "good",
       },
     ]);
+    // When: Exercise `disableNetwork` with the prepared inputs.
     await disableNetwork(testDb);
     try {
+      // When: Read answer history from cache while offline.
+      // Then: Return the same records as the server read with a cache source.
       expect(await readAnswerHistory(input, true)).toMatchObject({ source: "cache", records: online.records });
       const user = auth.currentUser;
       if (!user) throw new Error("Missing test user");
@@ -256,6 +273,7 @@ describe("Bounded answer history", () => {
   });
 
   it("[FIRESTORE-STUDY-HISTORY-03] rejects invalid bounds and foreign owners before subscribing", () => {
+    // Given: Prepare `input` and any shared test state below.
     const input = { uid: "uid", from: 100, to: 200, deckId: null, limit: 10 };
     for (const invalid of [
       { uid: "" },
@@ -269,10 +287,14 @@ describe("Bounded answer history", () => {
       { limit: 1.5 },
       { limit: 1001 },
     ]) {
+      // Given: Use the current iteration or branch inputs from the enclosing case.
+      // When: Evaluate `subscribeStudyAnswerHistory` as part of the following checks.
+      // Then: Verify the expected result in the assertions below.
       expect(() => subscribeStudyAnswerHistory({ ...input, ...invalid }, vi.fn(), vi.fn())).toThrow();
     }
   });
   it("[FIRESTORE-STUDY-HISTORY-04] streams local writes, acknowledgements and remote changes until stopped", async () => {
+    // Given: Prepare `from`, `deckId`, `input` and any shared test state below.
     const from = Date.now() + 3_000_000_000;
     const deckId = crypto.randomUUID();
     const input = { uid: "uid", from, to: from + 1, deckId, limit: 10 };
@@ -283,6 +305,7 @@ describe("Bounded answer history", () => {
     });
     const snapshots: StudyAnswerHistory[] = [];
     const errors: Error[] = [];
+    // When: Subscribe to the requested answer history scope.
     const stop = subscribeStudyAnswerHistory(
       input,
       (value) => snapshots.push(value),
@@ -290,8 +313,12 @@ describe("Bounded answer history", () => {
     );
     let stopObserver: (() => void) | undefined;
     try {
+      // Given: Use the current iteration or branch inputs from the enclosing case.
+      // Then: Verify the expected result in the assertions below.
       await vi.waitFor(() => expect(snapshots.at(-1)).toMatchObject({ source: "server", records: [] }));
+      // When: Exercise `disableNetwork` with the prepared inputs.
       await disableNetwork(testDb);
+      // When: Save a new answer while offline.
       const committed = writeStudyAnswer({
         id: crypto.randomUUID(),
         uid: "uid",
@@ -301,6 +328,7 @@ describe("Bounded answer history", () => {
         rating: "good",
         answeredAt: from,
       });
+      // Then: Verify the expected result in the assertions below.
       await vi.waitFor(() =>
         expect(snapshots.at(-1)).toMatchObject({
           source: "cache",
@@ -308,8 +336,10 @@ describe("Bounded answer history", () => {
           records: [expect.objectContaining({ rating: "good" })],
         })
       );
+      // When: Exercise `enableNetwork` with the prepared inputs.
       await enableNetwork(testDb);
       await committed;
+      // Then: Verify the expected result in the assertions below.
       await vi.waitFor(() =>
         expect(snapshots.at(-1)).toMatchObject({
           source: "server",
@@ -319,6 +349,7 @@ describe("Bounded answer history", () => {
       );
       const remoteId = crypto.randomUUID();
       const timestamp = Timestamp.fromMillis(from);
+      // When: Exercise `setDoc` with the prepared inputs.
       await setDoc(doc(remote, "studyAnswer", remoteId), {
         uid: "uid",
         deckId,
@@ -329,11 +360,13 @@ describe("Bounded answer history", () => {
         createdAt: timestamp,
         updatedAt: serverTimestamp(),
       });
+      // Then: Verify the expected result in the assertions below.
       await vi.waitFor(() => {
         expect(snapshots.at(-1)?.source).toBe("server");
         expect(snapshots.at(-1)?.records).toHaveLength(2);
         expect(snapshots.at(-1)?.records).toContainEqual(expect.objectContaining({ id: remoteId, rating: "easy" }));
       });
+      // When: Exercise `stop` with the prepared inputs.
       stop();
       const count = snapshots.length;
       const laterId = crypto.randomUUID();
@@ -356,6 +389,7 @@ describe("Bounded answer history", () => {
         createdAt: timestamp,
         updatedAt: serverTimestamp(),
       });
+      // Then: Verify the expected result in the assertions below.
       await vi.waitFor(() => expect(observed).toBe(true));
       expect(snapshots).toHaveLength(count);
       expect(snapshots.at(-1)?.records).toHaveLength(2);

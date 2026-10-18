@@ -25,6 +25,9 @@ const CardActionsMenuStory = (args: CardActionsMenuProps) => {
   );
 };
 
+// Given: Story args and parameters define the render scenarios below.
+// When: Storybook renders each exported variant and runs its play when present.
+// Then: Assertions are in the relevant plays; rendering alone adds no behavioral checks.
 const meta = {
   title: "Pages/Card List/CardActionsMenu",
   component: CardActionsMenu,
@@ -73,10 +76,16 @@ export const LongCardText: Story = {
 export const Interaction: Story = {
   render: (args) => <CardActionsMenuStory {...args} />,
   play: async ({ args, canvas, userEvent, step }) => {
+    // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-CARD-LIST-09 Edit card from menu", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
+      // When: Exercise `userEvent.click` with the prepared inputs.
       await userEvent.click(canvas.getByRole("button", { name: `Open actions for ${args.cardText}` }));
+      // Then: Verify the expected result in the assertions below.
       await expect(canvas.getByRole("menu", { name: `Actions for ${args.cardText}` })).toBeVisible();
+      // When: Exercise `userEvent.click` with the prepared inputs.
       await userEvent.click(canvas.getByRole("menuitem", { name: "Edit" }));
+      // Then: Verify the expected result in the assertions below.
       await expect(args.onEdit).toHaveBeenCalledOnce();
       await expect(canvas.queryByRole("menu", { name: `Actions for ${args.cardText}` })).not.toBeInTheDocument();
     });
@@ -97,11 +106,17 @@ export const DeleteRequest: Story = {
   args: { cardText: "Binary search" },
   render: (args) => <CardActionsMenuStory {...args} />,
   play: async ({ args, canvas, userEvent, step }) => {
+    // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-CARD-LIST-21 Request deletion from the card menu", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
+      // When: Exercise `userEvent.click` with the prepared inputs.
       await userEvent.click(canvas.getByRole("button", { name: "Open actions for Binary search" }));
+      // Then: Verify the expected result in the assertions below.
       await expect(canvas.getByRole("group", { name: "Card actions for Binary search" })).toBeVisible();
       await expect(canvas.getAllByRole("menuitem").map((item) => item.textContent)).toEqual(["Edit", "Delete"]);
+      // When: Exercise `userEvent.click` with the prepared inputs.
       await userEvent.click(canvas.getByRole("menuitem", { name: "Delete" }));
+      // Then: Verify the expected result in the assertions below.
       await expect(args.onDelete).toHaveBeenCalledOnce();
     });
   },
@@ -110,7 +125,11 @@ export const DeleteRequest: Story = {
 export const DisabledMenuContract: Story = {
   args: { open: true, disabled: true },
   play: async ({ args, canvas, step }) => {
+    // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-CARD-LIST-22 Hide a disabled menu even when open is requested", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
+      // When: Storybook renders this scenario with its configured args and parameters.
+      // Then: Verify the expected result in the assertions below.
       await expect(canvas.getByRole("button", { name: `Open actions for ${args.cardText}` })).toBeDisabled();
       await expect(canvas.queryByRole("menu")).not.toBeInTheDocument();
     });

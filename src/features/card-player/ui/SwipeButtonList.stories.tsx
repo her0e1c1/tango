@@ -4,6 +4,9 @@ import { expect, fn } from "storybook/test";
 import { withPageLayout } from "@/storybook/PageLayoutDecorator";
 import { SwipeButtonList } from "./SwipeButtonList";
 
+// Given: Story args and parameters define the render scenarios below.
+// When: Storybook renders each exported variant and runs its play when present.
+// Then: Assertions are in the relevant plays; rendering alone adds no behavioral checks.
 const meta = {
   title: "Features/Card Player/SwipeButtonList",
   component: SwipeButtonList,
@@ -28,9 +31,13 @@ export const Ratings: Story = {
 export const KeyboardDirection: Story = {
   args: { onClickLeft: fn() },
   play: async ({ args, canvas, userEvent, step }) => {
+    // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-STUDY-CONTROLS-06 Request a direction with Enter", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
       canvas.getByRole("button", { name: "Swipe left" }).focus();
+      // When: Exercise `userEvent.keyboard` with the prepared inputs.
       await userEvent.keyboard("{Enter}");
+      // Then: Verify the expected result in the assertions below.
       await expect(args.onClickLeft).toHaveBeenCalledOnce();
     });
   },
@@ -45,13 +52,19 @@ export const DisabledDirectionKeyboard: Story = {
     </>
   ),
   play: async ({ args, canvas, userEvent, step }) => {
+    // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-STUDY-CONTROLS-05 Skip disabled directions in tab order", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
       const left = canvas.getByRole("button", { name: "Swipe left" });
       await expect(left).toBeVisible();
+      // When: Exercise `userEvent.click` with the prepared inputs.
       await userEvent.click(left);
+      // Then: Verify the expected result in the assertions below.
       await expect(args.onClickLeft).not.toHaveBeenCalled();
+      // When: Exercise `canvas.getByRole("button", { name: "Before directions" }).focus` with the prepared inputs.
       canvas.getByRole("button", { name: "Before directions" }).focus();
       await userEvent.tab();
+      // Then: Verify the expected result in the assertions below.
       await expect(canvas.getByRole("button", { name: "Swipe up" })).toHaveFocus();
     });
   },

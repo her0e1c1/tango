@@ -8,6 +8,7 @@ import {
 import { readProgress, readSession } from "./utils/study-helpers";
 
 test("STUDY-ACTIONS-01 saves a good answer and progress and advances to the next Card", async ({ fixture, page }) => {
+  // Given: Prepare `deck`, `session`, `currentCard` and any shared test state below.
   const deck = fixture.deck();
   const session = fixture.session();
   const currentCard = fixture.card("card-1");
@@ -17,10 +18,12 @@ test("STUDY-ACTIONS-01 saves a good answer and progress and advances to the next
   await page.goto(`/deck/${deck.id}/study`);
   await expect(page.getByText(currentCard.frontText, { exact: true })).toBeVisible();
   const beforeAnswer = await readSession(fixture.user().uid, deck.id);
+  // When: Exercise `page.getByRole("button", { name: "Swipe right: Good" }).click` with the prepared inputs.
   await page.getByRole("button", { name: "Swipe right: Good" }).click();
 
   const feedback = page.getByRole("status").filter({ hasText: "Swiped right" });
   const directionIcon = page.getByTestId("swipe-feedback-direction");
+  // Then: Verify the expected result in the assertions below.
   await expect(feedback).toBeVisible();
   await expect(directionIcon).toHaveAttribute("data-swipe-feedback-direction", "cardSwipeRight");
   await expect(directionIcon).toBeVisible();
@@ -46,6 +49,7 @@ test("STUDY-ACTIONS-01 saves a good answer and progress and advances to the next
 });
 
 test("STUDY-ACTIONS-02 saves an again answer and progress and advances to the next Card", async ({ fixture, page }) => {
+  // Given: Prepare `deck`, `session`, `currentCard` and any shared test state below.
   const deck = fixture.deck();
   const session = fixture.session();
   const currentCard = fixture.card("card-1");
@@ -53,8 +57,10 @@ test("STUDY-ACTIONS-02 saves an again answer and progress and advances to the ne
   await fixture.apply(page);
 
   await page.goto(`/deck/${deck.id}/study`);
+  // When: Exercise `page.getByRole("button", { name: "Swipe left: Again" }).click` with the prepared inputs.
   await page.getByRole("button", { name: "Swipe left: Again" }).click();
 
+  // Then: Verify the expected result in the assertions below.
   await expect(page.getByText(nextCard.frontText, { exact: true })).toBeVisible();
   await expect.poll(() => readProgress(currentCard.id)).toEqual({ reps: 1 });
   await expect
@@ -63,6 +69,7 @@ test("STUDY-ACTIONS-02 saves an again answer and progress and advances to the ne
 });
 
 test("STUDY-ACTIONS-03 skips without creating an answer and advances", async ({ fixture, page }) => {
+  // Given: Prepare `deck`, `session`, `currentCard` and any shared test state below.
   const deck = fixture.deck();
   const session = fixture.session();
   const currentCard = fixture.card("card-1");
@@ -70,8 +77,10 @@ test("STUDY-ACTIONS-03 skips without creating an answer and advances", async ({ 
   await fixture.apply(page);
 
   await page.goto(`/deck/${deck.id}/study`);
+  // When: Exercise `page.getByRole("button", { name: "Skip" }).click` with the prepared inputs.
   await page.getByRole("button", { name: "Skip" }).click();
 
+  // Then: Verify the expected result in the assertions below.
   await expect(page.getByText(nextCard.frontText, { exact: true })).toBeVisible();
   await expect.poll(() => readProgress(currentCard.id)).toEqual({ reps: 0 });
   await expect
@@ -83,6 +92,7 @@ test("STUDY-ACTIONS-03 skips without creating an answer and advances", async ({ 
 });
 
 test("STUDY-ACTIONS-04 prevents returning to previous Cards through study controls", async ({ fixture, page }) => {
+  // Given: Prepare `deck`, `session`, `currentCard` and any shared test state below.
   const deck = fixture.deck();
   const session = fixture.session();
   const currentCard = fixture.card("card-2");
@@ -95,9 +105,13 @@ test("STUDY-ACTIONS-04 prevents returning to previous Cards through study contro
   await expect(page.getByText("Easy", { exact: true })).toBeVisible();
   const front = page.getByRole("button", { name: currentCard.frontText, exact: true });
   const slider = page.getByRole("slider", { name: "Study progress" });
+  // When: Exercise `slider.press` with the prepared inputs.
   await slider.press("Home");
+  // Then: Verify the expected result in the assertions below.
   await expect(slider).toHaveValue(String(session.currentIndex));
+  // When: Exercise `slider.click` with the prepared inputs.
   await slider.click({ position: { x: 1, y: 10 } });
+  // Then: Verify the expected result in the assertions below.
   await expect(slider).toHaveValue(String(session.currentIndex));
   await expect(front).toBeVisible();
   await expect.poll(() => readProgress(currentCard.id)).toEqual({ reps: 0 });
@@ -112,6 +126,7 @@ test("STUDY-ACTIONS-05 keeps saved progress and continues after an answer histor
   fixture,
   page,
 }) => {
+  // Given: Prepare `deck`, `session`, `currentCard` and any shared test state below.
   const deck = fixture.deck();
   const session = fixture.session();
   const currentCard = fixture.card("card-1");
@@ -124,7 +139,9 @@ test("STUDY-ACTIONS-05 keeps saved progress and continues after an answer histor
   await page.goto(`/deck/${deck.id}/study`);
   allowExpectedFirestoreWriteFailure(browserErrors);
   const fault = await failNextFirestoreWrite(page, { collection: "studyAnswer" });
+  // When: Exercise `page.getByRole("button", { name: "Swipe up: Easy" }).click` with the prepared inputs.
   await page.getByRole("button", { name: "Swipe up: Easy" }).click();
+  // Then: Verify the expected result in the assertions below.
   await expect.poll(fault.wasTriggered).toBe(true);
   await fault.waitForFailure();
   await expect(page.getByRole("alert")).toContainText("Unable to save progress.");
@@ -135,12 +152,16 @@ test("STUDY-ACTIONS-05 keeps saved progress and continues after an answer histor
     .poll(async () => (await readSession(fixture.user().uid, deck.id))?.currentIndex)
     .toBe(session.currentIndex + 1);
   await expect.poll(readAnswers).toHaveLength(0);
+  // When: Exercise `fault.dispose` with the prepared inputs.
   await fault.dispose();
 
   await page.reload();
+  // Then: Verify the expected result in the assertions below.
   await expect(page.getByText(nextCard.frontText, { exact: true })).toBeVisible();
+  // When: Exercise `page.getByRole("button", { name: "Swipe up: Easy" }).click` with the prepared inputs.
   await page.getByRole("button", { name: "Swipe up: Easy" }).click();
 
+  // Then: Verify the expected result in the assertions below.
   await expect(page.getByRole("status").filter({ hasText: "Swiped up" })).toBeVisible();
   await expect(page.getByText(thirdCard.frontText, { exact: true })).toBeVisible();
   await expect.poll(() => readProgress(currentCard.id)).toEqual({ reps: 1 });

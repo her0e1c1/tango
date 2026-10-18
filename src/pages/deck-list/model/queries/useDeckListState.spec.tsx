@@ -37,6 +37,7 @@ const cardsForDeck = (deckId: string) => cards.filter((card) => card.deckId === 
 
 describe("NAVIGATION-06 STUDY-SESSION-03 useDeckListState", () => {
   beforeEach(async () => {
+    // Given: Establish the shared setup used by the following cases.
     vi.useFakeTimers();
     updatePreferences({ study: { useCardInterval: false } });
     replaceAuthSession({ status: "authenticated", uid: "user-id", displayName: null, isAnonymous: true });
@@ -65,9 +66,12 @@ describe("NAVIGATION-06 STUDY-SESSION-03 useDeckListState", () => {
   });
 
   it("puts active Decks in recent order and inactive Decks in name order", () => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Exercise `renderHook` with the prepared inputs.
     const { result } = renderHook(() => useDeckListState());
     const sections = result.current;
 
+    // Then: Verify the expected result in the assertions below.
     expect(sections.studying.map((item) => item.deck.id)).toEqual(["active-new", "active-old"]);
     expect(sections.studying[0]?.studySession).toMatchObject({
       deckId: "active-new",
@@ -83,6 +87,7 @@ describe("NAVIGATION-06 STUDY-SESSION-03 useDeckListState", () => {
   });
 
   it("NAVIGATION-17 orders overdue Decks by each Deck's earliest saved deadline", async () => {
+    // Given: Prepare `schedule` and any shared test state below.
     const schedule = calculateFsrsState(null, "good", 0);
     await Promise.all([
       editCard("user-id", { id: "other-z-1", fsrs: { ...schedule, dueAt: 500 } }),
@@ -92,17 +97,24 @@ describe("NAVIGATION-06 STUDY-SESSION-03 useDeckListState", () => {
     updatePreferences({ study: { useCardInterval: true } });
     vi.setSystemTime(1000);
 
+    // When: Exercise `renderHook` with the prepared inputs.
     const { result } = renderHook(useDeckListState);
+    // Then: Verify the expected result in the assertions below.
     expect(result.current.reviewNow.map(({ deck }) => deck.id)).toEqual(["other-z", "other-a"]);
     expect(result.current.reviewNow.map(({ review }) => review?.due)).toEqual([2, 1]);
   });
 
   it("derives emptyReason across checking, error, confirmed-empty, and deck-present states", async () => {
     // 1. Deck-present state
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Evaluate `renderHook` as part of the following checks.
+    // Then: Verify the expected result in the assertions below.
     expect(renderHook(() => useDeckListState()).result.current.emptyReason).toBeUndefined();
 
     // Clear decks to test 0-deck scenarios
     for (const deck of decks) {
+      // Given: Use the current iteration or branch inputs from the enclosing case.
+      // When: Exercise `deleteDeck` with the prepared inputs.
       await deleteDeck("user-id", deck.id);
     }
 
@@ -110,19 +122,24 @@ describe("NAVIGATION-06 STUDY-SESSION-03 useDeckListState", () => {
     act(() => {
       deckListStore.setState({ bootstrapStatus: "checking" });
     });
+    // Then: Verify the expected result in the assertions below.
     expect(renderHook(() => useDeckListState()).result.current.emptyReason).toBe("checking");
 
     // 3. Error state
+    // When: Exercise `act` with the prepared inputs.
     act(() => {
       deckListStore.setState({ bootstrapStatus: "error" });
     });
+    // Then: Verify the expected result in the assertions below.
     expect(renderHook(() => useDeckListState()).result.current.emptyReason).toBe("error");
 
     // 4. Confirmed empty state (loadSample false or bootstrap done)
+    // When: Exercise `act` with the prepared inputs.
     act(() => {
       updatePreferences({ loadSample: false });
       deckListStore.setState({ bootstrapStatus: "done" });
     });
+    // Then: Verify the expected result in the assertions below.
     expect(renderHook(() => useDeckListState()).result.current.emptyReason).toBe("confirmed-empty");
   });
 });

@@ -4,6 +4,9 @@ import { expect } from "storybook/test";
 import { type AppStoryParameters, prepareAppStory, withPageStory } from "@/storybook/appStory";
 import { AppLayout } from "@/widgets/app-layout";
 
+// Given: Story args and parameters define the render scenarios below.
+// When: Storybook renders each exported variant and runs its play when present.
+// Then: Assertions are in the relevant plays; rendering alone adds no behavioral checks.
 const meta = {
   title: "Integration/AppLayout",
   component: AppLayout,
@@ -31,22 +34,29 @@ export const FixedByDefault: Story = {
     )),
   },
   play: async ({ canvas, step }) => {
+    // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-APP-LAYOUT-01 Fixed header", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
       const shell = canvas.getByRole("region", { name: "Application shell" });
       const header = canvas.getByRole("banner");
       const firstSection = canvas.getByRole("heading", { name: "Application section 1" }).closest("section");
 
+      // When: Storybook renders this scenario with its configured args and parameters.
+      // Then: Verify the expected result in the assertions below.
       await expect(firstSection).not.toBeNull();
       if (firstSection === null) return;
 
       await expect(getComputedStyle(header).position).toBe("fixed");
+      // Given: Record the fixed header position before scrolling the shell.
       const initialHeaderTop = header.getBoundingClientRect().top;
       await expect(firstSection.getBoundingClientRect().top).toBeGreaterThanOrEqual(
         header.getBoundingClientRect().bottom
       );
 
+      // When: Scroll the application shell to the bottom.
       shell.scrollTop = shell.scrollHeight;
 
+      // Then: The header stays at its original viewport position while content scrolls.
       await expect(shell.scrollTop).toBeGreaterThan(0);
       await expect(header.getBoundingClientRect().top).toBe(initialHeaderTop);
       shell.scrollTop = 0;
@@ -60,10 +70,14 @@ export const FixedHeaderDisabled: Story = {
     children: <h1 className="text-title font-bold text-ink">Non-fixed application content</h1>,
   },
   play: async ({ canvas, step }) => {
+    // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-APP-LAYOUT-02 Non-fixed header", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
       const header = canvas.getByRole("banner");
       const content = canvas.getByRole("heading", { name: "Non-fixed application content" });
 
+      // When: Storybook renders this scenario with its configured args and parameters.
+      // Then: Verify the expected result in the assertions below.
       await expect(getComputedStyle(header).position).toBe("static");
       await expect(content.getBoundingClientRect().top).toBeGreaterThanOrEqual(header.getBoundingClientRect().bottom);
     });

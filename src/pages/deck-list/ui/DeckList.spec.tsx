@@ -37,8 +37,11 @@ const sections = {
 
 describe("SETTINGS-04 NAVIGATION-06 NAVIGATION-17 DeckList", () => {
   it("groups active decks before other decks with visible headings", () => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Exercise `render` with the prepared inputs.
     render(<DeckList sections={sections} onCreateDeck={onCreateDeck} onImportDeck={onImportDeck} />);
 
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByRole("heading", { level: 1, name: "Decks" })).toBeInTheDocument();
     expect(screen.getByText("2 decks")).toBeInTheDocument();
 
@@ -52,6 +55,8 @@ describe("SETTINGS-04 NAVIGATION-06 NAVIGATION-17 DeckList", () => {
   });
 
   it("keeps inactive decks available and omits empty groups", () => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Exercise `render` with the prepared inputs.
     render(
       <DeckList
         sections={{ studying: [], other: sections.other }}
@@ -60,6 +65,7 @@ describe("SETTINGS-04 NAVIGATION-06 NAVIGATION-17 DeckList", () => {
       />
     );
 
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByRole("article", { name: otherDeck.name })).toBeVisible();
     expect(screen.getByRole("region", { name: "Other decks" })).toBeVisible();
     expect(screen.queryByRole("region", { name: "Studying" })).not.toBeInTheDocument();
@@ -68,7 +74,9 @@ describe("SETTINGS-04 NAVIGATION-06 NAVIGATION-17 DeckList", () => {
   });
 
   it("shows ready decks between studying and other decks", () => {
+    // Given: Prepare `readyDeck` and any shared test state below.
     const readyDeck = createDeck({ id: "ready", name: "Ready deck" });
+    // When: Exercise `render` with the prepared inputs.
     render(
       <DeckList
         sections={{
@@ -80,6 +88,7 @@ describe("SETTINGS-04 NAVIGATION-06 NAVIGATION-17 DeckList", () => {
       />
     );
     const list = screen.getByRole("region", { name: "Decks" });
+    // Then: Verify the expected result in the assertions below.
     expect(
       within(list)
         .getAllByRole("region")
@@ -94,12 +103,15 @@ describe("SETTINGS-04 NAVIGATION-06 NAVIGATION-17 DeckList", () => {
   it.each(["button", "menuitem"] as const)(
     "closes the mobile sheet through its %s without running an action",
     async (role) => {
+      // Given: Prepare `create`, `importDeck`, `trigger` and any shared test state below.
       const create = vi.fn();
       const importDeck = vi.fn();
       render(<DeckList sections={sections} onCreateDeck={create} onImportDeck={importDeck} />);
       const trigger = screen.getByRole("button", { name: "Add" });
+      // When: Exercise `userEvent.click` with the prepared inputs.
       await userEvent.click(trigger);
       await userEvent.click(screen.getByRole(role, { name: "Close menu" }));
+      // Then: Verify the expected result in the assertions below.
       expect(screen.queryByRole("menu")).not.toBeInTheDocument();
       expect(trigger).toHaveFocus();
       expect(create).not.toHaveBeenCalled();
@@ -108,62 +120,84 @@ describe("SETTINGS-04 NAVIGATION-06 NAVIGATION-17 DeckList", () => {
   );
 
   it("opens one deck actions menu at a time", () => {
+    // Given: Use this case's inputs and any shared test setup.
     render(<DeckList sections={sections} onCreateDeck={onCreateDeck} onImportDeck={onImportDeck} />);
 
+    // When: Exercise `fireEvent.click` with the prepared inputs.
     fireEvent.click(screen.getByRole("button", { name: "Open actions for Active deck" }));
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByRole("menu", { name: "Actions for Active deck" })).toBeInTheDocument();
 
+    // When: Exercise `fireEvent.click` with the prepared inputs.
     fireEvent.click(screen.getByRole("button", { name: "Open actions for Other deck" }));
+    // Then: Verify the expected result in the assertions below.
     expect(screen.queryByRole("menu", { name: "Actions for Active deck" })).not.toBeInTheDocument();
     expect(screen.getByRole("menu", { name: "Actions for Other deck" })).toBeInTheDocument();
   });
 
   it("keeps the list and deck menus mutually exclusive", async () => {
+    // Given: Use this case's inputs and any shared test setup.
     render(<DeckList sections={sections} onCreateDeck={onCreateDeck} onImportDeck={onImportDeck} />);
 
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByRole("button", { name: "Open actions for Active deck" }));
     await userEvent.click(screen.getByRole("button", { name: "Add" }));
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getAllByRole("menu")).toHaveLength(1);
     expect(screen.getByRole("menu", { name: "Add" })).toBeVisible();
 
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByRole("button", { name: "Open actions for Other deck" }));
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getAllByRole("menu")).toHaveLength(1);
     expect(screen.getByRole("menu", { name: "Actions for Other deck" })).toBeVisible();
   });
 
   it("reports create and import intents and closes the list menu", async () => {
+    // Given: Prepare `create`, `importDeck`, `trigger` and any shared test state below.
     const create = vi.fn();
     const importDeck = vi.fn();
     render(<DeckList sections={sections} onCreateDeck={create} onImportDeck={importDeck} />);
     const trigger = screen.getByRole("button", { name: "Add" });
 
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(trigger);
     await userEvent.click(screen.getByRole("menuitem", { name: "Create deck" }));
+    // Then: Verify the expected result in the assertions below.
     expect(create).toHaveBeenCalledExactlyOnceWith();
     expect(importDeck).not.toHaveBeenCalled();
     expect(screen.queryByRole("menu")).not.toBeInTheDocument();
     expect(trigger).toHaveFocus();
 
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(trigger);
     await userEvent.click(screen.getByRole("menuitem", { name: "Import decks" }));
+    // Then: Verify the expected result in the assertions below.
     expect(importDeck).toHaveBeenCalledExactlyOnceWith();
     expect(create).toHaveBeenCalledTimes(1);
     expect(screen.queryByRole("menu")).not.toBeInTheDocument();
   });
 
   it("supports keyboard selection and Escape without executing an action", async () => {
+    // Given: Prepare `create`, `importDeck`, `trigger` and any shared test state below.
     const create = vi.fn();
     const importDeck = vi.fn();
     render(<DeckList sections={sections} onCreateDeck={create} onImportDeck={importDeck} />);
     const trigger = screen.getByRole("button", { name: "Add" });
     trigger.focus();
 
+    // When: Exercise `userEvent.keyboard` with the prepared inputs.
     await userEvent.keyboard("{Enter}");
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByRole("menuitem", { name: "Create deck" })).toHaveFocus();
+    // When: Exercise `userEvent.keyboard` with the prepared inputs.
     await userEvent.keyboard("{ArrowDown}");
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByRole("menuitem", { name: "Import decks" })).toHaveFocus();
+    // When: Exercise `userEvent.keyboard` with the prepared inputs.
     await userEvent.keyboard("{Escape}");
 
+    // Then: Verify the expected result in the assertions below.
     expect(screen.queryByRole("menu")).not.toBeInTheDocument();
     expect(trigger).toHaveFocus();
     expect(create).not.toHaveBeenCalled();
@@ -171,6 +205,7 @@ describe("SETTINGS-04 NAVIGATION-06 NAVIGATION-17 DeckList", () => {
   });
 
   it("keeps list actions available when empty", async () => {
+    // Given: Use this case's inputs and any shared test setup.
     render(
       <DeckList
         sections={{ studying: [], other: [] }}
@@ -187,12 +222,16 @@ describe("SETTINGS-04 NAVIGATION-06 NAVIGATION-17 DeckList", () => {
     expect(screen.getByRole("button", { name: "Create deck" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Import decks" })).toBeInTheDocument();
 
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByRole("button", { name: "Add" }));
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByRole("menuitem", { name: "Create deck" })).toBeEnabled();
     expect(screen.getByRole("menuitem", { name: "Import decks" })).toBeEnabled();
   });
 
   it("renders checking status without confirmed empty guidance", () => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Exercise `render` with the prepared inputs.
     render(
       <DeckList
         sections={{ studying: [], other: [] }}
@@ -204,11 +243,13 @@ describe("SETTINGS-04 NAVIGATION-06 NAVIGATION-17 DeckList", () => {
       />
     );
 
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByRole("status")).toHaveTextContent("Checking for sample deck…");
     expect(screen.queryByRole("heading", { name: "No decks yet" })).not.toBeInTheDocument();
   });
 
   it("renders bootstrap error with Retry, Create deck, and Import actions", async () => {
+    // Given: Prepare `onRetry`, `create`, `importDeck` and any shared test state below.
     const onRetry = vi.fn();
     const create = vi.fn();
     const importDeck = vi.fn();
@@ -227,22 +268,31 @@ describe("SETTINGS-04 NAVIGATION-06 NAVIGATION-17 DeckList", () => {
     expect(screen.getByRole("alert")).toBeInTheDocument();
     expect(screen.getByRole("heading", { level: 2, name: "Unable to load sample deck" })).toBeInTheDocument();
 
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByRole("button", { name: "Retry" }));
+    // Then: Verify the expected result in the assertions below.
     expect(onRetry).toHaveBeenCalledTimes(1);
 
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByRole("button", { name: "Create deck" }));
+    // Then: Verify the expected result in the assertions below.
     expect(create).toHaveBeenCalledTimes(1);
 
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByRole("button", { name: "Import decks" }));
+    // Then: Verify the expected result in the assertions below.
     expect(importDeck).toHaveBeenCalledTimes(1);
   });
 
   it("localizes fixed copy without translating user-created deck names", async () => {
+    // Given: Use this case's inputs and any shared test setup.
     await getI18n().changeLanguage("ja");
     render(<DeckList sections={sections} onCreateDeck={onCreateDeck} onImportDeck={onImportDeck} />);
 
     expect(screen.getByRole("heading", { level: 1, name: "デッキ" })).toBeInTheDocument();
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByRole("button", { name: "追加" }));
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByRole("menuitem", { name: "デッキを作成" })).toBeInTheDocument();
     expect(screen.getByRole("menuitem", { name: "デッキをインポート" })).toBeInTheDocument();
     expect(screen.getByText("2件")).toBeInTheDocument();

@@ -23,7 +23,9 @@ const aggregate = (value: StudyAnswerHistory) => aggregateStudyAnswers({ start, 
 
 describe("STUDY-SESSION-13 answer metrics for the selected interval", () => {
   it("counts ratings, distinct answers at identical times, local days and session metrics", () => {
+    // Given: Prepare `answers` and any shared test state below.
     const answers = [record("a", "again"), record("b", "hard"), record("c", "good"), record("d", "easy")];
+    // When: Exercise `aggregate` with the prepared inputs.
     const result = aggregate(history(answers));
     const expected = {
       ratedAnswerCount: 4,
@@ -34,6 +36,7 @@ describe("STUDY-SESSION-13 answer metrics for the selected interval", () => {
       easyCount: 1,
       recallRate: 0.75,
     };
+    // Then: Verify the expected result in the assertions below.
     expect(result).toMatchObject({ ...expected, complete: true });
     expect(result.days).toEqual([
       { date: start, ...expected },
@@ -52,6 +55,9 @@ describe("STUDY-SESSION-13 answer metrics for the selected interval", () => {
     expect(result.recentDecks).toEqual([{ deckId: "deck", lastAnsweredAt: start, ...expected }]);
   });
   it("does not infer zero recall from an empty or incomplete history", () => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Evaluate `aggregate` as part of the following checks.
+    // Then: Verify the expected result in the assertions below.
     expect(aggregate(history([]))).toMatchObject({ ratedAnswerCount: 0, recallRate: undefined, complete: true });
     for (const extra of [
       { source: "cache" as const },
@@ -59,11 +65,16 @@ describe("STUDY-SESSION-13 answer metrics for the selected interval", () => {
       { invalidCount: 1 },
       { hasPendingWrites: true },
     ]) {
+      // Given: Use the current iteration or branch inputs from the enclosing case.
+      // Then: Verify the expected result in the assertions below.
       expect(aggregate(history([], extra))).toMatchObject({ recallRate: undefined, complete: false });
     }
   });
   it("excludes other Decks and half-open boundaries, deduplicating only identical IDs", () => {
+    // Given: Prepare `first` and any shared test state below.
     const first = record("a", "good");
+    // When: Evaluate `aggregate` as part of the following checks.
+    // Then: Verify the expected result in the assertions below.
     expect(
       aggregate(
         history([

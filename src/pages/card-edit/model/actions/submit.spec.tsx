@@ -22,6 +22,7 @@ vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
 describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 card edit submission", () => {
   beforeEach(() => {
+    // Given: Establish the shared setup used by the following cases.
     dismissToast();
     vi.mocked(editCard).mockReset();
     session.uid = "opening-user";
@@ -30,15 +31,18 @@ describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 card edit submission", () => {
   it.each(["saving-user", undefined])(
     "uses the session at submission (%s) and sends only editable content",
     async (uid) => {
+      // Given: Prepare `card`, `values`, `saved` and any shared test state below.
       const card = createCard({ tags: ["custom-tag"], uid: "owner" });
       render(<ToastViewport />);
       session.uid = uid;
       const values = { frontText: "Edited front", backText: "Edited back", tags: [...card.tags] };
       let saved: Awaited<ReturnType<typeof submit>>;
+      // When: Exercise `actAsync` with the prepared inputs.
       await actAsync(async () => {
         saved = await submit({ cardId: card.id, values });
       });
 
+      // Then: Verify the expected result in the assertions below.
       expect(saved).toEqual(values);
       expect(editCard).toHaveBeenCalledWith(uid ?? "", {
         id: card.id,
@@ -50,11 +54,13 @@ describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 card edit submission", () => {
   );
 
   it("snapshots the submitted content while persistence is pending", async () => {
+    // Given: Prepare `pending` and any shared test state below.
     const pending = Promise.withResolvers<void>();
     vi.mocked(editCard).mockImplementation(async (_uid, input) => {
       await pending.promise;
       expect(input).toEqual({ id: "card-id", frontText: "Submitted", backText: "Back", tags: ["custom-tag"] });
     });
+    // When: Exercise `render` with the prepared inputs.
     render(<ToastViewport />);
     const values = { frontText: "Submitted", backText: "Back", tags: ["custom-tag"] };
     const saved = submit({ cardId: "card-id", values });
@@ -65,13 +71,17 @@ describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 card edit submission", () => {
       await saved;
     });
 
+    // Then: Verify the expected result in the assertions below.
     await expect(saved).resolves.toEqual({ frontText: "Submitted", backText: "Back", tags: ["custom-tag"] });
   });
 
   it("returns false with shared feedback on failure and retries the same Card", async () => {
+    // Given: Use this case's inputs and any shared test setup.
     vi.mocked(editCard).mockRejectedValueOnce(new Error("write failed"));
+    // When: Exercise `render` with the prepared inputs.
     render(<ToastViewport />);
     const input = { cardId: "card-id", values: { frontText: "Retry", backText: "Back", tags: [] } };
+    // Then: Verify the expected result in the assertions below.
     await actAsync(async () => {
       expect(await submit(input)).toBeUndefined();
     });

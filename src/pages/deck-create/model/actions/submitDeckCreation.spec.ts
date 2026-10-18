@@ -11,19 +11,23 @@ vi.mock("@/shared/ui/toast", () => ({ showToast: vi.fn() }));
 
 describe("Deck creation account guards [DECK-MANAGEMENT-05 DECK-MANAGEMENT-06]", () => {
   beforeEach(() => {
+    // Given: Establish the shared setup used by the following cases.
     vi.resetAllMocks();
     auth.uid = "owner";
     deckCreatePageStore.setState(deckCreatePageStore.getInitialState(), true);
   });
 
   it.each(["success", "failure"])("discards old-account %s and allows a new creation", async (outcome) => {
+    // Given: Prepare `pending`, `values` and any shared test state below.
     const pending = Promise.withResolvers<void>();
     vi.mocked(createDeck).mockReturnValue(pending.promise);
     const values = { name: "Deck", category: "raw" };
+    // When: Exercise `submitDeckCreation` with the prepared inputs.
     const result = submitDeckCreation(values);
     auth.uid = "next-user";
     if (outcome === "failure") pending.reject(new Error("denied"));
     else pending.resolve();
+    // Then: Verify the expected result in the assertions below.
     await expect(result).resolves.toBeUndefined();
     expect(showToast).not.toHaveBeenCalled();
     vi.mocked(createDeck).mockResolvedValue(undefined);

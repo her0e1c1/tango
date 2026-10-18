@@ -70,6 +70,14 @@ Delegate independent reviews of the same commit to three reviewers: [simplicity]
 - Do not add tests for non-application code. Assert observable behavior through the tested level's public boundary, not implementation details.
 - Design production interfaces for production requirements. Do not add or change parameters, dependency objects, callbacks, factories, optional overrides, or exports solely for tests or mocks; use test-side module mocks or spies instead.
 
+### Given / When / Then Mapping
+
+- When adding or changing a test, mark the start of each phase with English `// Given: ...`, `// When: ...`, and `// Then: ...` comments (use `# Given: ...`, `# When: ...`, and `# Then: ...` in Python) so readers can trace the referenced specification's Given / When / Then to setup, actions, and assertions in code.
+- Given (setup) establishes the specification's preconditions, When (action) performs the operation or event under test, and Then (assertions) verifies the specified expected results. Calls that establish preconditions belong in Given even when they use the same update function as the action under test.
+- When fixtures, `beforeEach`, or helpers provide setup, make their role traceable from the phase comments. Keep assertions that check preconditions in Given and distinguish them from assertions of the expected results under test.
+- In parameterized tests, map each row's inputs and expected results to the appropriate phases. When a case repeats actions and assertions, repeat When / Then comments following the specification's sequence.
+- When a change only adds phase comments to existing tests, preserve execution order, inputs, expected values, specifications, and case IDs.
+
 ### Firestore Integration Tests
 
 - Keep persistence, subscription, and security-rule tests under `test/integration/firestore`, based on contracts in `docs/test/integration/firestore`. Keep browser-facing user flows in E2E tests.

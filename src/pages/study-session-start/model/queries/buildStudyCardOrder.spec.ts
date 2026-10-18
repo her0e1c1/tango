@@ -6,20 +6,32 @@ describe("buildStudyCardOrder [STUDY-SESSION-01]", () => {
   const cards = [cardProgress("a"), cardProgress("b"), cardProgress("c"), cardProgress("d")];
 
   it("returns the source card order when shuffle and maximum are disabled", () => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Evaluate `buildStudyCardOrder` as part of the following checks.
+    // Then: Verify the expected result in the assertions below.
     expect(buildStudyCardOrder(cards, { shuffled: false, maxNumberOfCardsToLearn: 0 })).toEqual(["a", "b", "c", "d"]);
   });
 
   it("returns no card IDs for an empty selection", () => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Evaluate `buildStudyCardOrder` as part of the following checks.
+    // Then: Verify the expected result in the assertions below.
     expect(buildStudyCardOrder([], { shuffled: false, maxNumberOfCardsToLearn: 0 })).toEqual([]);
   });
 
   it("limits the number of cards", () => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Evaluate `buildStudyCardOrder` as part of the following checks.
+    // Then: Verify the expected result in the assertions below.
     expect(buildStudyCardOrder(cards, { shuffled: false, maxNumberOfCardsToLearn: 2 })).toEqual(["a", "b"]);
   });
 
   it("preserves source order before applying the maximum", () => {
+    // Given: Prepare `unorderedCards` and any shared test state below.
     const unorderedCards = [cardProgress("seen"), cardProgress("new"), cardProgress("middle")];
 
+    // When: Evaluate `buildStudyCardOrder` as part of the following checks.
+    // Then: Verify the expected result in the assertions below.
     expect(buildStudyCardOrder(unorderedCards, { shuffled: false, maxNumberOfCardsToLearn: 2 })).toEqual([
       "seen",
       "new",
@@ -27,15 +39,21 @@ describe("buildStudyCardOrder [STUDY-SESSION-01]", () => {
   });
 
   it("returns every selected card exactly once when shuffled", () => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Exercise `buildStudyCardOrder` with the prepared inputs.
     const result = buildStudyCardOrder(cards, { shuffled: true, maxNumberOfCardsToLearn: 0 });
 
+    // Then: Verify the expected result in the assertions below.
     expect(result).toHaveLength(cards.length);
     expect(new Set(result)).toEqual(new Set(["a", "b", "c", "d"]));
   });
 
   it("limits a shuffled order to distinct selected cards", () => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Exercise `buildStudyCardOrder` with the prepared inputs.
     const result = buildStudyCardOrder(cards, { shuffled: true, maxNumberOfCardsToLearn: 2 });
 
+    // Then: Verify the expected result in the assertions below.
     expect(result).toHaveLength(2);
     expect(new Set(result).size).toBe(2);
     expect(result.every((id) => cards.some((card) => card.id === id))).toBe(true);
@@ -47,6 +65,7 @@ describe("due ordering [STUDY-SESSION-01]", () => {
   const card = { id: "card", fsrs: null };
   const saved = calculateFsrsState(null, "good", now - 600_000);
   it.each([false, true])("limits the oldest due cards before shuffling=%s", (shuffled) => {
+    // Given: Prepare `cards` and any shared test state below.
     const cards = [
       { ...card, id: "z-new" },
       { ...card, id: "equal", fsrs: { ...saved, dueAt: now } },
@@ -55,6 +74,8 @@ describe("due ordering [STUDY-SESSION-01]", () => {
       { ...card, id: "future", fsrs: { ...saved, dueAt: now + 1 } },
       { ...card, id: "a-new" },
     ];
+    // When: Evaluate `buildStudyCardOrder` as part of the following checks.
+    // Then: Verify the expected result in the assertions below.
     expect(
       new Set(buildStudyCardOrder(cards, { useCardInterval: true, shuffled, maxNumberOfCardsToLearn: 2 }, now))
     ).toEqual(new Set(["oldest", "tie"]));

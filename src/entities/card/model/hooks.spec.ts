@@ -9,6 +9,7 @@ import { useCard, useCards, useCardsByDeckId } from "./hooks";
 
 describe("Card visibility hooks", () => {
   beforeEach(() => {
+    // Given: Establish the shared setup used by the following cases.
     replaceRemoteCards([]);
     replaceRemoteDecks([]);
   });
@@ -19,6 +20,7 @@ describe("Card visibility hooks", () => {
   });
 
   it("UNIT-STORE-CARD-03 updates Card references when the available Deck or owner changes", () => {
+    // Given: Prepare `cardA`, `cardB`, `cardC` and any shared test state below.
     const cardA = createCard({ id: "card-a", deckId: "deck-x", uid: "user-a", tags: ["z", "a"] });
     const cardB = createCard({ id: "card-b", deckId: "deck-x", uid: "user-b", tags: ["foreign"] });
     const cardC = createCard({ id: "card-c", deckId: "deck-y", uid: "user-a", tags: ["orphan"] });
@@ -51,8 +53,11 @@ describe("Card visibility hooks", () => {
     ];
 
     for (const scenario of visibilityCases) {
+      // Given: Use the current iteration or branch inputs from the enclosing case.
+      // When: Exercise `act` with the prepared inputs.
       act(() => replaceRemoteDecks(scenario.decks));
 
+      // Then: Verify the expected result in the assertions below.
       expect(result.current).toEqual({
         cards: scenario.cards,
         cardA: scenario.cardA,

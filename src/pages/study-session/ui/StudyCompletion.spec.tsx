@@ -14,6 +14,7 @@ describe("STUDY-SESSION-05 StudyCompletion", () => {
   ])(
     "shows the session Card count in $language for $cardCount cards and reports the return action",
     async ({ language, cardCount, summary, title, back }) => {
+      // Given: Prepare `onClickBack` and any shared test state below.
       await getI18n().changeLanguage(language);
       const onClickBack = vi.fn();
       render(<StudyCompletion cardCount={cardCount} onClickBack={onClickBack} />);
@@ -22,7 +23,9 @@ describe("STUDY-SESSION-05 StudyCompletion", () => {
       expect(screen.getByText(summary)).toBeVisible();
       expect(screen.queryByRole("status")).not.toBeInTheDocument();
 
+      // When: Exercise `fireEvent.click` with the prepared inputs.
       fireEvent.click(screen.getByRole("button", { name: back }));
+      // Then: Verify the expected result in the assertions below.
       expect(onClickBack).toHaveBeenCalledOnce();
     }
   );

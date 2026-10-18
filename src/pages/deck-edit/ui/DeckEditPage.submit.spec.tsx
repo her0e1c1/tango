@@ -52,6 +52,7 @@ describe("DeckEditPage submission [DECK-MANAGEMENT-01]", () => {
   const deckId = "deck-edit-submit-deck";
 
   beforeEach(async () => {
+    // Given: Establish the shared setup used by the following cases.
     dismissToast();
     mocks.beforeDeckWrite = undefined;
     mocks.editCalls = 0;
@@ -60,6 +61,7 @@ describe("DeckEditPage submission [DECK-MANAGEMENT-01]", () => {
   });
 
   it("starts one save for same-tick submits while asynchronous validation is pending", async () => {
+    // Given: Prepare `finishSave`, `router`, `submitButton` and any shared test state below.
     let finishSave: () => void = () => undefined;
     mocks.beforeDeckWrite = () =>
       new Promise<void>((resolve) => {
@@ -74,16 +76,21 @@ describe("DeckEditPage submission [DECK-MANAGEMENT-01]", () => {
     );
     const submitButton = screen.getByRole("button", { name: "Save changes" });
 
+    // When: Exercise `fireEvent.submit` with the prepared inputs.
     fireEvent.submit(submitButton);
     fireEvent.submit(submitButton);
 
+    // Then: Verify the expected result in the assertions below.
     await waitFor(() => expect(mocks.editCalls).toBe(1));
     expect(screen.getByRole("button", { name: "Saving…" })).toBeDisabled();
+    // When: Exercise `actAsync` with the prepared inputs.
     await actAsync(async () => finishSave());
+    // Then: Verify the expected result in the assertions below.
     expect(await screen.findByRole("heading", { level: 1, name: "Deck list" })).toBeVisible();
   });
 
   it("saves a corrected draft after validation rejects the first submission", async () => {
+    // Given: Prepare `router`, `name` and any shared test state below.
     const router = createDeckEditRouter(deckId);
     render(
       <>
@@ -92,13 +99,17 @@ describe("DeckEditPage submission [DECK-MANAGEMENT-01]", () => {
       </>
     );
     const name = screen.getByRole("textbox", { name: "Name" });
+    // When: Exercise `userEvent.clear` with the prepared inputs.
     await userEvent.clear(name);
     await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
 
+    // Then: Verify the expected result in the assertions below.
     expect(await screen.findByText("Deck name is required.")).toBeVisible();
+    // When: Exercise `userEvent.type` with the prepared inputs.
     await userEvent.type(name, "Corrected deck");
     await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
 
+    // Then: Verify the expected result in the assertions below.
     expect(await screen.findByRole("heading", { level: 1, name: "Deck list" })).toBeVisible();
     expect(screen.getByText("Updated deck “Corrected deck”.")).toBeVisible();
   });
@@ -106,6 +117,7 @@ describe("DeckEditPage submission [DECK-MANAGEMENT-01]", () => {
   it.each(["deck-edit-submit-deck", "another-deck"])(
     "keeps the new editor submission pending when an earlier visit finishes (%s)",
     async (nextDeckId) => {
+      // Given: Prepare `finishOldSave`, `oldRouter`, `view` and any shared test state below.
       await createDeck("user-id", createLocalDeck({ id: nextDeckId, name: "Deck name" }));
       let finishOldSave: () => void = () => undefined;
       mocks.beforeDeckWrite = () =>
@@ -114,8 +126,11 @@ describe("DeckEditPage submission [DECK-MANAGEMENT-01]", () => {
         });
       const oldRouter = createDeckEditRouter(deckId);
       const view = render(<RouterProvider router={oldRouter} />);
+      // When: Exercise `userEvent.click` with the prepared inputs.
       await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
+      // Then: Verify the expected result in the assertions below.
       expect(await screen.findByRole("button", { name: "Saving…" })).toBeDisabled();
+      // When: Exercise `view.unmount` with the prepared inputs.
       view.unmount();
 
       let finishNewSave: () => void = () => undefined;
@@ -131,23 +146,32 @@ describe("DeckEditPage submission [DECK-MANAGEMENT-01]", () => {
       );
       await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
       const saving = await screen.findByRole("button", { name: "Saving…" });
+      // Then: Verify the expected result in the assertions below.
       expect(saving).toBeDisabled();
 
+      // When: Exercise `actAsync` with the prepared inputs.
       await actAsync(async () => finishOldSave());
+      // Then: Verify the expected result in the assertions below.
       expect(router.state.location.pathname).toBe(`/deck/${nextDeckId}/edit`);
       expect(saving).toBeDisabled();
+      // When: Exercise `fireEvent.submit` with the prepared inputs.
       fireEvent.submit(saving);
       await actAsync(async () => undefined);
+      // Then: Verify the expected result in the assertions below.
       expect(mocks.editCalls).toBe(2);
 
+      // When: Exercise `actAsync` with the prepared inputs.
       await actAsync(async () => finishNewSave());
+      // Then: Verify the expected result in the assertions below.
       expect(await screen.findByRole("heading", { level: 1, name: "Deck list" })).toBeVisible();
     }
   );
 
   it("does not submit a replaced form when its asynchronous validation finishes", async () => {
+    // Given: Prepare `oldRouter`, `view` and any shared test state below.
     const oldRouter = createDeckEditRouter(deckId);
     const view = render(<RouterProvider router={oldRouter} />);
+    // When: Exercise `fireEvent.submit` with the prepared inputs.
     fireEvent.submit(screen.getByRole("button", { name: "Save changes" }));
     view.unmount();
 
@@ -155,14 +179,18 @@ describe("DeckEditPage submission [DECK-MANAGEMENT-01]", () => {
     render(<RouterProvider router={router} />);
     await actAsync(async () => undefined);
 
+    // Then: Verify the expected result in the assertions below.
     expect(mocks.editCalls).toBe(0);
     expect(screen.getByRole("textbox", { name: "Name" })).toHaveValue("Deck name");
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
+    // Then: Verify the expected result in the assertions below.
     expect(await screen.findByRole("heading", { level: 1, name: "Deck list" })).toBeVisible();
     expect(mocks.editCalls).toBe(1);
   });
 
   it("publishes success after Page unmount without navigating the old visit", async () => {
+    // Given: Prepare `finishSave`, `router` and any shared test state below.
     let finishSave: () => void = () => undefined;
     mocks.beforeDeckWrite = () =>
       new Promise<void>((resolve) => {
@@ -172,12 +200,16 @@ describe("DeckEditPage submission [DECK-MANAGEMENT-01]", () => {
     const { unmount } = render(<RouterProvider router={router} />);
     render(<ToastViewport />);
 
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
+    // Then: Verify the expected result in the assertions below.
     expect(await screen.findByRole("button", { name: "Saving…" })).toBeDisabled();
     const openingPath = router.state.location.pathname;
+    // When: Exercise `unmount` with the prepared inputs.
     unmount();
     await actAsync(async () => finishSave());
 
+    // Then: Verify the expected result in the assertions below.
     expect(router.state.location.pathname).toBe(openingPath);
     expect(await screen.findByText("Updated deck “Deck name”.")).toBeVisible();
   });

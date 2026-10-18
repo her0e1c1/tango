@@ -30,6 +30,7 @@ const csv = (name = "deck.csv") => new File(["front,back,tag,key"], name, { type
 
 describe("Deck import operations [DECK-IMPORT-01 DECK-IMPORT-02 DECK-IMPORT-03 DECK-IMPORT-04 DECK-IMPORT-05 DECK-IMPORT-06]", () => {
   beforeEach(() => {
+    // Given: Establish the shared setup used by the following cases.
     vi.clearAllMocks();
     replaceRemoteDecks([]);
     replaceRemoteCards([]);
@@ -66,16 +67,21 @@ describe("Deck import operations [DECK-IMPORT-01 DECK-IMPORT-02 DECK-IMPORT-03 D
   it.each(["anonymous-uid", "linked-uid"])(
     "previews and imports using the same persistence boundary for %s",
     async (uid) => {
+      // Given: Use this case's inputs and any shared test setup.
       controls.uid = uid;
       const { result } = renderHook(useDeckImportPageModel);
+      // When: Exercise `actAsync` with the prepared inputs.
       await actAsync(async () => {
         await selectDeckImportFile(csv());
       });
+      // Then: Verify the expected result in the assertions below.
       expect(result.current.view.preview?.analysis.rows).toHaveLength(1);
       expect(createDeck).not.toHaveBeenCalled();
+      // When: Exercise `actAsync` with the prepared inputs.
       await actAsync(async () => {
         await Promise.resolve(result.current.importPreview());
       });
+      // Then: Verify the expected result in the assertions below.
       await waitFor(() => expect(controls.navigate).toHaveBeenCalled());
       expect(createDeck).toHaveBeenCalledWith(uid, expect.objectContaining({ name: "deck.csv" }));
       expect(createCard).toHaveBeenCalledWith(uid, expect.objectContaining({ frontText: "front" }));
@@ -83,21 +89,30 @@ describe("Deck import operations [DECK-IMPORT-01 DECK-IMPORT-02 DECK-IMPORT-03 D
   );
 
   it("saves same-name selections as distinct Decks after their snapshots arrive", async () => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Exercise `renderHook` with the prepared inputs.
     const { result } = renderHook(useDeckImportPageModel);
     for (let attempt = 0; attempt < 2; attempt += 1) {
+      // Given: Use the current iteration or branch inputs from the enclosing case.
+      // When: Exercise `actAsync` with the prepared inputs.
       await actAsync(async () => selectDeckImportFile(csv("same.csv")));
       await actAsync(async () => result.current.importPreview());
+      // Then: Verify the expected result in the assertions below.
       await waitFor(() => expect(result.current.view.preview).toBeUndefined());
     }
 
+    // When: Exercise `getDecks` with the prepared inputs.
     const decks = getDecks();
     const cards = getCards();
+    // Then: Verify the expected result in the assertions below.
     expect(decks).toHaveLength(2);
     expect(new Set(decks.map((deck) => deck.id)).size).toBe(2);
     expect(decks.every((deck) => deck.name === "same.csv")).toBe(true);
     expect(cards).toHaveLength(2);
     expect(new Set(cards.map((card) => card.id)).size).toBe(2);
     for (const deck of decks) {
+      // Given: Use the current iteration or branch inputs from the enclosing case.
+      // Then: Verify the expected result in the assertions below.
       expect(cards.filter((card) => card.deckId === deck.id)).toEqual([
         expect.objectContaining({ frontText: "front", backText: "back" }),
       ]);
@@ -107,16 +122,20 @@ describe("Deck import operations [DECK-IMPORT-01 DECK-IMPORT-02 DECK-IMPORT-03 D
   it.each(["deck first", "cards first"])(
     "waits for the destination and every created Card before completing once (%s)",
     async (arrivalOrder) => {
+      // Given: Use this case's inputs and any shared test setup.
       vi.mocked(createDeck).mockResolvedValue(undefined);
       vi.mocked(createCard).mockResolvedValue(undefined);
       const { result, rerender } = renderHook(useDeckImportPageModel);
+      // When: Exercise `actAsync` with the prepared inputs.
       await actAsync(() => selectDeckImportFile(new File(["front,back,tag,key\nsecond,answer,tag,other"], "deck.csv")));
       await actAsync(async () => result.current.importPreview());
       const destination = vi.mocked(createDeck).mock.calls[0]![1];
       const deck = createDeckFixture({ id: destination.id, name: destination.name, uid: controls.uid });
       const cards = vi.mocked(createCard).mock.calls.map(([uid, card]) => createCardFixture({ ...card, uid }));
+      // Then: Verify the expected result in the assertions below.
       expect(cards).toHaveLength(2);
 
+      // When: Exercise `act` with the prepared inputs.
       act(() => {
         if (arrivalOrder === "deck first") {
           replaceRemoteDecks([deck]);
@@ -125,15 +144,18 @@ describe("Deck import operations [DECK-IMPORT-01 DECK-IMPORT-02 DECK-IMPORT-03 D
           replaceRemoteCards(cards);
         }
       });
+      // Then: Verify the expected result in the assertions below.
       expect(result.current.view.pending).toBe(true);
       expect(result.current.view.preview?.analysis.rows).toHaveLength(2);
       expect(showToast).not.toHaveBeenCalled();
       expect(controls.navigate).not.toHaveBeenCalled();
 
+      // When: Exercise `act` with the prepared inputs.
       act(() => {
         replaceRemoteDecks([deck]);
         replaceRemoteCards(cards);
       });
+      // Then: Verify the expected result in the assertions below.
       expect(result.current.view.pending).toBe(false);
       expect(result.current.view.preview).toBeUndefined();
       expect(showToast).toHaveBeenCalledExactlyOnceWith({
@@ -143,25 +165,33 @@ describe("Deck import operations [DECK-IMPORT-01 DECK-IMPORT-02 DECK-IMPORT-03 D
       });
       expect(controls.navigate).toHaveBeenCalledExactlyOnceWith("/");
 
+      // When: Exercise `act` with the prepared inputs.
       act(() => {
         replaceRemoteDecks([deck]);
         replaceRemoteCards(cards);
       });
       rerender();
+      // Then: Verify the expected result in the assertions below.
       expect(showToast).toHaveBeenCalledOnce();
       expect(controls.navigate).toHaveBeenCalledOnce();
     }
   );
 
   it("does not save invalid CSV rows", async () => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Exercise `selectDeckImportFile` with the prepared inputs.
     await selectDeckImportFile(new File(["front,back"], "invalid.csv"));
+    // Then: Verify the expected result in the assertions below.
     expect(await importDeckPreview()).toBe(false);
     expect(createDeck).not.toHaveBeenCalled();
   });
 
   it("reuses selected identities when a local save fails", async () => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Exercise `selectDeckImportFile` with the prepared inputs.
     await selectDeckImportFile(csv());
     vi.mocked(createCard).mockRejectedValueOnce(new Error("local save failed"));
+    // Then: Verify the expected result in the assertions below.
     expect(await importDeckPreview()).toBe(false);
     const firstDeck = vi.mocked(createDeck).mock.calls[0]?.slice(0, 2);
     const firstCards = vi.mocked(createCard).mock.calls[0]?.slice(0, 2);
@@ -171,13 +201,17 @@ describe("Deck import operations [DECK-IMPORT-01 DECK-IMPORT-02 DECK-IMPORT-03 D
   });
 
   it("does not import a selection prepared by another account", async () => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Exercise `selectDeckImportFile` with the prepared inputs.
     await selectDeckImportFile(csv());
     controls.uid = "another-uid";
+    // Then: Verify the expected result in the assertions below.
     expect(await importDeckPreview()).toBe(false);
     expect(createDeck).not.toHaveBeenCalled();
   });
 
   it("keeps a pending import locked across unmount and reentry", async () => {
+    // Given: Prepare `finish`, `view` and any shared test state below.
     let finish: () => void = () => undefined;
     vi.mocked(createCard).mockImplementationOnce(
       () =>
@@ -189,23 +223,33 @@ describe("Deck import operations [DECK-IMPORT-01 DECK-IMPORT-02 DECK-IMPORT-03 D
     await actAsync(async () => {
       await selectDeckImportFile(csv());
     });
+    // When: Exercise `act` with the prepared inputs.
     act(() => view.result.current.importPreview());
+    // Then: Verify the expected result in the assertions below.
     await waitFor(() => expect(createCard).toHaveBeenCalledOnce());
+    // When: Exercise `view.unmount` with the prepared inputs.
     view.unmount();
     const { result } = renderHook(useDeckImportPageModel);
+    // Then: Verify the expected result in the assertions below.
     expect(result.current.view.pending).toBe(true);
+    // When: Exercise `actAsync` with the prepared inputs.
     await actAsync(async () => {
       await Promise.resolve(result.current.importPreview());
     });
+    // Then: Verify the expected result in the assertions below.
     expect(createCard).toHaveBeenCalledOnce();
+    // When: Exercise `actAsync` with the prepared inputs.
     await actAsync(async () => finish());
+    // Then: Verify the expected result in the assertions below.
     expect(result.current.view.pending).toBe(true);
+    // When: Exercise `act` with the prepared inputs.
     act(() => {
       const card = vi.mocked(createCard).mock.calls[0]?.[1];
       if (card) {
         replaceRemoteCards([createCardFixture({ ...card, deletedAt: null, uid: controls.uid })]);
       }
     });
+    // Then: Verify the expected result in the assertions below.
     expect(controls.navigate).not.toHaveBeenCalled();
     expect(result.current.view.pending).toBe(false);
     expect(result.current.view.preview).toBeUndefined();
@@ -217,7 +261,10 @@ describe("Deck import operations [DECK-IMPORT-01 DECK-IMPORT-02 DECK-IMPORT-03 D
   });
 
   it("previews the built-in CSV example without writing it", async () => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Exercise `selectDeckImportExample` with the prepared inputs.
     await selectDeckImportExample("basic");
+    // Then: Verify the expected result in the assertions below.
     expect(deckImportStore.getState().source.kind).toBe("selected");
     expect(createDeck).not.toHaveBeenCalled();
   });

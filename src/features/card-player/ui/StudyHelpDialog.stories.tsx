@@ -17,6 +17,9 @@ const rows: StudyHelpDialogProps["rows"] = [
   { control: "exit", action: "exit" },
 ];
 
+// Given: Story args and parameters define the render scenarios below.
+// When: Storybook renders each exported variant and runs its play when present.
+// Then: Assertions are in the relevant plays; rendering alone adds no behavioral checks.
 const meta = {
   title: "Features/Card Player/StudyHelpDialog",
   component: StudyHelpDialog,

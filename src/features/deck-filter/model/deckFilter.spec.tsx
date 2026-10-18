@@ -76,6 +76,7 @@ const DeckFilterHarness: React.FC<{ deck: Deck; tags?: string[]; scope?: DeckFil
 
 describe("CARD-LIST-ACTIONS-01 STUDY-SESSION-08 DeckFilterForm with individual draft and save actions", () => {
   beforeEach(() => {
+    // Given: Establish the shared setup used by the following cases.
     dismissToast();
     writeControls.uid = "user-id";
     writeControls.calls = [];
@@ -83,6 +84,7 @@ describe("CARD-LIST-ACTIONS-01 STUDY-SESSION-08 DeckFilterForm with individual d
   });
 
   it("does not show a previous account's rejected filter save", async () => {
+    // Given: Prepare `pending`, `deck` and any shared test state below.
     const pending = Promise.withResolvers<void>();
     writeControls.write = () => pending.promise;
     const deck = createRemoteDeck({
@@ -95,24 +97,31 @@ describe("CARD-LIST-ACTIONS-01 STUDY-SESSION-08 DeckFilterForm with individual d
         <ToastViewport />
       </>
     );
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByRole("checkbox", { name: "tag1" }));
     writeControls.uid = "next-user";
     await actAsync(async () => {
       pending.reject(new Error("denied"));
       await pending.promise.catch(() => undefined);
     });
+    // Then: Verify the expected result in the assertions below.
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
 
   it("automatically saves each change without a save button", async () => {
+    // Given: Prepare `deck` and any shared test state below.
     const deck = createRemoteDeck({ id: "filter-deck", studyFilter: { selectedTags: [], tagAndFilter: false } });
     render(<DeckFilterHarness deck={deck} />);
 
     expect(writeControls.calls).toEqual([]);
     expect(screen.queryByRole("button", { name: "Save filters" })).not.toBeInTheDocument();
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByRole("checkbox", { name: "tag1" }));
+    // Then: Verify the expected result in the assertions below.
     expect(writeControls.calls.at(-1)?.[1]).toMatchObject({ studyFilter: { selectedTags: ["tag1"] } });
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByRole("checkbox", { name: "tag2" }));
+    // Then: Verify the expected result in the assertions below.
     expect(writeControls.calls.at(-1)?.[1]).toEqual({
       id: "filter-deck",
       studyFilter: { selectedTags: ["tag1", "tag2"], tagAndFilter: false },
@@ -120,6 +129,7 @@ describe("CARD-LIST-ACTIONS-01 STUDY-SESSION-08 DeckFilterForm with individual d
   });
 
   it("keeps controls editable and persists rapid changes in order", async () => {
+    // Given: Prepare `firstWrite`, `persisted`, `maximum` and any shared test state below.
     const firstWrite = Promise.withResolvers<void>();
     let persisted: Parameters<EditDeck>[1] | undefined;
     writeControls.write = async (_uid, value) => {
@@ -133,17 +143,24 @@ describe("CARD-LIST-ACTIONS-01 STUDY-SESSION-08 DeckFilterForm with individual d
       />
     );
     const maximum = screen.getByRole("checkbox", { name: "tag1" });
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(maximum);
+    // Then: Verify the expected result in the assertions below.
     expect(maximum).toBeEnabled();
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByRole("checkbox", { name: "tag2" }));
     await userEvent.click(maximum);
+    // Then: Verify the expected result in the assertions below.
     expect(maximum).not.toBeChecked();
     expect(persisted).toBeUndefined();
+    // When: Exercise `actAsync` with the prepared inputs.
     await actAsync(async () => firstWrite.resolve());
+    // Then: Verify the expected result in the assertions below.
     await waitFor(() => expect(persisted).toMatchObject({ studyFilter: { selectedTags: ["tag2"] } }));
   });
 
   it("preserves pending selections and write order when moving to another Page", async () => {
+    // Given: Prepare `firstWrite`, `persisted`, `deck` and any shared test state below.
     const firstWrite = Promise.withResolvers<void>();
     let persisted: Parameters<EditDeck>[1] | undefined;
     writeControls.write = async (_uid, value) => {
@@ -152,34 +169,44 @@ describe("CARD-LIST-ACTIONS-01 STUDY-SESSION-08 DeckFilterForm with individual d
     };
     const deck = createRemoteDeck({ id: "navigation-deck", studyFilter: { selectedTags: [], tagAndFilter: false } });
     const view = render(<DeckFilterHarness deck={deck} />);
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByRole("checkbox", { name: "tag1" }));
     await userEvent.click(screen.getByRole("checkbox", { name: "tag2" }));
     view.unmount();
 
     render(<DeckFilterHarness deck={deck} />);
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByRole("checkbox", { name: "tag1" })).toBeChecked();
     expect(screen.getByRole("checkbox", { name: "tag2" })).toBeChecked();
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByRole("checkbox", { name: "tag1" }));
     await actAsync(async () => firstWrite.resolve());
+    // Then: Verify the expected result in the assertions below.
     await waitFor(() => expect(persisted).toMatchObject({ studyFilter: { selectedTags: ["tag2"] } }));
   });
 
   it("retains a save that fails after leaving the Page and retries all filters on the next visit", async () => {
+    // Given: Prepare `failedWrite`, `deck`, `view` and any shared test state below.
     const failedWrite = Promise.withResolvers<void>();
     writeControls.write = vi.fn().mockReturnValueOnce(failedWrite.promise).mockResolvedValueOnce(undefined);
     const deck = createRemoteDeck({ id: "failed-navigation-deck" });
     const view = render(<DeckFilterHarness deck={deck} />);
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByRole("checkbox", { name: "tag1" }));
     view.unmount();
     await actAsync(async () => failedWrite.reject(new Error("failed")));
 
     render(<DeckFilterHarness deck={deck} />);
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByRole("checkbox", { name: "tag1" })).toBeChecked();
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByRole("checkbox", { name: "tag2" }));
+    // Then: Verify the expected result in the assertions below.
     expect(writeControls.calls.at(-1)?.[1]).toMatchObject({ studyFilter: { selectedTags: ["tag1", "tag2"] } });
   });
 
   it("keeps the opening snapshot when the same Deck subscription changes", () => {
+    // Given: Prepare `deck`, `view` and any shared test state below.
     const deck = createRemoteDeck({
       id: "filter-deck",
       studyFilter: { selectedTags: ["tag1"], tagAndFilter: false },
@@ -187,34 +214,40 @@ describe("CARD-LIST-ACTIONS-01 STUDY-SESSION-08 DeckFilterForm with individual d
     });
     const view = render(<DeckFilterHarness deck={deck} />);
 
+    // When: Exercise `view.rerender` with the prepared inputs.
     view.rerender(
       <DeckFilterHarness
         deck={{ ...deck, studyFilter: { selectedTags: ["tag2"], tagAndFilter: false }, updatedAt: 2 }}
       />
     );
 
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByRole("checkbox", { name: "tag1" })).toBeChecked();
   });
 
   it("starts from the new snapshot when the Deck id changes", () => {
+    // Given: Prepare `view` and any shared test state below.
     const view = render(
       <DeckFilterHarness
         deck={createRemoteDeck({ id: "first", studyFilter: { selectedTags: ["tag1"], tagAndFilter: false } })}
       />
     );
 
+    // When: Exercise `view.rerender` with the prepared inputs.
     view.rerender(
       <DeckFilterHarness
         deck={createRemoteDeck({ id: "second", studyFilter: { selectedTags: ["tag2"], tagAndFilter: false } })}
       />
     );
 
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByRole("checkbox", { name: "tag2" })).toBeChecked();
   });
 });
 
 describe("CARD-FILTER-01 CARD-FILTER-05 browsing drafts", () => {
   beforeEach(() => {
+    // Given: Establish the shared setup used by the following cases.
     dismissToast();
     writeControls.uid = "user-id";
     writeControls.calls = [];
@@ -222,6 +255,7 @@ describe("CARD-FILTER-01 CARD-FILTER-05 browsing drafts", () => {
   });
 
   it("keeps browsing saves across page changes without leaking them into study filters", async () => {
+    // Given: Prepare `write`, `deck` and any shared test state below.
     const write = Promise.withResolvers<void>();
     writeControls.write = () => write.promise;
     const deck = createRemoteDeck({
@@ -230,18 +264,24 @@ describe("CARD-FILTER-01 CARD-FILTER-05 browsing drafts", () => {
     });
     const { unmount: unmountList } = render(<DeckFilterHarness deck={deck} scope="card" />);
     expect(screen.getByRole("checkbox", { name: "tag2" })).not.toBeChecked();
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByRole("checkbox", { name: "tag1" }));
     unmountList();
     const { unmount: unmountStudy } = render(<DeckFilterHarness deck={deck} />);
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByRole("checkbox", { name: "tag1" })).not.toBeChecked();
     expect(screen.getByRole("checkbox", { name: "tag2" })).toBeChecked();
+    // When: Exercise `unmountStudy` with the prepared inputs.
     unmountStudy();
     render(<DeckFilterHarness deck={deck} scope="card" />);
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByRole("checkbox", { name: "tag1" })).toBeChecked();
     expect(screen.getByRole("checkbox", { name: "tag2" })).not.toBeChecked();
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByRole("checkbox", { name: "tag2" }));
     await userEvent.click(screen.getByRole("checkbox", { name: "tag1" }));
     await actAsync(async () => write.resolve());
+    // Then: Verify the expected result in the assertions below.
     await waitFor(() =>
       expect(writeControls.calls.at(-1)?.[1]).toEqual({
         id: deck.id,
@@ -251,17 +291,24 @@ describe("CARD-FILTER-01 CARD-FILTER-05 browsing drafts", () => {
   });
 
   it("follows saved browsing changes and clearing without copying study conditions", () => {
+    // Given: Prepare `deck` and any shared test state below.
     const deck = createRemoteDeck({ id: "browse-live", studyFilter: { selectedTags: ["tag2"], tagAndFilter: true } });
+    // When: Exercise `render` with the prepared inputs.
     const view = render(<DeckFilterHarness deck={deck} scope="card" />);
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByRole("radio", { name: "Any" })).toBeChecked();
+    // When: Exercise `view.rerender` with the prepared inputs.
     view.rerender(
       <DeckFilterHarness deck={{ ...deck, cardFilter: { selectedTags: ["tag1"], tagAndFilter: true } }} scope="card" />
     );
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByRole("checkbox", { name: "tag1" })).toBeChecked();
     expect(screen.getByRole("radio", { name: "All" })).toBeChecked();
+    // When: Exercise `view.rerender` with the prepared inputs.
     view.rerender(
       <DeckFilterHarness deck={{ ...deck, cardFilter: { selectedTags: [], tagAndFilter: false } }} scope="card" />
     );
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByRole("checkbox", { name: "tag1" })).not.toBeChecked();
     expect(screen.getByRole("checkbox", { name: "tag2" })).not.toBeChecked();
     expect(screen.getByRole("radio", { name: "Any" })).toBeChecked();

@@ -14,6 +14,7 @@ const session: StudySession = {
 
 describe("groupDecksByStudyStatus [STUDY-SESSION-06]", () => {
   it("groups decks by whether they have a study session", () => {
+    // Given: Prepare `decks`, `sessions` and any shared test state below.
     const decks = [
       createDeck({ id: "not-studying-z", name: "Zulu" }),
       createDeck({ id: "studying-old", name: "Bravo" }),
@@ -25,8 +26,10 @@ describe("groupDecksByStudyStatus [STUDY-SESSION-06]", () => {
       "studying-new": { ...session, deckId: "studying-new", lastStudiedAt: 200 },
     };
 
+    // When: Exercise `groupDecksByStudyStatus` with the prepared inputs.
     const groups = groupDecksByStudyStatus(decks, sessions);
 
+    // Then: Verify the expected result in the assertions below.
     expect(groups.active.map(({ deck }) => deck.id)).toEqual(["studying-old", "studying-new"]);
     expect(groups.inactive.map((deck) => deck.id)).toEqual(["not-studying-z", "not-studying-a"]);
   });

@@ -49,6 +49,7 @@ function savedState(deckId: string) {
 
 describe("NAVIGATION-09 NAVIGATION-10 NAVIGATION-14 NAVIGATION-15 NAVIGATION-16 Deck View through App, routes, local Entities, and persistence", () => {
   beforeEach(() => {
+    // Given: Establish the shared setup used by the following cases.
     replaceAuthSession({ status: "authenticated", uid: "user-id", displayName: null, isAnonymous: true });
     updatePreferences(createPreferences({ loadSample: false, language: "en" }));
     clearStudySessions();
@@ -64,6 +65,7 @@ describe("NAVIGATION-09 NAVIGATION-10 NAVIGATION-14 NAVIGATION-15 NAVIGATION-16 
   });
 
   it("NAVIGATION-09 shows each card's code language without changing saved data", async () => {
+    // Given: Prepare `deck`, `typescript`, `python` and any shared test state below.
     const deck = createLocalDeck({ id: "view-code", name: "Code View Deck", category: "typescript" });
     const typescript = "interface Greeting { value: string; }";
     const python = "def greet():\n    return True";
@@ -87,38 +89,48 @@ describe("NAVIGATION-09 NAVIGATION-10 NAVIGATION-14 NAVIGATION-15 NAVIGATION-16 
     const router = createMemoryRouter(appRoutes, { initialEntries: [`/deck/${deck.id}/view`] });
     const view = render(<App router={router} />);
 
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(await screen.findByRole("button", { name: "Card front" }));
     let code = within(screen.getByRole("region", { name: "Card answer" })).getByRole("code");
+    // Then: Verify the expected result in the assertions below.
     expect(within(code).getByText("interface")).toHaveClass("hljs-keyword");
 
+    // When: Exercise `act` with the prepared inputs.
     await act(() => editDeck("user-id", { id: deck.id, category: "python" }));
 
+    // Then: Verify the expected result in the assertions below.
     expect(within(screen.getByRole("region", { name: "Card answer" })).getByRole("code")).toBe(code);
     expect(code).toHaveClass("language-python");
     expect(code).not.toHaveClass("language-typescript");
     expect(code.textContent).toBe(typescript);
     expect(within(code).queryByText("interface")).not.toBeInTheDocument();
 
+    // When: Exercise `act` with the prepared inputs.
     await act(() => editDeck("user-id", { id: deck.id, category: "typescript" }));
 
+    // Then: Verify the expected result in the assertions below.
     expect(within(screen.getByRole("region", { name: "Card answer" })).getByRole("code")).toBe(code);
     expect(code).toHaveClass("language-typescript");
     expect(code).not.toHaveClass("language-python");
     expect(within(code).getByText("interface")).toHaveClass("hljs-keyword");
+    // When: Exercise `savedState` with the prepared inputs.
     const before = savedState(deck.id);
     await userEvent.keyboard("{ArrowRight}");
     await userEvent.click(screen.getByRole("button", { name: "Card front" }));
 
     code = within(screen.getByRole("region", { name: "Card answer" })).getByRole("code");
+    // Then: Verify the expected result in the assertions below.
     expect(code.textContent).toBe(python);
     expect(code).toHaveClass("language-python");
     expect(code).not.toHaveClass("language-typescript");
     expect(within(code).getByText("def")).toHaveClass("hljs-keyword");
 
+    // When: Exercise `userEvent.keyboard` with the prepared inputs.
     await userEvent.keyboard("{ArrowLeft}");
     await userEvent.click(screen.getByRole("button", { name: "Card front" }));
 
     code = within(screen.getByRole("region", { name: "Card answer" })).getByRole("code");
+    // Then: Verify the expected result in the assertions below.
     expect(code.textContent).toBe(typescript);
     expect(code).toHaveClass("language-typescript");
     expect(code).not.toHaveClass("language-python");
@@ -129,6 +141,7 @@ describe("NAVIGATION-09 NAVIGATION-10 NAVIGATION-14 NAVIGATION-15 NAVIGATION-16 
   });
 
   it("keeps an existing study resume point and saved data unchanged across viewing, reload, reentry, and both exits", async () => {
+    // Given: Prepare `deck`, `cards`, `before` and any shared test state below.
     const deck = createLocalDeck({ id: "view-local", name: "Local View Deck" });
     const cards = ["First", "Second", "Third"].map((name, index) =>
       createLocalCard({
@@ -147,43 +160,66 @@ describe("NAVIGATION-09 NAVIGATION-10 NAVIGATION-14 NAVIGATION-15 NAVIGATION-16 
     let view = render(<App router={router} />);
 
     expect(screen.getByRole("button", { name: "Continue Local View Deck" })).toBeVisible();
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByRole("button", { name: "Open actions for Local View Deck" }));
     await userEvent.click(screen.getByRole("menuitem", { name: "View" }));
+    // Then: Verify the expected result in the assertions below.
     expect(await screen.findByRole("button", { name: "Card front" })).toHaveTextContent("First prompt");
     expect(screen.getByRole("slider", { name: "Viewing progress" })).toHaveAttribute("aria-valuetext", "1 of 3");
 
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByRole("button", { name: "Card front" }));
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByRole("region", { name: "Card answer" })).toHaveTextContent("First answer");
+    // When: Exercise `userEvent.keyboard` with the prepared inputs.
     await userEvent.keyboard("{ArrowRight}");
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByRole("button", { name: "Card front" })).toHaveTextContent("Second prompt");
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByRole("button", { name: "Card front" }));
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByRole("region", { name: "Card answer" })).toHaveTextContent("Second answer");
     expect(savedState(deck.id)).toEqual(before);
 
     const reloadPath = router.state.location.pathname;
+    // When: Exercise `view.unmount` with the prepared inputs.
     view.unmount();
     router.dispose();
     router = createMemoryRouter(appRoutes, { initialEntries: [reloadPath] });
     view = render(<App router={router} />);
+    // Then: Verify the expected result in the assertions below.
     expect(await screen.findByRole("button", { name: "Card front" })).toHaveTextContent("First prompt");
+    // When: Exercise `userEvent.keyboard` with the prepared inputs.
     await userEvent.keyboard("{ArrowRight}");
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByRole("button", { name: "Card front" })).toHaveTextContent("Second prompt");
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByRole("button", { name: "Back to deck list" }));
+    // Then: Verify the expected result in the assertions below.
     expect(await screen.findByRole("button", { name: "Continue Local View Deck" })).toBeVisible();
     expect(savedState(deck.id)).toEqual(before);
 
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByRole("button", { name: "Open actions for Local View Deck" }));
     await userEvent.click(screen.getByRole("menuitem", { name: "View" }));
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByRole("button", { name: "Card front" })).toHaveTextContent("First prompt");
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByRole("button", { name: "Previous card" }));
+    // Then: Verify the expected result in the assertions below.
     expect(await screen.findByRole("button", { name: "Continue Local View Deck" })).toBeVisible();
 
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByRole("button", { name: "Open actions for Local View Deck" }));
     await userEvent.click(screen.getByRole("menuitem", { name: "View" }));
     for (const name of ["First", "Second", "Third"]) {
+      // Given: Use the current iteration or branch inputs from the enclosing case.
+      // Then: Verify the expected result in the assertions below.
       expect(screen.getByRole("button", { name: "Card front" })).toHaveTextContent(`${name} prompt`);
+      // When: Exercise `userEvent.click` with the prepared inputs.
       await userEvent.click(screen.getByRole("button", { name: "Next card" }));
     }
+    // Then: Verify the expected result in the assertions below.
     expect(await screen.findByRole("button", { name: "Continue Local View Deck" })).toBeVisible();
     expect(router.state.location.pathname).toBe("/");
     expect(savedState(deck.id)).toEqual(before);
@@ -192,6 +228,7 @@ describe("NAVIGATION-09 NAVIGATION-10 NAVIGATION-14 NAVIGATION-15 NAVIGATION-16 
   });
 
   it("[CARD-FILTER-07] views every tag match in standard order despite the study limit and shuffle without creating a session", async () => {
+    // Given: Prepare `deck`, `rows`, `before` and any shared test state below.
     const deck = createLocalDeck({
       id: "view-filtered",
       name: "Filtered View Deck",
@@ -215,17 +252,22 @@ describe("NAVIGATION-09 NAVIGATION-10 NAVIGATION-14 NAVIGATION-15 NAVIGATION-16 
     const view = render(<App router={router} />);
 
     expect(screen.getByRole("button", { name: "Study Filtered View Deck" })).toBeVisible();
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByRole("button", { name: "Open actions for Filtered View Deck" }));
     await userEvent.click(screen.getByRole("menuitem", { name: "View" }));
     for (const [index, prompt] of ["match-1", "match-2", "match-3"].entries()) {
+      // Given: Use the current iteration or branch inputs from the enclosing case.
+      // Then: Verify the expected result in the assertions below.
       expect(screen.getByRole("button", { name: "Card front" })).toHaveTextContent(prompt);
       expect(screen.getByRole("slider", { name: "Viewing progress" })).toHaveAttribute(
         "aria-valuetext",
         `${String(index + 1)} of 3`
       );
       expect(screen.queryByText("tag-miss")).not.toBeInTheDocument();
+      // When: Exercise `userEvent.click` with the prepared inputs.
       await userEvent.click(screen.getByRole("button", { name: "Next card" }));
     }
+    // Then: Verify the expected result in the assertions below.
     expect(await screen.findByRole("button", { name: "Study Filtered View Deck" })).toBeVisible();
     expect(getStudySession(deck.id)).toBeUndefined();
     expect(savedState(deck.id)).toEqual(before);
@@ -234,6 +276,7 @@ describe("NAVIGATION-09 NAVIGATION-10 NAVIGATION-14 NAVIGATION-15 NAVIGATION-16 
   });
 
   it("opens the intended local deck from a direct encoded View URL without writing saved data", async () => {
+    // Given: Prepare `deck`, `before`, `path` and any shared test state below.
     const deck = createLocalDeck({ id: "view?draft=1#chapter", name: "Encoded View Deck" });
     await seedLocalDeck(deck, [
       createLocalCard({ id: "encoded-card", deckId: deck.id, frontText: "Encoded prompt", uniqueKey: "encoded" }),
@@ -241,8 +284,10 @@ describe("NAVIGATION-09 NAVIGATION-10 NAVIGATION-14 NAVIGATION-15 NAVIGATION-16 
     const before = savedState(deck.id);
     const path = "/deck/view%3Fdraft%3D1%23chapter/view";
     const router = createMemoryRouter(appRoutes, { initialEntries: [path] });
+    // When: Exercise `render` with the prepared inputs.
     const view = render(<App router={router} />);
 
+    // Then: Verify the expected result in the assertions below.
     expect(await screen.findByRole("button", { name: "Card front" })).toBeVisible();
     expect(screen.getByRole("button", { name: "Card front" })).toHaveTextContent("Encoded prompt");
     expect(router.state.location).toMatchObject({ pathname: path, search: "", hash: "" });
@@ -252,6 +297,7 @@ describe("NAVIGATION-09 NAVIGATION-10 NAVIGATION-14 NAVIGATION-15 NAVIGATION-16 
   });
 
   it("persists explicit shared display changes while preserving the saved study resume point", async () => {
+    // Given: Prepare `deck`, `cards`, `before` and any shared test state below.
     const deck = createLocalDeck({ id: "shared-controls", name: "Shared controls" });
     const cards = [createLocalCard({ id: "shared-card", deckId: deck.id, frontText: "Shared prompt" })];
     await seedLocalDeck(deck, cards);
@@ -259,10 +305,14 @@ describe("NAVIGATION-09 NAVIGATION-10 NAVIGATION-14 NAVIGATION-15 NAVIGATION-16 
     const before = savedState(deck.id);
     let router = createMemoryRouter(appRoutes, { initialEntries: [`/deck/${deck.id}/view`] });
     let view = render(<App router={router} />);
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByRole("button", { name: "Open card actions" }));
     await userEvent.click(screen.getByRole("button", { name: "Card details" }));
+    // Then: Verify the expected result in the assertions below.
     expect(getPreferences().controls.showCardDetails).toBe(false);
+    // When: Exercise `savedState` with the prepared inputs.
     const after = savedState(deck.id);
+    // Then: Verify the expected result in the assertions below.
     expect({
       ...after,
       preferences: before.preferences,
@@ -271,17 +321,20 @@ describe("NAVIGATION-09 NAVIGATION-10 NAVIGATION-14 NAVIGATION-15 NAVIGATION-16 
     expect(JSON.parse(localStorage.getItem("tango-config") ?? "{}").state.preferences.controls.showCardDetails).toBe(
       false
     );
+    // When: Exercise `view.unmount` with the prepared inputs.
     view.unmount();
     router.dispose();
     router = createMemoryRouter(appRoutes, { initialEntries: [`/deck/${deck.id}/study`] });
     view = render(<App router={router} />);
     await userEvent.click(screen.getByRole("button", { name: "Open card actions" }));
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByRole("button", { name: "Card details" })).toHaveAttribute("aria-pressed", "false");
     view.unmount();
     router.dispose();
   });
 
   it("does not persist local viewing playback or bidirectional slider movement", async () => {
+    // Given: Prepare `deck`, `cards`, `before` and any shared test state below.
     const deck = createLocalDeck({ id: "playback-local", name: "Playback" });
     const cards = ["One", "Two", "Three"].map((name, index) =>
       createLocalCard({ id: `playback-card-${index}`, deckId: deck.id, frontText: name, uniqueKey: name })
@@ -296,17 +349,25 @@ describe("NAVIGATION-09 NAVIGATION-10 NAVIGATION-14 NAVIGATION-15 NAVIGATION-16 
     const view = render(<App router={router} />);
     act(() => vi.advanceTimersByTime(2000));
     expect(screen.getByRole("button", { name: "Card front" })).toHaveTextContent("One");
+    // When: Exercise `fireEvent.change` with the prepared inputs.
     fireEvent.change(screen.getByRole("slider", { name: "Viewing progress" }), { target: { value: "2" } });
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByRole("button", { name: "Card front" })).toHaveTextContent("Three");
+    // When: Exercise `fireEvent.change` with the prepared inputs.
     fireEvent.change(screen.getByRole("slider", { name: "Viewing progress" }), { target: { value: "0" } });
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByRole("button", { name: "Card front" })).toHaveTextContent("One");
+    // When: Exercise `fireEvent.click` with the prepared inputs.
     fireEvent.click(screen.getByRole("button", { name: "Play" }));
     act(() => vi.advanceTimersByTime(1000));
+    // Then: Verify the expected result in the assertions below.
     expect(screen.getByRole("button", { name: "Card front" })).toHaveTextContent("Two");
     expect(savedState(deck.id)).toEqual(before);
+    // When: Exercise `view.unmount` with the prepared inputs.
     view.unmount();
     router.dispose();
     act(() => vi.advanceTimersByTime(2000));
+    // Then: Verify the expected result in the assertions below.
     expect(savedState(deck.id)).toEqual(before);
   });
 });

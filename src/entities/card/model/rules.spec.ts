@@ -11,6 +11,9 @@ import {
 
 describe("DECK-IMPORT-02 getCardContentValidationErrors", () => {
   it("returns field errors from the Card content schema", () => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Evaluate `getCardContentValidationErrors` as part of the following checks.
+    // Then: Verify the expected result in the assertions below.
     expect(getCardContentValidationErrors({ frontText: " ", backText: "\n", tags: [], uniqueKey: "\t" })).toEqual({
       frontText: { field: "frontText", reason: "required" },
       backText: { field: "backText", reason: "required" },
@@ -19,6 +22,9 @@ describe("DECK-IMPORT-02 getCardContentValidationErrors", () => {
   });
 
   it("returns no errors for valid Card content", () => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Evaluate `getCardContentValidationErrors` as part of the following checks.
+    // Then: Verify the expected result in the assertions below.
     expect(
       getCardContentValidationErrors({ frontText: "front", backText: "back", tags: [], uniqueKey: "key" })
     ).toEqual({});
@@ -27,6 +33,7 @@ describe("DECK-IMPORT-02 getCardContentValidationErrors", () => {
 
 describe("CARD-FILTER-01 CARD-FILTER-02 CARD-FILTER-03 filterCardsByDeckId", () => {
   it("returns cards matching the specified deckId", () => {
+    // Given: Prepare `card1`, `card2`, `card3` and any shared test state below.
     const card1 = createCard({ id: "card-1", deckId: "deck-a" });
     const card2 = createCard({ id: "card-2", deckId: "deck-b" });
     const card3 = createCard({ id: "card-3", deckId: "deck-a" });
@@ -34,14 +41,19 @@ describe("CARD-FILTER-01 CARD-FILTER-02 CARD-FILTER-03 filterCardsByDeckId", () 
     const cards = [card1, card2, card3];
     const originalCards = structuredClone(cards);
 
+    // When: Evaluate `filterCardsByDeckId` as part of the following checks.
+    // Then: Verify the expected result in the assertions below.
     expect(filterCardsByDeckId(cards, "deck-a")).toEqual([card1, card3]);
     expect(cards).toEqual(originalCards);
   });
 
   it("returns no cards for a Deck without Cards even when another Deck has Cards", () => {
+    // Given: Prepare `cards`, `originalCards` and any shared test state below.
     const cards = [createCard({ id: "other-card", deckId: "other-deck" })];
     const originalCards = structuredClone(cards);
 
+    // When: Evaluate `filterCardsByDeckId` as part of the following checks.
+    // Then: Verify the expected result in the assertions below.
     expect(filterCardsByDeckId(cards, "empty-deck")).toEqual([]);
     expect(cards).toEqual(originalCards);
   });
@@ -49,10 +61,13 @@ describe("CARD-FILTER-01 CARD-FILTER-02 CARD-FILTER-03 filterCardsByDeckId", () 
 
 describe("CARD-FILTER-02 filterTagsByDeckId", () => {
   it("returns unique sorted tags for the specified deckId", () => {
+    // Given: Prepare `card1`, `card2`, `card3` and any shared test state below.
     const card1 = createCard({ id: "card-1", deckId: "deck-a", tags: ["n5", "kanji"] });
     const card2 = createCard({ id: "card-2", deckId: "deck-a", tags: ["kanji", "verb"] });
     const card3 = createCard({ id: "card-3", deckId: "deck-b", tags: ["other"] });
 
+    // When: Evaluate `filterTagsByDeckId` as part of the following checks.
+    // Then: Verify the expected result in the assertions below.
     expect(filterTagsByDeckId([card1, card2, card3], "deck-a")).toEqual(["kanji", "n5", "verb"]);
   });
 });
@@ -62,6 +77,7 @@ describe("CARD-FILTER-04 CARD-FILTER-08 CARD-FILTER-09 CARD-FILTER-12 filterCard
     { mode: "AND", tagAndFilter: true, expectedIds: ["both"] },
     { mode: "OR", tagAndFilter: false, expectedIds: ["x-only", "y-only", "both"] },
   ])("selects each matching Card exactly once in $mode mode", ({ tagAndFilter, expectedIds }) => {
+    // Given: Prepare `cards`, `filter`, `originalCards` and any shared test state below.
     const cards = [
       createCard({ id: "x-only", tags: ["x"] }),
       createCard({ id: "y-only", tags: ["y"] }),
@@ -72,6 +88,8 @@ describe("CARD-FILTER-04 CARD-FILTER-08 CARD-FILTER-09 CARD-FILTER-12 filterCard
     const originalCards = structuredClone(cards);
     const originalFilter = structuredClone(filter);
 
+    // When: Evaluate `filterCardsByTags` as part of the following checks.
+    // Then: Verify the expected result in the assertions below.
     expect(filterCardsByTags(cards, filter).map((card) => card.id)).toEqual(expectedIds);
     expect(cards).toEqual(originalCards);
     expect(filter).toEqual(originalFilter);
@@ -81,22 +99,28 @@ describe("CARD-FILTER-04 CARD-FILTER-08 CARD-FILTER-09 CARD-FILTER-12 filterCard
     { mode: "AND", tagAndFilter: true },
     { mode: "OR", tagAndFilter: false },
   ])("keeps tagged and untagged Cards when no tags are selected in $mode mode", ({ tagAndFilter }) => {
+    // Given: Prepare `cards`, `filter`, `originalCards` and any shared test state below.
     const cards = [createCard({ id: "tagged", tags: ["x"] }), createCard({ id: "untagged", tags: [] })];
     const filter = { selectedTags: [], tagAndFilter };
     const originalCards = structuredClone(cards);
     const originalFilter = structuredClone(filter);
 
+    // When: Evaluate `filterCardsByTags` as part of the following checks.
+    // Then: Verify the expected result in the assertions below.
     expect(filterCardsByTags(cards, filter)).toEqual(cards);
     expect(cards).toEqual(originalCards);
     expect(filter).toEqual(originalFilter);
   });
 
   it("returns no Cards when none have all selected tags without changing the Cards or filter", () => {
+    // Given: Prepare `cards`, `filter`, `originalCards` and any shared test state below.
     const cards = [createCard({ id: "x-only", tags: ["x"] }), createCard({ id: "y-only", tags: ["y"] })];
     const filter = { selectedTags: ["x", "y"], tagAndFilter: true };
     const originalCards = structuredClone(cards);
     const originalFilter = structuredClone(filter);
 
+    // When: Evaluate `filterCardsByTags` as part of the following checks.
+    // Then: Verify the expected result in the assertions below.
     expect(filterCardsByTags(cards, filter)).toEqual([]);
     expect(cards).toEqual(originalCards);
     expect(filter).toEqual(originalFilter);
@@ -105,12 +129,18 @@ describe("CARD-FILTER-04 CARD-FILTER-08 CARD-FILTER-09 CARD-FILTER-12 filterCard
 
 describe("mustFindCardById", () => {
   it("returns the card matching the specified id", () => {
+    // Given: Prepare `target` and any shared test state below.
     const target = createCard({ id: "target" });
 
+    // When: Evaluate `mustFindCardById` as part of the following checks.
+    // Then: Verify the expected result in the assertions below.
     expect(mustFindCardById([createCard({ id: "other" }), target], target.id)).toBe(target);
   });
 
   it("throws when no card matches the specified id", () => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Evaluate `mustFindCardById` as part of the following checks.
+    // Then: Verify the expected result in the assertions below.
     expect(() => mustFindCardById([], "missing")).toThrow("Card not found: missing");
   });
 });

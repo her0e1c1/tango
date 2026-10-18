@@ -3,6 +3,9 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { FrontText } from "./FrontText";
 import * as fixture from "@/storybook/fixture";
 
+// Given: Story args and parameters define the render scenarios below.
+// When: Storybook renders each exported variant and runs its play when present.
+// Then: Assertions are in the relevant plays; rendering alone adds no behavioral checks.
 const meta = {
   title: "Entities/Card/FrontText",
   component: FrontText,

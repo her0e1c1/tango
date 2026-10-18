@@ -67,6 +67,9 @@ const CardEditorStory = ({ card, isSaving, validationError, onCancel }: CardEdit
 
 const longCard = { ...fixture.card.long, tags: [...fixture.tags.toolong] };
 
+// Given: Story args and parameters define the render scenarios below.
+// When: Storybook renders each exported variant and runs its play when present.
+// Then: Assertions are in the relevant plays; rendering alone adds no behavioral checks.
 const meta = {
   title: "Pages/Card Edit/CardEditor",
   component: CardEditorStory,
@@ -137,15 +140,22 @@ export const PendingSave: Story = {
   parameters: savingParameters,
   render: () => <SavingEditorExample />,
   play: async ({ canvas, userEvent, step }) => {
+    // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-CARD-FORM-20 Disable editing and departure while saving", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
       const pending = Promise.withResolvers<void>();
       mocked(persistCard).mockReturnValue(pending.promise);
       try {
+        // Given: Use the current iteration or branch inputs from the enclosing case.
+        // When: Exercise `userEvent.click` with the prepared inputs.
         await userEvent.click(canvas.getByRole("button", { name: "Save changes" }));
+        // Then: Verify the expected result in the assertions below.
         for (const name of ["Saving…", "Cancel", "Back to cards"])
           await expect(canvas.getByRole("button", { name })).toBeDisabled();
         await expect(canvas.getByRole("textbox", { name: "Front text" })).toBeDisabled();
+        // When: Apply the operation or event under test.
         pending.resolve();
+        // Then: Verify the expected result in the assertions below.
         await waitFor(() => expect(canvas.getByRole("button", { name: "Save changes" })).toBeEnabled());
         await expect(onSaved).toHaveBeenCalledOnce();
       } finally {
@@ -159,13 +169,19 @@ export const ExternalUpdate: Story = {
   parameters: savingParameters,
   render: () => <SavingEditorExample />,
   play: async ({ canvas, userEvent, step }) => {
+    // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-CARD-FORM-21 Keep the editing snapshot after external data changes", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
       const front = canvas.getByRole("textbox", { name: "Front text" });
+      // When: Exercise `userEvent.clear` with the prepared inputs.
       await userEvent.clear(front);
       await userEvent.type(front, "Unsaved front");
       await userEvent.click(canvas.getByRole("button", { name: "Receive external update" }));
+      // Then: Verify the expected result in the assertions below.
       await expect(front).toHaveValue("Unsaved front");
+      // When: Exercise `userEvent.click` with the prepared inputs.
       await userEvent.click(canvas.getByRole("tab", { name: "Back" }));
+      // Then: Verify the expected result in the assertions below.
       await expect(canvas.getByRole("textbox", { name: "Back text" })).toHaveValue("Back text");
     });
   },
@@ -175,16 +191,22 @@ export const BothSidesInvalid: Story = {
   parameters: savingParameters,
   render: () => <SavingEditorExample />,
   play: async ({ canvas, userEvent, step }) => {
+    // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-CARD-FORM-22 Focus the invalid front before the invalid back", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
+      // When: Exercise `userEvent.clear` with the prepared inputs.
       await userEvent.clear(canvas.getByRole("textbox", { name: "Front text" }));
       await userEvent.click(canvas.getByRole("tab", { name: "Back" }));
       await userEvent.clear(canvas.getByRole("textbox", { name: "Back text" }));
       await userEvent.click(canvas.getByRole("button", { name: "Save changes" }));
+      // Then: Verify the expected result in the assertions below.
       await waitFor(() => expect(canvas.getByRole("textbox", { name: "Front text" })).toHaveFocus());
       await expect(canvas.getByRole("textbox", { name: "Front text" })).toHaveAccessibleDescription(
         "Front text is required."
       );
+      // When: Exercise `userEvent.click` with the prepared inputs.
       await userEvent.click(canvas.getByRole("tab", { name: "Back" }));
+      // Then: Verify the expected result in the assertions below.
       await expect(canvas.getByRole("textbox", { name: "Back text" })).toHaveAccessibleDescription(
         "Back text is required."
       );
@@ -197,16 +219,22 @@ export const RetrySave: Story = {
   parameters: savingParameters,
   render: () => <SavingEditorExample />,
   play: async ({ canvas, userEvent, step }) => {
+    // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-CARD-FORM-23 Preserve the failed edit and complete an explicit retry", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
       mocked(persistCard).mockRejectedValueOnce(new Error("rejected"));
       const front = canvas.getByRole("textbox", { name: "Front text" });
+      // When: Exercise `userEvent.clear` with the prepared inputs.
       await userEvent.clear(front);
       await userEvent.type(front, "Retry front");
       await userEvent.click(canvas.getByRole("button", { name: "Save changes" }));
+      // Then: Verify the expected result in the assertions below.
       await expect(await canvas.findByText("Unable to save changes. Try again.")).toBeVisible();
       await expect(front).toHaveValue("Retry front");
       await expect(onSaved).not.toHaveBeenCalled();
+      // When: Exercise `userEvent.click` with the prepared inputs.
       await userEvent.click(canvas.getByRole("button", { name: "Save changes" }));
+      // Then: Verify the expected result in the assertions below.
       await waitFor(() => expect(onSaved).toHaveBeenCalledOnce());
       await expect(persistCard).toHaveBeenLastCalledWith(
         APP_STORY_UID,
@@ -224,11 +252,15 @@ export const Tablet: Story = {
 export const Desktop: Story = {
   ...LongValues,
   play: async ({ canvas, userEvent, step }) => {
+    // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-CARD-EDIT-01 Reach a long answer preview with the keyboard", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
+      // When: Exercise `userEvent.click` with the prepared inputs.
       await userEvent.click(canvas.getByRole("tab", { name: "Back" }));
       await userEvent.click(canvas.getByRole("button", { name: "Preview answer" }));
       await userEvent.tab();
       const preview = canvas.getByRole("region", { name: "Answer preview" });
+      // Then: Verify the expected result in the assertions below.
       await expect(preview).toHaveFocus();
     });
   },

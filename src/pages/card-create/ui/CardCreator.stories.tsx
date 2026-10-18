@@ -47,6 +47,9 @@ const CardCreatorStory = ({ initialValues, isSaving, onCancel, onSubmit }: CardC
   );
 };
 
+// Given: Story args and parameters define the render scenarios below.
+// When: Storybook renders each exported variant and runs its play when present.
+// Then: Assertions are in the relevant plays; rendering alone adds no behavioral checks.
 const meta = {
   title: "Pages/Card Create/CardCreator",
   component: CardCreatorStory,
@@ -63,11 +66,15 @@ export const Default: Story = {};
 export const Saving: Story = { args: { isSaving: true } };
 export const Interaction: Story = {
   play: async ({ args, canvas, userEvent, step }) => {
+    // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-CARD-FORM-05 Submit card", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
+      // When: Exercise `userEvent.type` with the prepared inputs.
       await userEvent.type(canvas.getByRole("textbox", { name: "Front text" }), "Hello");
       await userEvent.click(canvas.getByRole("tab", { name: "Back" }));
       await userEvent.type(canvas.getByRole("textbox", { name: "Back text" }), "Hola");
       await userEvent.click(canvas.getByRole("button", { name: "Create card" }));
+      // Then: Verify the expected result in the assertions below.
       await expect(args.onSubmit).toHaveBeenCalledOnce();
     });
   },
@@ -125,10 +132,14 @@ export const CreateSuccess: Story = {
   parameters: savingParameters,
   render: () => <SavingCreatorExample />,
   play: async (context) => {
+    // Given: Use the rendered story, its args, parameters, and any setup below.
     const { canvas, userEvent, step } = context;
     await step("STORYBOOK-CARD-FORM-17 Submit content and announce creation", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
       await enterCreation(context);
+      // When: Exercise `userEvent.click` with the prepared inputs.
       await userEvent.click(canvas.getByRole("button", { name: "Create card" }));
+      // Then: Verify the expected result in the assertions below.
       await expect(persistCard).toHaveBeenCalledWith(
         APP_STORY_UID,
         expect.objectContaining({
@@ -146,15 +157,22 @@ export const CreateRetry: Story = {
   parameters: savingParameters,
   render: () => <SavingCreatorExample />,
   play: async (context) => {
+    // Given: Use the rendered story, its args, parameters, and any setup below.
     const { canvas, userEvent, step } = context;
     await step("STORYBOOK-CARD-FORM-18 Keep both inputs after failure and retry explicitly", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
       mocked(persistCard).mockRejectedValueOnce(new Error("rejected"));
       await enterCreation(context);
+      // When: Exercise `userEvent.click` with the prepared inputs.
       await userEvent.click(canvas.getByRole("button", { name: "Create card" }));
+      // Then: Verify the expected result in the assertions below.
       await expect(await canvas.findByText("Unable to create this card. Try again.")).toBeVisible();
       await expect(canvas.getByRole("textbox", { name: "Back text" })).toHaveValue("Back value");
+      // When: Exercise `userEvent.click` with the prepared inputs.
       await userEvent.click(canvas.getByRole("tab", { name: "Front" }));
+      // Then: Verify the expected result in the assertions below.
       await expect(canvas.getByRole("textbox", { name: "Front text" })).toHaveValue("Front value");
+      // When: Exercise `userEvent.click` with the prepared inputs.
       await userEvent.click(canvas.getByRole("button", { name: "Create card" }));
     });
   },
@@ -165,22 +183,31 @@ function createPendingStory(stage: "immediate" | "validation" | "persistence"): 
     parameters: savingParameters,
     render: () => <SavingCreatorExample />,
     play: async (context) => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
       const { canvas, userEvent, step } = context;
       await step("STORYBOOK-CARD-FORM-19 Disable repeated creation during validation and saving", async () => {
+        // Given: Use the rendered story, its args, parameters, and any setup below.
         const pending = Promise.withResolvers<void>();
         try {
+          // Given: Prepare `button` and any shared test state below.
           if (stage === "validation") validationGate.promise = pending.promise;
           else mocked(persistCard).mockReturnValue(pending.promise);
           await enterCreation(context);
           const button = canvas.getByRole("button", { name: "Create card" });
+          // When: Exercise `fireEvent.click` with the prepared inputs.
           if (stage === "immediate") {
             await fireEvent.click(button);
             await fireEvent.click(button);
           } else await userEvent.dblClick(button);
+          // Then: Verify the expected result in the assertions below.
           await expect(await canvas.findByRole("button", { name: "Creating…" })).toBeDisabled();
+          // When: Exercise `userEvent.dblClick` with the prepared inputs.
           await userEvent.dblClick(button);
+          // Then: Verify the expected result in the assertions below.
           if (stage === "validation") await expect(persistCard).not.toHaveBeenCalled();
+          // When: Apply the operation or event under test.
           pending.resolve();
+          // Then: Verify the expected result in the assertions below.
           await waitFor(() => expect(canvas.getByRole("button", { name: "Create card" })).toBeEnabled());
           await expect(persistCard).toHaveBeenCalledOnce();
         } finally {
@@ -205,8 +232,11 @@ export const Tablet: Story = {
     initialValues: longValues,
   },
   play: async ({ canvas, userEvent }) => {
+    // Given: Use the rendered story, its args, parameters, and any setup below.
+    // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(canvas.getByRole("tab", { name: "Back" }));
     await userEvent.click(canvas.getByRole("button", { name: "Preview answer" }));
+    // Then: This play prepares a visual state; it declares no behavioral assertions.
   },
   globals: { theme: "light", viewport: { value: "ipad", isRotated: false } },
 };

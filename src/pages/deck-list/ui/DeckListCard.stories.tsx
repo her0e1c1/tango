@@ -6,6 +6,9 @@ import { withPageLayout } from "@/storybook/PageLayoutDecorator";
 import { DeckListCard, type DeckListCardProps } from "./DeckListCard";
 import * as fixture from "@/storybook/fixture";
 
+// Given: Story args and parameters define the render scenarios below.
+// When: Storybook renders each exported variant and runs its play when present.
+// Then: Assertions are in the relevant plays; rendering alone adds no behavioral checks.
 const meta = {
   title: "Pages/Deck List/DeckListCard",
   component: DeckListCard,
@@ -75,7 +78,9 @@ const namedDeck = { ...fixture.deck.default, id: "deck-id", name: "Deck name" };
 const zeroReviewStory = (cardCount: number, nextDueAt?: number): Story => ({
   args: { deck: namedDeck, cardCount, review: { due: 0, new: 0, nextDueAt } },
   play: async ({ canvas, userEvent, step }) => {
+    // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-DECK-LIST-15 Explain why no cards are due", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
       const explanation =
         cardCount === 0
           ? "No cards held on this device"
@@ -83,7 +88,9 @@ const zeroReviewStory = (cardCount: number, nextDueAt?: number): Story => ({
             ? "No cards match saved filters"
             : `Next review: ${new Intl.DateTimeFormat("en", { dateStyle: "medium", timeStyle: "short" }).format(nextDueAt)}`;
       await expect(canvas.getByText(explanation)).not.toBeVisible();
+      // When: Exercise `userEvent.click` with the prepared inputs.
       await userEvent.click(canvas.getByText("No due or new cards"));
+      // Then: Verify the expected result in the assertions below.
       await expect(canvas.getByText(explanation)).toBeVisible();
       await expect(canvas.getByRole("button", { name: "Study Deck name" })).toBeEnabled();
     });
@@ -96,10 +103,14 @@ export const FutureReview = zeroReviewStory(3, fixture.timestamp + 86_400_000);
 const primaryReviewStory = (due: number): Story => ({
   args: { deck: namedDeck, review: { due, new: 2, nextDueAt: undefined }, onClickStudy: fn() },
   play: async ({ args, canvas, userEvent, step }) => {
+    // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-DECK-LIST-16 Distinguish review from new-card study", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
+      // When: Exercise `userEvent.click` with the prepared inputs.
       await userEvent.click(
         canvas.getByRole("button", { name: due ? "Review Deck name" : "Study new cards in Deck name" })
       );
+      // Then: Verify the expected result in the assertions below.
       await expect(args.onClickStudy).toHaveBeenCalledWith("deck-id");
     });
   },
@@ -110,9 +121,13 @@ export const NewStudyRequest = primaryReviewStory(0);
 export const StudyWithoutOpening: Story = {
   args: { deck: namedDeck, onClickStudy: fn(), onClickName: fn() },
   play: async ({ args, canvas, userEvent, step }) => {
+    // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-DECK-LIST-18 Request study without opening the row", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
       await expect(canvas.getByText("24 cards")).toBeVisible();
+      // When: Exercise `userEvent.click` with the prepared inputs.
       await userEvent.click(canvas.getByRole("button", { name: "Study Deck name" }));
+      // Then: Verify the expected result in the assertions below.
       await expect(args.onClickStudy).toHaveBeenCalledWith("deck-id");
       await expect(args.onClickName).not.toHaveBeenCalled();
     });
@@ -145,10 +160,16 @@ export const TargetedOperations: Story = {
   },
   render: (args) => <InteractiveDeckCard {...args} />,
   play: async ({ args, canvas, userEvent, step }) => {
+    // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-DECK-LIST-19 Pass the target deck to every operation", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
+      // When: Exercise `userEvent.click` with the prepared inputs.
       await userEvent.click(canvas.getByRole("button", { name: "Open cards in Deck name" }));
+      // Then: Verify the expected result in the assertions below.
       await expect(args.onClickName).toHaveBeenCalledWith("deck-id");
+      // When: Exercise `userEvent.click` with the prepared inputs.
       await userEvent.click(canvas.getByRole("button", { name: "Continue Deck name" }));
+      // Then: Verify the expected result in the assertions below.
       await expect(args.onClickContinue).toHaveBeenCalledWith("deck-id");
       await expect(canvas.queryByRole("button", { name: "View" })).not.toBeInTheDocument();
       for (const [name, callback] of [
@@ -158,8 +179,11 @@ export const TargetedOperations: Story = {
         ["Edit", args.onClickEdit],
         ["Delete", args.onClickDelete],
       ] as const) {
+        // Given: Use the current iteration or branch inputs from the enclosing case.
+        // When: Exercise `userEvent.click` with the prepared inputs.
         await userEvent.click(canvas.getByRole("button", { name: "Open actions for Deck name" }));
         await userEvent.click(canvas.getByRole("menuitem", { name }));
+        // Then: Verify the expected result in the assertions below.
         await expect(callback).toHaveBeenCalledWith("deck-id");
       }
       await expect(args.onClickStudy).not.toHaveBeenCalled();
@@ -181,7 +205,11 @@ const positionStory = (count: number, total: number, lastStudiedAt: number): Sto
     },
   },
   play: async ({ canvas, step }) => {
+    // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-DECK-LIST-17 Describe the current study position without inventing a timestamp", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
+      // When: Storybook renders this scenario with its configured args and parameters.
+      // Then: Verify the expected result in the assertions below.
       await expect(canvas.getByText(`${count} cards`)).toBeVisible();
       await expect(canvas.getByText(`Studying · Card 2 of ${total}`)).toBeVisible();
       await expect(canvas.getByRole("button", { name: "Open cards in Deck name" })).toHaveAccessibleDescription(
@@ -199,7 +227,11 @@ export const UnknownStudyTime = positionStory(2, 2, 0);
 
 export const LocalDeck: Story = {
   play: async ({ canvas, step }) => {
+    // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-DECK-LIST-20 Omit remote indicators for local decks", async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
+      // When: Storybook renders this scenario with its configured args and parameters.
+      // Then: Verify the expected result in the assertions below.
       await expect(canvas.queryByLabelText("Remote deck")).not.toBeInTheDocument();
       await expect(canvas.queryByTitle("Remote deck")).not.toBeInTheDocument();
     });

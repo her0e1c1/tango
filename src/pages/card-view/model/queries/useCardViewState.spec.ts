@@ -22,6 +22,7 @@ const card = createLocalCard({
 
 describe("CARD-VIEW-04 CARD-VIEW-05 useCardViewState", () => {
   beforeEach(async () => {
+    // Given: Establish the shared setup used by the following cases.
     updatePreferences(createPreferences({ appearance: { darkMode: true } }));
     await createDeck("user-id", deck);
     await createCard("user-id", card);
@@ -32,8 +33,11 @@ describe("CARD-VIEW-04 CARD-VIEW-05 useCardViewState", () => {
   });
 
   it("shows stored Card content with its Deck category and current theme", () => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Exercise `renderHook` with the prepared inputs.
     const { result } = renderHook(() => useCardViewState(card.id));
 
+    // Then: Verify the expected result in the assertions below.
     expect(result.current).toEqual({
       frontText: card.frontText,
       fsrs: null,
@@ -43,16 +47,21 @@ describe("CARD-VIEW-04 CARD-VIEW-05 useCardViewState", () => {
       dark: true,
     });
 
+    // When: Exercise `act` with the prepared inputs.
     act(() => {
       setDarkMode(false);
     });
 
+    // Then: Verify the expected result in the assertions below.
     expect(result.current).toMatchObject({ dark: false });
   });
 
   it("does not expose content for an unavailable Card", () => {
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Exercise `renderHook` with the prepared inputs.
     const { result } = renderHook(() => useCardViewState("missing-card"));
 
+    // Then: Verify the expected result in the assertions below.
     expect(result.current).toBeUndefined();
   });
 });

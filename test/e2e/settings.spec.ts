@@ -3,6 +3,7 @@ import { readSession } from "./utils/study-helpers";
 import type { Page } from "@playwright/test";
 
 test("SETTINGS-03 applies review scheduling to the next study session", async ({ fixture, page }) => {
+  // Given: Prepare `deck`, `dueCard`, `futureCard` and any shared test state below.
   const deck = fixture.deck();
   const dueCard = fixture.card("card-due");
   const futureCard = fixture.card("card-future");
@@ -12,7 +13,9 @@ test("SETTINGS-03 applies review scheduling to the next study session", async ({
 
   const respectReviewSchedule = page.getByRole("checkbox", { name: "Respect review schedule" });
   await expect(respectReviewSchedule).not.toBeChecked();
+  // When: Exercise `respectReviewSchedule.locator("xpath=parent::label").click` with the prepared inputs.
   await respectReviewSchedule.locator("xpath=parent::label").click();
+  // Then: Verify the expected result in the assertions below.
   await expect(respectReviewSchedule).toBeChecked();
   await expect
     .poll(() =>
@@ -22,11 +25,15 @@ test("SETTINGS-03 applies review scheduling to the next study session", async ({
     )
     .toBe(true);
 
+  // When: Exercise `page.reload` with the prepared inputs.
   await page.reload();
+  // Then: Verify the expected result in the assertions below.
   await expect(respectReviewSchedule).toBeChecked();
+  // When: Exercise `page.goto` with the prepared inputs.
   await page.goto(`/deck/${deck.id}/start`);
   await page.getByRole("button", { name: "Start 2 cards" }).click();
 
+  // Then: Verify the expected result in the assertions below.
   await expect.poll(async () => (await readSession(fixture.user().uid, deck.id))?.cardOrderIds).toHaveLength(2);
   const session = await readSession(fixture.user().uid, deck.id);
   expect(session?.cardOrderIds).toHaveLength(2);
@@ -51,6 +58,7 @@ test("SETTINGS-10 Zero autoplay interval is explained and saved without resettin
   fixture,
   page,
 }) => {
+  // Given: Prepare `interval`, `preferences`, `savedData` and any shared test state below.
   await fixture.apply(page, {
     preferences: { study: { defaultAutoPlay: true }, controls: { showPlaybackControls: true } },
   });
@@ -63,7 +71,9 @@ test("SETTINGS-10 Zero autoplay interval is explained and saved without resettin
   const savedData = await savedDocuments(fixture.user().uid);
 
   await interval.focus();
+  // When: Exercise `page.keyboard.press` with the prepared inputs.
   await page.keyboard.press("Home");
+  // Then: Verify the expected result in the assertions below.
   await expect(interval).toHaveValue("0");
   await expect(interval).toHaveAttribute("aria-valuetext", "No automatic advance (0 seconds)");
   await expect(interval).toHaveAccessibleDescription(intervalDescription);
@@ -73,7 +83,9 @@ test("SETTINGS-10 Zero autoplay interval is explained and saved without resettin
     .poll(() => readPreferences(page))
     .toEqual({ ...preferences, study: { ...preferences.study, cardInterval: 0 } });
 
+  // When: Exercise `page.reload` with the prepared inputs.
   await page.reload();
+  // Then: Verify the expected result in the assertions below.
   await expect(interval).toHaveValue("0");
   await expect(interval).toHaveAttribute("aria-valuetext", "No automatic advance (0 seconds)");
   await expect(interval).toHaveAccessibleDescription(intervalDescription);
@@ -81,8 +93,10 @@ test("SETTINGS-10 Zero autoplay interval is explained and saved without resettin
   await expect(page.getByRole("checkbox", { name: "Start autoplay" })).toBeChecked();
   await expect(page.getByRole("checkbox", { name: "Show playback controls" })).toBeChecked();
 
+  // When: Exercise `interval.focus` with the prepared inputs.
   await interval.focus();
   await page.keyboard.press("End");
+  // Then: Verify the expected result in the assertions below.
   await expect(interval).toHaveValue("60");
   await expect(interval).toHaveAttribute("aria-valuetext", "60 seconds");
   await expect(page.getByText("60s", { exact: true })).toBeVisible();
@@ -94,6 +108,7 @@ test("SETTINGS-11 Restoring a positive interval preserves the active study sessi
   fixture,
   page,
 }) => {
+  // Given: Prepare `deck` and any shared test state below.
   const deck = fixture.deck();
   await page.clock.install();
   await fixture.apply(page, {
@@ -103,7 +118,9 @@ test("SETTINGS-11 Restoring a positive interval preserves the active study sessi
     },
   });
   await page.goto(`/deck/${deck.id}/start`);
+  // When: Apply the operation or event under test.
   await page.getByRole("button", { name: `Start ${String(fixture.state.remote.cards.length)} cards` }).click();
+  // Then: Verify the expected result in the assertions below.
   await expect.poll(() => readSession(fixture.user().uid, deck.id)).toMatchObject({ currentIndex: 0 });
   const session = await readSession(fixture.user().uid, deck.id);
   if (session === undefined) throw new Error("Expected a newly started study session");
@@ -115,19 +132,24 @@ test("SETTINGS-11 Restoring a positive interval preserves the active study sessi
   await expect(page.getByRole("button", { name: firstCard.frontText, exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: /^(Play|Pause)$/ })).toHaveCount(0);
   await expect(page.getByRole("slider", { name: "Study progress" })).toHaveCount(0);
+  // When: Exercise `page.clock.runFor` with the prepared inputs.
   await page.clock.runFor(1250);
   // Cloud metadata may arrive after Start; the existing session values must stay unchanged.
+  // Then: Verify the expected result in the assertions below.
   expect(await readSession(fixture.user().uid, deck.id)).toMatchObject({
     sessionId: session.sessionId,
     cardOrderIds: session.cardOrderIds,
     currentIndex: 0,
   });
+  // When: Exercise `page.getByRole("button", { name: "Open study help" }).click` with the prepared inputs.
   await page.getByRole("button", { name: "Open study help" }).click();
   const help = page.getByRole("dialog", { name: "Study controls" });
+  // Then: Verify the expected result in the assertions below.
   await expect(help.getByText("Autoplay is unavailable while the card interval is 0", { exact: true })).toBeVisible();
   await expect(
     help.getByText("Playback controls are unavailable while the card interval is 0", { exact: true })
   ).toBeVisible();
+  // When: Exercise `page.getByRole("button", { name: "Close help", exact: true }).click` with the prepared inputs.
   await page.getByRole("button", { name: "Close help", exact: true }).click();
   // Exercise the page shortcut instead of activating the help button restored by focus management.
   await page.evaluate(() => {
@@ -135,6 +157,7 @@ test("SETTINGS-11 Restoring a positive interval preserves the active study sessi
   });
   await page.keyboard.press("Space");
   await page.clock.runFor(1250);
+  // Then: Verify the expected result in the assertions below.
   expect(await readSession(fixture.user().uid, deck.id)).toMatchObject({
     sessionId: session.sessionId,
     cardOrderIds: session.cardOrderIds,
@@ -143,10 +166,13 @@ test("SETTINGS-11 Restoring a positive interval preserves the active study sessi
   expect(await readPreferences(page)).toEqual(preferences);
   await expect(page.getByRole("button", { name: firstCard.frontText, exact: true })).toBeVisible();
 
+  // When: Exercise `page.getByRole("button", { name: "Swipe right: Good", exact: true }).click` with the prepared inputs.
   await page.getByRole("button", { name: "Swipe right: Good", exact: true }).click();
+  // Then: Verify the expected result in the assertions below.
   await expect(page.getByRole("button", { name: secondCard.frontText, exact: true })).toBeVisible();
   const continuedPosition = { sessionId: session.sessionId, cardOrderIds: session.cardOrderIds, currentIndex: 1 };
   await expect.poll(() => readSession(fixture.user().uid, deck.id)).toMatchObject(continuedPosition);
+
   const deckBeforeSettings = await requireDocument("deck", deck.id);
   const cardsBeforeSettings = await Promise.all(
     fixture.state.remote.cards.map((card) => requireDocument("card", card.id))
@@ -156,20 +182,27 @@ test("SETTINGS-11 Restoring a positive interval preserves the active study sessi
   await page.getByRole("button", { name: "Back to deck list", exact: true }).click();
   await page.getByRole("button", { name: "Open settings", exact: true }).click();
   const interval = page.getByRole("slider", { name: "Autoplay interval" });
+  // Then: Verify the expected result in the assertions below.
   await expect(interval).toHaveValue("0");
+  // When: Exercise `interval.focus` with the prepared inputs.
   await interval.focus();
   await page.keyboard.press("End");
   const restoredPreferences = { ...preferences, study: { ...preferences.study, cardInterval: 60 } };
+  // Then: Verify the expected result in the assertions below.
   await expect.poll(() => readPreferences(page)).toEqual(restoredPreferences);
   expect(await readSession(fixture.user().uid, deck.id)).toMatchObject(continuedPosition);
 
+  // When: Exercise `page.goto` with the prepared inputs.
   await page.goto("/");
   await page.getByRole("button", { name: `Continue ${deck.name}`, exact: true }).click();
+  // Then: Verify the expected result in the assertions below.
   await expect(page.getByRole("button", { name: secondCard.frontText, exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Pause", exact: true })).toBeVisible();
   await expect(page.getByRole("slider", { name: "Study progress" })).toBeVisible();
   expect(await readSession(fixture.user().uid, deck.id)).toMatchObject(continuedPosition);
+  // When: Exercise `page.getByRole("button", { name: "Pause", exact: true }).click` with the prepared inputs.
   await page.getByRole("button", { name: "Pause", exact: true }).click();
+  // Then: Verify the expected result in the assertions below.
   await expect(page.getByRole("button", { name: "Play", exact: true })).toBeVisible();
   expect(await readPreferences(page)).toEqual(restoredPreferences);
   expect(await requireDocument("deck", deck.id)).toEqual(deckBeforeSettings);
@@ -179,14 +212,17 @@ test("SETTINGS-11 Restoring a positive interval preserves the active study sessi
 });
 
 test("SETTINGS-06 recovers current defaults from invalid persisted preferences", async ({ fixture, page }) => {
+  // Given: Use this case's inputs and any shared test setup.
   await fixture.apply(page);
   await page.goto("/settings");
   await page.evaluate(() => {
     localStorage.setItem("tango-config", JSON.stringify({ state: { preferences: "invalid" }, version: 1 }));
   });
 
+  // When: Exercise `page.reload` with the prepared inputs.
   await page.reload();
 
+  // Then: Verify the expected result in the assertions below.
   await expect(page.getByRole("heading", { level: 1, name: "Settings" })).toBeVisible();
   await expect(page.getByRole("checkbox", { name: "Dark mode" })).not.toBeChecked();
   await expect(page.getByRole("slider", { name: "Maximum cards" })).toHaveValue("10");
@@ -194,6 +230,7 @@ test("SETTINGS-06 recovers current defaults from invalid persisted preferences",
 });
 
 test("SETTINGS-01 Dark mode is auto-saved across reload", async ({ fixture, page }) => {
+  // Given: Prepare `initialDarkMode`, `expectedDarkMode`, `darkMode` and any shared test state below.
   const initialDarkMode = fixture.state.browser.preferences.appearance.darkMode;
   const expectedDarkMode = !initialDarkMode;
   await fixture.apply(page);
@@ -201,7 +238,9 @@ test("SETTINGS-01 Dark mode is auto-saved across reload", async ({ fixture, page
 
   const darkMode = page.getByRole("checkbox", { name: "Dark mode" });
   await expect(darkMode).toBeChecked({ checked: initialDarkMode });
+  // When: Exercise `darkMode.locator("xpath=parent::label").click` with the prepared inputs.
   await darkMode.locator("xpath=parent::label").click();
+  // Then: Verify the expected result in the assertions below.
   await expect(darkMode).toBeChecked({ checked: expectedDarkMode });
   await expect
     .poll(() =>
@@ -211,27 +250,37 @@ test("SETTINGS-01 Dark mode is auto-saved across reload", async ({ fixture, page
     )
     .toBe(expectedDarkMode);
 
+  // When: Exercise `page.reload` with the prepared inputs.
   await page.reload();
+  // Then: Verify the expected result in the assertions below.
   await expect(darkMode).toBeChecked({ checked: expectedDarkMode });
   await expect(page.locator("html")).toHaveClass(expectedDarkMode ? /dark/ : /^(?!.*\bdark\b).*$/);
 });
 
 const verifyUnlimitedCardLocale = async (page: Page) => {
+  // Given: Use this case's inputs and any shared test setup.
   await expect(page.getByText("All matching cards", { exact: true })).toBeVisible();
+  // When: Exercise `page.getByRole("combobox", { name: "Language" }).selectOption` with the prepared inputs.
   await page.getByRole("combobox", { name: "Language" }).selectOption("ja");
   const japaneseSlider = page.getByRole("slider", { name: "最大カード数" });
+  // Then: Verify the expected result in the assertions below.
   await expect(japaneseSlider).toHaveAttribute("aria-valuetext", "条件に一致するすべてのカード");
   await expect(page.getByText("条件に一致するすべてのカード", { exact: true })).toBeVisible();
+  // When: Exercise `page.reload` with the prepared inputs.
   await page.reload();
+  // Then: Verify the expected result in the assertions below.
   await expect(japaneseSlider).toHaveValue("0");
   await expect(japaneseSlider).toHaveAttribute("aria-valuetext", "条件に一致するすべてのカード");
+  // When: Exercise `page.getByRole("combobox", { name: "言語" }).selectOption` with the prepared inputs.
   await page.getByRole("combobox", { name: "言語" }).selectOption("en");
+  // Then: Verify the expected result in the assertions below.
   await expect(page.getByRole("slider", { name: "Maximum cards" })).toBeVisible();
 };
 
 const cardCountLabel = (count: number) => `${String(count)} ${count === 1 ? "card" : "cards"}`;
 
 test("SETTINGS-02 Maximum cards limits the next study session", async ({ fixture, page }) => {
+  // Given: Prepare `deck`, `numberOfCards`, `expectedMaximum` and any shared test state below.
   const deck = fixture.deck();
   const numberOfCards = fixture.state.remote.cards.length;
   const expectedMaximum = numberOfCards - 1;
@@ -244,13 +293,18 @@ test("SETTINGS-02 Maximum cards limits the next study session", async ({ fixture
   for (const maximum of [expectedMaximum, 0, 1]) {
     const count = maximum === 0 ? numberOfCards : maximum;
     await test.step(`Maximum cards ${String(maximum)}`, async () => {
+      // Given: Use the rendered story, its args, parameters, and any setup below.
       await page.goto("/settings");
       const maximumCards = page.getByRole("slider", { name: "Maximum cards" });
       await maximumCards.focus();
+      // When: Exercise `maximumCards.press` with the prepared inputs.
       await maximumCards.press("Home");
       for (let index = 0; index < maximum; index += 1) await maximumCards.press("ArrowRight");
+      // Then: Verify the expected result in the assertions below.
       await expect(maximumCards).toHaveValue(String(maximum));
+      // When: Exercise `cardCountLabel` with the prepared inputs.
       const accessibleValue = maximum === 0 ? "All matching cards" : cardCountLabel(maximum);
+      // Then: Verify the expected result in the assertions below.
       await expect(maximumCards).toHaveAttribute("aria-valuetext", accessibleValue);
       await expect
         .poll(() =>
@@ -262,15 +316,21 @@ test("SETTINGS-02 Maximum cards limits the next study session", async ({ fixture
         )
         .toBe(maximum);
 
+      // When: Exercise `page.reload` with the prepared inputs.
       await page.reload();
+      // Then: Verify the expected result in the assertions below.
       await expect(maximumCards).toHaveValue(String(maximum));
       await expect(maximumCards).toHaveAttribute("aria-valuetext", accessibleValue);
+      // When: Exercise `verifyUnlimitedCardLocale` with the prepared inputs.
       if (maximum === 0) await verifyUnlimitedCardLocale(page);
 
       const countLabel = cardCountLabel(count);
       await page.goto(`/deck/${deck.id}/start`);
+      // Then: Verify the expected result in the assertions below.
       await expect(page.getByRole("heading", { level: 2, name: `${countLabel} in this session` })).toBeVisible();
+      // When: Exercise `page.getByRole("button", { name: `Start ${countLabel}` }).click` with the prepared inputs.
       await page.getByRole("button", { name: `Start ${countLabel}` }).click();
+      // Then: Verify the expected result in the assertions below.
       await expect(page).toHaveURL(new RegExp(`/deck/${deck.id}/study$`));
       await expect.poll(async () => (await readSession(fixture.user().uid, deck.id))?.cardOrderIds.length).toBe(count);
       const session = await readSession(fixture.user().uid, deck.id);
@@ -278,9 +338,11 @@ test("SETTINGS-02 Maximum cards limits the next study session", async ({ fixture
         [fixture.card("card-1").id, fixture.card("card-2").id, fixture.card("card-3").id].slice(0, count)
       );
 
+      // When: Exercise `page.goto` with the prepared inputs.
       await page.goto("/settings");
       await maximumCards.press("Home");
       if (maximum === 0) await maximumCards.press("ArrowRight");
+      // Then: Verify the expected result in the assertions below.
       await expect
         .poll(() =>
           page.evaluate(
@@ -290,8 +352,10 @@ test("SETTINGS-02 Maximum cards limits the next study session", async ({ fixture
           )
         )
         .toBe(maximum === 0 ? 1 : 0);
+      // When: Exercise `page.goto` with the prepared inputs.
       await page.goto("/");
       await page.getByRole("button", { name: `Continue ${deck.name}` }).click();
+      // Then: Verify the expected result in the assertions below.
       await expect(page).toHaveURL(new RegExp(`/deck/${deck.id}/study$`));
       expect((await readSession(fixture.user().uid, deck.id))?.sessionId).toBe(session?.sessionId);
       expect((await readSession(fixture.user().uid, deck.id))?.cardOrderIds).toEqual(session?.cardOrderIds);
@@ -300,14 +364,17 @@ test("SETTINGS-02 Maximum cards limits the next study session", async ({ fixture
 });
 
 test("SETTINGS-04 Explicit Japanese language is auto-saved across reload", async ({ fixture, page }) => {
+  // Given: Prepare `language` and any shared test state below.
   await fixture.apply(page);
   await page.goto("/settings");
 
   const language = page.getByRole("combobox", { name: "Language" });
   await expect(language).toHaveValue("en");
+  // When: Exercise `language.selectOption` with the prepared inputs.
   await language.selectOption("ja");
 
   const japaneseLanguage = page.getByRole("combobox", { name: "言語" });
+  // Then: Verify the expected result in the assertions below.
   await expect(page.getByRole("heading", { level: 1, name: "設定" })).toBeVisible();
   await expect(japaneseLanguage).toHaveValue("ja");
   await expect(page.locator("html")).toHaveAttribute("lang", "ja");
@@ -317,14 +384,20 @@ test("SETTINGS-04 Explicit Japanese language is auto-saved across reload", async
     )
     .toBe("ja");
 
+  // When: Exercise `page.reload` with the prepared inputs.
   await page.reload();
+  // Then: Verify the expected result in the assertions below.
   await expect(page.getByRole("heading", { level: 1, name: "設定" })).toBeVisible();
   await expect(japaneseLanguage).toHaveValue("ja");
   await expect(page.locator("html")).toHaveAttribute("lang", "ja");
 
+  // When: Exercise `page.goto` with the prepared inputs.
   await page.goto("/");
+  // Then: Verify the expected result in the assertions below.
   await expect(page.getByRole("heading", { level: 1, name: "デッキ" })).toBeVisible();
+  // When: Exercise `page.getByRole("button", { name: "追加", exact: true }).click` with the prepared inputs.
   await page.getByRole("button", { name: "追加", exact: true }).click();
+  // Then: Verify the expected result in the assertions below.
   await expect(page.getByRole("menuitem", { name: "デッキを作成" })).toBeVisible();
 });
 
@@ -332,14 +405,17 @@ test.describe("ja-JP browser locale", () => {
   test.use({ locale: "ja-JP" });
 
   test("SETTINGS-05 System language resolves the browser locale across reload", async ({ fixture, page }) => {
+    // Given: Prepare `language` and any shared test state below.
     await fixture.apply(page);
     await page.goto("/settings");
 
     const language = page.getByRole("combobox", { name: "Language" });
     await expect(language).toHaveValue("en");
+    // When: Exercise `language.selectOption` with the prepared inputs.
     await language.selectOption("system");
 
     const systemLanguage = page.getByRole("combobox", { name: "言語" });
+    // Then: Verify the expected result in the assertions below.
     await expect(page.getByRole("heading", { level: 1, name: "設定" })).toBeVisible();
     await expect(systemLanguage).toHaveValue("system");
     await expect(page.locator("html")).toHaveAttribute("lang", "ja");
@@ -349,7 +425,9 @@ test.describe("ja-JP browser locale", () => {
       )
       .toBe("system");
 
+    // When: Exercise `page.reload` with the prepared inputs.
     await page.reload();
+    // Then: Verify the expected result in the assertions below.
     await expect(page.getByRole("heading", { level: 1, name: "設定" })).toBeVisible();
     await expect(systemLanguage).toHaveValue("system");
     await expect(page.locator("html")).toHaveAttribute("lang", "ja");
@@ -357,6 +435,7 @@ test.describe("ja-JP browser locale", () => {
 });
 
 const verifyCommitLink = async (page: Page) => {
+  // Given: Prepare `details`, `summary`, `commit` and any shared test state below.
   const details = page.locator("details");
   const summary = page.locator("summary");
   const commit = details.getByRole("link");
@@ -365,10 +444,14 @@ const verifyCommitLink = async (page: Page) => {
   await expect
     .poll(() => commit.evaluateAll((links) => links.map((link) => link.getAttribute("href"))))
     .toEqual(hasCommit ? [expect.stringMatching(/\/commit\/[a-f0-9]+$/)] : []);
+  // When: Exercise `page.keyboard.press` with the prepared inputs.
   if (hasCommit) await page.keyboard.press("Tab");
+  // Then: Verify the expected result in the assertions below.
   await expect(hasCommit ? commit : summary).toBeFocused();
   await expect.poll(() => summary.evaluate((element) => element === document.activeElement)).toBe(!hasCommit);
+  // When: Exercise `page.keyboard.press` with the prepared inputs.
   if (hasCommit) await page.keyboard.press("Shift+Tab");
+  // Then: Verify the expected result in the assertions below.
   await expect(summary).toBeFocused();
 };
 
@@ -377,17 +460,22 @@ test("SETTINGS-07 Advanced disclosure keeps keyboard focus visible without chang
   baseURL,
   fixture,
 }, testInfo) => {
+  // Given: Use this case's inputs and any shared test setup.
   for (const viewport of [
     { width: 1100, height: 900 },
     { width: 360, height: 640 },
   ]) {
+    // Given: Use the current iteration or branch inputs from the enclosing case.
     for (const darkMode of [false, true]) {
+      // Given: Prepare `page`, `errors` and any shared test state below.
       const page = await browser.newPage({ viewport, ...(baseURL === undefined ? {} : { baseURL }) });
       const errors = collectBrowserErrors(page.context(), baseURL);
       try {
+        // Given: Use the current iteration or branch inputs from the enclosing case.
         await fixture.apply(page, { preferences: { appearance: { darkMode } } });
         await page.goto("/");
         await page.getByRole("heading", { level: 1, name: "Decks" }).waitFor();
+        // When: Exercise `page.getByRole("button", { name: "Menu", exact: true }).click` with the prepared inputs.
         if (viewport.width < 640) {
           await page.getByRole("button", { name: "Menu", exact: true }).click();
           await page.getByRole("menuitem", { name: "Open settings", exact: true }).click();
@@ -407,13 +495,19 @@ test("SETTINGS-07 Advanced disclosure keeps keyboard focus visible without chang
             )
           );
         const saved = await readSavedData();
+        // Then: Verify the expected result in the assertions below.
         await expect(summary).toContainText("Advanced");
         await expect(details).not.toHaveAttribute("open");
+        // When: Exercise `interval.focus` with the prepared inputs.
         await interval.focus();
         await page.keyboard.press("Tab");
+        // Then: Verify the expected result in the assertions below.
         await expect(summary).toBeFocused();
         const captureFocus = async (state: string) => {
+          // Given: Use this case's inputs and any shared test setup.
+          // Then: Verify the expected result in the assertions below.
           await expect(summary).toBeInViewport();
+          // Then: Measure the focused disclosure's visible outline.
           const ring = await summary.evaluate((element) => {
             const style = getComputedStyle(element);
             return {
@@ -422,38 +516,60 @@ test("SETTINGS-07 Advanced disclosure keeps keyboard focus visible without chang
               offset: Number.parseFloat(style.outlineOffset),
             };
           });
+          // Then: Verify the expected result in the assertions below.
           expect(ring.visible).toBe(true);
           expect(ring.width).toBeGreaterThan(0);
           // An inset ring must fit inside the clipping disclosure in both open states.
           expect(ring.offset + ring.width).toBeLessThanOrEqual(0);
+
           await testInfo.attach(`${viewport.width}-${darkMode ? "dark" : "light"}-${state}`, {
             body: await details.screenshot(),
             contentType: "image/png",
           });
         };
+        // Then: Verify the disclosure's focus visibility and record its rendered outline.
         await captureFocus("closed");
+        // When: Move keyboard focus back to the interval control.
         await page.keyboard.press("Shift+Tab");
+        // Then: Verify the expected result in the assertions below.
         await expect(interval).toBeFocused();
+        // When: Exercise `page.keyboard.press` with the prepared inputs.
         await page.keyboard.press("Tab");
+        // Then: Verify the expected result in the assertions below.
         await expect(summary).toBeFocused();
+        // When: Exercise `page.keyboard.press` with the prepared inputs.
         await page.keyboard.press("Enter");
+        // Then: Verify the expected result in the assertions below.
         await expect(details).toHaveAttribute("open");
+        // Then: Verify the disclosure's focus visibility and record its rendered outline.
         await captureFocus("open");
+        // Then: Verify the expected result in the assertions below.
         await expect(details.getByText("Version", { exact: true })).toBeVisible();
+        // When: Exercise `verifyCommitLink` with the prepared inputs.
         await verifyCommitLink(page);
         await page.keyboard.press("Enter");
+        // Then: Verify the expected result in the assertions below.
         await expect(details).not.toHaveAttribute("open");
+        // When: Exercise `page.keyboard.press` with the prepared inputs.
         await page.keyboard.press("Space");
+        // Then: Verify the expected result in the assertions below.
         await expect(details).toHaveAttribute("open");
+        // When: Exercise `page.keyboard.press` with the prepared inputs.
         await page.keyboard.press("Space");
+        // Then: Verify the expected result in the assertions below.
         await expect(details).not.toHaveAttribute("open");
+        // When: Exercise `page.keyboard.press` with the prepared inputs.
         await page.keyboard.press("Space");
+        // Then: Verify the expected result in the assertions below.
         await expect(details).toHaveAttribute("open");
         expect(await readSavedData()).toEqual(saved);
+        // When: Exercise `page.reload` with the prepared inputs.
         await page.reload();
+        // Then: Verify the expected result in the assertions below.
         await expect(summary).toBeVisible();
         await expect(details).not.toHaveAttribute("open");
         expect(await readSavedData()).toEqual(saved);
+        // When: Exercise `errors.assert` with the prepared inputs.
         errors.assert();
       } finally {
         await page.close();
@@ -463,11 +579,13 @@ test("SETTINGS-07 Advanced disclosure keeps keyboard focus visible without chang
 });
 
 test("SETTINGS-08 Existing Card errors follow language changes without losing drafts", async ({ fixture, page }) => {
+  // Given: Use this case's inputs and any shared test setup.
   await page.addInitScript(() =>
     Object.defineProperty(navigator, "language", { configurable: true, get: () => "en-US" })
   );
   await fixture.apply(page);
   await page.goto("/settings");
+  // When: Exercise `page.getByRole("combobox", { name: "Language" }).selectOption` with the prepared inputs.
   await page.getByRole("combobox", { name: "Language" }).selectOption("system");
   const deck = fixture.deck();
   const card = fixture.card();
@@ -481,37 +599,47 @@ test("SETTINGS-08 Existing Card errors follow language changes without losing dr
   await page.getByRole("tab", { name: "Front", exact: true }).click();
   await page.getByRole("textbox", { name: "Front text" }).fill("");
   await page.getByRole("button", { name: "Save changes" }).click();
+  // Then: Verify the expected result in the assertions below.
   await expect(page.getByRole("textbox", { name: "Front text" })).toHaveAccessibleDescription(
     "Front text is required."
   );
+  // Given: Record the current URL and session before the browser locale changes.
   const url = page.url();
   const session = await page.evaluate(() => localStorage.getItem("tango-study"));
+  // When: Change the browser language and dispatch its change event.
   await page.evaluate(() => {
     Object.defineProperty(navigator, "language", { configurable: true, get: () => "ja-JP" });
     window.dispatchEvent(new Event("languagechange"));
   });
+  // Then: Verify the expected result in the assertions below.
   await expect(page.locator("html")).toHaveAttribute("lang", "ja");
   await expect(page.getByRole("textbox", { name: "表面のテキスト" })).toHaveAccessibleDescription(
     "表面のテキストは必須です。"
   );
   await expect(page.getByRole("textbox", { name: "表面のテキスト" })).toHaveValue("");
+  // When: Exercise `page.getByRole("tab", { name: "裏面", exact: true }).click` with the prepared inputs.
   await page.getByRole("tab", { name: "裏面", exact: true }).click();
+  // Then: Verify the expected result in the assertions below.
   await expect(page.getByRole("textbox", { name: "裏面のテキスト" })).toHaveValue("未保存の回答");
   await expect(page).toHaveURL(url);
   expect(await requireDocument("card", card.id)).toEqual(before);
   expect(await requireDocument("deck", deck.id)).toEqual(deckBefore);
   expect(await page.evaluate(() => localStorage.getItem("tango-study"))).toBe(session);
   // Dirty state must still guard navigation after changing the language.
+  // When: Exercise `page.getByRole("button", { name: "設定を開く" }).click` with the prepared inputs.
   await page.getByRole("button", { name: "設定を開く" }).click();
+  // Then: Verify the expected result in the assertions below.
   await expect(page.getByRole("alertdialog", { name: "未保存の変更を破棄しますか？" })).toBeVisible();
 });
 
 test("SETTINGS-09 Cached CSV diagnostics follow the current language", async ({ fixture, page }) => {
+  // Given: Use this case's inputs and any shared test setup.
   await page.addInitScript(() =>
     Object.defineProperty(navigator, "language", { configurable: true, get: () => "en-US" })
   );
   await fixture.apply(page);
   await page.goto("/settings");
+  // When: Exercise `page.getByRole("combobox", { name: "Language" }).selectOption` with the prepared inputs.
   await page.getByRole("combobox", { name: "Language" }).selectOption("system");
   await page.goto("/import");
   await page.getByLabel("Upload a csv file").setInputFiles({
@@ -519,14 +647,18 @@ test("SETTINGS-09 Cached CSV diagnostics follow the current language", async ({ 
     mimeType: "text/csv",
     buffer: Buffer.from('問題,回答,個人タグ,key-1\n,,,key-2\n"unterminated'),
   });
+  // Then: Verify the expected result in the assertions below.
   await expect(page.getByRole("alert")).toContainText("Front text is required.");
+  // Given: Record the existing error context before changing the browser locale.
   const context = await page.getByRole("alert").locator("code").allTextContents();
+  // When: Change the browser locale while making any unintended file reread fail.
   // Any accidental file read during the locale update now fails the preview.
   await page.evaluate(() => {
     File.prototype.text = () => Promise.reject(new Error("Unexpected file reread"));
     Object.defineProperty(navigator, "language", { configurable: true, get: () => "ja-JP" });
     window.dispatchEvent(new Event("languagechange"));
   });
+  // Then: Verify the expected result in the assertions below.
   await expect(page.locator("html")).toHaveAttribute("lang", "ja");
   const alert = page.getByRole("alert");
   await expect(alert).toContainText("表面のテキストは必須です。");
