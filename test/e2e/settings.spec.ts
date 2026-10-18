@@ -332,10 +332,7 @@ test("SETTINGS-02 Maximum cards limits the next study session", async ({ fixture
     });
 
   for (const maximum of [expectedMaximum, 0, 1]) {
-    const { count } = await test.step("Given: The iteration chooses the expected session size", async () => {
-      const count = maximum === 0 ? numberOfCards : maximum;
-      return { count };
-    });
+    const count = maximum === 0 ? numberOfCards : maximum;
     await test.step(`Maximum cards ${String(maximum)}`, async () => {
       const { maximumCards } = await test.step("Given: The Maximum cards control is focused", async () => {
         await page.goto("/settings");

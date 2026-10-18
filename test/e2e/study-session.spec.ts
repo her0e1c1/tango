@@ -282,28 +282,27 @@ test("STUDY-SESSION-01 starts a filtered session capped by the learning limit", 
     });
 
   for (const maximum of [fixture.state.browser.preferences.study.maxNumberOfCardsToLearn, 0, 1]) {
-    await test.step("When: Set the iteration learning limit when it differs from the initial value", async () => {
-      if (maximum !== fixture.state.browser.preferences.study.maxNumberOfCardsToLearn) {
-        await page.goto("/settings");
-        const slider = page.getByRole("slider", { name: "Maximum cards" });
-        await slider.press("Home");
-        if (maximum === 1) await slider.press("ArrowRight");
-      }
-    });
-    const { expectedIds } = await test.step("Then: The requested learning limit is saved", async () => {
-      await expect
-        .poll(() =>
-          page.evaluate(
-            () =>
-              JSON.parse(localStorage.getItem("tango-config") ?? "{}").state?.preferences?.study
-                ?.maxNumberOfCardsToLearn
+    const { expectedIds } =
+      await test.step("Given: Study uses the iteration learning limit and matching cards", async () => {
+        if (maximum !== fixture.state.browser.preferences.study.maxNumberOfCardsToLearn) {
+          await page.goto("/settings");
+          const slider = page.getByRole("slider", { name: "Maximum cards" });
+          await slider.press("Home");
+          if (maximum === 1) await slider.press("ArrowRight");
+        }
+        await expect
+          .poll(() =>
+            page.evaluate(
+              () =>
+                JSON.parse(localStorage.getItem("tango-config") ?? "{}").state?.preferences?.study
+                  ?.maxNumberOfCardsToLearn
+            )
           )
-        )
-        .toBe(maximum);
-      const matchingIds = [firstCard.id, secondCard.id, eligibleBeyondLimit.id];
-      const expectedIds = maximum === 0 ? matchingIds : matchingIds.slice(0, maximum);
-      return { expectedIds };
-    });
+          .toBe(maximum);
+        const matchingIds = [firstCard.id, secondCard.id, eligibleBeyondLimit.id];
+        const expectedIds = maximum === 0 ? matchingIds : matchingIds.slice(0, maximum);
+        return { expectedIds };
+      });
     const { countLabel } = await test.step("When: Open study settings for that learning limit", async () => {
       const countLabel = `${String(expectedIds.length)} ${expectedIds.length === 1 ? "card" : "cards"}`;
       await page.goto(`/deck/${deck.id}/start`);

@@ -227,18 +227,24 @@ for (const all of [false, true]) {
     fixture,
     page,
   }) => {
-    const { deck, before, names } = await test.step("Given: A deck with saved OR or AND tag filters", async () => {
-      const deck = await setup(fixture, page);
-      const before = await savedDocuments(fixture.user().uid, deck.id);
-      await page.goto(`/deck/${deck.id}`);
-      await openFilters(page);
+    const { deck, before } =
+      await test.step("Given: An unfiltered deck card list with two selectable tags", async () => {
+        const deck = await setup(fixture, page);
+        const before = await savedDocuments(fixture.user().uid, deck.id);
+        await page.goto(`/deck/${deck.id}`);
+        await openFilters(page);
+        return { deck, before };
+      });
+    await test.step("When: Select two tags and the scenario matching mode", async () => {
       await select(page, "alpha");
       await select(page, "beta");
       if (all) await matchAll(page);
+    });
+    const { names } = await test.step("Then: Only matching cards remain and the chosen filters are saved", async () => {
       await expectSaved(deck.id, ["alpha", "beta"], all);
       const names = all ? ["new tagged card"] : mixedCards.slice(0, 3);
       await expectList(page, names);
-      return { deck, before, names };
+      return { names };
     });
     await test.step("When: Reload the filtered card list", async () => {
       await page.reload();

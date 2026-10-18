@@ -137,50 +137,25 @@ test("PERSISTENCE-02 syncs an offline cached Card edit after reconnecting", asyn
   fixture,
   page,
 }) => {
-  const { deck, card, uid } =
-    await test.step("Given: A remote deck with its cards and cached application shell", async () => {
-      const deck = fixture.deck();
-      const card = fixture.card();
-      const { uid } = fixture.user();
-      await fixture.apply(page);
+  const { deck, card, uid } = await test.step("Given: A remote deck and card cached and reopened offline", async () => {
+    const deck = fixture.deck();
+    const card = fixture.card();
+    const { uid } = fixture.user();
+    await fixture.apply(page);
 
-      await page.goto("/");
-      await expect(page.getByText(deck.name)).toBeVisible();
-      return { deck, card, uid };
-    });
-  await test.step("When: Open the remote deck card list", async () => {
+    await page.goto("/");
+    await expect(page.getByText(deck.name)).toBeVisible();
     await page.getByRole("button", { name: `Open cards in ${deck.name}` }).click();
-  });
-  await test.step("Then: The saved card is loaded", async () => {
     await expect(page.getByText(card.frontText)).toBeVisible();
-  });
-  await test.step("When: Return to the deck list", async () => {
     await page.getByRole("button", { name: "tango" }).click();
-  });
-  await test.step("Then: The deck list opens", async () => {
     await expect(page).toHaveURL(/\/$/);
-  });
-  const { stopServingWorker } = await test.step("When: Install the offline app cache and reload", async () => {
     const stopServingWorker = await installApplicationCacheForOfflineReload(page, baseURL);
     await page.reload();
-    return { stopServingWorker };
-  });
-  await test.step("Then: The cached shell loads the deck", async () => {
     await expect(page.getByText(deck.name)).toBeVisible();
-  });
-  await test.step("When: Reopen the remote deck", async () => {
     await page.getByRole("button", { name: `Open cards in ${deck.name}` }).click();
-  });
-  await test.step("Then: The card is loaded into cache", async () => {
     await expect(page.getByText(card.frontText)).toBeVisible();
-  });
-  await test.step("When: Return home before going offline", async () => {
     await page.getByRole("button", { name: "tango" }).click();
-  });
-  await test.step("Then: The cached deck list is available", async () => {
     await expect(page).toHaveURL(/\/$/);
-  });
-  await test.step("When: Stop serving the worker, disconnect and reload offline", async () => {
     await stopServingWorker();
 
     browserErrors.allow(/console error: .*Could not reach Cloud Firestore backend/u);
@@ -192,15 +167,10 @@ test("PERSISTENCE-02 syncs an offline cached Card edit after reconnecting", asyn
     );
     await context.setOffline(true);
     await page.reload();
-  });
-  await test.step("Then: The deck list loads offline", async () => {
     await expect(page.getByText(deck.name)).toBeVisible();
-  });
-  await test.step("When: Open the cached card list offline", async () => {
     await page.getByRole("button", { name: `Open cards in ${deck.name}` }).click();
-  });
-  await test.step("Then: The cached card is available", async () => {
     await expect(page.getByText(card.frontText)).toBeVisible();
+    return { deck, card, uid };
   });
   await test.step("When: Edit and submit the card while offline", async () => {
     await page.getByRole("button", { name: `Open actions for ${card.frontText}` }).click();
@@ -220,11 +190,9 @@ test("PERSISTENCE-02 syncs an offline cached Card edit after reconnecting", asyn
       const verificationPage = await verificationContext.newPage();
       await fixture.seedPage(verificationPage);
       await verificationPage.goto(`/deck/${deck.id}`);
+      await expect(verificationPage.getByText(card.frontText)).toBeVisible();
       return { verificationContext, verificationErrors, verificationPage };
     });
-  await test.step("Given: That client still sees the original saved text", async () => {
-    await expect(verificationPage.getByText(card.frontText)).toBeVisible();
-  });
   await test.step("When: Reconnect the client with the pending edit", async () => {
     await context.setOffline(false);
   });

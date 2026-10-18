@@ -920,10 +920,8 @@ test.describe("card", () => {
     await test.step("When: Open card creation", async () => {
       await page.goto(`/deck/${deck.id}/card/new`);
     });
-    await test.step("Then: The incomplete card creation form is visible", async () => {
+    const { url } = await test.step("Then: The incomplete card creation form is visible", async () => {
       await expect(page.getByRole("heading", { name: "Create card" })).toBeVisible();
-    });
-    const { url } = await test.step("Given: The creation URL is recorded before editing the answer draft", async () => {
       const url = page.url();
       return { url };
     });

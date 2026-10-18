@@ -1047,17 +1047,16 @@ test("NAVIGATION-03 Generic recovery offers only reload and preserves anonymous 
     await failNextThemeUpdate(page);
     await page.getByRole("checkbox", { name: "ダークモード" }).locator("xpath=parent::label").click();
   });
-  await test.step("Then: Localized recovery offers reload and explains anonymous-data risk", async () => {
-    await expect(page.getByRole("heading", { name: "問題が発生しました" })).toBeVisible();
-    await expect(page.getByText(/再読み込みしてお試しください/)).toBeVisible();
-    await expect(page.getByText(/匿名データは復元できません/)).toBeVisible();
-    await expect(page.getByRole("button", { name: /ローカルデータを削除|Clear local data/ })).toHaveCount(0);
-    await expect(page.locator("html")).toHaveAttribute("lang", "ja");
-  });
-  const { preferences } = await test.step("Given: Saved preferences are recorded before recovery reload", async () => {
-    const preferences = await page.evaluate(() => localStorage.getItem("tango-config"));
-    return { preferences };
-  });
+  const { preferences } =
+    await test.step("Then: Localized recovery offers reload and explains anonymous-data risk", async () => {
+      await expect(page.getByRole("heading", { name: "問題が発生しました" })).toBeVisible();
+      await expect(page.getByText(/再読み込みしてお試しください/)).toBeVisible();
+      await expect(page.getByText(/匿名データは復元できません/)).toBeVisible();
+      await expect(page.getByRole("button", { name: /ローカルデータを削除|Clear local data/ })).toHaveCount(0);
+      await expect(page.locator("html")).toHaveAttribute("lang", "ja");
+      const preferences = await page.evaluate(() => localStorage.getItem("tango-config"));
+      return { preferences };
+    });
   await test.step("When: Choose Reload on the recovery screen", async () => {
     await page.getByRole("button", { name: "再読み込み", exact: true }).click();
   });
@@ -1438,8 +1437,6 @@ test.describe("View mode", () => {
       await expect(page).toHaveURL(`/deck/${deck.id}/${scenario.route}`);
       await expect(page.getByRole("region", { name: "Card front text" })).toContainText(card.frontText);
       expect(await readProgress(card.id)).toEqual(before);
-    });
-    await test.step("When: Check Study controls when the scenario uses Study mode", async () => {
       if (scenario.route === "study") await verifyStudyViewModeControls(page, fixture.user().uid, deck.id);
     });
   });
