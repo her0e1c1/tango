@@ -40,7 +40,7 @@ export const NoMatches: Story = {
     // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-STUDY-SESSION-START-02 Explain unmatched filters", async () => {
       // Given: Use the rendered story, its args, parameters, and any setup below.
-      // When: Evaluate `canvas.findByText` as part of the following checks.
+      // When: Storybook renders this scenario with its configured args and parameters.
       // Then: Verify the expected result in the assertions below.
       await expect(await canvas.findByText("No cards match your filters.")).toBeVisible();
       await expect(canvas.getByRole("button", { name: "Start 0 cards" })).toBeDisabled();

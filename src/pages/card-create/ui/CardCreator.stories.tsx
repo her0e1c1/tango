@@ -178,9 +178,6 @@ export const CreateRetry: Story = {
   },
 };
 function createPendingStory(stage: "immediate" | "validation" | "persistence"): Story {
-  // Given: Use this case's inputs and any shared test setup.
-  // When: Evaluate `step` as part of the following checks.
-  // Then: Verify the expected result in the assertions below.
   return {
     beforeEach: prepareCreation,
     parameters: savingParameters,
@@ -191,26 +188,27 @@ function createPendingStory(stage: "immediate" | "validation" | "persistence"): 
       await step("STORYBOOK-CARD-FORM-19 Disable repeated creation during validation and saving", async () => {
         // Given: Use the rendered story, its args, parameters, and any setup below.
         const pending = Promise.withResolvers<void>();
-        // When: Evaluate `fireEvent.click` as part of the following checks.
-        // Then: Verify the expected result in the assertions below.
         try {
+          // Given: Prepare `button` and any shared test state below.
           if (stage === "validation") validationGate.promise = pending.promise;
           else mocked(persistCard).mockReturnValue(pending.promise);
           await enterCreation(context);
           const button = canvas.getByRole("button", { name: "Create card" });
+          // When: Exercise `fireEvent.click` with the prepared inputs.
           if (stage === "immediate") {
             await fireEvent.click(button);
             await fireEvent.click(button);
           } else await userEvent.dblClick(button);
-          // Then: Check the expected result after the operation in this branch.
+          // Then: Verify the expected result in the assertions below.
           await expect(await canvas.findByRole("button", { name: "Creating…" })).toBeDisabled();
+          // When: Exercise `userEvent.dblClick` with the prepared inputs.
           await userEvent.dblClick(button);
-          // Then: Check the expected result after the operation in this branch.
+          // Then: Verify the expected result in the assertions below.
           if (stage === "validation") await expect(persistCard).not.toHaveBeenCalled();
+          // When: Apply the operation or event under test.
           pending.resolve();
-          // Then: Check the expected result after the operation in this branch.
+          // Then: Verify the expected result in the assertions below.
           await waitFor(() => expect(canvas.getByRole("button", { name: "Create card" })).toBeEnabled());
-          // Then: Check the expected result after the operation in this branch.
           await expect(persistCard).toHaveBeenCalledOnce();
         } finally {
           pending.resolve();

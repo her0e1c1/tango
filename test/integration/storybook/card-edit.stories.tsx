@@ -344,6 +344,7 @@ export const InvalidTags: Story = {
       ] as const) {
         // Given: Prepare `input` and any shared test state below.
         const input = canvas.getByRole("textbox", { name: "Tag name 3" });
+        // When: Replace the tag text with this scenario's input.
         await userEvent.clear(input);
         await userEvent.type(input, value);
         await userEvent.tab();
@@ -527,9 +528,6 @@ export const ExpandedMath: Story = {
   },
 };
 function codeStory(category: string, tags: string[], language: string): Story {
-  // Given: Use this case's inputs and any shared test setup.
-  // When: Evaluate `pageFor` as part of the following checks.
-  // Then: Verify the expected result in the assertions below.
   return {
     parameters: { page: pageFor({ backText: "const answer = 42;", tags }, category) },
     play: async ({ canvas, userEvent, step }) => {

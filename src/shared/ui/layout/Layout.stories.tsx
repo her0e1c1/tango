@@ -46,14 +46,12 @@ export const FixedHeaderLongContent: Story = {
     const header = canvas.getByRole("banner");
     const firstSection = canvas.getByRole("heading", { name: "Section 1" }).closest("section");
 
-    // When: Observe the prepared result through the following checks.
+    // When: Storybook renders this scenario with its configured args and parameters.
     // Then: Verify the expected result in the assertions below.
     await expect(firstSection).not.toBeNull();
     if (firstSection === null) return;
 
-    // When: Exercise `header.getBoundingClientRect` with the prepared inputs.
     const initialHeaderTop = header.getBoundingClientRect().top;
-    // Then: Verify the expected result in the assertions below.
     await expect(firstSection.getBoundingClientRect().top).toBeGreaterThanOrEqual(
       header.getBoundingClientRect().bottom
     );

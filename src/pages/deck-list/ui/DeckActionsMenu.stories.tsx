@@ -128,7 +128,7 @@ export const UnstartedMenu: Story = {
     // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-DECK-LIST-22 Omit restart without an active session", async () => {
       // Given: Use the rendered story, its args, parameters, and any setup below.
-      // When: Evaluate `canvas.getAllByRole("menuitem").map` as part of the following checks.
+      // When: Storybook renders this scenario with its configured args and parameters.
       // Then: Verify the expected result in the assertions below.
       await expect(canvas.getAllByRole("menuitem").map((item) => item.textContent)).toEqual([
         "View",
@@ -192,9 +192,6 @@ export const OutsideFocus: Story = {
 };
 
 function refocusStory(name: string, callback: "onDownload" | "onEdit" | "onDelete"): Story {
-  // Given: Use this case's inputs and any shared test setup.
-  // When: Evaluate `step` as part of the following checks.
-  // Then: Verify the expected result in the assertions below.
   return {
     render: (args) => <DeckActionsMenuStory {...args} />,
     play: async ({ args, canvas, userEvent, step }) => {

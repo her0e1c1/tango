@@ -39,6 +39,7 @@ describe("SETTINGS-01 SETTINGS-02 SETTINGS-04 SettingsForm", () => {
     expect(screen.getByText("Changes are saved automatically")).toBeVisible();
     for (const name of ["Language", "Appearance", "Study"]) {
       // Given: Use the current iteration or branch inputs from the enclosing case.
+      // Then: Verify the expected result in the assertions below.
       expect(screen.getByRole("region", { name })).toBeInTheDocument();
     }
     expect(screen.queryByRole("region", { name: "Account" })).not.toBeInTheDocument();

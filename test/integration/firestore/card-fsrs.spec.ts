@@ -70,8 +70,8 @@ describe("Card FSRS persistence", () => {
   it("[FIRESTORE-CARD-FSRS-01] restores null and rated Cards through one subscription", async () => {
     // Given: Use this case's inputs and any shared test setup.
     await seed("card", "card", createCard({ id: "card", deckId: "deck", uid }));
+    // When: Subscribe to Cards for the active owner.
     await start();
-    // When: Evaluate `getCards` as part of the following checks.
     // Then: Verify the expected result in the assertions below.
     expect(getCards()).toMatchObject([{ id: "card", fsrs: null }]);
     // When: Exercise `editCard` with the prepared inputs.
@@ -83,8 +83,8 @@ describe("Card FSRS persistence", () => {
     // Given: Use this case's inputs and any shared test setup.
     await seed("card", "card", createCard({ id: "card", deckId: "deck", uid, fsrs }));
     await seed("card", "foreign", createCard({ id: "foreign", uid: "other", fsrs }));
+    // When: Subscribe to Cards for the active owner.
     await start();
-    // When: Evaluate `getCards` as part of the following checks.
     // Then: Verify the expected result in the assertions below.
     expect(getCards()).toMatchObject([{ id: "card", fsrs }]);
     // When: Exercise `stop` with the prepared inputs.
@@ -112,13 +112,13 @@ describe("Card FSRS persistence", () => {
     ].map((invalid) => ({ ...fsrs, ...invalid })),
   ])("[FIRESTORE-CARD-FSRS-03] rejects invalid persisted FSRS: %j", async (invalid) => {
     // Given: Use this case's inputs and any shared test setup.
-    // When: Exercise `setDoc` with the prepared inputs.
     await setDoc(doc(connection.db, "card", "card"), {
       ...createCard({ id: "card", deckId: "deck", uid }),
       fsrs: invalid,
       updatedAt: serverTimestamp(),
     });
-    // Then: Verify the expected result in the assertions below.
+    // When: Start a subscription with the invalid persisted FSRS fixture.
+    // Then: Report the invalid state and leave Cards empty.
     await expect(start()).rejects.toBeDefined();
     expect(getCards()).toEqual([]);
   });
@@ -134,8 +134,8 @@ describe("Card FSRS persistence", () => {
   });
   it("[FIRESTORE-CARD-FSRS-05] surfaces a denied subscription", async () => {
     // Given: Use this case's inputs and any shared test setup.
-    // When: Evaluate `start` as part of the following checks.
-    // Then: Verify the expected result in the assertions below.
+    // When: Subscribe using an unauthorized owner.
+    // Then: Report the denied subscription.
     await expect(start("another-owner")).rejects.toBeDefined();
   });
   it("[FIRESTORE-CARD-FSRS-06] preserves offline deletion after reconnect", async () => {

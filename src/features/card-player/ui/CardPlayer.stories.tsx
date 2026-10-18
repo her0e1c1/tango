@@ -62,17 +62,15 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 const expectFrontTextCentered = async (canvasElement: HTMLElement, expectedOffset = 0) => {
-  // Given: Use this case's inputs and any shared test setup.
-  // When: Exercise `canvasElement.querySelector` with the prepared inputs.
+  // Given: Prepare `frontText` and any shared test state below.
   const frontText = canvasElement.querySelector<HTMLElement>("#frontText > *");
+  // When: Observe the prepared result through the following checks.
   // Then: Verify the expected result in the assertions below.
   await expect(frontText).not.toBeNull();
   if (frontText === null) return;
 
-  // When: Exercise `frontText.getBoundingClientRect` with the prepared inputs.
   const frontTextBounds = frontText.getBoundingClientRect();
   const frontTextCenter = frontTextBounds.top + frontTextBounds.height / 2;
-  // Then: Verify the expected result in the assertions below.
   await expect(Math.abs(frontTextCenter - window.innerHeight / 2 - expectedOffset)).toBeLessThan(1);
 };
 
@@ -130,9 +128,9 @@ export const LongAnswer: Story = {
     const swipeOverlays = canvasElement.querySelectorAll<HTMLElement>(
       "[aria-label='Swipe left'], [aria-label='Swipe right'], [aria-label='Swipe up'], [aria-label='Swipe down']"
     );
-    // When: Exercise `canvasElement.querySelector` with the prepared inputs.
     const studyActions = canvasElement.querySelector<HTMLElement>("[aria-label='Card actions']");
 
+    // When: Storybook renders this scenario with its configured args and parameters.
     // Then: Verify the expected result in the assertions below.
     await expect(answer).toBeVisible();
     await expect(swipeOverlays).toHaveLength(0);
@@ -227,8 +225,8 @@ export const MobileSafeArea: Story = {
   globals: { viewport: { value: "iphonex", isRotated: false } },
   play: async ({ canvasElement }) => {
     // Given: Use the rendered story, its args, parameters, and any setup below.
-    // When: Exercise `canvasElement.querySelector` with the prepared inputs.
     const studySession = canvasElement.querySelector<HTMLElement>("[style*='--study-safe-area-top']");
+    // When: Storybook renders this scenario with its configured args and parameters.
     // Then: Verify the expected result in the assertions below.
     await expect(studySession).not.toBeNull();
     if (studySession === null) return;
@@ -264,15 +262,13 @@ export const DarkMath: Story = {
   globals: { theme: "dark" },
   play: async ({ canvasElement }) => {
     // Given: Use the rendered story, its args, parameters, and any setup below.
-    // When: Exercise `canvasElement.querySelector` with the prepared inputs.
     const markdown = canvasElement.querySelector<HTMLElement>(".markdown-body");
+    // When: Storybook renders this scenario with its configured args and parameters.
     // Then: Verify the expected result in the assertions below.
     await expect(markdown).not.toBeNull();
     if (markdown === null) return;
 
-    // When: Exercise `getComputedStyle` with the prepared inputs.
     const style = getComputedStyle(markdown);
-    // Then: Verify the expected result in the assertions below.
     await expect(style.getPropertyValue("--fgColor-default").trim()).toBe(
       style.getPropertyValue("--calm-color-ink").trim()
     );
@@ -332,7 +328,7 @@ export const DeckViewingAnswer: Story = {
     // Given: Use the rendered story, its args, parameters, and any setup below.
     const canvas = within(canvasElement);
     const answer = canvas.getByRole("region", { name: "Card answer" });
-    // When: Observe the prepared result through the following checks.
+    // When: Storybook renders this scenario with its configured args and parameters.
     // Then: Verify the expected result in the assertions below.
     await expect(answer.scrollHeight).toBeGreaterThan(answer.clientHeight);
     await expect(canvas.queryByRole("button", { name: "Back to deck list" })).not.toBeInTheDocument();
@@ -378,9 +374,7 @@ export const ViewEditLink: Story = {
       await userEvent.click(canvas.getByRole("button", { name: "Open card actions" }));
       // Then: Verify the expected result in the assertions below.
       await expect(canvas.queryByRole("link", { name: "Edit card" })).not.toBeInTheDocument();
-      // When: Exercise `canvasElement.querySelector` with the prepared inputs.
       const overlay = canvasElement.querySelector<HTMLElement>("[data-study-card-overlay]");
-      // Then: Verify the expected result in the assertions below.
       await expect(overlay).not.toBeNull();
       if (window.innerWidth <= 439) await expect(overlay).not.toBeVisible();
       const toggle = canvas.getByRole("button", { name: "Edit link" });
@@ -395,11 +389,11 @@ export const ViewEditLink: Story = {
         "Close card actions",
       ].map((name) => canvas.getByRole("button", { name }));
       for (const [i, current] of buttons.entries()) {
-        // Given: Use the current iteration or branch inputs from the enclosing case.
-        // When: Exercise `current.getBoundingClientRect` with the prepared inputs.
+        // Given: Prepare `a` and any shared test state below.
+        // Then: Compare every pair of rendered control bounds.
         const a = current.getBoundingClientRect();
         for (const button of buttons.slice(i + 1)) {
-          // Given: Use the current iteration or branch inputs from the enclosing case.
+          // Given: Prepare `b` and any shared test state below.
           const b = button.getBoundingClientRect();
           // Then: Verify the expected result in the assertions below.
           await expect(a.right <= b.left || b.right <= a.left || a.bottom <= b.top || b.bottom <= a.top).toBe(true);
@@ -488,15 +482,16 @@ export const ReadingSelection: Story = {
       range.selectNodeContents(text);
       selection.removeAllRanges();
       selection.addRange(range);
-      // When: Evaluate `fireEvent.click` as part of the following checks.
-      // Then: Verify the expected result in the assertions below.
       try {
+        // Given: Use the current iteration or branch inputs from the enclosing case.
+        // When: Exercise `fireEvent.click` with the prepared inputs.
         await fireEvent.click(text);
-        // Then: Check the expected result after the operation in this branch.
+        // Then: Verify the expected result in the assertions below.
         await expect(args.onToggleViewMode).not.toHaveBeenCalled();
+        // When: Exercise `selection.removeAllRanges` with the prepared inputs.
         selection.removeAllRanges();
         await fireEvent.click(text);
-        // Then: Check the expected result after the operation in this branch.
+        // Then: Verify the expected result in the assertions below.
         await expect(args.onToggleViewMode).toHaveBeenCalledOnce();
       } finally {
         selection.removeAllRanges();
@@ -530,7 +525,7 @@ export const AnswerChrome: Story = {
     // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-CARD-PLAYER-06 Hide the edit link on the answer", async () => {
       // Given: Use the rendered story, its args, parameters, and any setup below.
-      // When: Evaluate `canvas.queryByRole` as part of the following checks.
+      // When: Storybook renders this scenario with its configured args and parameters.
       // Then: Verify the expected result in the assertions below.
       await expect(canvas.queryByRole("link", { name: "Edit card" })).not.toBeInTheDocument();
     });
@@ -602,7 +597,7 @@ export const ToolbarRequests: Story = {
         ["Card details", args.onToggleCardDetails],
       ] as const) {
         // Given: Prepare `button` and any shared test state below.
-        // When: Exercise `canvas.getByRole` with the prepared inputs.
+        // Then: Check the configured pressed state of each rendered control.
         const button = canvas.getByRole("button", { name });
         // Then: Verify the expected result in the assertions below.
         await expect(button).toBePressed();
@@ -687,7 +682,7 @@ export const PlaybackOnly: Story = {
     // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-CARD-PLAYER-17 Display only playback when swipe controls are hidden", async () => {
       // Given: Use the rendered story, its args, parameters, and any setup below.
-      // When: Evaluate `canvas.getByRole` as part of the following checks.
+      // When: Storybook renders this scenario with its configured args and parameters.
       // Then: Verify the expected result in the assertions below.
       await expect(canvas.getByRole("button", { name: "Play" })).toBeVisible();
       await expect(canvas.queryByRole("button", { name: "Swipe left" })).not.toBeInTheDocument();
@@ -700,7 +695,7 @@ export const SwipeOnly: Story = {
     // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-CARD-PLAYER-17 Display only swipe controls when playback is hidden", async () => {
       // Given: Use the rendered story, its args, parameters, and any setup below.
-      // When: Evaluate `canvas.getByRole` as part of the following checks.
+      // When: Storybook renders this scenario with its configured args and parameters.
       // Then: Verify the expected result in the assertions below.
       await expect(canvas.getByRole("button", { name: "Swipe left" })).toBeVisible();
       await expect(canvas.queryByRole("button", { name: "Play" })).not.toBeInTheDocument();
@@ -756,7 +751,7 @@ export const UnstudiedDetails: Story = {
     // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-CARD-PLAYER-23 Distinguish unstudied cards", async () => {
       // Given: Use the rendered story, its args, parameters, and any setup below.
-      // When: Evaluate `canvas.getByText` as part of the following checks.
+      // When: Storybook renders this scenario with its configured args and parameters.
       // Then: Verify the expected result in the assertions below.
       await expect(canvas.getByText("not studied yet", { exact: true })).toBeVisible();
       await expect(canvas.queryByText(/FSRS D:/)).not.toBeInTheDocument();
@@ -769,7 +764,7 @@ export const RatedDetails: Story = {
     // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-CARD-PLAYER-23 Display the supplied FSRS difficulty", async () => {
       // Given: Use the rendered story, its args, parameters, and any setup below.
-      // When: Evaluate `canvas.getByText` as part of the following checks.
+      // When: Storybook renders this scenario with its configured args and parameters.
       // Then: Verify the expected result in the assertions below.
       await expect(canvas.getByText(/FSRS D: 8/)).toBeVisible();
       await expect(canvas.queryByText("not studied yet", { exact: true })).not.toBeInTheDocument();
@@ -852,8 +847,8 @@ export const DisallowedAnswerGestures: Story = {
     const answer = canvas.getByRole("region", { name: "Study answer" });
     await step("STORYBOOK-CARD-PLAYER-18 Ignore unpermitted answer swipes", async () => {
       // Given: Use the rendered story, its args, parameters, and any setup below.
-      touchSwipe(answer, 40, 200);
       // When: Exercise `touchSwipe` with the prepared inputs.
+      touchSwipe(answer, 40, 200);
       touchSwipe(answer, 200, 40);
       // Then: Verify the expected result in the assertions below.
       await expect(args.onSwipeLeft).not.toHaveBeenCalled();
@@ -889,8 +884,8 @@ export const FrontMouseGestures: Story = {
     const front = canvas.getByText(fixture.card.default.frontText);
     await step("STORYBOOK-CARD-PLAYER-21 Ignore middle and right button drags", async () => {
       // Given: Use the rendered story, its args, parameters, and any setup below.
-      mouseSwipe(front, 200, 40, 1);
       // When: Exercise `mouseSwipe` with the prepared inputs.
+      mouseSwipe(front, 200, 40, 1);
       mouseSwipe(front, 200, 40, 2);
       // Then: Verify the expected result in the assertions below.
       await expect(args.onSwipeUp).not.toHaveBeenCalled();
@@ -972,7 +967,7 @@ export const ReadingShortcutVisibility: Story = {
           await expect(canvas.getByRole("button", { name: "View mode" })).toHaveAccessibleDescription("Exit view mode");
         else await expect(canvas.queryByRole("button", { name: "View mode" })).not.toBeInTheDocument();
       }
-      // When: Observe the prepared result through the following checks.
+      // When: Storybook renders this scenario with its configured args and parameters.
       // Then: Verify the expected result in the assertions below.
       await expect(args.onToggleShowViewMode).toHaveBeenCalledTimes(2);
       await expect(args.onToggleViewMode).not.toHaveBeenCalled();
@@ -980,9 +975,6 @@ export const ReadingShortcutVisibility: Story = {
   },
 };
 function shortcutsStory(help: boolean, view: boolean, edit: boolean): Story {
-  // Given: Use this case's inputs and any shared test setup.
-  // When: Evaluate `fn` as part of the following checks.
-  // Then: Verify the expected result in the assertions below.
   return {
     args: {
       showHelp: help,
@@ -1010,6 +1002,7 @@ function shortcutsStory(help: boolean, view: boolean, edit: boolean): Story {
             ["Edit link", args.editLink?.onToggle],
           ] as const) {
             // Given: Use the current iteration or branch inputs from the enclosing case.
+            // When: Exercise `userEvent.click` with the prepared inputs.
             await userEvent.click(canvas.getByRole("button", { name }));
             // Then: Verify the expected result in the assertions below.
             await expect(callback).toHaveBeenCalledTimes(pass + 1);

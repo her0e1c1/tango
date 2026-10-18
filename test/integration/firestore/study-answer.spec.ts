@@ -202,8 +202,8 @@ describe("StudyAnswer persistence and access [STUDY-ACTIONS-01] [STUDY-ACTIONS-0
   it("[FIRESTORE-STUDY-ANSWER-02] rejects stale positions without another answer", async () => {
     // Given: Prepare `input` and any shared test state below.
     const input = operation();
+    // When: Exercise `saveStudyOperation` with the prepared inputs.
     await saveStudyOperation(input);
-    // When: Evaluate `saveStudyOperation` as part of the following checks.
     // Then: Verify the expected result in the assertions below.
     await expect(saveStudyOperation(input)).rejects.toThrow("session does not match");
     expect((await answers()).size).toBe(1);
@@ -227,16 +227,15 @@ describe("StudyAnswer persistence and access [STUDY-ACTIONS-01] [STUDY-ACTIONS-0
   });
 
   it("[FIRESTORE-STUDY-ANSWER-04] records ten answers and completes", async () => {
-    // Given: Prepare `final` and any shared test state below.
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Exercise `operation` with the prepared inputs.
     let final = operation();
     for (const [index, cardId] of cardIds.entries()) {
       // Given: Use the current iteration or branch inputs from the enclosing case.
+      // When: Exercise `operation` with the prepared inputs.
       final = operation({ cardId, currentIndex: index, answeredAt: 2000 + index });
-      // When: Exercise `saveStudyOperation` with the prepared inputs.
       await saveStudyOperation(final);
-      // Then: The invoked verification helper checks the case's expected result.
     }
-    // When: Evaluate `answers` as part of the following checks.
     // Then: Verify the expected result in the assertions below.
     expect((await answers()).size).toBe(10);
     expect((await getDoc(doc(connection.db, "studySession", sessionId))).data()).toMatchObject({
@@ -248,8 +247,9 @@ describe("StudyAnswer persistence and access [STUDY-ACTIONS-01] [STUDY-ACTIONS-0
   });
 
   it("[FIRESTORE-STUDY-ANSWER-05] preserves answers across abandonment and restart", async () => {
-    // Given: Prepare `first`, `nextSessionId` and any shared test state below.
+    // Given: Prepare `first` and any shared test state below.
     const first = operation();
+    // When: Exercise `saveStudyOperation` with the prepared inputs.
     await saveStudyOperation(first);
     await updateDoc(doc(connection.db, "studySession", sessionId), {
       endReason: "abandoned",
@@ -263,7 +263,6 @@ describe("StudyAnswer persistence and access [STUDY-ACTIONS-01] [STUDY-ACTIONS-0
         sessionId: nextSessionId,
       })
     );
-    // When: Evaluate `answers` as part of the following checks.
     // Then: Verify the expected result in the assertions below.
     expect((await answers()).size).toBe(2);
     expect((await getDoc(stateReference(first.cardId))).data()?.fsrs.reps).toBe(2);
@@ -271,8 +270,8 @@ describe("StudyAnswer persistence and access [STUDY-ACTIONS-01] [STUDY-ACTIONS-0
 
   it("[FIRESTORE-STUDY-ANSWER-06] skips without a state or answer", async () => {
     // Given: Use this case's inputs and any shared test setup.
+    // When: Exercise `saveStudyOperation` with the prepared inputs.
     await saveStudyOperation(operation({ rating: undefined }));
-    // When: Evaluate `answers` as part of the following checks.
     // Then: Verify the expected result in the assertions below.
     expect((await answers()).size).toBe(0);
     expect(await hasState()).toBe(false);
@@ -284,8 +283,8 @@ describe("StudyAnswer persistence and access [STUDY-ACTIONS-01] [STUDY-ACTIONS-0
     // Given: Prepare `input` and any shared test state below.
     await updateDoc(doc(connection.db, "studySession", sessionId), { currentIndex: 9 });
     const input = operation({ cardId: "card-9", currentIndex: 9, rating: undefined });
+    // When: Exercise `saveStudyOperation` with the prepared inputs.
     await saveStudyOperation(input);
-    // When: Evaluate `answers` as part of the following checks.
     // Then: Verify the expected result in the assertions below.
     expect((await answers()).size).toBe(0);
     expect(await hasState("card-9")).toBe(false);
@@ -296,11 +295,13 @@ describe("StudyAnswer persistence and access [STUDY-ACTIONS-01] [STUDY-ACTIONS-0
     // Given: Prepare `online` and any shared test state below.
     const online = vi.spyOn(navigator, "onLine", "get").mockReturnValue(false);
     try {
+      // Given: Use the current iteration or branch inputs from the enclosing case.
+      // When: Exercise `saveStudyOperation` with the prepared inputs.
       await saveStudyOperation(operation());
     } finally {
       online.mockRestore();
     }
-    // When: Evaluate `answers` as part of the following checks.
+    // When: Observe the prepared result through the following checks.
     // Then: Verify the expected result in the assertions below.
     expect((await answers()).size).toBe(1);
   });
@@ -316,8 +317,8 @@ describe("StudyAnswer persistence and access [STUDY-ACTIONS-01] [STUDY-ACTIONS-0
       lastStudiedAt: 1000,
       remote: { uid, startedAt: 1000 },
     };
+    // When: Exercise `restoreStudySession` with the prepared inputs.
     restoreStudySession(session);
-    // When: Evaluate `persistStudyOperation` as part of the following checks.
     // Then: Verify the expected result in the assertions below.
     await expect(persistStudyOperation(input, session)).rejects.toBeDefined();
     expect((await getDoc(stateReference())).data()?.fsrs).toEqual(input.fsrs);
@@ -335,22 +336,20 @@ describe("StudyAnswer persistence and access [STUDY-ACTIONS-01] [STUDY-ACTIONS-0
   });
 
   it("[FIRESTORE-STUDY-ANSWER-10] keeps the answer and position when the Card write is denied", async () => {
-    // Given: Prepare `input` and any shared test state below.
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Exercise `operation` with the prepared inputs.
     const input = operation();
     await environment.withSecurityRulesDisabled(async (context) => {
       await updateDoc(doc(context.firestore(), "deck", deckId), { uid: "another-owner" });
     });
-    // When: Evaluate `saveStudyOperation` as part of the following checks.
     // Then: Verify the expected result in the assertions below.
     await expect(saveStudyOperation(input)).rejects.toMatchObject({ code: "permission-denied" });
     expect((await answers()).size).toBe(1);
     expect((await getDoc(doc(connection.db, "studySession", sessionId))).data()?.currentIndex).toBe(1);
     expect(await hasState(input.cardId)).toBe(false);
-    // When: Exercise `environment.withSecurityRulesDisabled` with the prepared inputs.
     await environment.withSecurityRulesDisabled(async (context) => {
       await updateDoc(doc(context.firestore(), "deck", deckId), { uid });
     });
-    // Then: Verify the expected result in the assertions below.
     await expect(saveStudyOperation(input)).rejects.toThrow("session does not match");
     expect((await getDoc(doc(connection.db, "studyAnswer", input.id))).data()?.answeredAt).toEqual(
       Timestamp.fromMillis(2000)
@@ -358,16 +357,16 @@ describe("StudyAnswer persistence and access [STUDY-ACTIONS-01] [STUDY-ACTIONS-0
   });
 
   it.each(["sessionId", "cardId", "deckId"] as const)("[FIRESTORE-STUDY-ANSWER-11] queries by %s", async (field) => {
-    // Given: Prepare `input`, `constraints` and any shared test state below.
+    // Given: Prepare `input` and any shared test state below.
     const input = operation();
+    // When: Exercise `saveStudyOperation` with the prepared inputs.
     await saveStudyOperation(input);
     const constraints: QueryConstraint[] = [where("uid", "==", uid), where(field, "==", input[field])];
     if (field !== "sessionId") constraints.push(orderBy("answeredAt", "desc"));
-    // When: Exercise `query` with the prepared inputs.
     const result = await assertSucceeds(getDocs(query(collection(connection.db, "studyAnswer"), ...constraints)));
     // Then: Verify the expected result in the assertions below.
     expect(result.docs.map(({ id }) => id)).toEqual([input.id]);
-    // When: Evaluate `query` as part of the following checks.
+    // When: Observe the prepared result through the following checks.
     // Then: Verify the expected result in the assertions below.
     await assertFails(getDocs(query(collection(connection.db, "studyAnswer"), where(field, "==", input[field]))));
   });
@@ -426,7 +425,6 @@ describe("StudyAnswer persistence and access [STUDY-ACTIONS-01] [STUDY-ACTIONS-0
     // When: Evaluate `updateDoc` as part of the following checks.
     // Then: Verify the expected result in the assertions below.
     await assertSucceeds(updateDoc(reference, { currentIndex: 0, endReason: null }));
-    // When: Exercise `environment.authenticatedContext("other", linkedToken).firestore` with the prepared inputs.
     const otherDb = environment.authenticatedContext("other", linkedToken).firestore();
     // When: Evaluate `updateDoc` as part of the following checks.
     // Then: Verify the expected result in the assertions below.
@@ -454,7 +452,7 @@ describe("StudyAnswer persistence and access [STUDY-ACTIONS-01] [STUDY-ACTIONS-0
 
   it("[FIRESTORE-STUDY-ANSWER-18] denies reading missing answer IDs", async () => {
     // Given: Use this case's inputs and any shared test setup.
-    // When: Evaluate `getDoc` as part of the following checks.
+    // When: Observe the prepared result through the following checks.
     // Then: Verify the expected result in the assertions below.
     await assertFails(getDoc(doc(connection.db, "studyAnswer", "missing-answer")));
   });
@@ -470,10 +468,10 @@ describe("StudyAnswer persistence and access [STUDY-ACTIONS-01] [STUDY-ACTIONS-0
             firebase: { sign_in_provider: actor === "anonymous" ? "anonymous" : "google.com", identities: {} },
           })
     ).firestore();
-    // When: Evaluate `getDoc` as part of the following checks.
+    // When: Observe the prepared result through the following checks.
     // Then: Verify the expected result in the assertions below.
     await assertFails(getDoc(doc(db, "studyAnswer", input.id)));
-    // When: Evaluate `query` as part of the following checks.
+    // When: Observe the prepared result through the following checks.
     // Then: Verify the expected result in the assertions below.
     await assertFails(getDocs(query(collection(db, "studyAnswer"), where("uid", "==", uid))));
     // When: Evaluate `setDoc` as part of the following checks.
@@ -515,9 +513,9 @@ describe("StudyAnswer persistence and access [STUDY-ACTIONS-01] [STUDY-ACTIONS-0
   it.each([-1, 0.5, 253_402_300_800_000])(
     "[FIRESTORE-STUDY-ANSWER-21] rejects invalid answer time %s before saving",
     async (answeredAt) => {
-      // Given: Prepare `input` and any shared test state below.
+      // Given: Use this case's inputs and any shared test setup.
+      // When: Exercise `operation` with the prepared inputs.
       const input = { ...operation(), answeredAt };
-      // When: Evaluate `saveStudyOperation` as part of the following checks.
       // Then: Verify the expected result in the assertions below.
       await expect(saveStudyOperation(input)).rejects.toBeDefined();
       expect((await getDoc(stateReference())).data()?.fsrs).toBeNull();

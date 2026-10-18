@@ -117,15 +117,9 @@ describe("Card replica and Store deltas", () => {
       }
     });
   async function loaded(ids: string[]) {
-    // Given: Use this case's inputs and any shared test setup.
-    // When: Evaluate `getCards().map` as part of the following checks.
-    // Then: Verify the expected result in the assertions below.
     await vi.waitFor(() => expect(getCards().map(({ id }) => id)).toEqual(ids), { timeout: 10000 });
   }
   async function checkpoint(value: number) {
-    // Given: Use this case's inputs and any shared test setup.
-    // When: Evaluate `readReplica` as part of the following checks.
-    // Then: Verify the expected result in the assertions below.
     await vi.waitFor(async () => expect((await readReplica()).metadata.lastUpdatedAt).toBe(value));
   }
   async function localPending() {
@@ -194,15 +188,13 @@ describe("Card replica and Store deltas", () => {
       { ...card("b", 3000), deletedAt: 3000 },
       card("c", 3000),
     ]);
+    // When: Exercise `clearRemoteCards` with the prepared inputs.
     clearRemoteCards();
     start();
-    // When: Exercise `loaded` with the prepared inputs.
     await loaded(["a", "boundary", "c", "same-ms", "unchanged"]);
     // Then: Verify the expected result in the assertions below.
     await vi.waitFor(() => expect(getCards().find(({ id }) => id === "a")?.frontText).toBe("edited"));
-    // When: Exercise `checkpoint` with the prepared inputs.
     await checkpoint(3000);
-    // Then: Verify the expected result in the assertions below.
     expect(errors).toEqual([]);
   });
 
@@ -239,10 +231,10 @@ describe("Card replica and Store deltas", () => {
         });
         database.close();
       }
+      // When: Exercise `clearRemoteCards` with the prepared inputs.
       clearRemoteCards();
       start();
       await loaded(["new", "old"]);
-      // When: Exercise `checkpoint` with the prepared inputs.
       await checkpoint(2000);
       // Then: Verify the expected result in the assertions below.
       expect(errors).toEqual([]);
@@ -252,7 +244,7 @@ describe("Card replica and Store deltas", () => {
   it.each(["edit", "create", "tombstone"])(
     "[FIRESTORE-CARD-REPLICA-03] regular: ignores a pending and rejected %s",
     async (kind) => {
-      // Given: Prepare `pending`, `rejected` and any shared test state below.
+      // Given: Prepare `pending` and any shared test state below.
       await seed([card("old"), card("boundary", 2000)]);
       start();
       await loaded(["boundary", "old"]);
@@ -274,8 +266,8 @@ describe("Card replica and Store deltas", () => {
               updatedAt: serverTimestamp(),
               ...(kind === "edit" ? { frontText: "pending" } : { deletedAt: 3000 }),
             });
+      // When: Exercise `pending.catch` with the prepared inputs.
       const rejected = pending.catch((error: unknown) => error);
-      // When: Exercise `localPending` with the prepared inputs.
       await localPending();
       // Then: Verify the expected result in the assertions below.
       expect(getCards().map(({ frontText }) => frontText)).toEqual(["boundary", "old"]);
@@ -285,8 +277,8 @@ describe("Card replica and Store deltas", () => {
       // Then: Verify the expected result in the assertions below.
       await expect(rejected).resolves.toMatchObject({ code: "permission-denied" });
       await waitForPendingWrites(connection.db);
-      // When: Exercise `loaded` with the prepared inputs.
       await loaded(["boundary", "old"]);
+      // When: Exercise `stop` with the prepared inputs.
       stop();
       // Then: Verify the expected result in the assertions below.
       expect((await restoreCardReplica(uid))?.cards.map(({ frontText }) => frontText).sort()).toEqual([
@@ -353,9 +345,9 @@ describe("Card replica and Store deltas", () => {
       await vi.waitFor(() => expect(errors.length).toBeGreaterThan(0));
       changes.mockRestore();
       expect(getCards().map(({ frontText }) => frontText)).toEqual(["old"]);
-      // When: Exercise `checkpoint` with the prepared inputs.
       await checkpoint(1000);
       let rejection: unknown;
+      // When: Exercise `card` with the prepared inputs.
       if (source === "repair") {
         await seed([card("invalid", 3000)]);
       } else {
@@ -374,17 +366,15 @@ describe("Card replica and Store deltas", () => {
       const denied = expect.objectContaining({ code: "permission-denied" });
       // Then: Verify the expected result in the assertions below.
       expect(rejection).toEqual(source === "repair" ? undefined : denied);
-      // When: Exercise `loaded` with the prepared inputs.
       await loaded(["invalid", "old"]);
-      // Then: Verify the expected result in the assertions below.
       await vi.waitFor(() => expect(getCards().find(({ id }) => id === "old")?.frontText).toBe("edited"));
-      // When: Exercise `checkpoint` with the prepared inputs.
       await checkpoint(3000);
     }
   );
 
   it("[FIRESTORE-CARD-REPLICA-06] regular: cancels a restoring owner before switching UID", async () => {
-    // Given: Prepare `ready`, `unsubscribe` and any shared test state below.
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Exercise `card` with the prepared inputs.
     await seed([card("a")]);
     start();
     await loaded(["a"]);
@@ -400,7 +390,6 @@ describe("Card replica and Store deltas", () => {
     replaceRemoteDecks([createDeck({ id: "deck", uid })]);
     await seed([card("b")]);
     start();
-    // When: Exercise `loaded` with the prepared inputs.
     await loaded(["b"]);
     // Then: Verify the expected result in the assertions below.
     expect(ready).not.toHaveBeenCalled();
@@ -408,11 +397,12 @@ describe("Card replica and Store deltas", () => {
   });
 
   it("[FIRESTORE-CARD-REPLICA-07] regular: aborts Card and checkpoint changes together", async () => {
-    // Given: Prepare `put`, `failure` and any shared test state below.
+    // Given: Use this case's inputs and any shared test setup.
     await seed([card("old")]);
     start();
     await loaded(["old"]);
     await checkpoint(1000);
+    // When: Exercise `stop` with the prepared inputs.
     stop();
     const put = IDBObjectStore.prototype.put;
     const failure = vi.spyOn(IDBObjectStore.prototype, "put").mockImplementation(function (
@@ -424,7 +414,6 @@ describe("Card replica and Store deltas", () => {
       if (this.name === "metadata") this.transaction.abort();
       return request;
     });
-    // When: Evaluate `saveConfirmedCards` as part of the following checks.
     // Then: Verify the expected result in the assertions below.
     await expect(
       saveConfirmedCards(uid, [createCard({ id: "old", uid, frontText: "new", updatedAt: 2000 })], 2000, {
@@ -460,12 +449,12 @@ describe("Card replica and Store deltas", () => {
       start();
       await loaded(values.map(({ id }) => id));
       if (!isAnonymous) await checkpoint(1000);
+      // When: Exercise `getCards` with the prepared inputs.
       const unchanged = getCards().slice(1);
       const parse = vi.spyOn(documents, "parseCardDocument");
       const parseLocal = vi.spyOn(documents, "parseLocalCardDocuments");
       const apply = vi.spyOn(store, "applyCardChanges");
       const put = vi.spyOn(IDBObjectStore.prototype, "put");
-      // When: Exercise `environment.withSecurityRulesDisabled` with the prepared inputs.
       await environment.withSecurityRulesDisabled(async (context) => {
         await updateDoc(doc(context.firestore(), "card", cardA.id), {
           frontText: "changed",
@@ -494,7 +483,7 @@ describe("Card replica and Store deltas", () => {
   );
 
   it("[FIRESTORE-CARD-REPLICA-09] regular: keeps the checkpoint unchanged for cached and pending snapshots", async () => {
-    // Given: Prepare `write` and any shared test state below.
+    // Given: Use this case's inputs and any shared test setup.
     await seed([card("old")]);
     start();
     await loaded(["old"]);
@@ -503,9 +492,9 @@ describe("Card replica and Store deltas", () => {
     await disableNetwork(connection.db);
     clearRemoteCards();
     await new Promise<void>((resolve, reject) => stops.push(subscribeCards(uid, reject, resolve)));
+    // When: Exercise `updateDoc` with the prepared inputs.
     const write = updateDoc(doc(connection.db, "card", "old"), { frontText: "pending", updatedAt: serverTimestamp() });
     await localPending();
-    // When: Exercise `checkpoint` with the prepared inputs.
     await checkpoint(1000);
     // Then: Verify the expected result in the assertions below.
     expect(getCards()[0]?.frontText).toBe("old");
@@ -518,15 +507,15 @@ describe("Card replica and Store deltas", () => {
   });
 
   it("[FIRESTORE-CARD-REPLICA-10] regular: applies FSRS only after the server acknowledgement", async () => {
-    // Given: Prepare `fsrs`, `write` and any shared test state below.
+    // Given: Prepare `fsrs` and any shared test state below.
     await seed([card("old")]);
     start();
     await loaded(["old"]);
     await checkpoint(1000);
     await disableNetwork(connection.db);
     const fsrs = calculateFsrsState(null, "good", 1000);
+    // When: Exercise `updateDoc` with the prepared inputs.
     const write = updateDoc(doc(connection.db, "card", "old"), { fsrs, updatedAt: serverTimestamp() });
-    // When: Exercise `localPending` with the prepared inputs.
     await localPending();
     // Then: Verify the expected result in the assertions below.
     expect(getCards()[0]?.fsrs).toBeNull();
@@ -614,18 +603,14 @@ describe("Card replica and Store deltas", () => {
 
       // Re-isolate Card A while publishing Card B's update.
       await seed([damagedCardA, { ...cardB, frontText: "changed" }]);
-      // When: Exercise `loaded` with the prepared inputs.
       await loaded([cardB.id]);
-      // Then: Verify the expected result in the assertions below.
       expect(getCards()[0]?.frontText).toBe("changed");
       expect(store.cardStore.getState().invalidCardIds).toEqual([cardA.id]);
       expect((await getDocFromCache(doc(connection.db, "card", cardA.id))).data()?.fsrs).toEqual(damagedCardA.fsrs);
 
       // A second repair must restore Card A without reverting Card B.
       await seed([cardA]);
-      // When: Exercise `loaded` with the prepared inputs.
       await loaded([cardA.id, cardB.id]);
-      // Then: Verify the expected result in the assertions below.
       expect(store.cardStore.getState().invalidCardIds).toEqual([]);
       expect(getCards().find(({ id }) => id === cardB.id)?.frontText).toBe("changed");
       expect(errors).toEqual([]);
@@ -657,9 +642,7 @@ describe("Card replica and Store deltas", () => {
       expect((await getDocFromCache(doc(connection.db, "card", cardB.id))).data()?.deletedAt).toBe(2000);
 
       await seed([cardA]);
-      // When: Exercise `loaded` with the prepared inputs.
       await loaded([cardA.id]);
-      // Then: Verify the expected result in the assertions below.
       expect(store.cardStore.getState().invalidCardIds).toEqual([]);
 
       await seed([damagedCardA]);
@@ -716,8 +699,8 @@ describe("Card replica and Store deltas", () => {
     await getDocs(query(collection(connection.db, "card"), where("uid", "==", uid)));
     const receivingDbA = connection.db;
     const ready = vi.fn();
+    // When: Exercise `subscribeCards` with the prepared inputs.
     stops.push(subscribeCards(uid, (error) => errors.push(error), ready));
-    // When: Exercise `loaded` with the prepared inputs.
     await loaded(["card-a"]);
     // Then: Verify the expected result in the assertions below.
     await vi.waitFor(() => expect(store.cardStore.getState().invalidCardIds).toEqual(["card-b"]));

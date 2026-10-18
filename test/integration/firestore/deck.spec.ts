@@ -117,23 +117,23 @@ describe.concurrent("firestore/deck", { retry: 3 }, () => {
       const reference = doc(db, "deck", deck.id);
       const before = (await getDocFromServer(reference)).data();
       const errors: Error[] = [];
-      // When: Exercise `subscribeDecks` with the prepared inputs.
       const unsubscribe = subscribeDecks("uid", (error) => errors.push(error));
-      // Then: Verify the expected result in the assertions below.
       try {
-        // Then: Check the expected result after the operation in this branch.
+        // Given: Use the current iteration or branch inputs from the enclosing case.
+        // When: Evaluate `getDecks` as part of the following checks.
+        // Then: Verify the expected result in the assertions below.
         await vi.waitFor(() => {
           expect(getDecks().find((value) => value.id === deck.id)).toMatchObject(deck);
         });
+        // When: Exercise `editDeck` with the prepared inputs.
         await editDeck("uid", { id: deck.id, name: "updated", category: "math" });
-        // Then: Check the expected result after the operation in this branch.
+        // Then: Verify the expected result in the assertions below.
         expect((await getDocFromServer(reference)).data()).toEqual({
           ...before,
           name: "updated",
           category: "math",
           updatedAt: expect.any(Timestamp),
         });
-        // Then: Check the expected result after the operation in this branch.
         await vi.waitFor(() => {
           expect(getDecks().find((value) => value.id === deck.id)).toMatchObject({
             ...deck,
@@ -141,7 +141,6 @@ describe.concurrent("firestore/deck", { retry: 3 }, () => {
             category: "math",
           });
         });
-        // Then: Check the expected result after the operation in this branch.
         expect(errors).toEqual([]);
       } finally {
         unsubscribe();

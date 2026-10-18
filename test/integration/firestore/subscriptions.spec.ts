@@ -45,17 +45,16 @@ describe("Query realtime subscriptions", () => {
     await createCardCommand(uid, card);
 
     const onError = vi.fn();
-    // When: Exercise `subscribeCards` with the prepared inputs.
     const stopCards = subscribeCards(uid, onError);
-    // Then: Verify the expected result in the assertions below.
     try {
-      // Then: Check the expected result after the operation in this branch.
+      // Given: Use the current iteration or branch inputs from the enclosing case.
+      // When: Observe the prepared result through the following checks.
+      // Then: Verify the expected result in the assertions below.
       await vi.waitFor(() => {
         expect(Object.values(cardStore.getState().cardsById)).toContainEqual(
           expect.objectContaining({ id: card.id, frontText: "Fetched Card" })
         );
       });
-      // Then: Check the expected result after the operation in this branch.
       expect(onError).not.toHaveBeenCalled();
     } finally {
       stopCards();
@@ -67,27 +66,29 @@ describe("Query realtime subscriptions", () => {
     const uid = "uid";
     const errors: Error[] = [];
     const stopDecks = subscribeDecks(uid, (error) => errors.push(error));
-    // When: Exercise `subscribeCards` with the prepared inputs.
     const stopCards = subscribeCards(uid, (error) => errors.push(error));
 
-    // Then: Verify the expected result in the assertions below.
     try {
+      // Given: Prepare `deck`, `card` and any shared test state below.
       const deck = createDeckFixture({ id: crypto.randomUUID(), uid });
       const card = createCard({ id: crypto.randomUUID(), deckId: deck.id, uid });
+      // When: Exercise `createDeck` with the prepared inputs.
       await createDeck(uid, createRemoteDeckInput({ id: deck.id, name: deck.name }));
-      // Then: Check the expected result after the operation in this branch.
+      // Then: Verify the expected result in the assertions below.
       await vi.waitFor(() => {
         expect(deckStore.getState().remoteDecks).toContainEqual(expect.objectContaining({ id: deck.id }));
       });
+      // When: Exercise `createCardCommand` with the prepared inputs.
       await createCardCommand(uid, card);
-      // Then: Check the expected result after the operation in this branch.
+      // Then: Verify the expected result in the assertions below.
       await vi.waitFor(() => {
         expect(Object.values(cardStore.getState().cardsById)).toContainEqual(expect.objectContaining({ id: card.id }));
       });
 
+      // When: Exercise `editDeck` with the prepared inputs.
       await editDeck(uid, { ...deck, name: "Updated" });
       await editCard(uid, { ...card, frontText: "Updated" });
-      // Then: Check the expected result after the operation in this branch.
+      // Then: Verify the expected result in the assertions below.
       await vi.waitFor(() => {
         expect(deckStore.getState().remoteDecks).toContainEqual(
           expect.objectContaining({ id: deck.id, name: "Updated" })
@@ -97,16 +98,16 @@ describe("Query realtime subscriptions", () => {
         );
       });
 
+      // When: Exercise `deleteCard` with the prepared inputs.
       await deleteCard(uid, card.id);
       await deleteDeck(uid, deck.id);
-      // Then: Check the expected result after the operation in this branch.
+      // Then: Verify the expected result in the assertions below.
       await vi.waitFor(() => {
         expect(deckStore.getState().remoteDecks.find((candidate) => candidate.id === deck.id)).toBeUndefined();
         expect(
           Object.values(cardStore.getState().cardsById).find((candidate) => candidate.id === card.id)
         ).toBeUndefined();
       });
-      // Then: Check the expected result after the operation in this branch.
       expect(errors).toEqual([]);
     } finally {
       stopCards();

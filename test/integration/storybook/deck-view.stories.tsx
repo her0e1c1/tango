@@ -106,7 +106,7 @@ export const NoMatches: Story = {
     // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-DECK-VIEW-03 Distinguish unmatched filters from no cards", async () => {
       // Given: Use the rendered story, its args, parameters, and any setup below.
-      // When: Evaluate `canvas.findByRole` as part of the following checks.
+      // When: Storybook renders this scenario with its configured args and parameters.
       // Then: Verify the expected result in the assertions below.
       await expect(await canvas.findByRole("heading", { name: "No cards match the current filters." })).toBeVisible();
       await expect(canvas.queryByText("No cards yet")).not.toBeInTheDocument();
@@ -375,9 +375,6 @@ export const PlaybackUnavailable: Story = {
   },
 };
 function bottomControls(swipe: boolean, playback: boolean): Story {
-  // Given: Use this case's inputs and any shared test setup.
-  // When: Evaluate `page` as part of the following checks.
-  // Then: Verify the expected result in the assertions below.
   return {
     parameters: { page: page({ showSwipeButtonList: swipe, showPlaybackControls: playback }) },
     play: async ({ canvas, step }) => {
@@ -385,7 +382,7 @@ function bottomControls(swipe: boolean, playback: boolean): Story {
       await step("STORYBOOK-CARD-PLAYER-17 Display only the enabled bottom control groups", async () => {
         // Given: Use the rendered story, its args, parameters, and any setup below.
         await canvas.findByText("Hello");
-        // When: Evaluate `canvas.getByRole` as part of the following checks.
+        // When: Storybook renders this scenario with its configured args and parameters.
         // Then: Verify the expected result in the assertions below.
         if (swipe) await expect(canvas.getByRole("button", { name: "Next card" })).toBeVisible();
         else await expect(canvas.queryByRole("button", { name: "Next card" })).not.toBeInTheDocument();
@@ -407,7 +404,7 @@ export const Gestures: Story = {
       async () => {
         // Given: Use the rendered story, its args, parameters, and any setup below.
         const front = await canvas.findByRole("button", { name: "Card front" });
-        // When: Evaluate `canvas.queryByRole` as part of the following checks.
+        // When: Storybook renders this scenario with its configured args and parameters.
         // Then: Verify the expected result in the assertions below.
         await expect(canvas.queryByRole("button", { name: "Next card" })).not.toBeInTheDocument();
         // When: Exercise `drag` with the prepared inputs.

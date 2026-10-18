@@ -49,15 +49,12 @@ describe("STUDY-SESSION-09 STUDY-SESSION-13 study history chart", () => {
       [84, 4, 2],
       [89, 1, 0],
     ] as const) {
-      // Given: Use the current iteration or branch inputs from the enclosing case.
-      // When: Apply the operation or event under test.
       days[index] = { date: days[index]!.date, started, completed };
-      // Then: The invoked verification helper checks the case's expected result.
     }
 
+    // When: Exercise `getStudyHistoryChart` with the prepared inputs.
     const chart = getStudyHistoryChart(days);
 
-    // When: Observe the prepared result through the following checks.
     // Then: Verify the expected result in the assertions below.
     expect(chart.bucketSize).toBe(7);
     expect(chart.buckets).toEqual([
@@ -117,7 +114,6 @@ describe("STUDY-SESSION-09 STUDY-SESSION-13 study history chart", () => {
     let nextDay = 0;
     for (const interval of chart.buckets) {
       // Given: Use the current iteration or branch inputs from the enclosing case.
-      // When: Exercise `days.findIndex` with the prepared inputs.
       const lastDay = days.findIndex((day) => day.date === interval.endDate);
       // Then: Verify the expected result in the assertions below.
       expect(lastDay).toBeGreaterThanOrEqual(nextDay);

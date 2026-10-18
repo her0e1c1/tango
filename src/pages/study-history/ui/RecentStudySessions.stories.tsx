@@ -34,7 +34,7 @@ export const Default: Story = {
     // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-STUDY-HISTORY-05 Session statuses", async () => {
       // Given: Use the rendered story, its args, parameters, and any setup below.
-      // When: Evaluate `canvas.getAllByRole` as part of the following checks.
+      // When: Storybook renders this scenario with its configured args and parameters.
       // Then: Verify the expected result in the assertions below.
       await expect(canvas.getAllByRole("listitem")).toHaveLength(3);
       await expect(canvas.getByText("Unfinished")).toBeVisible();
@@ -51,7 +51,7 @@ export const MobileJapanese: Story = {
     // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-STUDY-HISTORY-06 Japanese session statuses", async () => {
       // Given: Use the rendered story, its args, parameters, and any setup below.
-      // When: Evaluate `canvas.getByRole` as part of the following checks.
+      // When: Storybook renders this scenario with its configured args and parameters.
       // Then: Verify the expected result in the assertions below.
       await expect(canvas.getByRole("heading", { name: "最近のセッション" })).toBeVisible();
       await expect(canvas.getByText("未完了")).toBeVisible();

@@ -196,21 +196,22 @@ test.describe("card-resilience", () => {
     const frontText = `${namespace.caseId} pending front`;
     await fixture.apply(page);
     const write = await beginCardCreation(page, deck.id, frontText);
-    // When: Evaluate `page.getByRole("button", { name: "tango", exact: true }).click` as part of the following checks.
-    // Then: Verify the expected result in the assertions below.
     try {
-      // Then: Check the expected result after the operation in this branch.
+      // Given: Use the current iteration or branch inputs from the enclosing case.
       await expect(page).toHaveURL(`/deck/${deck.id}/card/new`);
+      // When: Exercise `page.getByRole("button", { name: "tango", exact: true }).click` with the prepared inputs.
       await page.getByRole("button", { name: "tango", exact: true }).click();
       const dialog = page.getByRole("alertdialog", { name: "Discard unsaved changes?" });
       await dialog.getByRole("button", { name: "Keep editing" }).click();
-      // Then: Check the expected result after the operation in this branch.
+      // Then: Verify the expected result in the assertions below.
       await expect(page.getByRole("textbox", { name: "Back text" })).toHaveValue("Pending back");
+      // When: Exercise `page.getByRole("button", { name: "tango", exact: true }).click` with the prepared inputs.
       await page.getByRole("button", { name: "tango", exact: true }).click();
-      // Then: Check the expected result after the operation in this branch.
+      // Then: Verify the expected result in the assertions below.
       await expect(dialog).toBeVisible();
+      // When: Exercise `write.release` with the prepared inputs.
       write.release();
-      // Then: Check the expected result after the operation in this branch.
+      // Then: Verify the expected result in the assertions below.
       await expectCreatedCard(page, deck.id, frontText);
     } finally {
       write.release();
@@ -227,31 +228,32 @@ test.describe("card-resilience", () => {
     const frontText = `${namespace.caseId} background front`;
     await fixture.apply(page);
     const write = await beginCardCreation(page, deck.id, frontText);
-    // When: Evaluate `page.getByRole("button", { name: "tango", exact: true }).click` as part of the following checks.
-    // Then: Verify the expected result in the assertions below.
     try {
+      // Given: Use the current iteration or branch inputs from the enclosing case.
+      // When: Exercise `page.getByRole("button", { name: "tango", exact: true }).click` with the prepared inputs.
       await page.getByRole("button", { name: "tango", exact: true }).click();
       await page.getByRole("alertdialog").getByRole("button", { name: "Discard changes" }).click();
-      // Then: Check the expected result after the operation in this branch.
+      // Then: Verify the expected result in the assertions below.
       await expect(page).toHaveURL(/\/$/);
+      // When: Exercise `write.release` with the prepared inputs.
       write.release();
-      // Then: Check the expected result after the operation in this branch.
+      // Then: Verify the expected result in the assertions below.
       await expect
         .poll(async () =>
           (await listDocuments("card")).some((item) => item.fields.frontText?.stringValue === frontText)
         )
         .toBe(true);
-      // Then: Check the expected result after the operation in this branch.
       await expect(page).toHaveURL(/\/$/);
-      // Then: Check the expected result after the operation in this branch.
       await expect(page.getByRole("status", { name: "Toast notifications" })).not.toContainText(
         `Created card “${frontText}”.`
       );
+      // When: Apply the operation or event under test.
       await page.getByRole("button", { name: `Open cards in ${deck.name}`, exact: true }).click();
-      // Then: Check the expected result after the operation in this branch.
+      // Then: Verify the expected result in the assertions below.
       await expect(page.getByRole("button", { name: `View ${frontText}`, exact: true })).toBeVisible();
+      // When: Exercise `page.reload` with the prepared inputs.
       await page.reload();
-      // Then: Check the expected result after the operation in this branch.
+      // Then: Verify the expected result in the assertions below.
       await expect(page.getByRole("button", { name: `View ${frontText}`, exact: true })).toHaveCount(1);
     } finally {
       write.release();
@@ -271,28 +273,31 @@ test.describe("card-resilience", () => {
     const fault = await failNextFirestoreWrite(page, { collection: "card" });
     allowExpectedFirestoreWriteFailure(browserErrors);
     const write = await beginCardCreation(page, deck.id, frontText);
-    // When: Evaluate `page.getByRole("button", { name: "tango", exact: true }).click` as part of the following checks.
-    // Then: Verify the expected result in the assertions below.
     try {
+      // Given: Use the current iteration or branch inputs from the enclosing case.
+      // When: Exercise `page.getByRole("button", { name: "tango", exact: true }).click` with the prepared inputs.
       await page.getByRole("button", { name: "tango", exact: true }).click();
       const dialog = page.getByRole("alertdialog", { name: "Discard unsaved changes?" });
-      // Then: Check the expected result after the operation in this branch.
+      // Then: Verify the expected result in the assertions below.
       await expect(dialog).toBeVisible();
+      // When: Exercise `write.release` with the prepared inputs.
       write.release();
       await fault.waitForFailure();
       await fault.dispose();
-      // Then: Check the expected result after the operation in this branch.
+      // Then: Verify the expected result in the assertions below.
       await expect(page.getByRole("alert")).toContainText("Unable to create this card. Try again.");
-      // Then: Check the expected result after the operation in this branch.
       await expect(dialog).toBeVisible();
+      // When: Exercise `dialog.getByRole("button", { name: "Keep editing" }).click` with the prepared inputs.
       await dialog.getByRole("button", { name: "Keep editing" }).click();
-      // Then: Check the expected result after the operation in this branch.
+      // Then: Verify the expected result in the assertions below.
       await expect(page.getByRole("textbox", { name: "Back text" })).toHaveValue("Pending back");
+      // When: Exercise `page.getByRole("tab", { name: "Front", exact: true }).click` with the prepared inputs.
       await page.getByRole("tab", { name: "Front", exact: true }).click();
-      // Then: Check the expected result after the operation in this branch.
+      // Then: Verify the expected result in the assertions below.
       await expect(page.getByRole("textbox", { name: "Front text" })).toHaveValue(frontText);
+      // When: Exercise `page.getByRole("button", { name: "Create card", exact: true }).click` with the prepared inputs.
       await page.getByRole("button", { name: "Create card", exact: true }).click();
-      // Then: Check the expected result after the operation in this branch.
+      // Then: Verify the expected result in the assertions below.
       await expectCreatedCard(page, deck.id, frontText);
     } finally {
       write.release();
@@ -396,7 +401,7 @@ test.describe("card", () => {
     await expect(page.getByRole("checkbox", { name: "math" })).not.toBeChecked();
     await expect(page.getByRole("checkbox", { name: "typescript" })).toBeChecked();
     await expect(page.getByRole("checkbox", { name: "chapter-1" })).toBeChecked();
-    // When: Exercise `requireDocument` with the prepared inputs.
+
     const after = await requireDocument("card", card.id);
     // Content edits must not overwrite identity or newer learning progress from the opening form snapshot.
     const {
@@ -512,7 +517,7 @@ test.describe("card", () => {
     await page.getByRole("button", { name: `View ${changedFront}` }).click();
     // Then: Verify the expected result in the assertions below.
     await expect(page.getByRole("button", { name: "Close card" })).toContainText(changedBack);
-    // When: Exercise `requireDocument` with the prepared inputs.
+
     const after = await requireDocument("card", card.id);
     const { frontText: _front, backText: _back, updatedAt: _updatedAt, ...preservedFields } = before.fields;
     // Then: Verify the expected result in the assertions below.
@@ -646,6 +651,7 @@ test.describe("card", () => {
     const message = toast.getByText(`Created card “${frontText}”.`, { exact: true });
     for (const target of [toast, message, dismiss]) {
       // Given: Use the current iteration or branch inputs from the enclosing case.
+      // When: Exercise `target.boundingBox` with the prepared inputs.
       const box = await target.boundingBox();
       if (box === null) throw new Error("Toast content has no rendered bounds");
       // Then: Verify the expected result in the assertions below.

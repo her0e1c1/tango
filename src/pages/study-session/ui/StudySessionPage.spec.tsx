@@ -318,13 +318,10 @@ describe("StudySessionPage [STUDY-CONTROLS-07] [STUDY-ACTIONS-04] [STUDY-SESSION
       </>
     );
     for (const field of screen.getAllByRole("textbox")) {
-      // Given: Use the current iteration or branch inputs from the enclosing case.
-      // When: Exercise `user.click` with the prepared inputs.
       await user.click(field);
       await user.keyboard("b b{ArrowLeft}{ArrowRight}{ArrowUp}{ArrowDown}{Enter}");
-      // Then: The invoked verification helper checks the case's expected result.
     }
-    // When: Evaluate `screen.getByRole` as part of the following checks.
+    // When: Observe the prepared result through the following checks.
     // Then: Verify the expected result in the assertions below.
     expect(screen.getByRole("textbox", { name: /^Notes$/ })).toHaveValue("b b");
     expect(screen.getByRole("textbox", { name: "Summary" })).toHaveValue("b b\n");
@@ -738,29 +735,28 @@ describe("StudySessionPage [STUDY-CONTROLS-07] [STUDY-ACTIONS-04] [STUDY-SESSION
     startStudy(deckId, [firstCard, secondCard], mocks.preferences.study, "user-id");
     vi.useFakeTimers();
 
-    // When: Evaluate `fireEvent.click` as part of the following checks.
-    // Then: Verify the expected result in the assertions below.
     try {
+      // Given: Use the current iteration or branch inputs from the enclosing case.
       renderPage();
+      // When: Exercise `fireEvent.click` with the prepared inputs.
       fireEvent.click(screen.getByRole("button", { name: "Open study help" }));
 
       await actAsync(async () => {
         await vi.advanceTimersByTimeAsync(1000);
       });
 
-      // Then: Check the expected result after the operation in this branch.
+      // Then: Verify the expected result in the assertions below.
       expect(screen.getByText("Front one")).toBeVisible();
-      // Then: Check the expected result after the operation in this branch.
       expect(screen.getByRole("button", { name: "Pause" })).toBePressed();
 
+      // When: Exercise `fireEvent.click` with the prepared inputs.
       fireEvent.click(screen.getByRole("button", { name: "Close help" }));
       await actAsync(async () => {
         await vi.advanceTimersByTimeAsync(1000);
       });
 
-      // Then: Check the expected result after the operation in this branch.
+      // Then: Verify the expected result in the assertions below.
       expect(screen.getByText("Front two")).toBeVisible();
-      // Then: Check the expected result after the operation in this branch.
       expect(screen.getByRole("button", { name: "Pause" })).toBePressed();
     } finally {
       vi.useRealTimers();

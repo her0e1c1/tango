@@ -24,7 +24,7 @@ export const InitialAndFormat: Story = {
     // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-IMPORT-01 Offer file selection without a destination radio", async () => {
       // Given: Use the rendered story, its args, parameters, and any setup below.
-      // When: Evaluate `canvas.findByRole` as part of the following checks.
+      // When: Storybook renders this scenario with its configured args and parameters.
       // Then: Verify the expected result in the assertions below.
       await expect(await canvas.findByRole("heading", { name: "Add a deck" })).toBeVisible();
       await expect(canvas.getByLabelText("Upload a csv file")).toBeEnabled();
@@ -140,7 +140,7 @@ export const PendingSelection: Story = {
     // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-IMPORT-07 Disable selection during an outstanding import", async () => {
       // Given: Use the rendered story, its args, parameters, and any setup below.
-      // When: Evaluate `canvas.findByText` as part of the following checks.
+      // When: Storybook renders this scenario with its configured args and parameters.
       // Then: Verify the expected result in the assertions below.
       await expect(await canvas.findByText("Importing…")).toBeVisible();
       await expect(canvas.getByLabelText("Upload a csv file")).toBeDisabled();
@@ -150,9 +150,6 @@ export const PendingSelection: Story = {
   },
 };
 function exampleStory(name: string, key: string): Story {
-  // Given: Use this case's inputs and any shared test setup.
-  // When: Evaluate `step` as part of the following checks.
-  // Then: Verify the expected result in the assertions below.
   return {
     play: async ({ canvas, userEvent, step }) => {
       // Given: Use the rendered story, its args, parameters, and any setup below.
@@ -184,9 +181,6 @@ export const Markdown = exampleStory("Markdown", "markdown-source");
 export const SampleDeck = exampleStory("Sample deck", "test/binarysearch/test_bisect_left.py");
 
 function failureStory(error: unknown, japanese: string): Story {
-  // Given: Use this case's inputs and any shared test setup.
-  // When: Evaluate `step` as part of the following checks.
-  // Then: Verify the expected result in the assertions below.
   return {
     play: async ({ canvas, userEvent, step }) => {
       // Given: Use the rendered story, its args, parameters, and any setup below.
@@ -313,7 +307,7 @@ export const UnknownDiagnostic: Story = {
     // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-IMPORT-05 Translate an unknown parser diagnostic without exposing internals", async () => {
       // Given: Use the rendered story, its args, parameters, and any setup below.
-      // When: Evaluate `canvas.findByRole` as part of the following checks.
+      // When: Storybook renders this scenario with its configured args and parameters.
       // Then: Verify the expected result in the assertions below.
       await expect(await canvas.findByRole("alert")).toHaveTextContent("The CSV could not be parsed.");
       // When: Exercise `appI18n.changeLanguage` with the prepared inputs.

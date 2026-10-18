@@ -41,21 +41,22 @@ export const FixedByDefault: Story = {
       const header = canvas.getByRole("banner");
       const firstSection = canvas.getByRole("heading", { name: "Application section 1" }).closest("section");
 
-      // When: Observe the prepared result through the following checks.
+      // When: Storybook renders this scenario with its configured args and parameters.
       // Then: Verify the expected result in the assertions below.
       await expect(firstSection).not.toBeNull();
       if (firstSection === null) return;
 
       await expect(getComputedStyle(header).position).toBe("fixed");
-      // When: Exercise `header.getBoundingClientRect` with the prepared inputs.
+      // Given: Record the fixed header position before scrolling the shell.
       const initialHeaderTop = header.getBoundingClientRect().top;
-      // Then: Verify the expected result in the assertions below.
       await expect(firstSection.getBoundingClientRect().top).toBeGreaterThanOrEqual(
         header.getBoundingClientRect().bottom
       );
 
+      // When: Scroll the application shell to the bottom.
       shell.scrollTop = shell.scrollHeight;
 
+      // Then: The header stays at its original viewport position while content scrolls.
       await expect(shell.scrollTop).toBeGreaterThan(0);
       await expect(header.getBoundingClientRect().top).toBe(initialHeaderTop);
       shell.scrollTop = 0;
@@ -75,7 +76,7 @@ export const FixedHeaderDisabled: Story = {
       const header = canvas.getByRole("banner");
       const content = canvas.getByRole("heading", { name: "Non-fixed application content" });
 
-      // When: Evaluate `getComputedStyle` as part of the following checks.
+      // When: Storybook renders this scenario with its configured args and parameters.
       // Then: Verify the expected result in the assertions below.
       await expect(getComputedStyle(header).position).toBe("static");
       await expect(content.getBoundingClientRect().top).toBeGreaterThanOrEqual(header.getBoundingClientRect().bottom);

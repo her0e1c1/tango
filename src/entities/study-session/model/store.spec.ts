@@ -45,9 +45,9 @@ describe("study store [STUDY-SESSION-01] [STUDY-ACTIONS-04]", () => {
     vi.useFakeTimers();
     vi.setSystemTime(1000);
 
+    // When: Exercise `startSession` with the prepared inputs.
     startSession("deck-1", ["card-1", "card-2"]);
     vi.setSystemTime(2000);
-    // When: Exercise `startSession` with the prepared inputs.
     startSession("deck-2", ["card-3"]);
 
     // Then: Verify the expected result in the assertions below.
@@ -226,7 +226,7 @@ describe("study store [STUDY-SESSION-01] [STUDY-ACTIONS-04]", () => {
       const input = { uid: "uid", period: { start: 0, end: 1000 }, deckId: null, metric: "started" as const };
       const history = vi.fn();
       const historyError = vi.fn();
-      // When: Exercise `onTestFinished` with the prepared inputs.
+      // When: Exercise `subscribeStudyHistory` with the prepared inputs.
       onTestFinished(subscribeStudyHistory(input, history, historyError));
       // Then: Verify the expected result in the assertions below.
       expect(history).toHaveBeenLastCalledWith(
@@ -263,7 +263,7 @@ describe("study store [STUDY-SESSION-01] [STUDY-ACTIONS-04]", () => {
       expect(ready).not.toHaveBeenCalled();
       const lateHistory = vi.fn();
       const lateError = vi.fn();
-      // When: Exercise `onTestFinished` with the prepared inputs.
+      // When: Exercise `subscribeStudyHistory` with the prepared inputs.
       onTestFinished(subscribeStudyHistory(input, lateHistory, lateError));
       // Then: Verify the expected result in the assertions below.
       expect(lateError).toHaveBeenCalledWith(error);

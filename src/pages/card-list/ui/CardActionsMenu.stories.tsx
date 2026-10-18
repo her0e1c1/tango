@@ -128,7 +128,7 @@ export const DisabledMenuContract: Story = {
     // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-CARD-LIST-22 Hide a disabled menu even when open is requested", async () => {
       // Given: Use the rendered story, its args, parameters, and any setup below.
-      // When: Evaluate `canvas.getByRole` as part of the following checks.
+      // When: Storybook renders this scenario with its configured args and parameters.
       // Then: Verify the expected result in the assertions below.
       await expect(canvas.getByRole("button", { name: `Open actions for ${args.cardText}` })).toBeDisabled();
       await expect(canvas.queryByRole("menu")).not.toBeInTheDocument();

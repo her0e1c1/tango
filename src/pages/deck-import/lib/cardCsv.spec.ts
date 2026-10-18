@@ -170,6 +170,7 @@ describe("DECK-IMPORT-01 DECK-IMPORT-02 card CSV import", () => {
       expect(analysis.issues).toEqual(expect.arrayContaining([{ diagnostic: { kind: "empty" } }]));
       for (const issue of analysis.issues) {
         // Given: Use the current iteration or branch inputs from the enclosing case.
+        // Then: Verify the expected result in the assertions below.
         expect(issue).not.toHaveProperty("rowNumber");
         expect(issue).not.toHaveProperty("context");
       }

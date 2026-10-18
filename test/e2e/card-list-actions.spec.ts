@@ -8,6 +8,7 @@ const expectOrder = async (rows: Locator, names: string[]) => {
   await expect(rows).toHaveCount(names.length);
   for (const [index, name] of names.entries()) {
     // Given: Use the current iteration or branch inputs from the enclosing case.
+    // Then: Verify the expected result in the assertions below.
     await expect(rows.nth(index)).toHaveAccessibleName(`View ${name}`);
   }
 };

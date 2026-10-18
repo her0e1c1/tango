@@ -145,19 +145,18 @@ export const PendingSave: Story = {
       // Given: Use the rendered story, its args, parameters, and any setup below.
       const pending = Promise.withResolvers<void>();
       mocked(persistCard).mockReturnValue(pending.promise);
-      // When: Evaluate `userEvent.click` as part of the following checks.
-      // Then: Verify the expected result in the assertions below.
       try {
+        // Given: Use the current iteration or branch inputs from the enclosing case.
+        // When: Exercise `userEvent.click` with the prepared inputs.
         await userEvent.click(canvas.getByRole("button", { name: "Save changes" }));
-        // Then: Check the expected result after the operation in this branch.
+        // Then: Verify the expected result in the assertions below.
         for (const name of ["Saving…", "Cancel", "Back to cards"])
           await expect(canvas.getByRole("button", { name })).toBeDisabled();
-        // Then: Check the expected result after the operation in this branch.
         await expect(canvas.getByRole("textbox", { name: "Front text" })).toBeDisabled();
+        // When: Apply the operation or event under test.
         pending.resolve();
-        // Then: Check the expected result after the operation in this branch.
+        // Then: Verify the expected result in the assertions below.
         await waitFor(() => expect(canvas.getByRole("button", { name: "Save changes" })).toBeEnabled());
-        // Then: Check the expected result after the operation in this branch.
         await expect(onSaved).toHaveBeenCalledOnce();
       } finally {
         pending.resolve();

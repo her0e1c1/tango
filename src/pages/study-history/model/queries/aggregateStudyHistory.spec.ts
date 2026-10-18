@@ -138,8 +138,7 @@ describe("STUDY-SESSION-09 STUDY-SESSION-13 daily study counts", () => {
       "spans $hours hours and three New York calendar days in $start–$end",
       ({ start, end, midnights, hours }) => {
         // Given: Use this case's inputs and any shared test setup.
-        // When: Evaluate `Intl.DateTimeFormat().resolvedOptions` as part of the following checks.
-        // Then: Verify the expected result in the assertions below.
+        // Given: Confirm that this subprocess uses the requested New York timezone.
         expect(Intl.DateTimeFormat().resolvedOptions().timeZone).toBe("America/New_York");
         // When: Exercise `getStudyHistoryRange` with the prepared inputs.
         const range = getStudyHistoryRange(new URLSearchParams({ start, end }), new Date(2026, 8, 22)).period;
@@ -149,7 +148,6 @@ describe("STUDY-SESSION-09 STUDY-SESSION-13 daily study counts", () => {
         expect(range.end - range.start).toBe(hours * 60 * 60 * 1000);
         for (const boundary of [range.start, range.end]) {
           // Given: Prepare `date` and any shared test state below.
-          // When: Apply the operation or event under test.
           const date = new Date(boundary);
           // Then: Verify the expected result in the assertions below.
           expect([date.getHours(), date.getMinutes(), date.getSeconds(), date.getMilliseconds()]).toEqual([0, 0, 0, 0]);
@@ -175,6 +173,7 @@ describe("STUDY-SESSION-09 STUDY-SESSION-13 daily study counts", () => {
   } else {
     it("verifies DST boundaries in a TZ=America/New_York subprocess", () => {
       // Given: Prepare `output` and any shared test state below.
+      // When: Run the DST cases in an isolated New York timezone subprocess.
       const output = execFileSync(
         process.execPath,
         [
@@ -191,7 +190,6 @@ describe("STUDY-SESSION-09 STUDY-SESSION-13 daily study counts", () => {
           killSignal: "SIGKILL",
         }
       );
-      // When: Exercise `console.info` with the prepared inputs.
       console.info(output);
       // Then: Verify the expected result in the assertions below.
       expect(output).toContain("spans 71 hours");

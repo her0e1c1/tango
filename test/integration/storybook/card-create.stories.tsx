@@ -105,21 +105,22 @@ export const Pending: Story = {
         await pending.promise;
         await persist(...args);
       });
-      // When: Evaluate `userEvent.dblClick` as part of the following checks.
-      // Then: Verify the expected result in the assertions below.
       try {
+        // Given: Use the current iteration or branch inputs from the enclosing case.
         await fill(context);
+        // When: Exercise `userEvent.dblClick` with the prepared inputs.
         await userEvent.dblClick(canvas.getByRole("button", { name: "Create card" }));
-        // Then: Check the expected result after the operation in this branch.
+        // Then: Verify the expected result in the assertions below.
         await expect(canvas.getByRole("button", { name: "Creating…" })).toBeDisabled();
+        // When: Apply the operation or event under test.
         pending.resolve();
-        // Then: Check the expected result after the operation in this branch.
+        // Then: Verify the expected result in the assertions below.
         await expect(await canvas.findByRole("heading", { name: "Cards" })).toBeVisible();
-        // Then: Check the expected result after the operation in this branch.
         await expect(canvas.getAllByText("Hello", { exact: true })).toHaveLength(1);
+        // When: Exercise `userEvent.click` with the prepared inputs.
         await userEvent.click(canvas.getByRole("button", { name: "Actions" }));
         await userEvent.click(canvas.getByRole("menuitem", { name: "Add card" }));
-        // Then: Check the expected result after the operation in this branch.
+        // Then: Verify the expected result in the assertions below.
         await expect(await canvas.findByRole("button", { name: "Create card" })).toBeEnabled();
       } finally {
         pending.resolve();

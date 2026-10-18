@@ -101,7 +101,7 @@ test("DECK-MANAGEMENT-01 persists edited fields across reload without changing l
   await expect(page.getByRole("textbox", { name: "Name", exact: true })).toHaveValue(updatedName);
   await expect(page.getByRole("combobox")).toHaveValue("typescript");
   await expect(page.getByRole("checkbox", { name: "Convert line breaks", includeHidden: true })).toHaveCount(0);
-  // When: Exercise `requireDocument` with the prepared inputs.
+
   const savedDeck = await requireDocument("deck", deck.id);
   // Then: Verify the expected result in the assertions below.
   expect(savedDeck.fields.convertToBr?.booleanValue).toBe(deck.convertToBr);
@@ -160,32 +160,28 @@ test("DECK-MANAGEMENT-02 preserves deletion success when session cleanup is reje
   await page.goto("/");
   const fault = await failNextFirestoreWrite(page, { collection: "studySession" });
   allowExpectedFirestoreWriteFailure(browserErrors);
-  // When: Evaluate `dialog.getByRole("button", { name: "Delete deck" }).click` as part of the following checks.
-  // Then: Verify the expected result in the assertions below.
   try {
+    // Given: Prepare `dialog` and any shared test state below.
     const dialog = await openDeckDeleteDialog(page, deck.name);
+    // When: Exercise `dialog.getByRole("button", { name: "Delete deck" }).click` with the prepared inputs.
     await dialog.getByRole("button", { name: "Delete deck" }).click();
-    // Then: Check the expected result after the operation in this branch.
+    // Then: Verify the expected result in the assertions below.
     await expect(dialog).not.toBeVisible();
     await fault.waitForFailure();
-    // Then: Check the expected result after the operation in this branch.
     await expect(page.getByRole("alert")).toContainText(
       "The deck was deleted, but its study session could not be closed."
     );
-    // Then: Check the expected result after the operation in this branch.
     await expect(
       page.getByText("Unable to delete this deck. Check your connection and try again.", { exact: true })
     ).toHaveCount(0);
-    // Then: Check the expected result after the operation in this branch.
     await expect(page.getByRole("button", { name: `Open cards in ${deck.name}`, exact: true })).toHaveCount(0);
-    // Then: Check the expected result after the operation in this branch.
     await expect
       .poll(async () => Number((await requireDocument("deck", deck.id)).fields.deletedAt?.integerValue ?? 0))
       .toBeGreaterThan(0);
+    // When: Exercise `page.reload` with the prepared inputs.
     await page.reload();
-    // Then: Check the expected result after the operation in this branch.
+    // Then: Verify the expected result in the assertions below.
     await expect(page.getByRole("button", { name: `Open cards in ${deck.name}`, exact: true })).toHaveCount(0);
-    // Then: Check the expected result after the operation in this branch.
     await expect(page.getByRole("button", { name: `Continue ${deck.name}`, exact: true })).toHaveCount(0);
   } finally {
     await fault.dispose();

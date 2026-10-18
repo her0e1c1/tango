@@ -251,7 +251,7 @@ test.describe("import", () => {
       const { uid } = fixture.user();
       await fixture.apply(page);
       await page.goto("/import");
-      // When: Exercise `page .getByLabel("Upload a csv file") .setInputFiles` with the prepared inputs.
+      // When: Exercise `page.getByLabel("Upload a csv file").setInputFiles` with the prepared inputs.
       await page
         .getByLabel("Upload a csv file")
         .setInputFiles(

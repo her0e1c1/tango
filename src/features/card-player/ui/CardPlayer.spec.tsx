@@ -746,8 +746,8 @@ describe("CardPlayer [STUDY-CONTROLS-05] [STUDY-CONTROLS-06] [STUDY-CONTROLS-07]
     render(<CardPlayer {...toolbarProps()} frontTextSlot={<div>Front</div>} onSwipeUp={onSwipeUp} />);
     const front = screen.getByText("Front");
 
-    swipeWithMouse(front, { clientX: 24, clientY: 200 }, { clientX: 24, clientY: 20 }, 1);
     // When: Exercise `swipeWithMouse` with the prepared inputs.
+    swipeWithMouse(front, { clientX: 24, clientY: 200 }, { clientX: 24, clientY: 20 }, 1);
     swipeWithMouse(front, { clientX: 24, clientY: 200 }, { clientX: 24, clientY: 20 }, 2);
 
     // Then: Verify the expected result in the assertions below.

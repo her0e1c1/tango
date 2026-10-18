@@ -61,6 +61,7 @@ describe("NAVIGATION-06 Deck navigation through App, router, and local Entities"
     expect(router.state.location).toMatchObject({ pathname: selected.path, search: "", hash: "" });
     for (const other of cases.filter(({ id }) => id !== selected.id)) {
       // Given: Use the current iteration or branch inputs from the enclosing case.
+      // Then: Verify the expected result in the assertions below.
       expect(screen.queryByRole("button", { name: `View ${other.frontText}` })).not.toBeInTheDocument();
     }
 
@@ -73,6 +74,7 @@ describe("NAVIGATION-06 Deck navigation through App, router, and local Entities"
     expect(await screen.findByRole("button", { name: `View ${selected.frontText}` })).toBeVisible();
     for (const other of cases.filter(({ id }) => id !== selected.id)) {
       // Given: Use the current iteration or branch inputs from the enclosing case.
+      // Then: Verify the expected result in the assertions below.
       expect(screen.queryByRole("button", { name: `View ${other.frontText}` })).not.toBeInTheDocument();
     }
     expect(getDecks()).toEqual(decksBefore);

@@ -68,7 +68,7 @@ const openView = async (page: Page, deckName: string) => {
 
 const expectFront = async (page: Page, frontText: string) => {
   // Given: Use this case's inputs and any shared test setup.
-  // When: Evaluate `page.getByRole` as part of the following checks.
+  // When: Observe the prepared result through the following checks.
   // Then: Verify the expected result in the assertions below.
   await expect(page.getByRole("button", { name: "Card front", exact: true })).toContainText(frontText);
   await expect(page.getByRole("region", { name: "Card answer", exact: true })).toHaveCount(0);
@@ -125,7 +125,9 @@ test("NAVIGATION-08 browses remote Cards without changing learning data or prefe
   await page.goto("/");
   await expect(page.getByRole("button", { name: `Continue ${deck.name}` })).toBeVisible();
   const before = await readSavedData(page, fixture);
+  // When: Choose View for the prepared Deck.
   await openView(page, deck.name);
+  // Then: The first Card opens with browsing controls and progress.
   await expect(page).toHaveURL(`/deck/${deck.id}/view`);
   await expectFront(page, first.frontText);
   await expect(page.getByLabel("Viewing progress")).toHaveAttribute("aria-valuetext", "1 of 3");
@@ -134,6 +136,7 @@ test("NAVIGATION-08 browses remote Cards without changing learning data or prefe
 
   const front = page.getByRole("button", { name: "Card front", exact: true });
   const answer = page.getByRole("region", { name: "Card answer", exact: true });
+  // When: Attempt unsupported mouse gestures and vertical keyboard navigation.
   await mouseSwipe(page, front, "right", "right");
   await mouseSwipe(page, front, "right", "middle");
   await mouseSwipe(page, front, "up");
@@ -472,6 +475,7 @@ test("NAVIGATION-14 shares display preferences with Study and explains viewing a
   await page.getByRole("button", { name: "Open card actions" }).click();
   for (const name of ["Card details", "Swipe controls", "Playback controls", "Help button", "Edit link"]) {
     // Given: Use the current iteration or branch inputs from the enclosing case.
+    // When: Exercise `page.getByRole("button", { name, exact: true }).click` with the prepared inputs.
     await page.getByRole("button", { name, exact: true }).click();
     // Then: Verify the expected result in the assertions below.
     await expect(page.getByRole("button", { name, exact: true })).toHaveAttribute("aria-pressed", "false");
@@ -524,6 +528,7 @@ test("NAVIGATION-14 shares display preferences with Study and explains viewing a
   await expect(page.getByRole("button", { name: "Edit link", exact: true })).toHaveCount(0);
   for (const name of ["Card details", "Swipe controls", "Playback controls", "Help button"]) {
     // Given: Use the current iteration or branch inputs from the enclosing case.
+    // Then: Verify the expected result in the assertions below.
     await expect(page.getByRole("button", { name, exact: true })).toHaveAttribute("aria-pressed", "false");
   }
 });
@@ -714,7 +719,7 @@ test("NAVIGATION-06 navigates from the Deck list to its Card list", async ({ fix
       await expect(page).toHaveURL(destination.href);
       for (const candidate of specialCards) {
         // Given: Prepare `button` and any shared test state below.
-        // When: Exercise `page.getByRole` with the prepared inputs.
+        // When: Apply the operation or event under test.
         const button = page.getByRole("button", { name: `View ${candidate.frontText}`, exact: true });
         // Then: Verify the expected result in the assertions below.
         await expect(button).toHaveCount(Number(candidate.deckId === selected.id));
@@ -1098,6 +1103,7 @@ const readLongFront = async (page: Page) => {
   await surface.focus();
   for (const key of ["ArrowDown", "Space", "PageDown"]) {
     // Given: Use the current iteration or branch inputs from the enclosing case.
+    // When: Exercise `surface.press` with the prepared inputs.
     await surface.press("Home");
     // Then: Verify the expected result in the assertions below.
     await expect.poll(() => surface.evaluate((element) => element.scrollTop)).toBe(0);
@@ -1119,7 +1125,6 @@ const readLongFront = async (page: Page) => {
     // When: Exercise `surface.focus` with the prepared inputs.
     await surface.focus();
     await page.keyboard.press(key);
-    // Then: The invoked verification helper checks the case's expected result.
   }
   for (const [dx, dy] of [
     [-80, 0],
@@ -1128,6 +1133,7 @@ const readLongFront = async (page: Page) => {
     [0, 60],
   ]) {
     // Given: Prepare `x`, `y` and any shared test state below.
+    // When: Apply the operation or event under test.
     const x = box.x + box.width / 2;
     const y = box.y + box.height / 2;
     await page.mouse.move(x, y);

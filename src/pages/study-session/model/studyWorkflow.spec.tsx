@@ -194,8 +194,8 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
     renderHook(() => useStudySessionPageModel(deckId));
     const previousSessionId = getStudySession(deckId)?.sessionId;
 
-    act(() => vi.advanceTimersByTime(500));
     // When: Exercise `act` with the prepared inputs.
+    act(() => vi.advanceTimersByTime(500));
     act(() => startStudy(deckId, cards, { shuffled: false, maxNumberOfCardsToLearn: 0 }, mocks.uid));
     // Then: Verify the expected result in the assertions below.
     expect(getStudySession(deckId)?.sessionId).not.toBe(previousSessionId);
@@ -249,8 +249,8 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
     const request = Promise.withResolvers<void>();
     mocks.persistOperation.mockReturnValueOnce(request.promise);
     const { result } = renderHook(() => useStudySessionPageModel(deckId));
-    await actAsync(async () => result.current.swipeRight());
     // When: Exercise `actAsync` with the prepared inputs.
+    await actAsync(async () => result.current.swipeRight());
     await actAsync(async () => result.current.swipeRight());
     // Then: Verify the expected result in the assertions below.
     expect(mocks.persistOperation).toHaveBeenCalledOnce();
@@ -369,6 +369,7 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
         vi.spyOn(studySessions, "abandonStudySession").mockReturnValueOnce(request.promise);
       }
       const { result } = renderHook(() => useStudySessionPageModel(deckId));
+      // When: Exercise `actAsync` with the prepared inputs.
       await actAsync(async () => {
         if (operation === "index") result.current.changeIndex(1);
         else result.current.swipeRight();
@@ -378,7 +379,6 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
         if (operation === "abandon") clearStudySessions();
         else restoreStudySession({ ...previous, currentIndex: 1 });
       });
-      // When: Exercise `actAsync` with the prepared inputs.
       await actAsync(async () => {
         request.reject(new Error("permission-denied"));
         await request.promise.catch(() => undefined);
@@ -516,15 +516,15 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
   });
 
   it.each([1, 0])("ignores backward slider movement at index %s without saving or hiding the answer", async (index) => {
-    // Given: Prepare `session` and any shared test state below.
+    // Given: Use this case's inputs and any shared test setup.
     mocks.preferences = createPreferences({ cardSwipeLeft: "DoNothing", showSwipeFeedback: true });
     void setStudySessionIndex(deckId, index);
     const { result } = renderHook(() => useStudySessionPageModel(deckId));
+    // When: Exercise `actAsync` with the prepared inputs.
     await actAsync(async () => result.current.toggleBackText());
     const session = getStudySession(deckId);
 
     await actAsync(async () => result.current.swipeLeft());
-    // When: Exercise `actAsync` with the prepared inputs.
     await actAsync(async () => result.current.changeIndex(0));
 
     // Then: Verify the expected result in the assertions below.
@@ -625,10 +625,10 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
     // Given: Prepare `request` and any shared test state below.
     const request = Promise.withResolvers<void>();
     mocks.persistOperation.mockReturnValueOnce(request.promise);
+    // When: Exercise `renderHook` with the prepared inputs.
     const { result: firstResult, unmount: unmountFirst } = renderHook(() => useStudySessionPageModel(deckId));
     await actAsync(async () => firstResult.current.swipeRight());
     unmountFirst();
-    // When: Exercise `renderHook` with the prepared inputs.
     const { result: nextResult } = renderHook(() => useStudySessionPageModel(deckId));
     // Then: Verify the expected result in the assertions below.
     expect(nextResult.current.pageState.swipePending).toBe(true);
@@ -658,8 +658,8 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
       void setStudySessionIndex(deckId, 1);
       const { result: firstResult, unmount: unmountFirst } = renderHook(() => useStudySessionPageModel(deckId));
       await actAsync(async () => firstResult.current.swipeRight());
-      act(firstResult.current.openHelp);
       // When: Exercise `act` with the prepared inputs.
+      act(firstResult.current.openHelp);
       act(firstResult.current.toggleAutoPlay);
       // Then: Verify the expected result in the assertions below.
       expect(firstResult.current.pageState.completion).toEqual({ cardCount: 2 });
@@ -749,11 +749,11 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
     vi.useFakeTimers();
     mocks.preferences = createPreferences({ cardInterval: 1, defaultAutoPlay: true });
     const { result } = renderHook(() => useStudySessionPageModel(deckId));
+    // When: Exercise `actAsync` with the prepared inputs.
     await actAsync(async () => {
       await vi.advanceTimersByTimeAsync(500);
     });
     act(result.current.openHelp);
-    // When: Exercise `actAsync` with the prepared inputs.
     await actAsync(async () => {
       await vi.advanceTimersByTimeAsync(2000);
     });
@@ -788,12 +788,12 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
     vi.useFakeTimers();
     mocks.preferences = createPreferences({ cardInterval: 1, defaultAutoPlay: true });
     const { unmount: unmountFirst } = renderHook(() => useStudySessionPageModel(deckId));
+    // When: Exercise `actAsync` with the prepared inputs.
     await actAsync(async () => {
       await vi.advanceTimersByTimeAsync(500);
     });
     unmountFirst();
     renderHook(() => useStudySessionPageModel(deckId));
-    // When: Exercise `actAsync` with the prepared inputs.
     await actAsync(async () => {
       await vi.advanceTimersByTimeAsync(500);
     });

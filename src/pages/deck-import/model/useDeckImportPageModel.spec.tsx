@@ -94,6 +94,7 @@ describe("Deck import operations [DECK-IMPORT-01 DECK-IMPORT-02 DECK-IMPORT-03 D
     const { result } = renderHook(useDeckImportPageModel);
     for (let attempt = 0; attempt < 2; attempt += 1) {
       // Given: Use the current iteration or branch inputs from the enclosing case.
+      // When: Exercise `actAsync` with the prepared inputs.
       await actAsync(async () => selectDeckImportFile(csv("same.csv")));
       await actAsync(async () => result.current.importPreview());
       // Then: Verify the expected result in the assertions below.
@@ -111,6 +112,7 @@ describe("Deck import operations [DECK-IMPORT-01 DECK-IMPORT-02 DECK-IMPORT-03 D
     expect(new Set(cards.map((card) => card.id)).size).toBe(2);
     for (const deck of decks) {
       // Given: Use the current iteration or branch inputs from the enclosing case.
+      // Then: Verify the expected result in the assertions below.
       expect(cards.filter((card) => card.deckId === deck.id)).toEqual([
         expect.objectContaining({ frontText: "front", backText: "back" }),
       ]);
@@ -124,8 +126,8 @@ describe("Deck import operations [DECK-IMPORT-01 DECK-IMPORT-02 DECK-IMPORT-03 D
       vi.mocked(createDeck).mockResolvedValue(undefined);
       vi.mocked(createCard).mockResolvedValue(undefined);
       const { result, rerender } = renderHook(useDeckImportPageModel);
-      await actAsync(() => selectDeckImportFile(new File(["front,back,tag,key\nsecond,answer,tag,other"], "deck.csv")));
       // When: Exercise `actAsync` with the prepared inputs.
+      await actAsync(() => selectDeckImportFile(new File(["front,back,tag,key\nsecond,answer,tag,other"], "deck.csv")));
       await actAsync(async () => result.current.importPreview());
       const destination = vi.mocked(createDeck).mock.calls[0]![1];
       const deck = createDeckFixture({ id: destination.id, name: destination.name, uid: controls.uid });
@@ -177,8 +179,8 @@ describe("Deck import operations [DECK-IMPORT-01 DECK-IMPORT-02 DECK-IMPORT-03 D
 
   it("does not save invalid CSV rows", async () => {
     // Given: Use this case's inputs and any shared test setup.
+    // When: Exercise `selectDeckImportFile` with the prepared inputs.
     await selectDeckImportFile(new File(["front,back"], "invalid.csv"));
-    // When: Evaluate `importDeckPreview` as part of the following checks.
     // Then: Verify the expected result in the assertions below.
     expect(await importDeckPreview()).toBe(false);
     expect(createDeck).not.toHaveBeenCalled();
@@ -186,9 +188,9 @@ describe("Deck import operations [DECK-IMPORT-01 DECK-IMPORT-02 DECK-IMPORT-03 D
 
   it("reuses selected identities when a local save fails", async () => {
     // Given: Use this case's inputs and any shared test setup.
+    // When: Exercise `selectDeckImportFile` with the prepared inputs.
     await selectDeckImportFile(csv());
     vi.mocked(createCard).mockRejectedValueOnce(new Error("local save failed"));
-    // When: Evaluate `importDeckPreview` as part of the following checks.
     // Then: Verify the expected result in the assertions below.
     expect(await importDeckPreview()).toBe(false);
     const firstDeck = vi.mocked(createDeck).mock.calls[0]?.slice(0, 2);
@@ -200,9 +202,9 @@ describe("Deck import operations [DECK-IMPORT-01 DECK-IMPORT-02 DECK-IMPORT-03 D
 
   it("does not import a selection prepared by another account", async () => {
     // Given: Use this case's inputs and any shared test setup.
+    // When: Exercise `selectDeckImportFile` with the prepared inputs.
     await selectDeckImportFile(csv());
     controls.uid = "another-uid";
-    // When: Evaluate `importDeckPreview` as part of the following checks.
     // Then: Verify the expected result in the assertions below.
     expect(await importDeckPreview()).toBe(false);
     expect(createDeck).not.toHaveBeenCalled();

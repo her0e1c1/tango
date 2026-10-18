@@ -28,7 +28,7 @@ export const Inputs: Story = {
     });
     await step("STORYBOOK-DECK-FORM-02 Omit the unused line-break setting", async () => {
       // Given: Use the rendered story, its args, parameters, and any setup below.
-      // When: Evaluate `canvas.queryByRole` as part of the following checks.
+      // When: Storybook renders this scenario with its configured args and parameters.
       // Then: Verify the expected result in the assertions below.
       await expect(
         canvas.queryByRole("checkbox", { name: "Convert line breaks", hidden: true })
@@ -78,14 +78,11 @@ export const Failure: Story = {
 };
 
 function requiredNameStory(japanese: boolean): Story {
-  // Given: Prepare `nameLabel`, `categoryLabel`, `submitLabel` and any shared test state below.
   const nameLabel = japanese ? "デッキ名" : "Name";
   const categoryLabel = japanese ? "表示形式" : "Display format";
   const submitLabel = japanese ? "デッキを作成" : "Create deck";
   const message = japanese ? "デッキ名は必須です。" : "Deck name is required.";
 
-  // When: Evaluate `step` as part of the following checks.
-  // Then: Verify the expected result in the assertions below.
   return {
     parameters: { locale: japanese ? "ja" : "en" },
     play: async ({ canvas, userEvent, step }) => {
@@ -100,6 +97,7 @@ function requiredNameStory(japanese: boolean): Story {
           await userEvent.selectOptions(category, "math");
           for (const value of ["", "   "]) {
             // Given: Use the current iteration or branch inputs from the enclosing case.
+            // When: Exercise `userEvent.clear` with the prepared inputs.
             await userEvent.clear(name);
             if (value) await userEvent.type(name, value);
             await userEvent.click(canvas.getByRole("button", { name: submitLabel }));
@@ -142,6 +140,7 @@ export const RequiredNameLanguageChange: Story = {
         ["en-US", "Name", "Deck name is required."],
       ] as const) {
         // Given: Use the current iteration or branch inputs from the enclosing case.
+        // When: Apply the operation or event under test.
         Object.defineProperty(navigator, "language", { configurable: true, value: language });
         window.dispatchEvent(new Event("languagechange"));
         // Then: Verify the expected result in the assertions below.

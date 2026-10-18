@@ -123,8 +123,8 @@ describe("Authentication and sync lifecycle [ACCOUNT-01 ACCOUNT-03 ACCOUNT-04 PE
   });
   it("enables sync after the same UID is linked", async () => {
     // Given: Use this case's inputs and any shared test setup.
-    await publish(user("same"));
     // When: Exercise `publish` with the prepared inputs.
+    await publish(user("same"));
     await publish(user("same", false, "Account Owner"));
     // Then: Verify the expected result in the assertions below.
     await vi.waitFor(() => expect(control.network).toBe(true));
@@ -139,12 +139,12 @@ describe("Authentication and sync lifecycle [ACCOUNT-01 ACCOUNT-03 ACCOUNT-04 PE
   });
   it("ACCOUNT-03 blocks signout while restored cache changes are pending in all collections", async () => {
     // Given: Use this case's inputs and any shared test setup.
+    // When: Exercise `publish` with the prepared inputs.
     await publish(user("account", false));
     control.pendingChanges = ["deck", "card", "studySession", "studyAnswer"].map((collection) => ({
       collection,
       uid: "account",
     }));
-    // When: Evaluate `control.before` as part of the following checks.
     // Then: Verify the expected result in the assertions below.
     await expect(control.before?.(null)).rejects.toThrow("Sync changes");
     expect(getAuthSession()).toMatchObject({ status: "authenticated", uid: "account" });
@@ -156,10 +156,10 @@ describe("Authentication and sync lifecycle [ACCOUNT-01 ACCOUNT-03 ACCOUNT-04 PE
     "ACCOUNT-03 blocks signout when only the current account's %s changes are pending",
     async (collection) => {
       // Given: Use this case's inputs and any shared test setup.
+      // When: Exercise `publish` with the prepared inputs.
       await publish(user("account", false, "Account Owner"));
       control.pendingChanges = [{ collection, uid: "account" }];
 
-      // When: Evaluate `control.before` as part of the following checks.
       // Then: Verify the expected result in the assertions below.
       await expect(control.before?.(null)).rejects.toThrow("Sync changes");
 
@@ -177,13 +177,13 @@ describe("Authentication and sync lifecycle [ACCOUNT-01 ACCOUNT-03 ACCOUNT-04 PE
   );
   it("ACCOUNT-03 permits signout when cached pending changes belong only to another account", async () => {
     // Given: Use this case's inputs and any shared test setup.
+    // When: Exercise `publish` with the prepared inputs.
     await publish(user("account", false));
     control.pendingChanges = ["deck", "card", "studySession", "studyAnswer"].map((collection) => ({
       collection,
       uid: "other-account",
     }));
 
-    // When: Evaluate `control.before` as part of the following checks.
     // Then: Verify the expected result in the assertions below.
     await expect(control.before?.(null)).resolves.toBeUndefined();
 
@@ -210,7 +210,7 @@ describe("Authentication and sync lifecycle [ACCOUNT-01 ACCOUNT-03 ACCOUNT-04 PE
       expect(control.subscribed).toBe("account");
       expect(control.network).toBe(true);
       expect(control.stops).toEqual([]);
-      // When: Exercise `cacheRead.resolve` with the prepared inputs.
+      // When: Apply the operation or event under test.
       if (outcome === "pending changes") cacheRead.resolve();
       else cacheRead.reject(new Error(expectedError));
       // Then: Verify the expected result in the assertions below.
@@ -256,7 +256,7 @@ describe("Authentication and sync lifecycle [ACCOUNT-01 ACCOUNT-03 ACCOUNT-04 PE
     await Promise.resolve();
     // Then: Verify the expected result in the assertions below.
     expect(getAuthSession().status).toBe("initializing");
-    // When: Exercise `ready.resolve` with the prepared inputs.
+    // When: Apply the operation or event under test.
     ready.resolve();
     // Then: Verify the expected result in the assertions below.
     await vi.waitFor(() => expect(getAuthSession()).toMatchObject({ status: "authenticated", uid: "same" }));
@@ -286,8 +286,8 @@ describe("Authentication and sync lifecycle [ACCOUNT-01 ACCOUNT-03 ACCOUNT-04 PE
     // Given: Prepare `bootstrap` and any shared test state below.
     const bootstrap = Promise.withResolvers<void>();
     control.anonymous.mockReturnValueOnce(bootstrap.promise);
-    await publish(null);
     // When: Exercise `publish` with the prepared inputs.
+    await publish(null);
     await publish(null);
     const error = new Error("anonymous sign-in failed");
     bootstrap.reject(error);
@@ -329,7 +329,7 @@ describe("Authentication and sync lifecycle [ACCOUNT-01 ACCOUNT-03 ACCOUNT-04 PE
       expect(getAuthSession()).toEqual({ status: "initializing" });
       expect(control.subscribed).toBe("");
       expect(control.stops).toEqual(["account"]);
-      // When: Exercise `ready.resolve` with the prepared inputs.
+      // When: Apply the operation or event under test.
       if (outcome === "success") ready.resolve();
       else ready.reject(new Error("late subscription failure"));
       await ready.promise.catch(() => undefined);
@@ -377,7 +377,7 @@ describe("Authentication and sync lifecycle [ACCOUNT-01 ACCOUNT-03 ACCOUNT-04 PE
     // Then: Verify the expected result in the assertions below.
     await vi.waitFor(() => expect(control.subscribed).toBe("anonymous"));
     const cause = new Error("cached data could not be loaded");
-    // When: Exercise `ready.reject` with the prepared inputs.
+    // When: Apply the operation or event under test.
     ready.reject(cause);
     // Then: Verify the expected result in the assertions below.
     await vi.waitFor(() =>

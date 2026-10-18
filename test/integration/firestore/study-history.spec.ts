@@ -67,11 +67,9 @@ describe("Firestore history reads", () => {
 
     // Then: Verify the expected result in the assertions below.
     async function read(deck: string | null, metric: "started" | "completed", cached = false) {
-      // Given: Prepare `records`, `fromCache`, `failure` and any shared test state below.
       let records: StudyHistoryRecord[] | undefined;
       let fromCache: boolean | undefined;
       let failure: Error | undefined;
-      // When: Exercise `subscribeStudyHistory` with the prepared inputs.
       const stop = subscribeStudyHistory(
         { uid: "uid", period, deckId: deck, metric },
         (value, cache) => {
@@ -84,9 +82,7 @@ describe("Firestore history reads", () => {
           failure = error;
         }
       );
-      // Then: Verify the expected result in the assertions below.
       try {
-        // Then: Check the expected result after the operation in this branch.
         await vi.waitFor(
           () => {
             if (failure) throw failure;
@@ -133,14 +129,13 @@ describe("Firestore history reads", () => {
     ]);
     // When: Exercise `disableNetwork` with the prepared inputs.
     await disableNetwork(testDb);
-    // Then: Verify the expected result in the assertions below.
     try {
+      // Given: Prepare `cached` and any shared test state below.
       const cached = await read(deckId, "started", true);
-      // Then: Check the expected result after the operation in this branch.
+      // When: Observe the prepared result through the following checks.
+      // Then: Verify the expected result in the assertions below.
       expect(cached.fromCache).toBe(true);
-      // Then: Check the expected result after the operation in this branch.
       expect(cached.records).toHaveLength(130);
-      // Then: Check the expected result after the operation in this branch.
       expect((await read(deckId, "completed", true)).records).toHaveLength(1);
     } finally {
       await enableNetwork(testDb);
@@ -223,9 +218,7 @@ describe("Bounded answer history", () => {
       ["g", "good", from + 1, deckId],
       ["h", "invalid", from, deckId],
     ] as const) {
-      // Given: Prepare `timestamp` and any shared test state below.
       const timestamp = Timestamp.fromMillis(time);
-      // When: Exercise `batch.set` with the prepared inputs.
       batch.set(doc(testDb, "studyAnswer", `${prefix}-${id}`), {
         uid: "uid",
         deckId: deck,
@@ -236,12 +229,11 @@ describe("Bounded answer history", () => {
         createdAt: timestamp,
         updatedAt: serverTimestamp(),
       });
-      // Then: The invoked verification helper checks the case's expected result.
     }
+    // When: Exercise `batch.commit` with the prepared inputs.
     await batch.commit();
     const input = { uid: "uid", from, to: from + 1, deckId, limit: 10 };
     const online = await readAnswerHistory(input);
-    // When: Observe the prepared result through the following checks.
     // Then: Verify the expected result in the assertions below.
     expect(online).toMatchObject({ source: "server", truncated: false, invalidCount: 1, hasPendingWrites: false });
     expect(online.records.map((record) => record.id)).toEqual(["d", "c", "b", "a"].map((id) => `${prefix}-${id}`));
@@ -261,16 +253,15 @@ describe("Bounded answer history", () => {
     ]);
     // When: Exercise `disableNetwork` with the prepared inputs.
     await disableNetwork(testDb);
-    // Then: Verify the expected result in the assertions below.
     try {
-      // Then: Check the expected result after the operation in this branch.
+      // Given: Use the current iteration or branch inputs from the enclosing case.
+      // When: Observe the prepared result through the following checks.
+      // Then: Verify the expected result in the assertions below.
       expect(await readAnswerHistory(input, true)).toMatchObject({ source: "cache", records: online.records });
       const user = auth.currentUser;
       if (!user) throw new Error("Missing test user");
       Object.assign(user, { isAnonymous: true });
-      // Then: Check the expected result after the operation in this branch.
       expect(await readAnswerHistory(input, true)).toMatchObject({ source: "cache", records: online.records });
-      // Then: Check the expected result after the operation in this branch.
       expect(await readAnswerHistory({ ...input, from: from + 100, to: from + 101 }, true)).toMatchObject({
         source: "cache",
         records: [],
@@ -315,17 +306,18 @@ describe("Bounded answer history", () => {
     });
     const snapshots: StudyAnswerHistory[] = [];
     const errors: Error[] = [];
-    // When: Exercise `subscribeStudyAnswerHistory` with the prepared inputs.
     const stop = subscribeStudyAnswerHistory(
       input,
       (value) => snapshots.push(value),
       (error) => errors.push(error)
     );
     let stopObserver: (() => void) | undefined;
-    // Then: Verify the expected result in the assertions below.
     try {
-      // Then: Check the expected result after the operation in this branch.
+      // Given: Use the current iteration or branch inputs from the enclosing case.
+      // When: Observe the prepared result through the following checks.
+      // Then: Verify the expected result in the assertions below.
       await vi.waitFor(() => expect(snapshots.at(-1)).toMatchObject({ source: "server", records: [] }));
+      // When: Exercise `disableNetwork` with the prepared inputs.
       await disableNetwork(testDb);
       const committed = writeStudyAnswer({
         id: crypto.randomUUID(),
@@ -336,7 +328,7 @@ describe("Bounded answer history", () => {
         rating: "good",
         answeredAt: from,
       });
-      // Then: Check the expected result after the operation in this branch.
+      // Then: Verify the expected result in the assertions below.
       await vi.waitFor(() =>
         expect(snapshots.at(-1)).toMatchObject({
           source: "cache",
@@ -344,9 +336,10 @@ describe("Bounded answer history", () => {
           records: [expect.objectContaining({ rating: "good" })],
         })
       );
+      // When: Exercise `enableNetwork` with the prepared inputs.
       await enableNetwork(testDb);
       await committed;
-      // Then: Check the expected result after the operation in this branch.
+      // Then: Verify the expected result in the assertions below.
       await vi.waitFor(() =>
         expect(snapshots.at(-1)).toMatchObject({
           source: "server",
@@ -356,6 +349,7 @@ describe("Bounded answer history", () => {
       );
       const remoteId = crypto.randomUUID();
       const timestamp = Timestamp.fromMillis(from);
+      // When: Exercise `setDoc` with the prepared inputs.
       await setDoc(doc(remote, "studyAnswer", remoteId), {
         uid: "uid",
         deckId,
@@ -366,12 +360,13 @@ describe("Bounded answer history", () => {
         createdAt: timestamp,
         updatedAt: serverTimestamp(),
       });
-      // Then: Check the expected result after the operation in this branch.
+      // Then: Verify the expected result in the assertions below.
       await vi.waitFor(() => {
         expect(snapshots.at(-1)?.source).toBe("server");
         expect(snapshots.at(-1)?.records).toHaveLength(2);
         expect(snapshots.at(-1)?.records).toContainEqual(expect.objectContaining({ id: remoteId, rating: "easy" }));
       });
+      // When: Exercise `stop` with the prepared inputs.
       stop();
       const count = snapshots.length;
       const laterId = crypto.randomUUID();
@@ -394,15 +389,11 @@ describe("Bounded answer history", () => {
         createdAt: timestamp,
         updatedAt: serverTimestamp(),
       });
-      // Then: Check the expected result after the operation in this branch.
+      // Then: Verify the expected result in the assertions below.
       await vi.waitFor(() => expect(observed).toBe(true));
-      // Then: Check the expected result after the operation in this branch.
       expect(snapshots).toHaveLength(count);
-      // Then: Check the expected result after the operation in this branch.
       expect(snapshots.at(-1)?.records).toHaveLength(2);
-      // Then: Check the expected result after the operation in this branch.
       expect(snapshots.at(-1)?.records).toContainEqual(expect.objectContaining({ id: remoteId, rating: "easy" }));
-      // Then: Check the expected result after the operation in this branch.
       expect(errors).toEqual([]);
     } finally {
       stop();

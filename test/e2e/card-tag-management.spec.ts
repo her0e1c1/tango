@@ -116,7 +116,7 @@ test("CARD-TAG-MANAGEMENT-01 directly edits only the current Card and persists o
   await saveCard(page, card.deckId);
   // Then: Verify the expected result in the assertions below.
   await expect.poll(() => readTags(card.id)).toEqual(["renamed", "new tag"]);
-  // When: Exercise `requireDocument` with the prepared inputs.
+
   const saved = await requireDocument("card", card.id);
   // Then: Verify the expected result in the assertions below.
   expect(saved.fields.frontText?.stringValue).toBe(changed.frontText);

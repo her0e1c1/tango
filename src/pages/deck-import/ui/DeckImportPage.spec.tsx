@@ -280,7 +280,7 @@ describe("DeckImportPage [DECK-IMPORT-01 DECK-IMPORT-04 DECK-IMPORT-05 DECK-IMPO
     // Then: Verify the expected result in the assertions below.
     expect(screen.getByRole("button", { name: "Add 11 cards" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Add 11 cards" })).toHaveAttribute("aria-busy", "true");
-    // When: Exercise `request.resolve` with the prepared inputs.
+    // When: Apply the operation or event under test.
     request.resolve();
     // Then: Verify the expected result in the assertions below.
     expect(await screen.findByRole("heading", { name: "Deck list destination" })).toBeVisible();

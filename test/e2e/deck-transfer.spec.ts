@@ -22,6 +22,7 @@ test("DECK-TRANSFER-01 downloads every Card field as one CSV row", async ({ fixt
   const csvCell = (value: string) => (value.includes(",") ? `"${value.replaceAll('"', '""')}"` : value);
   for (const card of cards) {
     // Given: Use the current iteration or branch inputs from the enclosing case.
+    // Then: Verify the expected result in the assertions below.
     expect(csv).toContain([card.frontText, card.backText, card.tags.join(","), card.uniqueKey].map(csvCell).join(","));
   }
   expect(csv.trim().split("\n")).toHaveLength(cards.length);

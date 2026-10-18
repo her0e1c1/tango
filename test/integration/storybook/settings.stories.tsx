@@ -30,7 +30,7 @@ export const Japanese: Story = {
     // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-SETTINGS-01 Keep System selected while following the Japanese browser language", async () => {
       // Given: Use the rendered story, its args, parameters, and any setup below.
-      // When: Evaluate `canvas.findByRole` as part of the following checks.
+      // When: Storybook renders this scenario with its configured args and parameters.
       // Then: Verify the expected result in the assertions below.
       await expect(await canvas.findByRole("heading", { name: "設定" })).toBeVisible();
       await expect(canvas.getByRole("combobox", { name: "言語" })).toHaveDisplayValue("System");
@@ -38,7 +38,7 @@ export const Japanese: Story = {
     });
     await step("STORYBOOK-SETTINGS-08 Expose localized control names and slider values", async () => {
       // Given: Use the rendered story, its args, parameters, and any setup below.
-      // When: Evaluate `canvas.getByRole` as part of the following checks.
+      // When: Storybook renders this scenario with its configured args and parameters.
       // Then: Verify the expected result in the assertions below.
       await expect(canvas.getByRole("checkbox", { name: "裏面のスワイプ操作を表示" })).toBeVisible();
       await expect(canvas.getByRole("checkbox", { name: "ダークモード" })).toBeVisible();
@@ -81,7 +81,7 @@ export const Structure: Story = {
     // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-SETTINGS-04 Keep account operations outside settings", async () => {
       // Given: Use the rendered story, its args, parameters, and any setup below.
-      // When: Evaluate `canvas.findByRole` as part of the following checks.
+      // When: Storybook renders this scenario with its configured args and parameters.
       // Then: Verify the expected result in the assertions below.
       await expect(await canvas.findByRole("heading", { name: "Settings" })).toBeVisible();
       for (const name of ["Language", "Appearance", "Study"])
@@ -114,13 +114,13 @@ export const Structure: Story = {
       for (const name of ["Language", "Appearance", "Study"]) {
         // Given: Prepare `region` and any shared test state below.
         const region = canvas.getByRole("region", { name });
-        // When: Evaluate `within(region).getByRole` as part of the following checks.
+        // When: Observe the prepared result through the following checks.
         // Then: Verify the expected result in the assertions below.
         await expect(region).toHaveAttribute("aria-labelledby", within(region).getByRole("heading", { name }).id);
         for (const icon of region.querySelectorAll("svg"))
           await expect(icon.closest('[aria-hidden="true"]')).not.toBeNull();
       }
-      // When: Evaluate `canvas.getByRole` as part of the following checks.
+      // When: Storybook renders this scenario with its configured args and parameters.
       // Then: Verify the expected result in the assertions below.
       await expect(canvas.getByRole("checkbox", { name: "Dark mode" })).toHaveAccessibleDescription(
         "Use the darker Calm Focus palette"
@@ -140,8 +140,8 @@ export const LanguageAndInputs: Story = {
       await expect(canvas.getByRole("combobox", { name: "言語" })).toHaveValue("ja");
       for (const name of ["再生コントロールを表示", "カードの詳細を表示", "スキップ操作を表示"]) {
         // Given: Prepare `control` and any shared test state below.
-        // When: Exercise `canvas.getByRole` with the prepared inputs.
         const control = canvas.getByRole("checkbox", { name });
+        // When: Toggle this saved preference.
         await userEvent.click(control);
         // Then: Verify the expected result in the assertions below.
         await expect(control).not.toBeChecked();
@@ -162,7 +162,6 @@ export const LanguageAndInputs: Story = {
   },
 };
 function maximumStory(japanese: boolean): Story {
-  // Given: Prepare `sliderLabel`, `description`, `allMatchingText` and any shared test state below.
   const sliderLabel = japanese ? "最大カード数" : "Maximum cards";
   const description = japanese ? /0 は.*すべてのカード/ : /0 includes all cards matching tags/;
   const allMatchingText = japanese ? "条件に一致するすべてのカード" : "All matching cards";
@@ -173,8 +172,6 @@ function maximumStory(japanese: boolean): Story {
     { value: "0", spoken: allMatchingText, visible: allMatchingText },
   ];
 
-  // When: Evaluate `step` as part of the following checks.
-  // Then: Verify the expected result in the assertions below.
   return {
     parameters: {
       locale: japanese ? "ja" : "en",
@@ -206,7 +203,6 @@ function maximumStory(japanese: boolean): Story {
 export const Maximum = maximumStory(false);
 export const JapaneseMaximum = maximumStory(true);
 function intervalStory(japanese: boolean, autoPlay: boolean, playback: boolean): Story {
-  // Given: Prepare `sliderLabel`, `autoPlayLabel`, `playbackLabel` and any shared test state below.
   const sliderLabel = japanese ? "自動再生の間隔" : "Autoplay interval";
   const autoPlayLabel = japanese ? "自動再生で開始" : "Start autoplay";
   const playbackLabel = japanese ? "再生コントロールを表示" : "Show playback controls";
@@ -223,8 +219,6 @@ function intervalStory(japanese: boolean, autoPlay: boolean, playback: boolean):
         { value: "60", spoken: "60 seconds", visible: "60s" },
       ];
 
-  // When: Evaluate `step` as part of the following checks.
-  // Then: Verify the expected result in the assertions below.
   return {
     parameters: {
       locale: japanese ? "ja" : "en",
@@ -254,7 +248,7 @@ function intervalStory(japanese: boolean, autoPlay: boolean, playback: boolean):
           await expect(canvas.getByRole<HTMLInputElement>("checkbox", { name: autoPlayLabel }).checked).toBe(autoPlay);
           await expect(canvas.getByRole<HTMLInputElement>("checkbox", { name: playbackLabel }).checked).toBe(playback);
         }
-        // When: Observe the prepared result through the following checks.
+        // When: Storybook renders this scenario with its configured args and parameters.
         // Then: Verify the expected result in the assertions below.
         await expect(slider).toHaveAccessibleDescription(description);
       });

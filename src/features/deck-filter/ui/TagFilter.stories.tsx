@@ -80,7 +80,7 @@ export const AllSelectedManyTags: Story = {
     await step("STORYBOOK-DECK-FILTER-13 Keep all selected tags in a bounded scrolling region", async () => {
       // Given: Use the rendered story, its args, parameters, and any setup below.
       const choices = canvas.getByRole("group", { name: "Tag choices" });
-      // When: Evaluate `canvas.getAllByRole` as part of the following checks.
+      // When: Storybook renders this scenario with its configured args and parameters.
       // Then: Verify the expected result in the assertions below.
       await expect(canvas.getAllByRole("checkbox", { checked: true })).toHaveLength(120);
       await expect(canvas.getByText("120 selected")).toBeVisible();
@@ -282,7 +282,7 @@ export const EightChoices: Story = {
     // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-DECK-FILTER-11 Show all eight choices without disclosure", async () => {
       // Given: Use the rendered story, its args, parameters, and any setup below.
-      // When: Evaluate `canvas.getAllByRole` as part of the following checks.
+      // When: Storybook renders this scenario with its configured args and parameters.
       // Then: Verify the expected result in the assertions below.
       await expect(canvas.getAllByRole("checkbox")).toHaveLength(8);
       await expect(canvas.getByText("No filter")).toBeVisible();
@@ -298,7 +298,7 @@ export const EmptyAll: Story = {
     // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-DECK-FILTER-12 Preserve the matching condition without tags", async () => {
       // Given: Use the rendered story, its args, parameters, and any setup below.
-      // When: Evaluate `canvas.getByText` as part of the following checks.
+      // When: Storybook renders this scenario with its configured args and parameters.
       // Then: Verify the expected result in the assertions below.
       await expect(canvas.getByText("No tags available.")).toBeVisible();
       await expect(canvas.getByRole("radio", { name: "All" })).toBeChecked();

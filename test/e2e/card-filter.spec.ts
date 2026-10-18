@@ -29,7 +29,7 @@ async function seedFilter(deck: FixtureDeck, selectedTags: string[], tagAndFilte
 
 async function expectSaved(deckId: string, selectedTags: string[], tagAndFilter: boolean) {
   // Given: Use this case's inputs and any shared test setup.
-  // When: Evaluate `requireDocument` as part of the following checks.
+
   // Then: Verify the expected result in the assertions below.
   await expect
     .poll(async () => (await requireDocument("deck", deckId)).fields.cardFilter)
@@ -47,7 +47,7 @@ async function expectSaved(deckId: string, selectedTags: string[], tagAndFilter:
 
 async function expectList(page: Page, names: string[]) {
   // Given: Use this case's inputs and any shared test setup.
-  // When: Evaluate `page.getByRole` as part of the following checks.
+  // When: Observe the prepared result through the following checks.
   // Then: Verify the expected result in the assertions below.
   await expect(page.getByRole("button", { name: /^View / })).toHaveCount(names.length);
   for (const name of names) await expect(page.getByRole("button", { name: `View ${name}`, exact: true })).toBeVisible();

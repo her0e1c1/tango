@@ -283,9 +283,9 @@ describe("preferences store", () => {
     [1.5, 10],
   ])("UNIT-STORE-PREF-05 validates study limit %s as %s without discarding valid changes", (value, expected) => {
     // Given: Use this case's inputs and any shared test setup.
+    // When: Exercise `model.updatePreferences` with the prepared inputs.
     model.updatePreferences(numericPreferences);
 
-    // When: Exercise `model.updatePreferences` with the prepared inputs.
     model.updatePreferences({ language: "ja", study: { maxNumberOfCardsToLearn: value } });
 
     // Then: Verify the expected result in the assertions below.
@@ -304,9 +304,9 @@ describe("preferences store", () => {
     [61, 60],
   ])("UNIT-STORE-PREF-05 validates card interval %s as %s without discarding valid changes", (value, expected) => {
     // Given: Use this case's inputs and any shared test setup.
+    // When: Exercise `model.updatePreferences` with the prepared inputs.
     model.updatePreferences(numericPreferences);
 
-    // When: Exercise `model.updatePreferences` with the prepared inputs.
     model.updatePreferences({ language: "ja", study: { cardInterval: value } });
 
     // Then: Verify the expected result in the assertions below.
@@ -323,9 +323,9 @@ describe("preferences store", () => {
     [-1, 0],
   ])("UNIT-STORE-PREF-05 validates back text size %s as %s without discarding valid changes", (value, expected) => {
     // Given: Use this case's inputs and any shared test setup.
+    // When: Exercise `model.updatePreferences` with the prepared inputs.
     model.updatePreferences(numericPreferences);
 
-    // When: Exercise `model.updatePreferences` with the prepared inputs.
     model.updatePreferences({ language: "ja", appearance: { sizeBackText: value } });
 
     // Then: Verify the expected result in the assertions below.

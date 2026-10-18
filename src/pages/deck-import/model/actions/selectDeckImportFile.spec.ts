@@ -38,11 +38,11 @@ describe("Deck import selection and saving [DECK-IMPORT-01 DECK-IMPORT-03 DECK-I
   it.each([[0x82, 0xa0], [0xc3], [0xc0, 0xaf], [0xed, 0xa0, 0x80]])(
     "rejects invalid UTF-8 bytes %j before parsing and releases the selection lock",
     async (...bytes) => {
-      // Given: Prepare `invalid` and any shared test state below.
+      // Given: Use this case's inputs and any shared test setup.
+      // When: Exercise `selectDeckImportFile` with the prepared inputs.
       await selectDeckImportFile(file("previous.csv"));
       vi.mocked(parseCsv).mockClear();
       const invalid = new File([new Uint8Array([...bytes, 44, 98, 44, 44, 107])], "invalid.csv");
-      // When: Exercise `selectDeckImportFile` with the prepared inputs.
       await selectDeckImportFile(invalid);
       // Then: Verify the expected result in the assertions below.
       expect(parseCsv).not.toHaveBeenCalled();
@@ -114,7 +114,7 @@ describe("Deck import selection and saving [DECK-IMPORT-01 DECK-IMPORT-03 DECK-I
       // Then: Verify the expected result in the assertions below.
       expect(deckImportStore.getState().status).toBe("validating");
       vi.mocked(getAuthUid).mockReturnValue("next-user");
-      // When: Exercise `pending.reject` with the prepared inputs.
+      // When: Apply the operation or event under test.
       if (outcome === "failure") pending.reject(new Error("Previous account's file could not be read"));
       else pending.resolve(bytes);
       await selection;
@@ -143,8 +143,8 @@ describe("Deck import selection and saving [DECK-IMPORT-01 DECK-IMPORT-03 DECK-I
     vi.mocked(getAuthUid).mockReturnValue("anonymous-uid");
     vi.mocked(generateId).mockReset().mockReturnValueOnce("local-deck").mockReturnValue("local-card");
 
+    // When: Exercise `selectDeckImportFile` with the prepared inputs.
     await selectDeckImportFile(file("local.csv"));
-    // When: Evaluate `importDeckPreview` as part of the following checks.
     // Then: Verify the expected result in the assertions below.
     await expect(importDeckPreview()).resolves.toBe(true);
 
@@ -155,8 +155,8 @@ describe("Deck import selection and saving [DECK-IMPORT-01 DECK-IMPORT-03 DECK-I
   it("uses the same API for anonymous imports", async () => {
     // Given: Use this case's inputs and any shared test setup.
     vi.mocked(getAuthUid).mockReturnValue("anonymous-uid");
+    // When: Exercise `selectDeckImportFile` with the prepared inputs.
     await selectDeckImportFile(file("guest.csv"));
-    // When: Evaluate `importDeckPreview` as part of the following checks.
     // Then: Verify the expected result in the assertions below.
     await expect(importDeckPreview()).resolves.toBe(true);
 

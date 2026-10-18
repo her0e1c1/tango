@@ -161,12 +161,12 @@ describe("firestore/card", { retry: 3 }, () => {
   });
 
   it("[FIRESTORE-CARD-05] reports failed imported Cards while persisting valid Cards", async () => {
-    // Given: Prepare `deckId`, `valid`, `invalid` and any shared test state below.
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Exercise `initDeck` with the prepared inputs.
     const deckId = await initDeck();
     const valid = { ...newCard, deckId, id: uuid(), frontText: "valid" };
     const invalid = { ...newCard, deckId, id: uuid(), frontText: 42 } as unknown as RemoteCard;
 
-    // When: Evaluate `createCardCommand` as part of the following checks.
     // Then: Verify the expected result in the assertions below.
     await expect(
       Promise.allSettled([createCardCommand("uid", valid), createCardCommand("uid", invalid)]).then((results) => {
@@ -189,11 +189,11 @@ describe("firestore/card", { retry: 3 }, () => {
     await deleteCard("uid", card.id);
     await waitForPendingWrites(db);
 
+    // When: Exercise `editCard` with the prepared inputs.
     await editCard("uid", card);
     await waitForPendingWrites(db);
-    // When: Exercise `query` with the prepared inputs.
+    // Then: Read back the owner's Cards and retain the existing deletion marker.
     const ownedCards = await getDocs(query(collection(db, "card"), where("uid", "==", "uid")));
-    // Then: Verify the expected result in the assertions below.
     expect(ownedCards.docs.find((snapshot) => snapshot.id === card.id)?.data().deletedAt).toEqual(expect.any(Number));
   });
 

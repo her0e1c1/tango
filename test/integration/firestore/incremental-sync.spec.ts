@@ -173,8 +173,8 @@ describe("Firestore synchronization contracts", () => {
 
   it("[FIRESTORE-INCREMENTAL-SYNC-01] merges consecutive snapshots without losing unchanged or same-timestamp documents", async () => {
     // Given: Use this case's inputs and any shared test setup.
+    // When: Exercise `startContent` with the prepared inputs.
     await startContent();
-    // When: Exercise `serverBarrier` with the prepared inputs.
     await serverBarrier("deck");
     // Then: Verify the expected result in the assertions below.
     expect(getDecks()).toEqual([]);
@@ -191,20 +191,18 @@ describe("Firestore synchronization contracts", () => {
       expect(getCards()).toHaveLength(2);
       expect(getDecks()).toHaveLength(2);
     });
-    // When: Exercise `serverBarrier` with the prepared inputs.
     await serverBarrier("card");
+    // When: Exercise `updateDoc` with the prepared inputs.
     await updateDoc(doc(remote, "card", "a"), { frontText: "first edit", updatedAt: serverTimestamp() });
     // Then: Verify the expected result in the assertions below.
     await vi.waitFor(() => expect(getCards().find(({ id }) => id === "a")?.frontText).toBe("first edit"));
-    // When: Exercise `serverBarrier` with the prepared inputs.
     await serverBarrier("card");
+    // When: Exercise `updateDoc` with the prepared inputs.
     await updateDoc(doc(remote, "card", "b"), { frontText: "second edit", updatedAt: serverTimestamp() });
     // Then: Verify the expected result in the assertions below.
     await vi.waitFor(() => expect(getCards().find(({ id }) => id === "b")?.frontText).toBe("second edit"));
     expect(getCards().find(({ id }) => id === "a")?.frontText).toBe("first edit");
-    // When: Exercise `serverBarrier` with the prepared inputs.
     await serverBarrier("card");
-    // Then: Verify the expected result in the assertions below.
     expect(getCards().map(({ id }) => id)).toEqual(["a", "b"]);
   });
 
@@ -218,8 +216,8 @@ describe("Firestore synchronization contracts", () => {
     await startContent();
     // Then: Verify the expected result in the assertions below.
     await vi.waitFor(() => expect(getCards()).toHaveLength(2));
-    // When: Exercise `serverBarrier` with the prepared inputs.
     await serverBarrier("card");
+    // When: Exercise `updateDoc` with the prepared inputs.
     await updateDoc(doc(remote, kind, kind === "deck" ? "deck" : "a"), {
       deletedAt: 1000,
       updatedAt: serverTimestamp(),
@@ -262,8 +260,8 @@ describe("Firestore synchronization contracts", () => {
       await startContent();
       // Then: Verify the expected result in the assertions below.
       await vi.waitFor(() => expect(getDecks().find(({ id }) => id === "deck")?.name).toBe("deck"));
-      // When: Exercise `serverBarrier` with the prepared inputs.
       await serverBarrier("deck");
+      // When: Exercise `disableNetwork` with the prepared inputs.
       await disableNetwork(connection.db);
       const now = Date.now();
       const clock = vi.spyOn(Date, "now").mockReturnValue(now + offset);
@@ -271,15 +269,13 @@ describe("Firestore synchronization contracts", () => {
       clock.mockRestore();
       // Then: Verify the expected result in the assertions below.
       await vi.waitFor(() => expect(getDecks().find(({ id }) => id === "deck")?.name).toBe("pending"));
-      // When: Exercise `deckData` with the prepared inputs.
       await seed("deck", "deck", { ...deckData("deck"), uid: "different-owner" });
+      // When: Exercise `enableNetwork` with the prepared inputs.
       await enableNetwork(connection.db);
       // Then: Verify the expected result in the assertions below.
       await expect(rejection).resolves.toMatchObject({ code: "permission-denied" });
       await waitForPendingWrites(connection.db);
-      // When: Exercise `serverBarrier` with the prepared inputs.
       await serverBarrier("deck");
-      // Then: Verify the expected result in the assertions below.
       await vi.waitFor(() => expect(getDecks().some(({ name }) => name === "pending")).toBe(false));
     }
   );
@@ -291,8 +287,8 @@ describe("Firestore synchronization contracts", () => {
     stops.push(subscribeDecks(uid, onError));
     // Then: Verify the expected result in the assertions below.
     await vi.waitFor(() => expect(getDecks().find(({ id }) => id === "deck")?.name).toBe("deck"));
-    // When: Exercise `serverBarrier` with the prepared inputs.
     await serverBarrier("deck");
+    // When: Exercise `writeBatch` with the prepared inputs.
     const batch = writeBatch(remote);
     batch.update(doc(remote, "deck", "deck"), { name: "changed", updatedAt: serverTimestamp() });
     batch.set(doc(remote, "deck", "invalid"), { ...deckData("invalid"), name: 42 });
@@ -362,7 +358,8 @@ describe("Firestore synchronization contracts", () => {
   it.each([2, 1000])(
     "[FIRESTORE-STUDY-HISTORY-05] merges more than %s new answers and keeps history scopes independent",
     async (maximum) => {
-      // Given: Prepare `initial`, `allDecks`, `past` and any shared test state below.
+      // Given: Use this case's inputs and any shared test setup.
+      // When: Exercise `setDoc` with the prepared inputs.
       await setDoc(doc(remote, "studyAnswer", "initial"), answerData(3000));
       const initial = history(maximum);
       const allDecks = history(maximum, null);
@@ -372,19 +369,17 @@ describe("Firestore synchronization contracts", () => {
       await serverHistory(past, 0);
       for (let offset = 0; offset < maximum + 3; offset += 400) {
         // Given: Prepare `batch` and any shared test state below.
+        // When: Exercise `writeBatch` with the prepared inputs.
         const batch = writeBatch(remote);
         for (let index = offset; index < Math.min(offset + 400, maximum + 3); index += 1)
           batch.set(doc(remote, "studyAnswer", `answer-${String(index).padStart(4, "0")}`), answerData(4000));
-        // When: Exercise `batch.commit` with the prepared inputs.
         await batch.commit();
-        // Then: The invoked verification helper checks the case's expected result.
       }
       await setDoc(doc(remote, "studyAnswer", "backdated"), answerData(1000));
       await setDoc(doc(remote, "studyAnswer", "foreign-deck"), answerData(5000, "other"));
       await serverHistory(initial, maximum);
       await serverHistory(allDecks, maximum);
       await serverHistory(past, 1);
-      // When: Evaluate `initial.get` as part of the following checks.
       // Then: Verify the expected result in the assertions below.
       await vi.waitFor(() =>
         expect(initial.get()?.records[0]?.id).toBe(`answer-${String(maximum + 2).padStart(4, "0")}`)

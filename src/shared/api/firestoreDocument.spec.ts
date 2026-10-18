@@ -5,19 +5,19 @@ import { parseFirestoreDocument } from "./firestoreDocument";
 
 describe("Firestore document utilities [PERSISTENCE-04]", () => {
   it("parses an arbitrary collection document", () => {
-    // Given: Prepare `schema` and any shared test state below.
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Exercise `z.object` with the prepared inputs.
     const schema = z.object({ title: z.string() });
 
-    // When: Evaluate `parseFirestoreDocument` as part of the following checks.
     // Then: Verify the expected result in the assertions below.
     expect(parseFirestoreDocument(schema, "note", "note-a", { title: "Hello" })).toEqual({ title: "Hello" });
   });
 
   it("reports validation details for an arbitrary collection", () => {
-    // Given: Prepare `schema` and any shared test state below.
+    // Given: Use this case's inputs and any shared test setup.
+    // When: Exercise `z.object` with the prepared inputs.
     const schema = z.object({ metadata: z.object({ title: z.string() }) });
 
-    // When: Evaluate `parseFirestoreDocument` as part of the following checks.
     // Then: Verify the expected result in the assertions below.
     expect(() => parseFirestoreDocument(schema, "note", "note-a", { metadata: { title: 42 } })).toThrowError(
       expect.objectContaining({

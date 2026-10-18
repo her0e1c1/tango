@@ -116,7 +116,6 @@ describe("NAVIGATION-06 STUDY-SESSION-03 useDeckListState", () => {
       // Given: Use the current iteration or branch inputs from the enclosing case.
       // When: Exercise `deleteDeck` with the prepared inputs.
       await deleteDeck("user-id", deck.id);
-      // Then: The invoked verification helper checks the case's expected result.
     }
 
     // 2. Checking state (bootstrap idle or checking with loadSample true)

@@ -32,28 +32,24 @@ test("PERSISTENCE-03 reflects a remote Card edit in another open client without 
   const secondaryPage = await secondaryContext.newPage();
   await fixture.seedPage(secondaryPage);
 
-  // When: Evaluate `page.goto` as part of the following checks.
-  // Then: Verify the expected result in the assertions below.
   try {
+    // Given: Use the current iteration or branch inputs from the enclosing case.
     await Promise.all([page.goto(`/deck/${deck.id}`), secondaryPage.goto(`/deck/${deck.id}`)]);
-    // Then: Check the expected result after the operation in this branch.
     await Promise.all([
       expect(page.getByRole("button", { name: `View ${card.frontText}` })).toBeVisible(),
       expect(secondaryPage.getByRole("button", { name: `View ${card.frontText}` })).toBeVisible(),
     ]);
 
+    // When: Apply the operation or event under test.
     await page.getByRole("button", { name: `Open actions for ${card.frontText}` }).click();
     await page.getByRole("menuitem", { name: "Edit" }).click();
     await page.getByRole("textbox", { name: "Front text" }).fill(updatedFrontText);
     await page.getByRole("button", { name: "Save changes" }).click();
 
-    // Then: Check the expected result after the operation in this branch.
+    // Then: Verify the expected result in the assertions below.
     await expect(page).toHaveURL(new RegExp(`/deck/${deck.id}$`));
-    // Then: Check the expected result after the operation in this branch.
     await expect(secondaryPage.getByRole("button", { name: `View ${updatedFrontText}` })).toBeVisible();
-    // Then: Check the expected result after the operation in this branch.
     await expect(secondaryPage.getByRole("button", { name: `View ${card.frontText}` })).toHaveCount(0);
-    // Then: Check the expected result after the operation in this branch.
     await expect
       .poll(async () => (await requireDocument("card", card.id)).fields.frontText?.stringValue)
       .toBe(updatedFrontText);
@@ -64,8 +60,8 @@ test("PERSISTENCE-03 reflects a remote Card edit in another open client without 
         fields.deckId?.stringValue === deck.id &&
         fields.uniqueKey?.stringValue === card.uniqueKey
     );
-    // Then: Check the expected result after the operation in this branch.
     expect(matchingCards.map(documentId)).toEqual([card.id]);
+    // When: Exercise `secondaryErrors.assert` with the prepared inputs.
     secondaryErrors.assert();
   } finally {
     await secondaryContext.close();
@@ -277,6 +273,7 @@ test("PERSISTENCE-04 keeps guest edits local and rejects every cloud write", asy
   await setDocument("card", legacyCardId, { uid, deckId: legacyDeckId, frontText: "Legacy card" });
   for (const collection of ["deck", "card"] as const) {
     // Given: Prepare `existingId`, `data` and any shared test state below.
+    // When: Apply the operation or event under test.
     const existingId = collection === "deck" ? legacyDeckId : legacyCardId;
     const data = { uid, deckId: legacyDeckId, name: "Denied guest write" };
     const create = await requestFirestoreAsGuest({
@@ -373,7 +370,7 @@ test("PERSISTENCE-09 receives remote edits and tombstones after reopening", asyn
   await page.goto(`/deck/${deck.id}`);
   for (const card of fixture.state.remote.cards) {
     // Given: Use the current iteration or branch inputs from the enclosing case.
-    // When: Evaluate `page.getByRole` as part of the following checks.
+    // When: Observe the prepared result through the following checks.
     // Then: Verify the expected result in the assertions below.
     await expect(page.getByRole("button", { name: `View ${card.frontText}` })).toBeVisible();
   }

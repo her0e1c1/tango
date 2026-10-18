@@ -66,7 +66,7 @@ export const SigningIn: Story = {
     await step("STORYBOOK-ACCOUNT-03 Sign-in pending", async () => {
       // Given: Use the rendered story, its args, parameters, and any setup below.
       const button = canvas.getByRole("button", { name: "Sign in with Google" });
-      // When: Observe the prepared result through the following checks.
+      // When: Storybook renders this scenario with its configured args and parameters.
       // Then: Verify the expected result in the assertions below.
       await expect(button).toBeDisabled();
       await expect(button).toHaveAttribute("aria-busy", "true");
@@ -81,7 +81,7 @@ export const SigningOut: Story = {
     await step("STORYBOOK-ACCOUNT-04 Sign-out pending", async () => {
       // Given: Use the rendered story, its args, parameters, and any setup below.
       const button = canvas.getByRole("button", { name: "Sign out" });
-      // When: Observe the prepared result through the following checks.
+      // When: Storybook renders this scenario with its configured args and parameters.
       // Then: Verify the expected result in the assertions below.
       await expect(button).toBeDisabled();
       await expect(button).toHaveAttribute("aria-busy", "true");
@@ -108,7 +108,7 @@ export const Japanese: Story = {
     // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-ACCOUNT-05 Japanese account", async () => {
       // Given: Use the rendered story, its args, parameters, and any setup below.
-      // When: Evaluate `canvas.getByRole` as part of the following checks.
+      // When: Storybook renders this scenario with its configured args and parameters.
       // Then: Verify the expected result in the assertions below.
       await expect(canvas.getByRole("heading", { level: 1, name: "アカウント" })).toBeVisible();
       await expect(canvas.getByText("Maya Tanaka")).toBeVisible();

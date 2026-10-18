@@ -16,7 +16,7 @@ export const Recovery: Story = {
     // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-NOT-FOUND-01 Explain an unknown route", async () => {
       // Given: Use the rendered story, its args, parameters, and any setup below.
-      // When: Evaluate `canvas.findByRole` as part of the following checks.
+      // When: Storybook renders this scenario with its configured args and parameters.
       // Then: Verify the expected result in the assertions below.
       await expect(await canvas.findByRole("heading", { name: "Page not found" })).toBeVisible();
       await expect(canvas.getByRole("button", { name: "Go home" })).toBeEnabled();

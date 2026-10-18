@@ -245,15 +245,16 @@ describe("ActionsMenu", () => {
     await waitFor(() => expect(edit).toHaveFocus());
 
     vi.useFakeTimers({ toFake: ["setTimeout"] });
-    // When: Exercise `fireEvent.click` with the prepared inputs.
     try {
+      // Given: Use the current iteration or branch inputs from the enclosing case.
       await actAsync(async () => {
         edit.blur();
         await Promise.resolve();
       });
+      // When: Exercise `fireEvent.click` with the prepared inputs.
       fireEvent.click(edit);
 
-      // Then: Check the expected result after the operation in this branch.
+      // Then: Verify the expected result in the assertions below.
       expect(editAction).toHaveBeenCalledOnce();
     } finally {
       act(() => {
@@ -273,16 +274,18 @@ describe("ActionsMenu", () => {
     await waitFor(() => expect(firstEdit).toHaveFocus());
 
     vi.useFakeTimers({ toFake: ["setTimeout"] });
-    // When: Exercise `fireEvent.click` with the prepared inputs.
     try {
+      // Given: Use the current iteration or branch inputs from the enclosing case.
       act(() => firstEdit.blur());
+      // When: Exercise `fireEvent.click` with the prepared inputs.
       fireEvent.click(screen.getByRole("button", { name: "Open second actions" }));
 
       const secondMenu = screen.getByRole("menu", { name: `second ${labels.menuLabel}` });
-      // Then: Check the expected result after the operation in this branch.
+      // Then: Verify the expected result in the assertions below.
       expect(secondMenu).toBeInTheDocument();
+      // When: Exercise `act` with the prepared inputs.
       act(() => vi.runOnlyPendingTimers());
-      // Then: Check the expected result after the operation in this branch.
+      // Then: Verify the expected result in the assertions below.
       expect(secondMenu).toBeInTheDocument();
     } finally {
       vi.useRealTimers();
@@ -299,11 +302,13 @@ describe("ActionsMenu", () => {
 
     vi.useFakeTimers({ toFake: ["setTimeout"] });
     try {
+      // Given: Use the current iteration or branch inputs from the enclosing case.
+      // When: Exercise `act` with the prepared inputs.
       act(() => edit.blur());
       view.unmount();
       act(() => vi.runOnlyPendingTimers());
 
-      // Then: Check the expected result after the operation in this branch.
+      // Then: Verify the expected result in the assertions below.
       expect(onClose).not.toHaveBeenCalled();
     } finally {
       vi.useRealTimers();

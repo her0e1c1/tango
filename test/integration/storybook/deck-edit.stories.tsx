@@ -19,7 +19,7 @@ export const SavedValues: Story = {
     // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-DECK-EDIT-01 Read only the selected deck's saved values", async () => {
       // Given: Use the rendered story, its args, parameters, and any setup below.
-      // When: Evaluate `canvas.findByRole` as part of the following checks.
+      // When: Storybook renders this scenario with its configured args and parameters.
       // Then: Verify the expected result in the assertions below.
       await expect(await canvas.findByRole("textbox", { name: "Name" })).toHaveValue("Japanese verbs");
       await expect(canvas.getByRole("combobox", { name: "Display format" })).toHaveValue("math");
@@ -95,9 +95,6 @@ export const Delete: Story = {
   },
 };
 function cancelStory(escape: boolean): Story {
-  // Given: Use this case's inputs and any shared test setup.
-  // When: Evaluate `step` as part of the following checks.
-  // Then: Verify the expected result in the assertions below.
   return {
     play: async ({ canvas, userEvent, step }) => {
       // Given: Use the rendered story, its args, parameters, and any setup below.
@@ -125,18 +122,18 @@ export const PendingDeletion: Story = {
       // Given: Use the rendered story, its args, parameters, and any setup below.
       const pending = Promise.withResolvers<void>();
       mocked(deleteDeck).mockImplementationOnce(() => pending.promise);
-      // When: Evaluate `userEvent.click` as part of the following checks.
-      // Then: Verify the expected result in the assertions below.
       try {
+        // Given: Use the current iteration or branch inputs from the enclosing case.
+        // When: Exercise `userEvent.click` with the prepared inputs.
         await userEvent.click(await canvas.findByRole("button", { name: "Delete deck" }));
         const dialog = within(await screen.findByRole("alertdialog"));
         await userEvent.click(dialog.getByRole("button", { name: "Delete deck" }));
-        // Then: Check the expected result after the operation in this branch.
+        // Then: Verify the expected result in the assertions below.
         await expect(dialog.getByRole("button", { name: "Delete deck" })).toBeDisabled();
-        // Then: Check the expected result after the operation in this branch.
         await expect(dialog.getByRole("button", { name: "Cancel" })).toBeDisabled();
+        // When: Exercise `userEvent.keyboard` with the prepared inputs.
         await userEvent.keyboard("{Escape}");
-        // Then: Check the expected result after the operation in this branch.
+        // Then: Verify the expected result in the assertions below.
         await expect(screen.getByRole("alertdialog")).toBeVisible();
       } finally {
         pending.resolve();
@@ -146,14 +143,11 @@ export const PendingDeletion: Story = {
 };
 
 function requiredNameStory(japanese: boolean): Story {
-  // Given: Prepare `nameLabel`, `categoryLabel`, `submitLabel` and any shared test state below.
   const nameLabel = japanese ? "デッキ名" : "Name";
   const categoryLabel = japanese ? "表示形式" : "Display format";
   const submitLabel = japanese ? "変更を保存" : "Save changes";
   const message = japanese ? "デッキ名は必須です。" : "Deck name is required.";
 
-  // When: Evaluate `step` as part of the following checks.
-  // Then: Verify the expected result in the assertions below.
   return {
     parameters: { locale: japanese ? "ja" : "en" },
     play: async ({ canvas, userEvent, step }) => {
@@ -166,6 +160,7 @@ function requiredNameStory(japanese: boolean): Story {
         await userEvent.selectOptions(category, "math");
         for (const value of ["", "   "]) {
           // Given: Use the current iteration or branch inputs from the enclosing case.
+          // When: Exercise `userEvent.clear` with the prepared inputs.
           await userEvent.clear(name);
           if (value) await userEvent.type(name, value);
           await userEvent.click(canvas.getByRole("button", { name: submitLabel }));
@@ -207,6 +202,7 @@ export const RequiredNameLanguageChange: Story = {
         ["en-US", "Name", "Deck name is required."],
       ] as const) {
         // Given: Use the current iteration or branch inputs from the enclosing case.
+        // When: Apply the operation or event under test.
         Object.defineProperty(navigator, "language", { configurable: true, value: language });
         window.dispatchEvent(new Event("languagechange"));
         // Then: Verify the expected result in the assertions below.

@@ -30,6 +30,8 @@ describe("Deck deletion account guards [DECK-MANAGEMENT-02 DECK-MANAGEMENT-04]",
       const setTarget = vi.fn();
       const setPending = vi.fn();
       const onDeleted = vi.fn();
+      // When: Exercise `confirmDeckDeletion` with the prepared inputs.
+      // When: Start deletion, switch accounts, and deliver its pending outcome.
       const result = confirmDeckDeletion({
         target: { deck, cardCount: 0 },
         pending: false,
@@ -40,7 +42,6 @@ describe("Deck deletion account guards [DECK-MANAGEMENT-02 DECK-MANAGEMENT-04]",
       });
       await Promise.resolve();
       auth.uid = "next-user";
-      // When: Exercise `outcome.endsWith` with the prepared inputs.
       if (outcome.endsWith("failure")) pending.reject(new Error("denied"));
       else pending.resolve();
       await result;
@@ -75,7 +76,7 @@ describe("Deck deletion account guards [DECK-MANAGEMENT-02 DECK-MANAGEMENT-04]",
     expect(setPending).toHaveBeenLastCalledWith(false);
     expect(onDeleted).toHaveBeenCalledOnce();
     expect(showToast).toHaveBeenCalledWith(expect.objectContaining({ messageKey: "deckDeletion.toast.deleted" }));
-    // When: Exercise `cleanup.reject` with the prepared inputs.
+    // When: Apply the operation or event under test.
     cleanup.reject(new Error("cleanup denied"));
     await cleanup.promise.catch(() => undefined);
     // Then: Verify the expected result in the assertions below.

@@ -123,12 +123,12 @@ describe("Firestore subscriptions [PERSISTENCE-01 PERSISTENCE-04 ACCOUNT-03]", (
     expect(screen.queryByText(`Front for ${uid}`)).not.toBeInTheDocument();
   });
   it("replaces the visible UID after stopping the old subscriptions", async () => {
-    // Given: Prepare `stopSecond` and any shared test state below.
+    // Given: Use this case's inputs and any shared test setup.
     const { stop: stopFirst } = startFirestoreSubscriptions("first");
     render(<RepositoryView />);
+    // When: Exercise `act` with the prepared inputs.
     act(() => stopFirst());
     let stopSecond: () => void = () => undefined;
-    // When: Exercise `act` with the prepared inputs.
     act(() => {
       stopSecond = startFirestoreSubscriptions("second").stop;
     });

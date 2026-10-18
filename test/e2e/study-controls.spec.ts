@@ -209,6 +209,7 @@ const readLongFront = async (page: Page) => {
   await surface.focus();
   for (const key of ["ArrowDown", "Space", "PageDown"]) {
     // Given: Use the current iteration or branch inputs from the enclosing case.
+    // When: Exercise `surface.press` with the prepared inputs.
     await surface.press("Home");
     // Then: Verify the expected result in the assertions below.
     await expect.poll(() => surface.evaluate((element) => element.scrollTop)).toBe(0);
@@ -230,7 +231,6 @@ const readLongFront = async (page: Page) => {
     // When: Exercise `surface.focus` with the prepared inputs.
     await surface.focus();
     await page.keyboard.press(key);
-    // Then: The invoked verification helper checks the case's expected result.
   }
   for (const [dx, dy] of [
     [-80, 0],
@@ -239,6 +239,7 @@ const readLongFront = async (page: Page) => {
     [0, 60],
   ]) {
     // Given: Prepare `x`, `y` and any shared test state below.
+    // When: Apply the operation or event under test.
     const x = box.x + box.width / 2;
     const y = box.y + box.height / 2;
     await page.mouse.move(x, y);
@@ -455,7 +456,7 @@ test("STUDY-CONTROLS-10 keeps long text and all controls reachable on a short vi
     .toBe(true);
   for (const name of ["Swipe right: Good", "Play", "Skip"]) {
     // Given: Prepare `button` and any shared test state below.
-    // When: Exercise `page.getByRole` with the prepared inputs.
+    // When: Apply the operation or event under test.
     const button = page.getByRole("button", { name, exact: true });
     await button.scrollIntoViewIfNeeded();
     // Then: Verify the expected result in the assertions below.
@@ -501,6 +502,7 @@ test("STUDY-CONTROLS-11 allows touch scrolling and pinch enlargement without car
   });
   for (const distance of [40, 55, 75, 100, 130]) {
     // Given: Use the current iteration or branch inputs from the enclosing case.
+    // When: Exercise `session.send` with the prepared inputs.
     await session.send("Input.dispatchTouchEvent", {
       type: "touchMove",
       touchPoints: [
@@ -508,7 +510,6 @@ test("STUDY-CONTROLS-11 allows touch scrolling and pinch enlargement without car
         { id: 1, x: x + distance, y },
       ],
     });
-    // Then: The invoked verification helper checks the case's expected result.
   }
   await session.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
   // Then: Verify the expected result in the assertions below.

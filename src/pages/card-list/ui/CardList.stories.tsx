@@ -109,7 +109,7 @@ export const Empty: Story = {
     // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-CARD-LIST-02 Empty card collection", async () => {
       // Given: Use the rendered story, its args, parameters, and any setup below.
-      // When: Evaluate `canvas.getByText` as part of the following checks.
+      // When: Storybook renders this scenario with its configured args and parameters.
       // Then: Verify the expected result in the assertions below.
       await expect(canvas.getByText("0 cards")).toBeVisible();
       await expect(canvas.getByRole("heading", { name: "No cards yet" })).toBeVisible();
@@ -131,7 +131,7 @@ export const FilterZero: Story = {
     // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-CARD-LIST-03 Empty filtered result", async () => {
       // Given: Use the rendered story, its args, parameters, and any setup below.
-      // When: Evaluate `canvas.getByRole` as part of the following checks.
+      // When: Storybook renders this scenario with its configured args and parameters.
       // Then: Verify the expected result in the assertions below.
       await expect(canvas.getByRole("heading", { name: "No cards match the active filters" })).toBeVisible();
       await expect(canvas.getByRole("button", { name: "Clear filters" })).toBeVisible();
@@ -151,7 +151,7 @@ export const IntervalZero: Story = {
     // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-CARD-LIST-04 No cards due", async () => {
       // Given: Use the rendered story, its args, parameters, and any setup below.
-      // When: Evaluate `canvas.getByRole` as part of the following checks.
+      // When: Storybook renders this scenario with its configured args and parameters.
       // Then: Verify the expected result in the assertions below.
       await expect(canvas.getByRole("heading", { name: "No cards due for review" })).toBeVisible();
       await expect(canvas.queryByRole("button", { name: "Clear filters" })).not.toBeInTheDocument();
@@ -264,7 +264,7 @@ export const UnconfirmedEmpty: Story = {
     // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-CARD-LIST-10 Avoid claiming an unknown empty reason", async () => {
       // Given: Use the rendered story, its args, parameters, and any setup below.
-      // When: Evaluate `canvas.getByRole` as part of the following checks.
+      // When: Storybook renders this scenario with its configured args and parameters.
       // Then: Verify the expected result in the assertions below.
       await expect(canvas.getByRole("heading", { name: "Cards" })).toBeVisible();
       for (const text of ["0 cards", "Filters", "No filters"])
@@ -339,7 +339,7 @@ export const PendingRow: Story = {
     // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-CARD-LIST-20 Disable both operations in a pending row", async () => {
       // Given: Use the rendered story, its args, parameters, and any setup below.
-      // When: Evaluate `canvas.getByRole` as part of the following checks.
+      // When: Storybook renders this scenario with its configured args and parameters.
       // Then: Verify the expected result in the assertions below.
       await expect(canvas.getByRole("button", { name: "View Front" })).toBeDisabled();
       await expect(canvas.getByRole("button", { name: "Open actions for Front" })).toBeDisabled();
@@ -457,9 +457,6 @@ export const RemovedMenu: Story = {
   },
 };
 function reorderedRowStory(edit: boolean): Story {
-  // Given: Use this case's inputs and any shared test setup.
-  // When: Evaluate `fn` as part of the following checks.
-  // Then: Verify the expected result in the assertions below.
   return {
     args: { onShowCard: fn(), card: { goToEdit: fn() } },
     render: (args) => <ChangingRowsExample {...args} />,

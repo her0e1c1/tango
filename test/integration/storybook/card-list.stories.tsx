@@ -40,7 +40,7 @@ export const NoCards: Story = {
     // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-CARD-LIST-02 Explain cards that have not been created", async () => {
       // Given: Use the rendered story, its args, parameters, and any setup below.
-      // When: Evaluate `canvas.findByRole` as part of the following checks.
+      // When: Storybook renders this scenario with its configured args and parameters.
       // Then: Verify the expected result in the assertions below.
       await expect(await canvas.findByRole("heading", { name: "No cards yet" })).toBeVisible();
       await expect(canvas.getByRole("button", { name: "Add card" })).toBeEnabled();
@@ -61,7 +61,7 @@ export const NoMatches: Story = {
     // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-CARD-LIST-03 Explain zero matches separately from no cards", async () => {
       // Given: Use the rendered story, its args, parameters, and any setup below.
-      // When: Evaluate `canvas.findByRole` as part of the following checks.
+      // When: Storybook renders this scenario with its configured args and parameters.
       // Then: Verify the expected result in the assertions below.
       await expect(await canvas.findByRole("heading", { name: "No cards match the active filters" })).toBeVisible();
       await expect(canvas.queryByRole("heading", { name: "No cards yet" })).not.toBeInTheDocument();
@@ -92,7 +92,7 @@ export const FutureCards: Story = {
     // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-CARD-LIST-04 Keep future review cards available for browsing", async () => {
       // Given: Use the rendered story, its args, parameters, and any setup below.
-      // When: Evaluate `canvas.findByRole` as part of the following checks.
+      // When: Storybook renders this scenario with its configured args and parameters.
       // Then: Verify the expected result in the assertions below.
       await expect(await canvas.findByRole("button", { name: "View Hello" })).toBeVisible();
       await expect(canvas.getAllByRole("article")).toHaveLength(5);
@@ -343,7 +343,7 @@ export const TagFiltering: Story = {
     );
     await step("STORYBOOK-DECK-FILTER-11 Keep all eight-or-fewer choices visible without disclosure", async () => {
       // Given: Use the rendered story, its args, parameters, and any setup below.
-      // When: Evaluate `canvas.getAllByRole` as part of the following checks.
+      // When: Storybook renders this scenario with its configured args and parameters.
       // Then: Verify the expected result in the assertions below.
       await expect(canvas.getAllByRole("checkbox")).toHaveLength(2);
       await expect(canvas.queryByRole("button", { name: /Show .* more tags/ })).not.toBeInTheDocument();

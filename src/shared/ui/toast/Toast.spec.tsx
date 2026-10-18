@@ -74,13 +74,13 @@ describe("Toast [ACCOUNT-05] [STUDY-ACTIONS-01] [ACCOUNT-02] [DECK-IMPORT-04] [D
   });
 
   it("replaces the announced content when the same message is shown again", () => {
-    // Given: Prepare `status`, `firstAnnouncement` and any shared test state below.
+    // Given: Prepare `status` and any shared test state below.
     render(<ToastViewport />);
     const status = screen.getByRole("status", { name: "Toast notifications" });
+    // When: Exercise `displayToast` with the prepared inputs.
     displayToast({ messageKey: "account.toast.signInSuccess", tone: "success", durationMs: null });
     const firstAnnouncement = within(status).getByText("Success: Signed in.");
 
-    // When: Exercise `displayToast` with the prepared inputs.
     displayToast({ messageKey: "account.toast.signInSuccess", tone: "success", durationMs: null });
 
     // Then: Verify the expected result in the assertions below.
@@ -405,10 +405,10 @@ describe("Toast [ACCOUNT-05] [STUDY-ACTIONS-01] [ACCOUNT-02] [DECK-IMPORT-04] [D
     vi.useFakeTimers();
     render(<ToastViewport />);
     displayToast({ messageKey: "account.toast.signInSuccess", durationMs: 1000 });
+    // When: Exercise `act` with the prepared inputs.
     act(() => vi.advanceTimersByTime(500));
     displayToast({ messageKey: "account.toast.signInSuccess", durationMs: 1000 });
 
-    // When: Exercise `act` with the prepared inputs.
     act(() => vi.advanceTimersByTime(500));
     // Then: Verify the expected result in the assertions below.
     expect(screen.getByText("Signed in.")).toBeVisible();

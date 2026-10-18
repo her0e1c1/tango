@@ -66,6 +66,7 @@ describe("STUDY-SESSION-13 answer metrics for the selected interval", () => {
       { hasPendingWrites: true },
     ]) {
       // Given: Use the current iteration or branch inputs from the enclosing case.
+      // Then: Verify the expected result in the assertions below.
       expect(aggregate(history([], extra))).toMatchObject({ recallRate: undefined, complete: false });
     }
   });

@@ -428,7 +428,7 @@ test("STUDY-SESSION-07 preserves local-only progress and session position across
   await page.goto(`/card/${currentCard.id}`);
   // Then: Verify the expected result in the assertions below.
   await expect(page.getByRole("img", { name: /Forgetting curve/ })).toBeVisible();
-  // When: Exercise `page .getByRole("term") .filter({ hasText: /^Next review$/ }) .locator` with the prepared inputs.
+  // When: Exercise `page.getByRole("term").filter({ hasText: /^Next review$/ }).locator` with the prepared inputs.
   const nextReview = await page
     .getByRole("term")
     .filter({ hasText: /^Next review$/ })
@@ -470,6 +470,7 @@ test("STUDY-SESSION-07 preserves local-only progress and session position across
   await expect(page.getByText(nextCard.frontText, { exact: true })).toBeVisible();
   for (const collection of ["deck", "card", "studySession", "studyAnswer"] as const) {
     // Given: Use the current iteration or branch inputs from the enclosing case.
+    // Then: Verify the expected result in the assertions below.
     expect(
       (await listDocuments(collection)).filter(({ fields }) => fields.uid?.stringValue === fixture.user().uid)
     ).toEqual([]);

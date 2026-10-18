@@ -315,7 +315,7 @@ export const CheckingContract: Story = {
     // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-DECK-LIST-13 Distinguish checking from confirmed empty", async () => {
       // Given: Use the rendered story, its args, parameters, and any setup below.
-      // When: Evaluate `canvas.getByRole` as part of the following checks.
+      // When: Storybook renders this scenario with its configured args and parameters.
       // Then: Verify the expected result in the assertions below.
       await expect(canvas.getByRole("status")).toHaveTextContent("Checking for sample deck…");
       await expect(canvas.queryByText("No decks yet")).not.toBeInTheDocument();
@@ -369,6 +369,7 @@ export const OnePendingDeck: Story = {
         await expect(row).toHaveAttribute("aria-busy", String(pending));
         for (const button of within(row).getAllByRole("button")) {
           // Given: Use the current iteration or branch inputs from the enclosing case.
+          // Then: Verify the expected result in the assertions below.
           if (pending) await expect(button).toBeDisabled();
           else await expect(button).toBeEnabled();
         }

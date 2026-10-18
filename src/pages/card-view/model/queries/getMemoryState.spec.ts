@@ -40,6 +40,7 @@ describe("CARD-VIEW-06 memory chart snapshot", () => {
     let previousTime = Number.NEGATIVE_INFINITY;
     for (const point of state.points) {
       // Given: Use the current iteration or branch inputs from the enclosing case.
+      // Then: Verify the expected result in the assertions below.
       expect(point.time).toBeGreaterThan(previousTime);
       expect(point.time).toBeGreaterThanOrEqual(state.start);
       expect(point.time).toBeLessThanOrEqual(state.end);

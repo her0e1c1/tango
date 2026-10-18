@@ -105,12 +105,12 @@ describe("CARD-FILTER-08 CARD-FILTER-09 CARD-FILTER-12 isDeckTagSelectionMatchin
     { mode: "AND", tagAndFilter: true, expected: [false, false, true, false] },
     { mode: "OR", tagAndFilter: false, expected: [true, true, true, false] },
   ])("matches all four tag combinations in $mode mode", ({ tagAndFilter, expected }) => {
-    // Given: Prepare `candidates`, `selectedTags` and any shared test state below.
+    // Given: Prepare `candidates`, `selectedTags`, `originalCandidates` and any shared test state below.
     const candidates = [["x"], ["y"], ["x", "y"], []];
     const selectedTags = ["x", "y"];
-    // When: Exercise `structuredClone` with the prepared inputs.
     const originalCandidates = structuredClone(candidates);
 
+    // When: Evaluate `isDeckTagSelectionMatching` as part of the following checks.
     // Then: Verify the expected result in the assertions below.
     expect(candidates.map((tags) => isDeckTagSelectionMatching(tags, selectedTags, tagAndFilter))).toEqual(expected);
     expect(candidates).toEqual(originalCandidates);
@@ -120,14 +120,14 @@ describe("CARD-FILTER-08 CARD-FILTER-09 CARD-FILTER-12 isDeckTagSelectionMatchin
 
 describe("CARD-FILTER-01 CARD-FILTER-02 STUDY-SESSION-01 Deck filter selection", () => {
   it("returns each saved filter independently without changing the Deck", () => {
-    // Given: Prepare `deck` and any shared test state below.
+    // Given: Prepare `deck`, `originalDeck` and any shared test state below.
     const deck = createDeck({
       cardFilter: { selectedTags: ["browse-x", "browse-y"], tagAndFilter: true },
       studyFilter: { selectedTags: ["study"], tagAndFilter: false },
     });
-    // When: Exercise `structuredClone` with the prepared inputs.
     const originalDeck = structuredClone(deck);
 
+    // When: Evaluate `getCardFilter` as part of the following checks.
     // Then: Verify the expected result in the assertions below.
     expect(getCardFilter(deck)).toEqual({ selectedTags: ["browse-x", "browse-y"], tagAndFilter: true });
     expect(getStudyFilter(deck)).toEqual({ selectedTags: ["study"], tagAndFilter: false });
@@ -135,28 +135,28 @@ describe("CARD-FILTER-01 CARD-FILTER-02 STUDY-SESSION-01 Deck filter selection",
   });
 
   it("defaults an absent browsing filter to an empty OR filter despite saved study conditions", () => {
-    // Given: Prepare `deck` and any shared test state below.
+    // Given: Prepare `deck`, `originalDeck` and any shared test state below.
     const deck = createDeck({
       cardFilter: undefined,
       studyFilter: { selectedTags: ["study"], tagAndFilter: true },
     });
-    // When: Exercise `structuredClone` with the prepared inputs.
     const originalDeck = structuredClone(deck);
 
+    // When: Evaluate `getCardFilter` as part of the following checks.
     // Then: Verify the expected result in the assertions below.
     expect(getCardFilter(deck)).toEqual({ selectedTags: [], tagAndFilter: false });
     expect(deck).toEqual(originalDeck);
   });
 
   it("defaults an absent study filter to an empty OR filter despite saved browsing conditions", () => {
-    // Given: Prepare `deck` and any shared test state below.
+    // Given: Prepare `deck`, `originalDeck` and any shared test state below.
     const deck = createDeck({
       cardFilter: { selectedTags: ["browse"], tagAndFilter: true },
       studyFilter: undefined,
     });
-    // When: Exercise `structuredClone` with the prepared inputs.
     const originalDeck = structuredClone(deck);
 
+    // When: Evaluate `getStudyFilter` as part of the following checks.
     // Then: Verify the expected result in the assertions below.
     expect(getStudyFilter(deck)).toEqual({ selectedTags: [], tagAndFilter: false });
     expect(deck).toEqual(originalDeck);

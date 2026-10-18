@@ -62,9 +62,6 @@ export const SignOut: Story = {
   },
 };
 function pendingStory(isLinked: boolean): Story {
-  // Given: Use this case's inputs and any shared test setup.
-  // When: Evaluate `step` as part of the following checks.
-  // Then: Verify the expected result in the assertions below.
   return {
     ...(isLinked ? { beforeEach: linked } : {}),
     play: async ({ canvas, userEvent, step }) => {
@@ -80,14 +77,15 @@ function pendingStory(isLinked: boolean): Story {
               await pending.promise;
             });
           else mocked(signInWithGoogle).mockImplementationOnce(() => pending.promise);
-          // When: Evaluate `userEvent.click` as part of the following checks.
-          // Then: Verify the expected result in the assertions below.
           try {
+            // Given: Use the current iteration or branch inputs from the enclosing case.
+            // When: Exercise `userEvent.click` with the prepared inputs.
             await userEvent.click(await canvas.findByRole("button", { name }));
-            // Then: Check the expected result after the operation in this branch.
+            // Then: Verify the expected result in the assertions below.
             await expect(canvas.getByRole("button", { name })).toBeDisabled();
+            // When: Apply the operation or event under test.
             pending.resolve(user);
-            // Then: Check the expected result after the operation in this branch.
+            // Then: Verify the expected result in the assertions below.
             await waitFor(() => expect(canvas.getByRole("button", { name })).toBeEnabled());
           } finally {
             pending.resolve(user);
@@ -106,7 +104,7 @@ export const Japanese: Story = {
     // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-ACCOUNT-05 Localize the account without translating its profile", async () => {
       // Given: Use the rendered story, its args, parameters, and any setup below.
-      // When: Evaluate `canvas.findByRole` as part of the following checks.
+      // When: Storybook renders this scenario with its configured args and parameters.
       // Then: Verify the expected result in the assertions below.
       await expect(await canvas.findByRole("heading", { name: "アカウント" })).toBeVisible();
       await expect(canvas.getByRole("button", { name: "ログアウト" })).toBeEnabled();

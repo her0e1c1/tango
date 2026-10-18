@@ -12,7 +12,6 @@ describe("CARD-MANAGEMENT-16 Code language changes", () => {
     { first: "ts", second: "py", text: "def greet():\n    return True", keyword: "def" },
   ])("uses the current grammar when switching $first to $second and back", ({ first, second, text, keyword }) => {
     // Given: Use this case's inputs and any shared test setup.
-    // When: Exercise `render` with the prepared inputs.
     const view = render(
       <StrictMode>
         <Code text={text} category={first} />
@@ -22,6 +21,7 @@ describe("CARD-MANAGEMENT-16 Code language changes", () => {
 
     for (const category of [second, first, second]) {
       // Given: Use the current iteration or branch inputs from the enclosing case.
+      // When: Exercise `view.rerender` with the prepared inputs.
       view.rerender(
         <StrictMode>
           <Code text={text} category={category} />

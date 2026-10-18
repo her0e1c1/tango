@@ -109,10 +109,10 @@ describe("Firestore cache mutations [CARD-MANAGEMENT-02 PERSISTENCE-05 STUDY-SES
     await startStudy({ deckId, cardOrderIds: cards.map(({ id }) => id), uid: "uid" });
     // Then: Verify the expected result in the assertions below.
     await vi.waitFor(() => expect(getStudySession(deckId)).toBeDefined());
-    // When: Exercise `getStudySession` with the prepared inputs.
     const session = getStudySession(deckId);
     if (!session) throw new Error("Missing session");
     const answeredAt = 1_800_000_000_000;
+    // When: Rate the current Card while offline.
     await saveStudyAnswer("uid", session, "good", answeredAt);
     // Then: Verify the expected result in the assertions below.
     await vi.waitFor(() => expect(getStudySession(deckId)?.currentIndex).toBe(1));
@@ -124,7 +124,6 @@ describe("Firestore cache mutations [CARD-MANAGEMENT-02 PERSISTENCE-05 STUDY-SES
       updatedAt: null,
       fsrs: { reps: 1, lastReviewedAt: answeredAt, dueAt: answeredAt + 600_000 },
     });
-    // When: Exercise `getCards` with the prepared inputs.
     const savedSchedule = getCards().find((card) => card.id === cards[0]?.id)?.fsrs;
     // Then: Verify the expected result in the assertions below.
     expect(savedSchedule).toBeDefined();
@@ -136,9 +135,9 @@ describe("Firestore cache mutations [CARD-MANAGEMENT-02 PERSISTENCE-05 STUDY-SES
     // Then: Verify the expected result in the assertions below.
     expect(getCards().find((card) => card.id === cards[0]?.id)?.fsrs).toEqual(savedSchedule);
     await expect(saveStudyAnswer("uid", session, "good", answeredAt)).rejects.toThrow("session does not match");
-    // When: Exercise `getStudySession` with the prepared inputs.
     const final = getStudySession(deckId);
     if (!final) throw new Error("Missing final position");
+    // When: Rate the final Card while offline.
     await saveStudyAnswer("uid", final, "again", answeredAt + 1);
     // Then: Verify the expected result in the assertions below.
     await vi.waitFor(() => expect(getStudySession(deckId)).toBeUndefined());

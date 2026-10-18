@@ -68,7 +68,7 @@ test("ACCOUNT-01 Google linking preserves the anonymous identity and its data", 
 
   for (const collection of ["deck", "card", "studySession", "studyAnswer"] as const) {
     // Given: Use the current iteration or branch inputs from the enclosing case.
-    // When: Evaluate `(await listDocuments(collection)).filter` as part of the following checks.
+    // When: Observe the prepared result through the following checks.
     // Then: Verify the expected result in the assertions below.
     expect((await listDocuments(collection)).filter(({ fields }) => fields.uid?.stringValue === anonymousUid)).toEqual(
       []

@@ -222,21 +222,18 @@ describe("Card filter persistence", () => {
       const before = await saved(b);
       const app = initializeApp({ projectId: "test" }, crypto.randomUUID());
       const writer = getFirestore(app);
-      // When: Exercise `connectFirestoreEmulator` with the prepared inputs.
       connectFirestoreEmulator(writer, import.meta.env.VITE_DB_HOST, Number(import.meta.env.VITE_DB_PORT), {
         mockUserToken: { user_id: uid, firebase: { sign_in_provider: "google.com", identities: {} } },
       });
-      // Then: Verify the expected result in the assertions below.
       try {
+        // Given: Use the current iteration or branch inputs from the enclosing case.
+        // When: Exercise `updateDoc` with the prepared inputs.
         await updateDoc(doc(writer, "deck", a), { cardFilter: value, updatedAt: serverTimestamp() });
         await waitForPendingWrites(writer);
-        // Then: Check the expected result after the operation in this branch.
+        // Then: Verify the expected result in the assertions below.
         expect((await getDocFromServer(doc(writer, "deck", a))).data()?.cardFilter).toEqual(value);
-        // Then: Check the expected result after the operation in this branch.
         await vi.waitFor(() => expect(filter(a)).toEqual(value));
-        // Then: Check the expected result after the operation in this branch.
         expect(filter(b)).toEqual(bFilter);
-        // Then: Check the expected result after the operation in this branch.
         expect(await saved(b)).toEqual(before);
       } finally {
         await deleteApp(app);

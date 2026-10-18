@@ -106,10 +106,10 @@ describe("Firestore ownership and guest write restrictions", () => {
       // When: Evaluate `setDoc` as part of the following checks.
       // Then: Verify the expected result in the assertions below.
       await assertSucceeds(setDoc(reference, sessionData()));
-      // When: Evaluate `getDoc` as part of the following checks.
+      // When: Observe the prepared result through the following checks.
       // Then: Verify the expected result in the assertions below.
       await assertSucceeds(getDoc(reference));
-      // When: Evaluate `query` as part of the following checks.
+      // When: Observe the prepared result through the following checks.
       // Then: Verify the expected result in the assertions below.
       await assertSucceeds(getDocs(query(firestoreCollection(db, "studySession"), where("uid", "==", "uid"))));
       // When: Evaluate `updateDoc` as part of the following checks.
@@ -138,10 +138,10 @@ describe("Firestore ownership and guest write restrictions", () => {
                 })
                 .firestore();
         const reference = doc(db, "studySession", id);
-        // When: Evaluate `getDoc` as part of the following checks.
+        // When: Observe the prepared result through the following checks.
         // Then: Verify the expected result in the assertions below.
         await assertFails(getDoc(reference));
-        // When: Evaluate `query` as part of the following checks.
+        // When: Observe the prepared result through the following checks.
         // Then: Verify the expected result in the assertions below.
         await assertFails(getDocs(query(firestoreCollection(db, "studySession"), where("uid", "==", "uid"))));
         // When: Evaluate `setDoc` as part of the following checks.
@@ -184,10 +184,10 @@ describe("Firestore ownership and guest write restrictions", () => {
                   firebase: { sign_in_provider: actor === "anonymous" ? "anonymous" : "google.com", identities: {} },
                 })
                 .firestore();
-        // When: Evaluate `getDoc` as part of the following checks.
+        // When: Observe the prepared result through the following checks.
         // Then: Verify the expected result in the assertions below.
         await assertFails(getDoc(doc(db, "deck", "deleted")));
-        // When: Evaluate `getDoc` as part of the following checks.
+        // When: Observe the prepared result through the following checks.
         // Then: Verify the expected result in the assertions below.
         await assertSucceeds(getDoc(doc(db, "deck", "active")));
       }
@@ -209,10 +209,10 @@ describe("Firestore ownership and guest write restrictions", () => {
                   firebase: { sign_in_provider: actor === "anonymous" ? "anonymous" : "google.com", identities: {} },
                 })
                 .firestore();
-        // When: Evaluate `getDoc` as part of the following checks.
+        // When: Observe the prepared result through the following checks.
         // Then: Verify the expected result in the assertions below.
         await assertFails(getDoc(doc(db, "card", "child")));
-        // When: Evaluate `getDoc` as part of the following checks.
+        // When: Observe the prepared result through the following checks.
         // Then: Verify the expected result in the assertions below.
         await assertFails(getDoc(doc(db, "card", "deleted-card")));
       }
@@ -302,7 +302,7 @@ describe("Firestore ownership and guest write restrictions", () => {
             firebase: { sign_in_provider: actor === "anonymous" ? "anonymous" : "google.com", identities: {} },
           })
           .firestore();
-        // When: Evaluate `getDoc` as part of the following checks.
+        // When: Observe the prepared result through the following checks.
         // Then: Verify the expected result in the assertions below.
         await assertFails(getDoc(doc(db, "studyAnswer", "saved")));
         // When: Exercise `writeBatch` with the prepared inputs.
@@ -332,7 +332,7 @@ describe("Firestore ownership and guest write restrictions", () => {
         // Given: Prepare `id` and any shared test state below.
         const id = uuid();
         await createData("deck", id, { uid: "uid", isPublic: false, deletedAt });
-        // When: Evaluate `getDoc` as part of the following checks.
+        // When: Observe the prepared result through the following checks.
         // Then: Verify the expected result in the assertions below.
         await assertSucceeds(getDoc(doc(db, "deck", id)));
       });
@@ -435,7 +435,7 @@ describe("Firestore ownership and guest write restrictions", () => {
         // Given: Prepare `id` and any shared test state below.
         const id = uuid();
         await createData("card", id, { uid: "uid" });
-        // When: Evaluate `getDoc` as part of the following checks.
+        // When: Observe the prepared result through the following checks.
         // Then: Verify the expected result in the assertions below.
         await assertSucceeds(getDoc(doc(db, "card", id)));
       });
@@ -525,7 +525,7 @@ describe("Firestore ownership and guest write restrictions", () => {
           // Given: Prepare `id` and any shared test state below.
           const id = uuid();
           await createData("deck", id, { uid: "uid", ...visibility });
-          // When: Evaluate `getDoc` as part of the following checks.
+          // When: Observe the prepared result through the following checks.
           // Then: Verify the expected result in the assertions below.
           await assertFails(getDoc(doc(db, "deck", id)));
         }
@@ -535,7 +535,7 @@ describe("Firestore ownership and guest write restrictions", () => {
         // Given: Prepare `id` and any shared test state below.
         const id = uuid();
         await createData("deck", id, { uid: "uid", isPublic: true });
-        // When: Evaluate `getDoc` as part of the following checks.
+        // When: Observe the prepared result through the following checks.
         // Then: Verify the expected result in the assertions below.
         await assertSucceeds(getDoc(doc(db, "deck", id)));
       });
@@ -594,7 +594,7 @@ describe("Firestore ownership and guest write restrictions", () => {
         // Given: Prepare `id` and any shared test state below.
         const id = uuid();
         await createData("card", id, { uid: "uid" });
-        // When: Evaluate `getDoc` as part of the following checks.
+        // When: Observe the prepared result through the following checks.
         // Then: Verify the expected result in the assertions below.
         await assertFails(getDoc(doc(db, "card", id)));
       });
@@ -604,7 +604,7 @@ describe("Firestore ownership and guest write restrictions", () => {
         const [deckId, id] = [uuid(), uuid()];
         await createData("deck", deckId, { uid: "uid", isPublic: true });
         await createData("card", id, { uid: "uid", deckId });
-        // When: Evaluate `getDoc` as part of the following checks.
+        // When: Observe the prepared result through the following checks.
         // Then: Verify the expected result in the assertions below.
         await assertSucceeds(getDoc(doc(db, "card", id)));
       });
@@ -712,7 +712,7 @@ describe("Firestore ownership and guest write restrictions", () => {
       // Given: Prepare `deckId` and any shared test state below.
       const deckId = uuid();
       await createData("deck", deckId, { uid: "another-user", isPublic: true });
-      // When: Evaluate `getDoc` as part of the following checks.
+      // When: Observe the prepared result through the following checks.
       // Then: Verify the expected result in the assertions below.
       await assertSucceeds(getDoc(doc(db, "deck", deckId)));
     });
@@ -723,7 +723,7 @@ describe("Firestore ownership and guest write restrictions", () => {
         // Given: Prepare `id` and any shared test state below.
         const id = uuid();
         await createData("deck", id, { uid: "another-user", ...visibility });
-        // When: Evaluate `getDoc` as part of the following checks.
+        // When: Observe the prepared result through the following checks.
         // Then: Verify the expected result in the assertions below.
         await assertFails(getDoc(doc(db, "deck", id)));
       }
@@ -735,7 +735,7 @@ describe("Firestore ownership and guest write restrictions", () => {
       const cardId = uuid();
       await createData("deck", deckId, { uid: "another-user", isPublic: true });
       await createData("card", cardId, { uid: "another-user", deckId });
-      // When: Evaluate `getDoc` as part of the following checks.
+      // When: Observe the prepared result through the following checks.
       // Then: Verify the expected result in the assertions below.
       await assertSucceeds(getDoc(doc(db, "card", cardId)));
     });
@@ -756,7 +756,7 @@ describe("Firestore ownership and guest write restrictions", () => {
           // Given: Prepare `id` and any shared test state below.
           const id = uuid();
           await createData("deck", id, { uid: "uid", ...visibility });
-          // When: Evaluate `getDoc` as part of the following checks.
+          // When: Observe the prepared result through the following checks.
           // Then: Verify the expected result in the assertions below.
           await assertFails(getDoc(doc(db, "deck", id)));
         }
@@ -766,7 +766,7 @@ describe("Firestore ownership and guest write restrictions", () => {
         // Given: Prepare `id` and any shared test state below.
         const id = uuid();
         await createData("deck", id, { uid: "uid", isPublic: true });
-        // When: Evaluate `getDoc` as part of the following checks.
+        // When: Observe the prepared result through the following checks.
         // Then: Verify the expected result in the assertions below.
         await assertSucceeds(getDoc(doc(db, "deck", id)));
       });
@@ -809,7 +809,7 @@ describe("Firestore ownership and guest write restrictions", () => {
         // Given: Prepare `id` and any shared test state below.
         const id = uuid();
         await createData("card", id, { uid: "uid" });
-        // When: Evaluate `getDoc` as part of the following checks.
+        // When: Observe the prepared result through the following checks.
         // Then: Verify the expected result in the assertions below.
         await assertFails(getDoc(doc(db, "card", id)));
       });
@@ -819,7 +819,7 @@ describe("Firestore ownership and guest write restrictions", () => {
         const [deckId, id] = [uuid(), uuid()];
         await createData("deck", deckId, { uid: "uid", isPublic: true });
         await createData("card", id, { uid: "uid", deckId });
-        // When: Evaluate `getDoc` as part of the following checks.
+        // When: Observe the prepared result through the following checks.
         // Then: Verify the expected result in the assertions below.
         await assertSucceeds(getDoc(doc(db, "card", id)));
       });
@@ -866,10 +866,10 @@ describe("Firestore ownership and guest write restrictions", () => {
                 firebase: { sign_in_provider: actor === "anonymous" ? "anonymous" : "google.com", identities: {} },
               })
               .firestore();
-      // When: Evaluate `firestoreCollection` as part of the following checks.
+      // When: Observe the prepared result through the following checks.
       // Then: Verify the expected result in the assertions below.
       await assertFails(getDocs(firestoreCollection(db, "deck")));
-      // When: Evaluate `query` as part of the following checks.
+      // When: Observe the prepared result through the following checks.
       // Then: Verify the expected result in the assertions below.
       await assertFails(getDocs(query(firestoreCollection(db, "deck"), where("uid", "==", "uid"))));
     }
@@ -903,10 +903,10 @@ describe("Firestore ownership and guest write restrictions", () => {
       // Given: Prepare `db`, `reference` and any shared test state below.
       const db = ownerDb();
       const reference = doc(db, "card", "card");
-      // When: Evaluate `getDoc` as part of the following checks.
+      // When: Observe the prepared result through the following checks.
       // Then: Verify the expected result in the assertions below.
       await assertSucceeds(getDoc(reference));
-      // When: Evaluate `query` as part of the following checks.
+      // When: Observe the prepared result through the following checks.
       // Then: Verify the expected result in the assertions below.
       await assertSucceeds(getDocs(query(firestoreCollection(db, "card"), where("uid", "==", "owner"))));
       // When: Evaluate `updateDoc` as part of the following checks.
@@ -939,7 +939,7 @@ describe("Firestore ownership and guest write restrictions", () => {
                 })
                 .firestore();
         const reference = doc(db, "card", "card");
-        // When: Evaluate `(await assertSucceeds(getDoc(reference))).data` as part of the following checks.
+        // When: Observe the prepared result through the following checks.
         // Then: Verify the expected result in the assertions below.
         expect((await assertSucceeds(getDoc(reference))).data()?.fsrs).toEqual(validFsrs);
         // When: Evaluate `setDoc` as part of the following checks.

@@ -53,7 +53,7 @@ export const Default: Story = {
     // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-IMPORT-01 Initial import screen", async () => {
       // Given: Use the rendered story, its args, parameters, and any setup below.
-      // When: Evaluate `canvas.queryByRole` as part of the following checks.
+      // When: Storybook renders this scenario with its configured args and parameters.
       // Then: Verify the expected result in the assertions below.
       await expect(canvas.queryByRole("radio")).not.toBeInTheDocument();
       await expect(canvas.getByRole("heading", { name: "Add a deck" })).toBeVisible();
@@ -116,7 +116,7 @@ export const JapaneseDiagnostics: Story = {
     // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-IMPORT-03 Japanese diagnostics", async () => {
       // Given: Use the rendered story, its args, parameters, and any setup below.
-      // When: Evaluate `canvas.getByRole` as part of the following checks.
+      // When: Storybook renders this scenario with its configured args and parameters.
       // Then: Verify the expected result in the assertions below.
       await expect(canvas.getByRole("alert")).toHaveTextContent("列数は4列である必要があります（現在は3列）。");
       await expect(canvas.getByRole("button", { name: /^0枚のカードを追加$/ })).toBeDisabled();
@@ -150,7 +150,7 @@ export const PendingSelection: Story = {
     // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-IMPORT-07 Disable selection while importing", async () => {
       // Given: Use the rendered story, its args, parameters, and any setup below.
-      // When: Evaluate `canvas.getByLabelText` as part of the following checks.
+      // When: Storybook renders this scenario with its configured args and parameters.
       // Then: Verify the expected result in the assertions below.
       await expect(canvas.getByLabelText("Upload a csv file")).toBeDisabled();
       await expect(canvas.getByRole("button", { name: "Try this example" })).toBeDisabled();
@@ -241,7 +241,7 @@ export const PartlyInvalid: Story = {
     // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-IMPORT-11 Reject confirmation when any row is invalid", async () => {
       // Given: Use the rendered story, its args, parameters, and any setup below.
-      // When: Evaluate `canvas.getByRole` as part of the following checks.
+      // When: Storybook renders this scenario with its configured args and parameters.
       // Then: Verify the expected result in the assertions below.
       await expect(canvas.getByRole("alert")).toHaveTextContent("Row 3: Unique key is required.");
       await expect(canvas.getByRole("alert")).toHaveTextContent("Choose a corrected CSV file to continue.");
@@ -256,7 +256,7 @@ export const SafePreviewFailure: Story = {
     // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-IMPORT-12 Keep selection available after a safe error", async () => {
       // Given: Use the rendered story, its args, parameters, and any setup below.
-      // When: Evaluate `canvas.getByText` as part of the following checks.
+      // When: Storybook renders this scenario with its configured args and parameters.
       // Then: Verify the expected result in the assertions below.
       await expect(canvas.getByText("The import preview could not be prepared.")).toBeVisible();
       await expect(canvas.queryByText("file read failed")).not.toBeInTheDocument();
@@ -278,9 +278,6 @@ function LocalizedImport(args: DeckImportViewProps) {
   );
 }
 function previewFailureStory(error: unknown, english: string, japanese: string): Story {
-  // Given: Use this case's inputs and any shared test setup.
-  // When: Evaluate `step` as part of the following checks.
-  // Then: Verify the expected result in the assertions below.
   return {
     args: { previewError: error },
     render: (args) => <LocalizedImport {...args} />,

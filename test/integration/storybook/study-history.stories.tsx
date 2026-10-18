@@ -47,7 +47,7 @@ export const Periods: Story = {
     // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-STUDY-HISTORY-08 Explain the 30-day chart and scale", async () => {
       // Given: Use the rendered story, its args, parameters, and any setup below.
-      // When: Evaluate `canvas.findByText` as part of the following checks.
+      // When: Storybook renders this scenario with its configured args and parameters.
       // Then: Verify the expected result in the assertions below.
       await expect(await canvas.findByText("Daily study counts")).toBeVisible();
       await expect(canvas.getByRole("button", { name: "30 days" })).toHaveAttribute("aria-pressed", "true");
@@ -94,7 +94,7 @@ export const DailyPages: Story = {
     // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-STUDY-HISTORY-09 Distinguish grouped 90-day counts", async () => {
       // Given: Use the rendered story, its args, parameters, and any setup below.
-      // When: Evaluate `canvas.findByText` as part of the following checks.
+      // When: Storybook renders this scenario with its configured args and parameters.
       // Then: Verify the expected result in the assertions below.
       await expect(await canvas.findByText("Study counts per 7 days")).toBeVisible();
       await expect(canvas.getByRole("button", { name: "90 days" })).toHaveAttribute("aria-pressed", "true");
@@ -131,7 +131,7 @@ export const Sessions: Story = {
     // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-STUDY-HISTORY-05 Display distinct session outcomes", async () => {
       // Given: Use the rendered story, its args, parameters, and any setup below.
-      // When: Evaluate `canvas.findAllByText` as part of the following checks.
+      // When: Storybook renders this scenario with its configured args and parameters.
       // Then: Verify the expected result in the assertions below.
       await expect((await canvas.findAllByText("Completed", { exact: true }))[0]).toBeVisible();
       await expect(canvas.getByText("Abandoned")).toBeVisible();
@@ -150,6 +150,7 @@ export const Sessions: Story = {
       );
       for (const item of canvas.getAllByRole("listitem")) {
         // Given: Use the current iteration or branch inputs from the enclosing case.
+        // Then: Verify the expected result in the assertions below.
         await expect(within(item).getByRole("heading", { name: deck.name })).toBeVisible();
         await expect(within(item).getByText("Target cards")).toBeVisible();
       }
@@ -162,7 +163,7 @@ export const JapaneseSessions: Story = {
     // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-STUDY-HISTORY-06 Translate outcomes while preserving deck names", async () => {
       // Given: Use the rendered story, its args, parameters, and any setup below.
-      // When: Evaluate `canvas.findAllByText` as part of the following checks.
+      // When: Storybook renders this scenario with its configured args and parameters.
       // Then: Verify the expected result in the assertions below.
       await expect((await canvas.findAllByText("完了", { exact: true }))[0]).toBeVisible();
       await expect(canvas.getByText("中止")).toBeVisible();

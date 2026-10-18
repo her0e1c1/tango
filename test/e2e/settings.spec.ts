@@ -172,7 +172,7 @@ test("SETTINGS-11 Restoring a positive interval preserves the active study sessi
   await expect(page.getByRole("button", { name: secondCard.frontText, exact: true })).toBeVisible();
   const continuedPosition = { sessionId: session.sessionId, cardOrderIds: session.cardOrderIds, currentIndex: 1 };
   await expect.poll(() => readSession(fixture.user().uid, deck.id)).toMatchObject(continuedPosition);
-  // When: Exercise `requireDocument` with the prepared inputs.
+
   const deckBeforeSettings = await requireDocument("deck", deck.id);
   const cardsBeforeSettings = await Promise.all(
     fixture.state.remote.cards.map((card) => requireDocument("card", card.id))
@@ -470,12 +470,12 @@ test("SETTINGS-07 Advanced disclosure keeps keyboard focus visible without chang
       // Given: Prepare `page`, `errors` and any shared test state below.
       const page = await browser.newPage({ viewport, ...(baseURL === undefined ? {} : { baseURL }) });
       const errors = collectBrowserErrors(page.context(), baseURL);
-      // When: Evaluate `page.goto` as part of the following checks.
-      // Then: Verify the expected result in the assertions below.
       try {
+        // Given: Use the current iteration or branch inputs from the enclosing case.
         await fixture.apply(page, { preferences: { appearance: { darkMode } } });
         await page.goto("/");
         await page.getByRole("heading", { level: 1, name: "Decks" }).waitFor();
+        // When: Exercise `page.getByRole("button", { name: "Menu", exact: true }).click` with the prepared inputs.
         if (viewport.width < 640) {
           await page.getByRole("button", { name: "Menu", exact: true }).click();
           await page.getByRole("menuitem", { name: "Open settings", exact: true }).click();
@@ -495,13 +495,13 @@ test("SETTINGS-07 Advanced disclosure keeps keyboard focus visible without chang
             )
           );
         const saved = await readSavedData();
-        // Then: Check the expected result after the operation in this branch.
+        // Then: Verify the expected result in the assertions below.
         await expect(summary).toContainText("Advanced");
-        // Then: Check the expected result after the operation in this branch.
         await expect(details).not.toHaveAttribute("open");
+        // When: Exercise `interval.focus` with the prepared inputs.
         await interval.focus();
         await page.keyboard.press("Tab");
-        // Then: Check the expected result after the operation in this branch.
+        // Then: Verify the expected result in the assertions below.
         await expect(summary).toBeFocused();
         const captureFocus = async (state: string) => {
           // Given: Use this case's inputs and any shared test setup.
@@ -528,41 +528,48 @@ test("SETTINGS-07 Advanced disclosure keeps keyboard focus visible without chang
             contentType: "image/png",
           });
         };
+        // When: Exercise `captureFocus` with the prepared inputs.
         await captureFocus("closed");
         await page.keyboard.press("Shift+Tab");
-        // Then: Check the expected result after the operation in this branch.
+        // Then: Verify the expected result in the assertions below.
         await expect(interval).toBeFocused();
+        // When: Exercise `page.keyboard.press` with the prepared inputs.
         await page.keyboard.press("Tab");
-        // Then: Check the expected result after the operation in this branch.
+        // Then: Verify the expected result in the assertions below.
         await expect(summary).toBeFocused();
+        // When: Exercise `page.keyboard.press` with the prepared inputs.
         await page.keyboard.press("Enter");
-        // Then: Check the expected result after the operation in this branch.
+        // Then: Verify the expected result in the assertions below.
         await expect(details).toHaveAttribute("open");
+        // When: Exercise `captureFocus` with the prepared inputs.
         await captureFocus("open");
-        // Then: Check the expected result after the operation in this branch.
+        // Then: Verify the expected result in the assertions below.
         await expect(details.getByText("Version", { exact: true })).toBeVisible();
+        // When: Exercise `verifyCommitLink` with the prepared inputs.
         await verifyCommitLink(page);
         await page.keyboard.press("Enter");
-        // Then: Check the expected result after the operation in this branch.
+        // Then: Verify the expected result in the assertions below.
         await expect(details).not.toHaveAttribute("open");
+        // When: Exercise `page.keyboard.press` with the prepared inputs.
         await page.keyboard.press("Space");
-        // Then: Check the expected result after the operation in this branch.
+        // Then: Verify the expected result in the assertions below.
         await expect(details).toHaveAttribute("open");
+        // When: Exercise `page.keyboard.press` with the prepared inputs.
         await page.keyboard.press("Space");
-        // Then: Check the expected result after the operation in this branch.
+        // Then: Verify the expected result in the assertions below.
         await expect(details).not.toHaveAttribute("open");
+        // When: Exercise `page.keyboard.press` with the prepared inputs.
         await page.keyboard.press("Space");
-        // Then: Check the expected result after the operation in this branch.
+        // Then: Verify the expected result in the assertions below.
         await expect(details).toHaveAttribute("open");
-        // Then: Check the expected result after the operation in this branch.
         expect(await readSavedData()).toEqual(saved);
+        // When: Exercise `page.reload` with the prepared inputs.
         await page.reload();
-        // Then: Check the expected result after the operation in this branch.
+        // Then: Verify the expected result in the assertions below.
         await expect(summary).toBeVisible();
-        // Then: Check the expected result after the operation in this branch.
         await expect(details).not.toHaveAttribute("open");
-        // Then: Check the expected result after the operation in this branch.
         expect(await readSavedData()).toEqual(saved);
+        // When: Exercise `errors.assert` with the prepared inputs.
         errors.assert();
       } finally {
         await page.close();

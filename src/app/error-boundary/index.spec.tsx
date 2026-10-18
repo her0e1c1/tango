@@ -146,6 +146,7 @@ describe("NAVIGATION-04 unhandled browser errors", () => {
     view.unmount();
     for (const type of ["error", "unhandledrejection"]) {
       // Given: Prepare `registrations`, `removals` and any shared test state below.
+      // Then: Match removed event listeners to their original registrations.
       const registrations = add.mock.calls.filter(([name]) => name === type);
       const removals = remove.mock.calls.filter(([name]) => name === type);
       // Then: Verify the expected result in the assertions below.

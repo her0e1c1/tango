@@ -18,14 +18,14 @@ describe("Card deletion account guards [CARD-MANAGEMENT-02 CARD-MANAGEMENT-08]",
   });
 
   it.each(["success", "failure"])("ignores old-account %s without closing the current selection", async (outcome) => {
-    // Given: Prepare `pending`, `result`, `selection` and any shared test state below.
+    // Given: Prepare `pending` and any shared test state below.
     const pending = Promise.withResolvers<void>();
     vi.mocked(deleteCard).mockReturnValue(pending.promise);
+    // When: Exercise `cardListStore.setState` with the prepared inputs.
     cardListStore.setState({ deletionTarget: { id: "old-card", frontText: "Old" } });
     const result = confirmCardDeletion();
     auth.uid = "next-user";
     const selection = { id: "new-card", frontText: "New" };
-    // When: Exercise `cardListStore.setState` with the prepared inputs.
     cardListStore.setState({ deletionTarget: selection });
     if (outcome === "failure") pending.reject(new Error("denied"));
     else pending.resolve();

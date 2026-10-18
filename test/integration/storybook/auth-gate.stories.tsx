@@ -45,7 +45,7 @@ export const WaitingForData: Story = {
       "STORYBOOK-CARD-LIST-10 Keep unconfirmed data behind the real application initialization gate",
       async () => {
         // Given: Use the rendered story, its args, parameters, and any setup below.
-        // When: Evaluate `canvas.findByRole` as part of the following checks.
+        // When: Storybook renders this scenario with its configured args and parameters.
         // Then: Verify the expected result in the assertions below.
         await expect(await canvas.findByRole("heading", { name: "Starting Tango…" })).toBeVisible();
         await expect(canvas.queryByRole("heading", { name: "No cards yet" })).not.toBeInTheDocument();

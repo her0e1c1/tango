@@ -80,7 +80,7 @@ export const Japanese: Story = {
     // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-DECK-LIST-03 Translate fixed labels while preserving the deck name", async () => {
       // Given: Use the rendered story, its args, parameters, and any setup below.
-      // When: Evaluate `canvas.findByRole` as part of the following checks.
+      // When: Storybook renders this scenario with its configured args and parameters.
       // Then: Verify the expected result in the assertions below.
       await expect(await canvas.findByRole("heading", { name: "デッキ" })).toBeVisible();
       await expect(canvas.getByRole("article", { name: deck.name })).toHaveTextContent(deck.name);
@@ -116,7 +116,7 @@ export const Checking: Story = {
     // Given: Use the rendered story, its args, parameters, and any setup below.
     await step("STORYBOOK-DECK-LIST-13 Keep pending bootstrap distinct from an empty result", async () => {
       // Given: Use the rendered story, its args, parameters, and any setup below.
-      // When: Evaluate `canvas.findByText` as part of the following checks.
+      // When: Storybook renders this scenario with its configured args and parameters.
       // Then: Verify the expected result in the assertions below.
       await expect(await canvas.findByText("Checking for sample deck…")).toBeVisible();
       await expect(canvas.queryByRole("heading", { name: "No decks yet" })).not.toBeInTheDocument();
@@ -162,9 +162,6 @@ export const ReviewCounts: Story = {
   },
 };
 function studyStory(target: typeof deck, review: boolean): Story {
-  // Given: Use this case's inputs and any shared test setup.
-  // When: Evaluate `step` as part of the following checks.
-  // Then: Verify the expected result in the assertions below.
   return {
     parameters: { page: reviewPage },
     play: async ({ canvas, userEvent, step }) => {
@@ -228,7 +225,7 @@ export const ActiveProgress: Story = {
       async () => {
         // Given: Use the rendered story, its args, parameters, and any setup below.
         const list = await canvas.findByRole("region", { name: "Decks" });
-        // When: Evaluate `within(list).getAllByRole` as part of the following checks.
+        // When: Storybook renders this scenario with its configured args and parameters.
         // Then: Verify the expected result in the assertions below.
         await expect(within(list).getAllByRole("article")).toHaveLength(2);
         const active = within(canvas.getByRole("article", { name: deck.name }));
@@ -300,7 +297,7 @@ export const Menus: Story = {
     });
     await step("STORYBOOK-DECK-LIST-22 Omit Restart for an unstarted deck", async () => {
       // Given: Use the rendered story, its args, parameters, and any setup below.
-      // When: Evaluate `canvas.queryByRole` as part of the following checks.
+      // When: Storybook renders this scenario with its configured args and parameters.
       // Then: Verify the expected result in the assertions below.
       await expect(canvas.queryByRole("menuitem", { name: "Restart" })).not.toBeInTheDocument();
       await expect(canvas.getByRole("button", { name: `Study ${otherDeck.name}` })).toBeEnabled();
@@ -351,18 +348,17 @@ export const Download: Story = {
     await step("STORYBOOK-DECK-LIST-07 Start the selected deck download and close its menu", async () => {
       // Given: Use the rendered story, its args, parameters, and any setup below.
       const browserDownload = mocked(downloadTextFile).mockImplementation(() => undefined);
-      // When: Evaluate `userEvent.click` as part of the following checks.
-      // Then: Verify the expected result in the assertions below.
       try {
+        // Given: Use the current iteration or branch inputs from the enclosing case.
+        // When: Exercise `userEvent.click` with the prepared inputs.
         await userEvent.click(await canvas.findByRole("button", { name: `Open actions for ${deck.name}` }));
         await userEvent.click(canvas.getByRole("menuitem", { name: "Download" }));
-        // Then: Check the expected result after the operation in this branch.
+        // Then: Verify the expected result in the assertions below.
         await expect(browserDownload).toHaveBeenCalledWith(
           expect.stringContaining("Hello"),
           `${deck.name}.csv`,
           expect.any(String)
         );
-        // Then: Check the expected result after the operation in this branch.
         await expect(canvas.queryByRole("menu")).not.toBeInTheDocument();
       } finally {
         browserDownload.mockRestore();
@@ -377,7 +373,7 @@ export const LocalDeck: Story = {
     await step("STORYBOOK-DECK-LIST-20 Omit remote synchronization indicators for local data", async () => {
       // Given: Use the rendered story, its args, parameters, and any setup below.
       const row = await canvas.findByRole("article", { name: deck.name });
-      // When: Evaluate `within(row).queryByText` as part of the following checks.
+      // When: Storybook renders this scenario with its configured args and parameters.
       // Then: Verify the expected result in the assertions below.
       await expect(within(row).queryByText("Remote deck")).not.toBeInTheDocument();
       await expect(within(row).getByRole("button", { name: `Study ${deck.name}` })).toBeVisible();
@@ -446,7 +442,7 @@ export const Layout: Story = {
     const before = header.getBoundingClientRect();
     await step("STORYBOOK-APP-LAYOUT-02 Place initial content below the fixed header", async () => {
       // Given: Use the rendered story, its args, parameters, and any setup below.
-      // When: Evaluate `first.getBoundingClientRect` as part of the following checks.
+      // When: Storybook renders this scenario with its configured args and parameters.
       // Then: Verify the expected result in the assertions below.
       await expect(first.getBoundingClientRect().top).toBeGreaterThanOrEqual(before.bottom);
     });

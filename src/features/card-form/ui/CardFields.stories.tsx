@@ -174,7 +174,7 @@ export const JapaneseValidation: Story = {
     await step("STORYBOOK-CARD-FORM-03 Japanese validation", async () => {
       // Given: Use the rendered story, its args, parameters, and any setup below.
       await canvas.findByText("表面のテキストは必須です。");
-      // When: Evaluate `canvas.getByRole` as part of the following checks.
+      // When: Storybook renders this scenario with its configured args and parameters.
       // Then: Verify the expected result in the assertions below.
       await expect(canvas.getByRole("textbox", { name: "表面のテキスト" })).toHaveAccessibleDescription(
         "表面のテキストは必須です。"
@@ -482,9 +482,6 @@ export const ExpandedMathDraft: Story = {
   },
 };
 function codeThemeStory(deckCategory: string, tags: string[], language: string, dark: boolean): Story {
-  // Given: Use this case's inputs and any shared test setup.
-  // When: Evaluate `step` as part of the following checks.
-  // Then: Verify the expected result in the assertions below.
   return {
     args: {
       deckCategory,
