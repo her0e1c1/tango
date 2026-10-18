@@ -126,12 +126,20 @@ trap cleanup EXIT
 # The E2E override forbids remote pulls, so local runs must create the same image that CI loads before startup.
 docker compose build app
 docker compose up --wait --wait-timeout 120 --remove-orphans
-docker compose run --rm --remove-orphans --env CI --entrypoint npm dev run e2e
+if [ "${E2E_UI:-false}" = "true" ]; then
+  echo "Playwright UI: http://127.0.0.1:${E2E_UI_PORT:-8077}/ (open after the runner starts; Ctrl-C to stop)"
+  docker compose run --rm --remove-orphans --publish "127.0.0.1:${E2E_UI_PORT:-8077}:8077" --entrypoint npm dev run e2e:ui -- --ui-host=0.0.0.0 --ui-port=8077
+else
+  docker compose run --rm --remove-orphans --env CI --entrypoint npm dev run e2e
+fi
 """
 
 [tasks."e2e:ui"]
-description = "Prepare an isolated E2E stack and open Playwright UI in a browser"
-file = "scripts/e2e-ui.sh"
+description = "Run the existing E2E environment in Playwright UI mode"
+interactive = true
+depends = ["init"]
+env = { E2E_UI = "true" }
+run = [{ task = "e2e" }]
 
 [tasks.check]
 alias = "c"

@@ -113,7 +113,7 @@ Actions artifacts.
 ### E2E Test
 
 Playwright runs the browser-level acceptance suite documented in `docs/test/e2e/`. `mise run e2e` starts isolated
-Firestore and Firebase Auth emulators, a production build served by Vite preview, and the official Playwright
+Firestore and Firebase Auth emulators, a healthy Vite dev server from the project image, and the official Playwright
 Docker image as a remote browser server before running the complete suite. The tests use emulator-backed remote data,
 local-only browser data, offline cache behavior, and the Auth emulator's local identity-provider flow; they do not
 connect to a real Firebase project or external identity provider.
@@ -122,37 +122,8 @@ connect to a real Firebase project or external identity provider.
 mise run e2e
 ```
 
-To select, run, inspect, and rerun tests interactively:
-
-```bash
-mise e2e:ui
-```
-
-Prerequisites are Bash, [mise](https://mise.jdx.dev/getting-started.html) (at least the version in `mise.toml`),
-and a running Docker daemon with Compose v2 supporting `up --wait`. Review and trust the repository's mise
-configuration when prompted. Docker must be able to build the existing Node/Python images, download their
-dependencies, and pull the Firestore emulator and Playwright images. No Firebase credentials, host browser
-installation, `.env` setup, or manually started app/emulator is required.
-
-The command creates `.env` from `.env.example` when absent, generates the existing sample data,
-builds the application image (including npm dependencies), and
-waits for Firestore, Auth, the production preview, the remote browser, and the UI runner to become healthy.
-Open the printed `http://127.0.0.1:8077/` URL in your browser. Expand a test file, select a test,
-and click its triangle **Run** button; inspect its status, actions, errors, and trace in the same UI. Click **Run**
-again to repeat it. For example, `DECK-MANAGEMENT-05` exercises remote fixtures and `ACCOUNT-01` exercises
-Auth linking. The runner and browser use Docker DNS (`app.test`, `db`, `auth.app.test`, and `browser`);
-the host browser only needs the UI URL. For a remote Docker host, forward its loopback UI port to your browser.
-
-Press **Ctrl-C** in the command terminal to stop. Closing the browser tab does not stop the stack.
-Normal runner exit, startup failure, and interruption remove only this invocation's containers, network, and
-volumes, including emulator data; built images remain cached. Run `mise e2e:ui` again for a fresh stack.
-Existing stacks and host ports are never stopped. If the UI port is occupied, the command fails and cleans up
-its own stack; choose another port with `E2E_UI_PORT=8078 mise e2e:ui`. Separate invocations use separate
-Compose projects, dependency and app-build volumes, emulator data, and artifact directories.
-
-UI screenshots/traces and failure logs are retained under the printed `test-results/tango-e2e-ui-*/` directory.
-`npm run e2e:ui` is the lower-level runner used inside that prepared Compose environment; it only starts UI mode
-and does not prepare services when invoked directly. Failed `mise run e2e` runs retain screenshots under
+`npm run e2e:ui` only opens Playwright's UI and does not start the required app and emulators. Use the
+compose-backed `mise run e2e` task for the acceptance suite. Failed local runs retain screenshots under
 `test-results/`; CI also writes an HTML report and captures a trace on the first retry.
 
 Each test and retry uses isolated identifiers and storage, so the suite can run fully in parallel locally. CI runs the
