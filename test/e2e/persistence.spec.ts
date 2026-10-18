@@ -458,6 +458,7 @@ for (const allInvalid of [false, true]) {
       contentType: "image/png",
     });
 
+    // When: Repair the quarantined Card in cache and reopen its Deck.
     await setCachedCardFsrs(page, second.id, null);
     await page.goto(`/deck/${deck.id}`);
     // Then: Verify the expected result in the assertions below.
@@ -575,6 +576,7 @@ test("PERSISTENCE-10 retains the recovery warning on quarantined Card view and e
       body: await page.screenshot(),
       contentType: "image/png",
     });
+    // When: Return home from the quarantined Card route.
     await page.getByRole("button", { name: "Go home", exact: true }).click();
     // Then: Verify the expected result in the assertions below.
     await expect(page).toHaveURL("/");
@@ -614,6 +616,7 @@ test("PERSISTENCE-10 retains the warning on a Deck view with all Cards quarantin
     body: await page.screenshot(),
     contentType: "image/png",
   });
+  // When: Return to the Deck list from the all-quarantined View.
   await page.getByRole("button", { name: "Back to deck list", exact: true }).click();
   // Then: Verify the expected result in the assertions below.
   await expect(page).toHaveURL("/");
