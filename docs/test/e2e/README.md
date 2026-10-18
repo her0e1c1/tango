@@ -189,13 +189,13 @@
 | PERSISTENCE-11 | batch | 正常系 | [未ログインの Card の変更をこのブラウザーだけに維持できる](./persistence.md#persistence-11) |
 | PERSISTENCE-12 | batch | 正常系 | [未ログインでもオフラインで削除した Card を再読み込み後に表示しない](./persistence.md#persistence-12) |
 | PERSISTENCE-13 | batch | 正常系 | [未ログインでもオフラインでインポートした Card を再読み込み後まで維持できる](./persistence.md#persistence-13) |
-| PERSISTENCE-14 | batch | 正常系 | [変更なしで画面を開き直しても全 Card を重複なく表示できる](./persistence.md#persistence-14) |
+| PERSISTENCE-14 | read | 正常系 | [変更なしで画面を開き直しても全 Card を重複なく表示できる](./persistence.md#persistence-14) |
 | PERSISTENCE-15 | batch | 正常系 | [画面を閉じている間に論理削除された Card を再開後に表示しない](./persistence.md#persistence-15) |
 | PERSISTENCE-16 | batch | 正常系 | [画面を閉じている間に論理削除された Deck を再開後に表示しない](./persistence.md#persistence-16) |
 | PERSISTENCE-17 | batch | 異常系 | [不正な匿名 Card の保存値を修復すると再び表示できる](./persistence.md#persistence-17) |
 | PERSISTENCE-18 | batch | 異常系 | [不正な匿名 Card があっても小さい画面で正常な Card の学習を完了できる](./persistence.md#persistence-18) |
-| PERSISTENCE-19 | batch | 異常系 | [不正な匿名 Card の表示・編集リンクで復旧警告を維持できる](./persistence.md#persistence-19) |
-| PERSISTENCE-20 | batch | 異常系 | [全 Card が不正な匿名 Deck の表示リンクで復旧警告を維持できる](./persistence.md#persistence-20) |
+| PERSISTENCE-19 | read | 異常系 | [不正な匿名 Card の表示・編集リンクで復旧警告を維持できる](./persistence.md#persistence-19) |
+| PERSISTENCE-20 | read | 異常系 | [全 Card が不正な匿名 Deck の表示リンクで復旧警告を維持できる](./persistence.md#persistence-20) |
 | SETTINGS-01 | write | 正常系 | [Dark mode を自動保存して reload 後も反映できる](./settings.md#settings-01) |
 | SETTINGS-02 | write | 正常系 | [Maximum cards 設定を学習開始画面に反映できる](./settings.md#settings-02) |
 | SETTINGS-03 | batch | 正常系 | [Respect review schedule を次の学習 session に反映できる](./settings.md#settings-03) |
@@ -289,7 +289,7 @@
 | STUDY-SESSION-26 | write | 異常系 | [読み込めない過去の学習があっても利用できる学習を再開できる](./study-session.md#study-session-26) |
 | STUDY-SESSION-27 | write | 異常系 | [Restart の保存失敗後も以前の学習を失わずに再試行できる](./study-session.md#study-session-27) |
 | STUDY-SESSION-28 | write | 正常系 | [明示的に終了した未完了の学習を完了として数えない](./study-session.md#study-session-28) |
-| STUDY-SESSION-29 | write | 正常系 | [Deck の削除で終了した未完了の学習を完了として数えない](./study-session.md#study-session-29) |
+| STUDY-SESSION-29 | batch | 正常系 | [Deck の削除で終了した未完了の学習を完了として数えない](./study-session.md#study-session-29) |
 | STUDY-SESSION-30 | read | 正常系 | [匿名で評価した Card は復習期限を迎えると新しい学習の対象に戻る](./study-session.md#study-session-30) |
 | STUDY-SESSION-31 | write | 正常系 | [期限に達した匿名の Card を新しい学習で再評価できる](./study-session.md#study-session-31) |
 | STUDY-SESSION-32 | write | 正常系 | [保存済みの tag filter に一致する Card だけで学習を開始できる](./study-session.md#study-session-32) |

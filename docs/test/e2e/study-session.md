@@ -36,7 +36,7 @@
 | STUDY-SESSION-26 | write | 異常系 | [読み込めない過去の学習があっても利用できる学習を再開できる](#study-session-26) |
 | STUDY-SESSION-27 | write | 異常系 | [Restart の保存失敗後も以前の学習を失わずに再試行できる](#study-session-27) |
 | STUDY-SESSION-28 | write | 正常系 | [明示的に終了した未完了の学習を完了として数えない](#study-session-28) |
-| STUDY-SESSION-29 | write | 正常系 | [Deck の削除で終了した未完了の学習を完了として数えない](#study-session-29) |
+| STUDY-SESSION-29 | batch | 正常系 | [Deck の削除で終了した未完了の学習を完了として数えない](#study-session-29) |
 | STUDY-SESSION-30 | read | 正常系 | [匿名で評価した Card は復習期限を迎えると新しい学習の対象に戻る](#study-session-30) |
 | STUDY-SESSION-31 | write | 正常系 | [期限に達した匿名の Card を新しい学習で再評価できる](#study-session-31) |
 | STUDY-SESSION-32 | write | 正常系 | [保存済みの tag filter に一致する Card だけで学習を開始できる](#study-session-32) |
@@ -704,7 +704,7 @@ Then:
 
 ### STUDY-SESSION-29 [TODO] Deck の削除で終了した未完了の学習を完了として数えない
 
-カテゴリ: `write`
+カテゴリ: `batch`
 
 区分: 正常系
 

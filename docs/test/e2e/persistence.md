@@ -24,13 +24,13 @@
 | PERSISTENCE-11 | batch | 正常系 | [未ログインの Card の変更をこのブラウザーだけに維持できる](#persistence-11) |
 | PERSISTENCE-12 | batch | 正常系 | [未ログインでもオフラインで削除した Card を再読み込み後に表示しない](#persistence-12) |
 | PERSISTENCE-13 | batch | 正常系 | [未ログインでもオフラインでインポートした Card を再読み込み後まで維持できる](#persistence-13) |
-| PERSISTENCE-14 | batch | 正常系 | [変更なしで画面を開き直しても全 Card を重複なく表示できる](#persistence-14) |
+| PERSISTENCE-14 | read | 正常系 | [変更なしで画面を開き直しても全 Card を重複なく表示できる](#persistence-14) |
 | PERSISTENCE-15 | batch | 正常系 | [画面を閉じている間に論理削除された Card を再開後に表示しない](#persistence-15) |
 | PERSISTENCE-16 | batch | 正常系 | [画面を閉じている間に論理削除された Deck を再開後に表示しない](#persistence-16) |
 | PERSISTENCE-17 | batch | 異常系 | [不正な匿名 Card の保存値を修復すると再び表示できる](#persistence-17) |
 | PERSISTENCE-18 | batch | 異常系 | [不正な匿名 Card があっても小さい画面で正常な Card の学習を完了できる](#persistence-18) |
-| PERSISTENCE-19 | batch | 異常系 | [不正な匿名 Card の表示・編集リンクで復旧警告を維持できる](#persistence-19) |
-| PERSISTENCE-20 | batch | 異常系 | [全 Card が不正な匿名 Deck の表示リンクで復旧警告を維持できる](#persistence-20) |
+| PERSISTENCE-19 | read | 異常系 | [不正な匿名 Card の表示・編集リンクで復旧警告を維持できる](#persistence-19) |
+| PERSISTENCE-20 | read | 異常系 | [全 Card が不正な匿名 Deck の表示リンクで復旧警告を維持できる](#persistence-20) |
 
 <a id="persistence-01"></a>
 
@@ -355,7 +355,7 @@ Then:
 
 ### PERSISTENCE-14 変更なしで画面を開き直しても全 Card を重複なく表示できる
 
-カテゴリ: `batch`
+カテゴリ: `read`
 
 区分: 正常系
 
@@ -476,7 +476,7 @@ Then:
 
 ### PERSISTENCE-19 不正な匿名 Card の表示・編集リンクで復旧警告を維持できる
 
-カテゴリ: `batch`
+カテゴリ: `read`
 
 区分: 異常系
 
@@ -500,7 +500,7 @@ Then:
 
 ### PERSISTENCE-20 全 Card が不正な匿名 Deck の表示リンクで復旧警告を維持できる
 
-カテゴリ: `batch`
+カテゴリ: `read`
 
 区分: 異常系
 

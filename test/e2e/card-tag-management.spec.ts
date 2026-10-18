@@ -201,7 +201,7 @@ test("CARD-TAG-MANAGEMENT-02 discards tag drafts with the Card", async ({ fixtur
 });
 
 for (const invalid of [" ", "kept", " kept "]) {
-  test(`CARD-TAG-MANAGEMENT-03 CARD-TAG-MANAGEMENT-10 validates tag name ${JSON.stringify(invalid)} without confirmation`, async ({
+  test(`CARD-TAG-MANAGEMENT-03 ${invalid === " " ? "" : "CARD-TAG-MANAGEMENT-10 "}validates tag name ${JSON.stringify(invalid)} without confirmation`, async ({
     fixture,
     page,
   }) => {
