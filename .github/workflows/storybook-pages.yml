@@ -69,6 +69,7 @@ jobs:
 
   deploy:
     needs: build
+    if: ${{ !cancelled() && needs.build.result == 'success' }}
     permissions:
       contents: read
       pages: write

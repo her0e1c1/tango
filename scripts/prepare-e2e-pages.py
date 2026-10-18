@@ -1,9 +1,12 @@
 """Validate this run's Playwright report before adding it to the Storybook site."""
 
+import base64
 import hashlib
+import io
 import json
 import os
 from pathlib import Path
+import re
 import shutil
 import zipfile
 
@@ -31,8 +34,10 @@ def tests(suite):
         yield from tests(child)
 
 
-attempts = [result for suite in results["suites"] for test in tests(suite)
-            for result in test["results"]]
+cases = [test for suite in results["suites"] for test in tests(suite)]
+if not cases or any(not test["results"] for test in cases):
+    raise SystemExit("Some tests have no results; refusing incomplete publication")
+attempts = [result for test in cases for result in test["results"]]
 if not attempts or any(result["status"] not in {"passed", "failed", "timedOut"} for result in attempts):
     raise SystemExit("Missing or interrupted test results prevent publication")
 for result in attempts:
@@ -44,6 +49,7 @@ for result in attempts:
         relative = Path(attachment["path"]).relative_to(Path(results["config"]["configFile"]).parent)
         original = artifact / relative
         contents = original.read_bytes()
+        # Match the pinned Playwright HTML reporter; upgrades must recheck attachment/viewer compatibility.
         copied = report / "data" / (hashlib.sha1(contents).hexdigest() + original.suffix)
         if not copied.is_file() or copied.read_bytes() != contents:
             raise SystemExit("An HTML report attachment is missing or incomplete")
@@ -56,6 +62,15 @@ for required in [site / "index.html", report / "index.html", report / "trace/ind
                  report / "trace/sw.bundle.js"]:
     if not required.is_file() or not required.stat().st_size:
         raise SystemExit(f"Required site asset is missing: {required}")
+
+# Playwright embeds report data in the HTML; ensure it finished writing before publishing.
+encoded = re.search(r'<template id="playwrightReportBase64">data:application/zip;base64,([^<]+)</template>',
+                    (report / "index.html").read_text())
+if encoded is None:
+    raise SystemExit("The HTML report is missing its complete embedded data")
+with zipfile.ZipFile(io.BytesIO(base64.b64decode(encoded[1], validate=True))) as data:
+    if data.testzip() is not None or json.loads(data.read("report.json"))["stats"]["total"] != len(cases):
+        raise SystemExit("The HTML report data is corrupt or does not match the test results")
 
 # Public trace contents must be reviewed against the isolated emulator/fixture setup before enabling publication.
 # Keep this closed if the required generated-content inspection cannot be completed.
