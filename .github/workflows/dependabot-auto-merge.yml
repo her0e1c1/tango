@@ -56,7 +56,9 @@ jobs:
           [[ "$merge_sha" =~ ^[0-9a-f]{40}$ ]]
           echo "Merged PR #$PR_NUMBER as candidate $merge_sha." >> "$GITHUB_STEP_SUMMARY"
 
-          # GITHUB_TOKEN pushes do not trigger workflows; repository_dispatch is supported.
+          # Dependabot PRs are auto-merged with GITHUB_TOKEN, not a user's token.
+          # The resulting push to main does not trigger deployment workflows.
+          # This workflow explicitly sends repository_dispatch to start them.
           jq -n --arg sha "$merge_sha" \
             '{event_type: "dependabot-merged", client_payload: {sha: $sha}}' | \
             gh api --method POST "repos/$REPOSITORY/dispatches" --input -
