@@ -533,7 +533,7 @@ const readFixtureIndexEntry = (documentedCase: DocumentedCase): FixtureIndexEntr
 
 const listE2eSpecificationFiles = () =>
   readdirSync(docsRoot)
-    .filter((file) => file.endsWith(".md") && file !== "AGENTS.md")
+    .filter((file) => file.endsWith(".md") && !["AGENTS.md", "README.md"].includes(file))
     .map((file) => path.join(docsRoot, file));
 
 const buildFixtureIndex = (): ReadonlyMap<string, FixtureIndexEntry> => {
