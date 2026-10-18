@@ -48,8 +48,9 @@ operations or creation of a new study session. It does not replace the complete 
 
 ## Repeat, diagnose and stop
 
-Run `npm run e2e:demo` again for a fresh browser context and the fixture's initial state. Do not reset by selecting
-Standard inside a completed run. To abandon a paused run, press Ctrl+C in the terminal, then rerun the command.
+Run `npm run e2e:demo` again for a fresh browser context and a new fixture namespace. Extra Cards or other changes
+from an interrupted run stay isolated from the next run. Do not reset by selecting Standard inside a completed run.
+To abandon a paused run, press Ctrl+C in the terminal, then rerun the command.
 
 For evidence, the run retains a Playwright trace under `test-results/`; open the emitted path with
 `npx playwright show-trace <path-to-trace.zip>`. A checkpoint failure also retains a screenshot. These generated
