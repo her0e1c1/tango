@@ -25,7 +25,8 @@ export COMPOSE_PROJECT_NAME="tango-e2e-ui-$(date +%s)-$$-$RANDOM"
 export BRANCH="$COMPOSE_PROJECT_NAME"
 child=""
 
-compose=(docker compose --env-file .env.e2e)
+# Keep the UI profile active for inspection and cleanup as well as explicit startup.
+compose=(docker compose --profile ui --env-file .env.e2e)
 
 cleanup() {
   local status=$?
