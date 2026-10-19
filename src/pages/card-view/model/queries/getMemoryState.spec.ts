@@ -5,7 +5,7 @@ import { getMemoryState } from "./getMemoryState";
 
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
-describe("CARD-VIEW-06 memory chart snapshot", () => {
+describe("CARD-VIEW-06 CARD-VIEW-08 memory chart snapshot", () => {
   const at = Date.UTC(2026, 8, 21);
   const schedule = calculateFsrsState(null, "good", at);
   it.each([at + 60_000, schedule.dueAt, at + 100_000 * 86_400_000])(

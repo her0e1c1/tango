@@ -21,7 +21,7 @@ function setDeadline(dueAt: number) {
   seedCardFsrs("card", dueAt);
 }
 
-describe("mounted deadline consumers [STUDY-SESSION-01 CARD-FILTER-01]", () => {
+describe("mounted deadline consumers [STUDY-SESSION-18 CARD-FILTER-01]", () => {
   beforeEach(() => {
     // Given: Establish the shared setup used by the following cases.
     vi.useFakeTimers();

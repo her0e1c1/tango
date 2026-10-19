@@ -2,7 +2,7 @@ import { expect, getDocument, requireDocument, test } from "./utils/fixtures";
 import { createAnonymousDeck } from "./utils/ui-helpers";
 import type { Page } from "@playwright/test";
 
-test("CARD-VIEW-06 shows FSRS memory after a rating, reload, and offline navigation", async ({
+test("CARD-VIEW-06 CARD-VIEW-08 CARD-VIEW-09 shows FSRS memory after a rating, reload, and offline navigation", async ({
   fixture,
   page,
   context,
@@ -125,7 +125,7 @@ test("CARD-VIEW-03 closes the back-text overlay without changing persistent Card
   });
 });
 
-test("CARD-VIEW-04 opens a Card view route inside the application shell", async ({ fixture, page }) => {
+test("CARD-VIEW-04 CARD-VIEW-07 opens a Card view route inside the application shell", async ({ fixture, page }) => {
   const { card, nextCard } = await test.step("Given: A card route open inside the application shell", async () => {
     const card = fixture.card();
     const nextCard = fixture.card("card-2");

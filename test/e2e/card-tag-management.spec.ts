@@ -38,7 +38,7 @@ function allowOfflineErrors(errors: BrowserErrorCollector) {
   );
 }
 
-test("CARD-TAG-MANAGEMENT-01 directly edits only the current Card and persists on Save", async ({
+test("CARD-TAG-MANAGEMENT-01 CARD-TAG-MANAGEMENT-07 CARD-TAG-MANAGEMENT-08 CARD-TAG-MANAGEMENT-09 directly edits only the current Card and persists on Save", async ({
   fixture,
   page,
   namespace,
@@ -201,7 +201,7 @@ test("CARD-TAG-MANAGEMENT-02 discards tag drafts with the Card", async ({ fixtur
 });
 
 for (const invalid of [" ", "kept", " kept "]) {
-  test(`CARD-TAG-MANAGEMENT-03 validates tag name ${JSON.stringify(invalid)} without confirmation`, async ({
+  test(`CARD-TAG-MANAGEMENT-03 ${invalid === " " ? "" : "CARD-TAG-MANAGEMENT-10 "}validates tag name ${JSON.stringify(invalid)} without confirmation`, async ({
     fixture,
     page,
   }) => {
@@ -241,7 +241,10 @@ for (const invalid of [" ", "kept", " kept "]) {
   });
 }
 
-test("CARD-TAG-MANAGEMENT-04 filters the Card tag union and removes an unused candidate", async ({ fixture, page }) => {
+test("CARD-TAG-MANAGEMENT-04 CARD-TAG-MANAGEMENT-11 CARD-TAG-MANAGEMENT-12 filters the Card tag union and removes an unused candidate", async ({
+  fixture,
+  page,
+}) => {
   const { card } = await test.step("Given: A deck with shared and card-specific tags", async () => {
     await fixture.apply(page);
     const card = fixture.card("card-target-first");
@@ -299,7 +302,7 @@ test("CARD-TAG-MANAGEMENT-04 filters the Card tag union and removes an unused ca
   });
 });
 
-test("CARD-TAG-MANAGEMENT-05 keeps offline Card tag edits across reload and reconnect", async ({
+test("CARD-TAG-MANAGEMENT-05 CARD-TAG-MANAGEMENT-13 CARD-TAG-MANAGEMENT-14 keeps offline Card tag edits across reload and reconnect", async ({
   fixture,
   page,
   context,
@@ -363,7 +366,7 @@ test("CARD-TAG-MANAGEMENT-05 keeps offline Card tag edits across reload and reco
   });
 });
 
-test("CARD-TAG-MANAGEMENT-06 keeps anonymous tags locally across offline reload", async ({
+test("CARD-TAG-MANAGEMENT-06 CARD-TAG-MANAGEMENT-15 keeps anonymous tags locally across offline reload", async ({
   fixture,
   page,
   context,

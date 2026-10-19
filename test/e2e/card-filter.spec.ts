@@ -115,7 +115,7 @@ for (const [logicalDeck, names] of [
   });
 }
 
-test("CARD-FILTER-02 isolates filters when moving between decks", async ({ fixture, page }) => {
+test("CARD-FILTER-02 CARD-FILTER-14 isolates filters when moving between decks", async ({ fixture, page }) => {
   const { deck, before } = await test.step("Given: One deck has saved AND filters and another has none", async () => {
     const deck = await setup(fixture, page);
     await seedFilter(deck, ["alpha", "beta"], true);
@@ -160,7 +160,10 @@ test("CARD-FILTER-02 isolates filters when moving between decks", async ({ fixtu
   });
 });
 
-test("CARD-FILTER-03 distinguishes an empty deck and offers recovery", async ({ fixture, page }) => {
+test("CARD-FILTER-03 CARD-FILTER-15 CARD-FILTER-16 distinguishes an empty deck and offers recovery", async ({
+  fixture,
+  page,
+}) => {
   const { deck } = await test.step("Given: An empty deck card list with recovery actions", async () => {
     await fixture.apply(page);
     const deck = fixture.deck("deck-empty");

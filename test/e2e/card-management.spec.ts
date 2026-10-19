@@ -143,7 +143,11 @@ test.describe("card-resilience", () => {
     });
   });
 
-  test("CARD-MANAGEMENT-11 confirms before discarding an unsaved Card create", async ({ fixture, page, namespace }) => {
+  test("CARD-MANAGEMENT-11 CARD-MANAGEMENT-24 confirms before discarding an unsaved Card create", async ({
+    fixture,
+    page,
+    namespace,
+  }) => {
     const { deck, unsavedFrontText } = await test.step("Given: A deck ready for a new card draft", async () => {
       const deck = fixture.deck();
       const unsavedFrontText = `${namespace.caseId} unsaved front`;
@@ -412,7 +416,7 @@ test.describe("card", () => {
     return checkbox;
   };
 
-  test("CARD-MANAGEMENT-01 persists edited front, back, and tags across reload", async ({
+  test("CARD-MANAGEMENT-01 CARD-MANAGEMENT-17 CARD-MANAGEMENT-18 persists edited front, back, and tags across reload", async ({
     fixture,
     page,
     namespace,
@@ -628,7 +632,7 @@ test.describe("card", () => {
     });
   });
 
-  test("CARD-MANAGEMENT-05 creates one remote Card and keeps it across reload", async ({
+  test("CARD-MANAGEMENT-05 CARD-MANAGEMENT-22 creates one remote Card and keeps it across reload", async ({
     fixture,
     page,
     namespace,

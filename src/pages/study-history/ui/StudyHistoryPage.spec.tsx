@@ -53,7 +53,7 @@ function completedRecord(deckId = first.id): StudyHistoryRecord {
   };
 }
 
-describe("STUDY-SESSION-09 STUDY-SESSION-10 STUDY-SESSION-11 STUDY-SESSION-12 STUDY-SESSION-13 StudyHistoryPage", () => {
+describe("STUDY-SESSION-09 STUDY-SESSION-10 STUDY-SESSION-11 STUDY-SESSION-12 STUDY-SESSION-13 STUDY-SESSION-33 STUDY-SESSION-35 STUDY-SESSION-36 STUDY-SESSION-37 STUDY-SESSION-38 STUDY-SESSION-39 StudyHistoryPage", () => {
   beforeEach(() => {
     // Given: Establish the shared setup used by the following cases.
     subscriptions.length = 0;

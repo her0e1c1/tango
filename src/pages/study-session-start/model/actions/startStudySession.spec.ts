@@ -53,7 +53,7 @@ vi.mock("@/entities/study-session/api/firestore", () => ({
 
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
-describe("Study start persistence mode [STUDY-SESSION-01] [STUDY-SESSION-07] [PERSISTENCE-04]", () => {
+describe("Study start persistence mode [STUDY-SESSION-01 STUDY-SESSION-14 STUDY-SESSION-19 STUDY-SESSION-20] [STUDY-SESSION-07] [PERSISTENCE-04]", () => {
   beforeEach(() => {
     // Given: Establish the shared setup used by the following cases.
     clearStudySessions();

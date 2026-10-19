@@ -39,7 +39,7 @@ function card(deckId: string, dueAt?: number, overrides: Partial<Card> = {}) {
   });
 }
 
-describe("NAVIGATION-17 NAVIGATION-18 held review counts", () => {
+describe("NAVIGATION-17 NAVIGATION-18 held review counts NAVIGATION-35 NAVIGATION-36 NAVIGATION-39 NAVIGATION-40", () => {
   beforeEach(() => {
     // Given: Establish the shared setup used by the following cases.
     vi.useFakeTimers();

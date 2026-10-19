@@ -19,17 +19,40 @@ Deck、Card 一覧、閲覧、および全ページの主要画面の表示・�
 | NAVIGATION-09 | read | 正常系 | [匿名利用中の Deck を先頭から閲覧し直せる](#navigation-09) |
 | NAVIGATION-10 | read | 正常系 | [学習条件に依存せず全 Card を標準順で閲覧できる](#navigation-10) |
 | NAVIGATION-11 | read | 正常系 | [復習期日前の Card も閲覧できる](#navigation-11) |
-| NAVIGATION-12 | read | 正常系 / 異常系 | [閲覧対象が空または Deck が存在しない場合に一覧へ戻れる](#navigation-12) |
+| NAVIGATION-12 | read | 正常系 | [空の Deck の閲覧画面から一覧へ戻れる](#navigation-12) |
 | NAVIGATION-13 | read | 正常系 | [1件の Card の長い解答を touch で閲覧して終了できる](#navigation-13) |
-| NAVIGATION-14 | write | 正常系 | [閲覧と学習で表示設定と操作ヘルプを共有できる](#navigation-14) |
+| NAVIGATION-14 | write | 正常系 | [閲覧の表示設定を保存して学習にも反映できる](#navigation-14) |
 | NAVIGATION-15 | read | 正常系 | [学習データを変更せずに閲覧を自動再生できる](#navigation-15) |
 | NAVIGATION-16 | read | 正常系 | [閲覧の進捗スライダーで前後へ移動できる](#navigation-16) |
-| NAVIGATION-17 | read | 正常系 | [読み込み済みの復習件数と学習導線を表示できる](#navigation-17) |
+| NAVIGATION-17 | read | 正常系 | [読み込み済みの復習件数と集計条件を表示できる](#navigation-17) |
 | NAVIGATION-18 | read | 正常系 | [復習期限の到達で一覧を更新できる](#navigation-18) |
 | NAVIGATION-19 | write | 正常系 | [view mode で長い表面を読みながら移動を防止できる](#navigation-19) |
 | NAVIGATION-20 | write | 正常系 | [閲覧の view mode 終了後に通常の表裏操作へ戻れる](#navigation-20) |
-| NAVIGATION-21 | write | 正常系 | [view mode 中も閲覧ボタンと自動再生を使える](#navigation-21) |
+| NAVIGATION-21 | write | 正常系 | [view mode 中も閲覧ボタンで次へ進める](#navigation-21) |
 | NAVIGATION-22 | batch | 異常系 | [保存データの初期化失敗からローカルデータを削除して再起動する](#navigation-22) |
+| NAVIGATION-23 | read | 異常系 | [保存済みの言語を利用できない場合はエラーを英語で案内する](#navigation-23) |
+| NAVIGATION-24 | read | 異常系 | [個別に処理された失敗では画面全体を復旧画面に置き換えない](#navigation-24) |
+| NAVIGATION-25 | read | 正常系 | [Deck 一覧の追加メニューを開閉して操作項目を選べる](#navigation-25) |
+| NAVIGATION-26 | read | 正常系 | [Deck 一覧の追加メニューから作成とインポートの画面へ遷移できる](#navigation-26) |
+| NAVIGATION-27 | read | 正常系 | [閲覧 Card の表裏を切り替えて裏面の内容を利用できる](#navigation-27) |
+| NAVIGATION-28 | read | 正常系 | [閲覧で未対応の mouse と上下操作は Card を変更しない](#navigation-28) |
+| NAVIGATION-29 | read | 異常系 | [存在しない Deck の閲覧画面から一覧へ戻れる](#navigation-29) |
+| NAVIGATION-30 | read | 正常系 | [閲覧 Help で操作を確認して元の Card へ戻れる](#navigation-30) |
+| NAVIGATION-31 | read | 正常系 | [閲覧の編集リンクから現在の Card を編集画面で開ける](#navigation-31) |
+| NAVIGATION-32 | read | 正常系 | [再生間隔0では閲覧の自動送りを利用できない](#navigation-32) |
+| NAVIGATION-33 | read | 正常系 | [閲覧 Help の表示中は自動送りを中断する](#navigation-33) |
+| NAVIGATION-34 | write | 正常系 | [閲覧の keyboard 操作は focus 対象の標準操作を維持する](#navigation-34) |
+| NAVIGATION-35 | read | 正常系 | [Deck 一覧を状態ごとの区分と操作を含むレイアウトで表示する](#navigation-35) |
+| NAVIGATION-36 | read | 正常系 | [Deck 一覧を学習状態と復習期限の順に並べる](#navigation-36) |
+| NAVIGATION-37 | read | 正常系 | [復習と新規が0件の Deck では理由を区別して表示する](#navigation-37) |
+| NAVIGATION-38 | read | 正常系 | [Deck 一覧の Review と Study new から開始設定へ進める](#navigation-38) |
+| NAVIGATION-39 | read | 正常系 | [間隔反復 OFF では件数を隠して学習と管理の導線を維持する](#navigation-39) |
+| NAVIGATION-40 | read | 正常系 | [条件の変更と画面復帰で一覧の復習件数を更新する](#navigation-40) |
+| NAVIGATION-41 | read | 正常系 | [view mode 中も閲覧の自動再生で次へ進める](#navigation-41) |
+| NAVIGATION-42 | batch | 異常系 | [ローカルデータの削除失敗時は再試行を案内する](#navigation-42) |
+| NAVIGATION-43 | batch | 異常系 | [ローカルデータ削除後の起動失敗時は復旧画面を表示する](#navigation-43) |
+| NAVIGATION-44 | read | 正常系 | [空の Deck 一覧でも追加メニューを利用できる](#navigation-44) |
+| NAVIGATION-45 | write | 正常系 | [Deck 一覧の Continue から既存の学習を再開できる](#navigation-45) |
 
 <a id="navigation-01"></a>
 
@@ -99,7 +122,6 @@ When:
 Then:
 
 - 日本語の見出し・説明・Reload のみを表示し、ページの言語も日本語になる。描画・ルート・認証自体の失敗にはローカル DB の削除操作を表示しない。
-- 保存した言語をまだ利用できない場合は、英語のエラー画面を表示する。
 - 描画・ルート・初期化の失敗理由がある場合は、再読み込みの案内とともに元のエラーメッセージを表示する。
 - Reload 後は元の URL の日本語の Settings へ復旧する。認証状態、匿名ユーザーの Deck・Card、設定と追加の保存データを保持し、アプリからサイトデータを削除しない。
 
@@ -125,7 +147,6 @@ Then:
 
 - エラーの詳細の有無にかかわらず共通の復旧画面が表示され、Reload で Settings に戻る。ローカル DB の削除操作は表示しない。
 - 同じ障害が重ねて通知されても復旧画面や操作が重複せず、データ削除・ログアウト・自動遷移を行わない。
-- 個別の画像などの読み込み失敗や、画面内で案内済みの操作失敗だけでは、画面全体を復旧画面に置き換えない。
 - 画面を開き直した後も、一つの障害に対して復旧操作を一度だけ実行できる。
 - ブラウザーの元のエラー診断は保持する。最初の障害にメッセージがある場合は復旧画面にも表示し、後続の障害で上書きしない。
 
@@ -172,18 +193,10 @@ Given:
 
 When:
 
-- Deck 一覧上部の「追加」を開き、作成とインポートの項目を確認する。
-- keyboard の矢印キーで項目を移動し、Escape で閉じる。mobile では下部メニューの「閉じる」と背景のタップでも閉じる。
-- 一覧のアクションと各 Deck の操作メニューを順に開く。
-- 一覧の「デッキを作成」と「デッキをインポート」をそれぞれ選択し、保存せず一覧へ戻る。
 - 各 Deck を一覧から開き、その URL の直接表示と reload も行う。
 
 Then:
 
-- 一覧のアクションには作成とインポートが表示され、一覧が空の場合も利用できる。
-- Escape、mobile の「閉じる」、背景のタップでメニューが閉じ、操作を実行せずに開いたボタンへ focus が戻る。
-- 一覧と各 Deck の操作メニューは同時に複数開かない。
-- 作成とインポートの項目は、それぞれの画面へ遷移する。
 - 対象 Deck の Card 一覧へ遷移する。デッキ名の読み上げ名は「Open cards in …」／「…のカード一覧を開く」とし、学習進捗を変更しない View／閲覧メニューと区別できる。
 - 選択した Deck の Card 本文が表示され、似た識別子を持つ別の Deck の Card は表示されない。
 - 識別子内の `?` と `#` は URL のパス内にエンコードされ、query と fragment は空のままとなる。直接表示と reload 後も同じ Deck と Card が表示される。
@@ -227,18 +240,15 @@ Given:
 When:
 
 - Deck 一覧の対象 Deck の三点メニューを開き、View を選択する。
-- Card をクリックして表裏を切り替え、両面で左右の primary mouse drag と左右キー、表面で前後ボタンを使う。
-- non-primary mouse drag、上下の drag と上下キーを操作する。
+- 両面で左右の primary mouse drag と左右キー、表面で前後ボタンを使う。
 - 先頭から前、末尾から次へ移動し、再入場も行う。
 
 Then:
 
 - 閲覧画面で現在位置／総数を表示し、最初の Card の表面から停止状態で開始する。表面の読み上げには Card 本文も含める。
 - 左は前、右は次へ移動し、移動先は常に表面を表示する。drag 直後の click で誤反転しない。
-- non-primary mouse と上下操作は Card を移動せず、表裏も変更しない。
-- 裏面にリンクや入力部品が含まれる場合、その操作では Card を反転せず、部品本来の動作を維持する。
 - 両端を越えると Deck 一覧へ戻る。上下の操作ボタンは無効で、評価は行わない。再生操作を表示するが、自動では開始しない。
-- 裏面では本文だけを表示し、ツールバー・詳細・操作パネルを隠す。左右の drag と左右キーは引き続き利用でき、前後ボタンは表面で利用する。
+- 左右の drag と左右キーは裏面でも引き続き利用でき、前後ボタンは表面で利用する。
 - 閲覧、退出、再入場によって Deck、Card、学習履歴、学習の再開位置、設定は変化しない。
 
 <a id="navigation-09"></a>
@@ -318,27 +328,25 @@ Then:
 
 <a id="navigation-12"></a>
 
-### NAVIGATION-12 閲覧対象が空または Deck が存在しない場合に一覧へ戻れる
+### NAVIGATION-12 空の Deck の閲覧画面から一覧へ戻れる
 
 カテゴリ: `read`
 
-区分: 正常系 / 異常系
+区分: 正常系
 
 Given:
 
 - Fixture: [`browse-filter`](./fixture/browse-filter.yaml)
 - Card が1枚も存在しない Deck がある。学習用の条件に一致しないだけの Deck ではない。
-- 別の閲覧 URL が示す Deck は存在しない。
 
 When:
 
-- Card が存在しない Deck の View を開いて戻る操作を行い、存在しない Deck の閲覧 URL を直接開いて復帰する。
+- Card が存在しない Deck の View を開いて戻る操作を行う。
 
 Then:
 
 - 空状態では対象がない旨と一覧へ戻る操作を表示する。
-- 存在しない Deck では Deck が利用できない旨と一覧へ戻る操作を表示する。
-- どちらも Card の操作を表示せず、保存済みの内容や学習結果は変わらない。
+- Card の操作を表示せず、保存済みの内容や学習結果は変わらない。
 
 <a id="navigation-13"></a>
 
@@ -367,7 +375,7 @@ Then:
 
 <a id="navigation-14"></a>
 
-### NAVIGATION-14 閲覧と学習で表示設定と操作ヘルプを共有できる
+### NAVIGATION-14 閲覧の表示設定を保存して学習にも反映できる
 
 カテゴリ: `write`
 
@@ -380,18 +388,14 @@ Given:
 
 When:
 
-- Deck の View を開き、Help の操作説明を確認する。
-- 閲覧表面の鉛筆リンクから現在の Card の編集画面を開き、保存せず閲覧へ戻る。
+- Deck の View を開く。
 - 「…」内の鉛筆で編集リンクの表示・非表示を切り替え、他の表示設定も切り替える。
 - reload してから同じ Deck の学習を Continue する。
 
 Then:
 
-- 閲覧の Help は左右を前後移動、上下を無効として説明し、反転・再生・表示切替・退出の操作を示す。
-- Help を閉じると起動ボタンに focus が戻り、開いている間は背景の shortcut を実行しない。
-- 閲覧の編集リンクは初期状態で表示され、アイコンのみで現在の Card の編集画面を開く。表示設定の変更では編集画面へ遷移しない。
+- 編集リンクの表示設定の変更では編集画面へ遷移しない。
 - 編集リンクの表示設定は reload 後も維持される。非表示でも「…」から再表示できる。
-- 裏面では他の操作群と同じく編集リンクを隠す。狭い画面でも操作が重ならず、英語・日本語の読み上げ名とキーボード操作を利用できる。
 - 編集リンクは閲覧専用とし、その他の表示設定は reload 後と学習画面で共通に反映される。
 - 明示的に変更した表示設定だけが保存され、Deck、Card、学習履歴と閲覧前の学習再開位置は変わらない。
 
@@ -407,21 +411,19 @@ Given:
 
 - Fixture: [`study-session-middle`](./fixture/study-session-middle.yaml)
 - 自動再生で開始が有効で、再生間隔は正の値である。
-- 再生間隔が0の場合と匿名利用の場合にも、以下の該当する条件を適用する。
+- 匿名利用の場合にも、以下の条件を適用する。
 
 When:
 
 - View を開いて待ち、再生ボタンまたは Space で再生を開始する。
-- Help を開閉し、再生の停止と再開、手動移動、最後の Card の自動送りを行う。
+- 再生の停止と再開、手動移動、最後の Card の自動送りを行う。
 - 閲覧を退出して再入場する。
 
 Then:
 
 - 閲覧は常に停止状態で開始し、明示的に再生するまで移動しない。
 - 再生間隔ごとに次の Card の表面へ移動し、最後の次では Deck 一覧へ戻る。
-- Help を開いている間は自動送りされない。閉じると、選択済みの再生状態に従って設定された間隔を待ってから次へ進む。
 - 手動移動後も設定された間隔を待ってから次へ進む。退出前の再生によって、再入場後に勝手に Card が進むことはない。
-- 間隔0では再生操作とスライダーを表示せず、自動送りしない。Help には利用不可の説明を表示する。
 - Deck、Card、学習履歴、学習の再開位置、設定を変更しない。
 
 <a id="navigation-16"></a>
@@ -448,12 +450,11 @@ Then:
 - スライダーで前後の任意の Card へ移動でき、位置表示と本文が一致する。
 - 移動先と再入場後は表面を表示し、再入場後は先頭に戻る。
 - スライダーに focus がある間はその標準キー操作を優先し、Card 移動を二重に実行しない。
-- 本文上の Enter は反転、Space は再生切替、b は方向ボタンの表示切替として働く。入力欄やボタンの標準キー操作を妨げず、裏面のスクロール領域に focus がある場合の Space はスクロールを優先する。
 - Deck、Card、学習履歴、学習の再開位置、設定を変更しない。表示設定を明示的に切り替えた場合のみ、その設定が保存される。
 
 <a id="navigation-17"></a>
 
-### NAVIGATION-17 読み込み済みの復習件数と学習導線を表示できる
+### NAVIGATION-17 読み込み済みの復習件数と集計条件を表示できる
 
 カテゴリ: `read`
 
@@ -467,18 +468,12 @@ Given:
 
 When:
 
-- 一覧の合計と Deck 別の件数を確認し、「件数について」と0件の理由を必要に応じて展開する。keyboard で Review または Study new を選択する。
-- 間隔反復を無効にした表示と、英語・日本語、mobile、dark mode、拡大表示を確認する。
+- 一覧の合計と Deck 別の件数を確認し、「件数について」を展開する。
 
 Then:
 
 - 「件数について」を開くと、読み込み済みのデータと保存済み filter に基づく件数である旨を表示する。maximum cards と shuffle は件数に影響しない。
-- 「学習中」「今学習できるデッキ」「その他」の見出し付き一覧に各 Deck を一度だけ表示し、空の区分は隠す。名前から Card 一覧を開ける。各 Deck は Card 数、学習中の現在位置、復習・新規件数と1つの主学習操作を表示し、閲覧・管理は右上の三点メニューにまとめる。名前の読み上げには Card 数と学習中の現在位置を含める。カテゴリと最終学習時刻は表示しない。
-- mobile では1列と横幅いっぱいの主学習ボタンを表示する。広い画面では複数列とし、長い名前も折り返して表示する。主要操作は44px以上の高さを持つ。学習中のバーは現在位置の視覚的な目安であり、完了率ではない。
-- 学習中の Deck は最近学習したものから先頭に並び、Continue と現在位置を表示する。その後、復習対象がある Deck を最も早い復習期限順、未評価の Card だけがある Deck、その他の Deck の順に並べる。同順位は名前順となる。現在位置は完了枚数ではない。
-- 合計には学習中の Deck も一度だけ含める。0件の行は「復習・新規なし」を表示し、展開すると Card を読み込んでいない、filter に一致しない、期限前の Card だけである、という理由を区別する。期限前だけの場合は次回復習日時を表示し、Study は常に利用できる。完全な同期や学習完了は断定しない。
-- Review / Study new は開始設定画面へ遷移するだけで、学習を新しく開始したり、既存の学習を置き換えたりしない。Continue は既存の学習を再開する。
-- 間隔反復 OFF では復習・新規件数とその補足を隠し、Continue または Study と閲覧・管理操作を維持する。
+- 合計には学習中の Deck も一度だけ含める。
 - 一覧表示と開始設定画面への遷移で、Deck・Card の内容や学習結果・現在位置を変更しない。
 
 <a id="navigation-18"></a>
@@ -498,12 +493,10 @@ Given:
 When:
 
 - 一覧を開いたまま復習期日を迎える。
-- Card・Deck・filter・設定・学習の状態が変わった後と、別画面から一覧へ戻った後の表示を確認する。
 
 Then:
 
 - 期日に達した Card が復習件数に加わり、一覧の並び順と合計が同じ時点の復習対象に基づいて更新される。
-- 条件の変更や画面への復帰でも、その時点の対象に表示が更新され、以前の時刻の件数が残らない。
 - 表示の更新だけでは学習の出題順・現在位置や Card の復習予定を変更しない。
 
 <a id="navigation-19"></a>
@@ -551,7 +544,7 @@ Then:
 
 <a id="navigation-21"></a>
 
-### NAVIGATION-21 view mode 中も閲覧ボタンと自動再生を使える
+### NAVIGATION-21 view mode 中も閲覧ボタンで次へ進める
 
 カテゴリ: `write`
 
@@ -564,11 +557,11 @@ Given:
 
 When:
 
-- 次の Card ボタンと再生ボタンで順に次の Card へ進む。
+- 次の Card ボタンで次の Card へ進む。
 
 Then:
 
-- ボタンと自動再生で次の Card へ進み、view mode を維持する。学習データは変更されない。
+- ボタンで次の Card へ進み、view mode を維持する。学習データは変更されない。
 
 <a id="navigation-22"></a>
 
@@ -596,5 +589,525 @@ Then:
 - 匿名ユーザーの Deck・Card・学習データは再読み込み後も復活しない。
 - 以前の認証 UID・言語設定・追加の保存データは残らず、新しい匿名ユーザーと既定の設定で利用できる。起動に必要な保存領域が再作成されても以前のデータは復元されない。
 - Service Worker の登録と Cache Storage の内容は保持する。
-- ローカルデータ削除やアプリの読み込みを待つ間は起動中表示を出し、完了時はアプリ、失敗時は復旧画面に切り替える。
+- ローカルデータ削除やアプリの読み込みを待つ間は起動中表示を出し、完了時はアプリに切り替える。
+- 削除中は復旧操作を重ねて実行できない。
+
+<a id="navigation-23"></a>
+
+### NAVIGATION-23 [TODO] 保存済みの言語を利用できない場合はエラーを英語で案内する
+
+カテゴリ: `read`
+
+区分: 異常系
+
+Given:
+
+- Fixture: [`empty`](./fixture/empty.yaml)
+- 共通エラー画面で保存済みの言語をまだ利用できない。
+
+When:
+
+- 障害が発生し、共通エラー画面を表示する。
+
+Then:
+
+- 英語のエラー画面を表示する。
+
+<a id="navigation-24"></a>
+
+### NAVIGATION-24 [TODO] 個別に処理された失敗では画面全体を復旧画面に置き換えない
+
+カテゴリ: `read`
+
+区分: 異常系
+
+Given:
+
+- Fixture: [`empty`](./fixture/empty.yaml)
+- ユーザーが画面を利用している。
+
+When:
+
+- 個別の画像などの読み込み失敗、または画面内で案内される操作失敗が発生する。
+
+Then:
+
+- その失敗だけでは、画面全体を復旧画面に置き換えない。
+
+<a id="navigation-25"></a>
+
+### NAVIGATION-25 Deck 一覧の追加メニューを開閉して操作項目を選べる
+
+カテゴリ: `read`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`deck-navigation`](./fixture/deck-navigation.yaml)
+- ユーザーが Deck のある一覧を開いている。
+
+When:
+
+- 一覧上部の「追加」を開き、keyboard の矢印キーで項目を移動し、Escape で閉じる。mobile では下部メニューの「閉じる」と背景のタップでも閉じる。
+- 一覧のアクションと各 Deck の操作メニューを順に開く。
+
+Then:
+
+- 一覧のアクションには作成とインポートが表示される。
+- Escape、mobile の「閉じる」、背景のタップでメニューが閉じ、操作を実行せずに開いたボタンへ focus が戻る。
+- 一覧と各 Deck の操作メニューは同時に複数開かない。
+- メニューの表示と開閉によって Deck・Card の内容や学習結果は変わらない。
+
+<a id="navigation-26"></a>
+
+### NAVIGATION-26 Deck 一覧の追加メニューから作成とインポートの画面へ遷移できる
+
+カテゴリ: `read`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`deck-navigation`](./fixture/deck-navigation.yaml)
+- ユーザーが Deck 一覧を開いている。
+
+When:
+
+- 一覧の「デッキを作成」と「デッキをインポート」をそれぞれ選択し、保存せず一覧へ戻る。
+
+Then:
+
+- 作成とインポートの項目は、それぞれの画面へ遷移する。
+- 表示と遷移によって Deck・Card の内容や学習結果は変わらない。
+
+<a id="navigation-27"></a>
+
+### NAVIGATION-27 閲覧 Card の表裏を切り替えて裏面の内容を利用できる
+
+カテゴリ: `read`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`study-session-middle`](./fixture/study-session-middle.yaml)
+- ログイン中のアカウントの Deck を閲覧している。
+- 裏面にリンクや入力部品が含まれる場合もある。
+
+When:
+
+- Card をクリックして表裏を切り替え、裏面にあるリンクや入力部品を操作する。
+
+Then:
+
+- Card のクリックで表裏を切り替えられる。
+- 裏面では本文だけを表示し、ツールバー・詳細・操作パネルを隠す。
+- リンクや入力部品の操作では Card を反転せず、部品本来の動作を維持する。
+- 閲覧によって Deck、Card、学習履歴、学習の再開位置、設定は変化しない。
+
+<a id="navigation-28"></a>
+
+### NAVIGATION-28 閲覧で未対応の mouse と上下操作は Card を変更しない
+
+カテゴリ: `read`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`study-session-middle`](./fixture/study-session-middle.yaml)
+- ログイン中のアカウントの Deck を閲覧している。
+- 学習の swipe の割り当てが有効である。
+
+When:
+
+- non-primary mouse drag、上下の drag と上下キーを操作する。
+
+Then:
+
+- Card を移動せず、表裏も変更しない。
+- Deck、Card、学習履歴、学習の再開位置、設定は変化しない。
+
+<a id="navigation-29"></a>
+
+### NAVIGATION-29 存在しない Deck の閲覧画面から一覧へ戻れる
+
+カテゴリ: `read`
+
+区分: 異常系
+
+Given:
+
+- Fixture: [`browse-filter`](./fixture/browse-filter.yaml)
+- 開こうとしている閲覧 URL の Deck は存在しない。
+
+When:
+
+- 存在しない Deck の閲覧 URL を直接開いて、一覧へ戻る操作を行う。
+
+Then:
+
+- Deck が利用できない旨と一覧へ戻る操作を表示する。
+- Card の操作を表示せず、保存済みの内容や学習結果は変わらない。
+
+<a id="navigation-30"></a>
+
+### NAVIGATION-30 閲覧 Help で操作を確認して元の Card へ戻れる
+
+カテゴリ: `read`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`study-session-middle`](./fixture/study-session-middle.yaml)
+- Deck の閲覧画面で Help の起動ボタンを表示する設定である。
+
+When:
+
+- Help を開いて操作説明を確認し、背景の shortcut を入力してから Help を閉じる。
+
+Then:
+
+- 左右を前後移動、上下を無効として説明し、反転・再生・表示切替・退出の操作を示す。
+- 開いている間は背景の shortcut を実行せず、閉じると起動ボタンに focus が戻る。
+- Deck、Card、学習履歴と閲覧前の学習再開位置は変わらない。
+
+<a id="navigation-31"></a>
+
+### NAVIGATION-31 閲覧の編集リンクから現在の Card を編集画面で開ける
+
+カテゴリ: `read`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`study-session-middle`](./fixture/study-session-middle.yaml)
+- Deck の閲覧画面で編集リンクを表示する初期設定である。
+
+When:
+
+- 閲覧表面の鉛筆リンクから現在の Card の編集画面を開き、保存せず閲覧へ戻る。
+- Card の裏面も表示する。
+
+Then:
+
+- 編集リンクは初期状態で表示され、アイコンのみで現在の Card の編集画面を開く。
+- 裏面では他の操作群と同じく編集リンクを隠す。狭い画面でも操作が重ならず、英語・日本語の読み上げ名とキーボード操作を利用できる。
+- Deck、Card、学習履歴と閲覧前の学習再開位置は変わらない。
+
+<a id="navigation-32"></a>
+
+### NAVIGATION-32 [TODO] 再生間隔0では閲覧の自動送りを利用できない
+
+カテゴリ: `read`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`study-session-middle`](./fixture/study-session-middle.yaml)
+- 閲覧できる Deck があり、再生間隔は0である。匿名利用の場合にも同じ条件を適用する。
+
+When:
+
+- View を開いて待ち、Help の再生操作の説明を確認する。
+
+Then:
+
+- 再生操作とスライダーを表示せず、自動送りしない。Help には利用不可の説明を表示する。
+- Deck、Card、学習履歴、学習の再開位置、設定を変更しない。
+
+<a id="navigation-33"></a>
+
+### NAVIGATION-33 閲覧 Help の表示中は自動送りを中断する
+
+カテゴリ: `read`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`study-session-middle`](./fixture/study-session-middle.yaml)
+- 再生間隔が正の値で、Deck を閲覧している。匿名利用の場合にも同じ条件を適用する。
+- 再生状態を選択済みである。
+
+When:
+
+- Help を開いて再生間隔が過ぎるまで待ち、Help を閉じる。
+
+Then:
+
+- Help を開いている間は自動送りされない。閉じると、選択済みの再生状態に従って設定された間隔を待ってから次へ進む。
+- Deck、Card、学習履歴、学習の再開位置、設定を変更しない。
+
+<a id="navigation-34"></a>
+
+### NAVIGATION-34 [TODO] 閲覧の keyboard 操作は focus 対象の標準操作を維持する
+
+カテゴリ: `write`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`study-session-start-local`](./fixture/study-session-start-local.yaml)
+- 匿名ユーザーが Deck を閲覧している。
+- 再生操作を表示する設定であり、裏面にはスクロール領域がある。
+
+When:
+
+- 本文上と入力欄・ボタン・裏面のスクロール領域にそれぞれ focus を置き、Enter、Space、b を入力する。
+
+Then:
+
+- 本文上の Enter は反転、Space は再生切替、b は方向ボタンの表示切替として働く。
+- 入力欄やボタンの標準キー操作を妨げず、裏面のスクロール領域に focus がある場合の Space はスクロールを優先する。
+- Deck、Card、学習履歴、学習の再開位置は変更しない。表示設定を明示的に切り替えた場合のみ、その設定が保存される。
+
+<a id="navigation-35"></a>
+
+### NAVIGATION-35 [TODO] Deck 一覧を状態ごとの区分と操作を含むレイアウトで表示する
+
+カテゴリ: `read`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`study-review-schedule`](./fixture/study-review-schedule.yaml)
+- 間隔反復が有効で、学習中、今学習できる、その他の状態の Deck がある。
+- 英語・日本語、mobile、dark mode、拡大表示でも一覧を利用する。
+
+When:
+
+- Deck 一覧の見出しと各 Deck の表示を確認し、名前から Card 一覧を開く。
+
+Then:
+
+- 「学習中」「今学習できるデッキ」「その他」の見出し付き一覧に各 Deck を一度だけ表示し、空の区分は隠す。名前から Card 一覧を開ける。各 Deck は Card 数、学習中の現在位置、復習・新規件数と1つの主学習操作を表示し、閲覧・管理は右上の三点メニューにまとめる。名前の読み上げには Card 数と学習中の現在位置を含める。カテゴリと最終学習時刻は表示しない。
+- mobile では1列と横幅いっぱいの主学習ボタンを表示する。広い画面では複数列とし、長い名前も折り返して表示する。主要操作は44px以上の高さを持つ。学習中のバーは現在位置の視覚的な目安であり、完了率ではない。
+- 一覧表示と開始設定画面への遷移で、Deck・Card の内容や学習結果・現在位置を変更しない。
+
+<a id="navigation-36"></a>
+
+### NAVIGATION-36 [TODO] Deck 一覧を学習状態と復習期限の順に並べる
+
+カテゴリ: `read`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`study-review-schedule`](./fixture/study-review-schedule.yaml)
+- 学習中、復習対象がある、未評価の Card だけがある、その他の状態の Deck がある。
+- 学習時刻、復習期限または名前が並び順の比較対象となる。
+
+When:
+
+- Deck 一覧を開いて並び順と学習中の現在位置を確認する。
+
+Then:
+
+- 学習中の Deck は最近学習したものから先頭に並び、Continue と現在位置を表示する。その後、復習対象がある Deck を最も早い復習期限順、未評価の Card だけがある Deck、その他の Deck の順に並べる。同順位は名前順となる。現在位置は完了枚数ではない。
+- 一覧表示と開始設定画面への遷移で、Deck・Card の内容や学習結果・現在位置を変更しない。
+
+<a id="navigation-37"></a>
+
+### NAVIGATION-37 [TODO] 復習と新規が0件の Deck では理由を区別して表示する
+
+カテゴリ: `read`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`study-review-schedule`](./fixture/study-review-schedule.yaml)
+- 間隔反復が有効であり、空、filter に一致しない、未来の復習だけがある状態の Deck を区別できる。
+- tag の AND / OR 条件を使用する。
+
+When:
+
+- Deck 一覧で0件の理由を展開する。
+
+Then:
+
+- 0件の行は「復習・新規なし」を表示し、展開すると Card を読み込んでいない、filter に一致しない、期限前の Card だけである、という理由を区別する。期限前だけの場合は次回復習日時を表示し、Study は常に利用できる。完全な同期や学習完了は断定しない。
+- 一覧表示と開始設定画面への遷移で、Deck・Card の内容や学習結果・現在位置を変更しない。
+
+<a id="navigation-38"></a>
+
+### NAVIGATION-38 Deck 一覧の Review と Study new から開始設定へ進める
+
+カテゴリ: `read`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`study-review-schedule`](./fixture/study-review-schedule.yaml)
+- 間隔反復が有効で、復習対象または新規の対象がある Deck がある。既存の学習がある場合も含む。
+
+When:
+
+- keyboard で Review または Study new を選択する。
+
+Then:
+
+- Review / Study new は開始設定画面へ遷移するだけで、学習を新しく開始したり、既存の学習を置き換えたりしない。
+- 一覧表示と開始設定画面への遷移で、Deck・Card の内容や学習結果・現在位置を変更しない。
+
+<a id="navigation-39"></a>
+
+### NAVIGATION-39 [TODO] 間隔反復 OFF では件数を隠して学習と管理の導線を維持する
+
+カテゴリ: `read`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`study-review-schedule`](./fixture/study-review-schedule.yaml)
+- ユーザーが Deck 一覧を利用でき、間隔反復が OFF である。
+
+When:
+
+- Deck 一覧の件数と操作の表示を確認する。
+
+Then:
+
+- 間隔反復 OFF では復習・新規件数とその補足を隠し、Continue または Study と閲覧・管理操作を維持する。
+- 一覧表示と開始設定画面への遷移で、Deck・Card の内容や学習結果・現在位置を変更しない。
+
+<a id="navigation-40"></a>
+
+### NAVIGATION-40 [TODO] 条件の変更と画面復帰で一覧の復習件数を更新する
+
+カテゴリ: `read`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`study-review-schedule`](./fixture/study-review-schedule.yaml)
+- 間隔反復が有効で、Deck 一覧の復習件数を確認できる。
+
+When:
+
+- Card・Deck・filter・設定・学習の状態が変わった後と、別画面から一覧へ戻った後の表示を確認する。
+
+Then:
+
+- その時点の対象に表示が更新され、以前の時刻の件数が残らない。
+- 表示の更新だけでは学習の出題順・現在位置や Card の復習予定を変更しない。
+
+<a id="navigation-41"></a>
+
+### NAVIGATION-41 view mode 中も閲覧の自動再生で次へ進める
+
+カテゴリ: `read`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`study-session-start`](./fixture/study-session-start.yaml)
+- 複数の Card を閲覧でき、view mode が ON、自動再生の間隔が正の値である。
+
+When:
+
+- 再生ボタンで自動再生を開始する。
+
+Then:
+
+- 自動再生で次の Card へ進み、view mode を維持する。学習データは変更されない。
+
+<a id="navigation-42"></a>
+
+### NAVIGATION-42 [TODO] ローカルデータの削除失敗時は再試行を案内する
+
+カテゴリ: `batch`
+
+区分: 異常系
+
+Given:
+
+- Fixture: [`empty`](./fixture/empty.yaml)
+- 保存データの初期化失敗による復旧画面を表示している。
+- ローカルデータを削除できない。
+
+When:
+
+- ローカルデータの削除を選択する。
+
+Then:
+
+- 削除やアプリの読み込みを待つ間は起動中表示を出し、失敗時は復旧画面に切り替える。
 - 削除中は復旧操作を重ねて実行できない。削除失敗時はアプリを起動せず、他の Tango のタブを閉じて再試行するよう表示する。
+
+<a id="navigation-43"></a>
+
+### NAVIGATION-43 [TODO] ローカルデータ削除後の起動失敗時は復旧画面を表示する
+
+カテゴリ: `batch`
+
+区分: 異常系
+
+Given:
+
+- Fixture: [`empty`](./fixture/empty.yaml)
+- 保存データの初期化失敗による復旧画面を表示している。
+- ローカルデータの削除後もアプリの読み込みが失敗する。
+
+When:
+
+- ローカルデータの削除を選択してアプリの読み込みを待つ。
+
+Then:
+
+- ローカルデータ削除やアプリの読み込みを待つ間は起動中表示を出し、失敗時は復旧画面に切り替える。
+
+<a id="navigation-44"></a>
+
+### NAVIGATION-44 [TODO] 空の Deck 一覧でも追加メニューを利用できる
+
+カテゴリ: `read`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`empty`](./fixture/empty.yaml)
+- Deck 一覧が空であり、Sample Deck の自動生成は無効である。
+
+When:
+
+- 一覧上部の「追加」を開く。
+
+Then:
+
+- 一覧のアクションには作成とインポートが表示され、一覧が空の場合も利用できる。
+
+<a id="navigation-45"></a>
+
+### NAVIGATION-45 Deck 一覧の Continue から既存の学習を再開できる
+
+カテゴリ: `write`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`study-session-middle`](./fixture/study-session-middle.yaml)
+- Deck に既存の学習があり、Deck 一覧に Continue が表示されている。
+
+When:
+
+- Deck 一覧で Continue を選択する。
+
+Then:
+
+- 既存の学習を再開する。
+- 一覧表示と再開によって、Deck・Card の内容や学習結果・現在位置を変更しない。

@@ -74,7 +74,7 @@ const DeckFilterHarness: React.FC<{ deck: Deck; tags?: string[]; scope?: DeckFil
   );
 };
 
-describe("CARD-LIST-ACTIONS-01 STUDY-SESSION-08 DeckFilterForm with individual draft and save actions", () => {
+describe("CARD-LIST-ACTIONS-01 STUDY-SESSION-08 CARD-LIST-ACTIONS-05 CARD-LIST-ACTIONS-06 DeckFilterForm with individual draft and save actions", () => {
   beforeEach(() => {
     // Given: Establish the shared setup used by the following cases.
     dismissToast();

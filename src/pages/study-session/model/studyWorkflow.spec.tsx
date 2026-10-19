@@ -65,7 +65,7 @@ const cards: Card[] = ["card-1", "card-2"].map((id) => ({
   deletedAt: null,
 }));
 
-describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-03] [STUDY-SESSION-04] [STUDY-SESSION-05] [STUDY-SESSION-06] [STUDY-ACTIONS-05] [STUDY-CONTROLS-04]", () => {
+describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-03] [STUDY-SESSION-04] [STUDY-SESSION-05] [STUDY-SESSION-06] [STUDY-ACTIONS-05 STUDY-ACTIONS-08 STUDY-ACTIONS-09 STUDY-ACTIONS-10 STUDY-ACTIONS-12 STUDY-ACTIONS-13 STUDY-ACTIONS-15 STUDY-ACTIONS-16] [STUDY-CONTROLS-04]", () => {
   beforeEach(() => {
     // Given: Establish the shared setup used by the following cases.
     mocks.uid = "user-1";

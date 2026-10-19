@@ -42,7 +42,7 @@ const EditorHarness = ({
   );
 };
 
-describe("CARD-MANAGEMENT-09 DECK-MANAGEMENT-08 CARD-MANAGEMENT-12 NavigationGuardDialog", () => {
+describe("CARD-MANAGEMENT-09 DECK-MANAGEMENT-08 CARD-MANAGEMENT-12 CARD-MANAGEMENT-23 NavigationGuardDialog", () => {
   it("CARD-MANAGEMENT-09 keeps forward and backward Tab navigation inside the confirmation", async () => {
     // Given: Prepare `user`, `onDiscardChanges`, `onKeepEditing` and any shared test state below.
     const user = userEvent.setup();

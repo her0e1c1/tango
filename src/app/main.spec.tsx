@@ -54,7 +54,7 @@ afterEach(async () => {
   vi.restoreAllMocks();
 });
 
-describe("NAVIGATION-22 Application startup recovery", () => {
+describe("NAVIGATION-22 Application startup recovery NAVIGATION-42 NAVIGATION-43", () => {
   it("waits for storage deletion before starting the application", async () => {
     // Given: Prepare `finish` and any shared test state below.
     let finish = () => {};

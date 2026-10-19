@@ -20,7 +20,7 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-describe("NAVIGATION-22 Local data recovery", () => {
+describe("NAVIGATION-22 Local data recovery NAVIGATION-42", () => {
   it("requests a reload before deleting storage held by the running application", async () => {
     // Given: Prepare `reload` and any shared test state below.
     const reload = vi.fn();

@@ -98,7 +98,7 @@ const DeckListDestination = () => {
   );
 };
 
-describe("StudySessionPage [STUDY-CONTROLS-07] [STUDY-ACTIONS-04] [STUDY-SESSION-03] [SETTINGS-04] [STUDY-ACTIONS-01] [STUDY-ACTIONS-02] [STUDY-ACTIONS-05] [STUDY-SESSION-05] [STUDY-CONTROLS-04]", () => {
+describe("StudySessionPage [STUDY-CONTROLS-07] [STUDY-ACTIONS-04] [STUDY-SESSION-03 STUDY-SESSION-23 STUDY-SESSION-24] [SETTINGS-04] [STUDY-ACTIONS-01] [STUDY-ACTIONS-02] [STUDY-ACTIONS-05 STUDY-ACTIONS-07 STUDY-ACTIONS-09 STUDY-ACTIONS-12 STUDY-ACTIONS-15] [STUDY-SESSION-05] [STUDY-CONTROLS-04]", () => {
   const deckId = "deck-id";
   const deck = createLocalDeck({ id: deckId, name: "Study deck", category: "raw" });
   const firstCard = createLocalCard({

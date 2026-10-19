@@ -3,7 +3,10 @@ import { readProgress, readSession } from "./utils/study-helpers";
 import { createAnonymousDeck, downloadDeckCards, startAnonymousStudy } from "./utils/ui-helpers";
 import type { Locator, Page } from "@playwright/test";
 
-test("NAVIGATION-17 shows held review counts and opens existing study settings", async ({ fixture, page }) => {
+test("NAVIGATION-17 NAVIGATION-38 shows held review counts and opens existing study settings", async ({
+  fixture,
+  page,
+}) => {
   const { deck, before } = await test.step("Given: A deck list with held due and new card counts", async () => {
     const deck = fixture.deck();
     await fixture.apply(page, { preferences: { study: { useCardInterval: true } } });
@@ -121,7 +124,10 @@ const touchGesture = async (page: Page, surface: Locator, direction?: "left" | "
   await session.detach();
 };
 
-test("NAVIGATION-08 browses remote Cards without changing learning data or preferences", async ({ fixture, page }) => {
+test("NAVIGATION-08 NAVIGATION-27 NAVIGATION-28 browses remote Cards without changing learning data or preferences", async ({
+  fixture,
+  page,
+}) => {
   const { deck, first, second, third, before } =
     await test.step("Given: A remote deck with active study data and configured viewing preferences", async () => {
       const deck = fixture.deck();
@@ -262,7 +268,7 @@ test("NAVIGATION-08 browses remote Cards without changing learning data or prefe
   });
 });
 
-test("NAVIGATION-09 resets local-only viewing position on reload and reentry without saving", async ({
+test("NAVIGATION-09 NAVIGATION-45 resets local-only viewing position on reload and reentry without saving", async ({
   fixture,
   page,
 }) => {
@@ -435,7 +441,7 @@ test("NAVIGATION-11 includes future reviews in read-only viewing", async ({ fixt
   });
 });
 
-test("NAVIGATION-12 recovers from empty and missing Deck views without saving", async ({
+test("NAVIGATION-12 NAVIGATION-29 recovers from empty and missing Deck views without saving", async ({
   fixture,
   page,
   namespace,
@@ -542,7 +548,10 @@ test("NAVIGATION-13 scrolls one long answer with touch and exits at either horiz
   });
 });
 
-test("NAVIGATION-14 shares display preferences with Study and explains viewing actions", async ({ fixture, page }) => {
+test("NAVIGATION-14 NAVIGATION-30 NAVIGATION-31 shares display preferences with Study and explains viewing actions", async ({
+  fixture,
+  page,
+}) => {
   const { deck, before, edit } =
     await test.step("Given: View mode exposes the first card edit link and saved display preferences", async () => {
       const deck = fixture.deck();
@@ -672,7 +681,7 @@ test("NAVIGATION-14 shares display preferences with Study and explains viewing a
   });
 });
 
-test("NAVIGATION-15 starts viewing stopped and autoplays without persisting learning data", async ({
+test("NAVIGATION-15 NAVIGATION-33 starts viewing stopped and autoplays without persisting learning data", async ({
   fixture,
   page,
 }) => {
@@ -811,7 +820,10 @@ test("NAVIGATION-16 browses forward and backward with the progress slider withou
   });
 });
 
-test("NAVIGATION-06 navigates from the Deck list to its Card list", async ({ fixture, page }) => {
+test("NAVIGATION-06 NAVIGATION-25 NAVIGATION-26 navigates from the Deck list to its Card list", async ({
+  fixture,
+  page,
+}) => {
   const { deck, card, actions } = await test.step("Given: A deck list with its Add action focused", async () => {
     const deck = fixture.deck();
     const card = fixture.card();
@@ -1488,7 +1500,10 @@ test.describe("View mode", () => {
 
 test.describe("View mode", () => {
   const scenario = { id: "NAVIGATION-21", route: "view", next: "Next card" };
-  test("NAVIGATION-21 keeps button actions and autoplay available in view mode", async ({ fixture, page }) => {
+  test("NAVIGATION-21 NAVIGATION-41 keeps button actions and autoplay available in view mode", async ({
+    fixture,
+    page,
+  }) => {
     const { first, before } =
       await test.step("Given: A deck with reading mode enabled and a positive autoplay interval", async () => {
         const deck = fixture.deck();

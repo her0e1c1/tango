@@ -109,7 +109,7 @@ const staleMutationCases = [
   { mutation: "deletion", outcome: "failure" },
 ] as const;
 
-describe("CARD-VIEW-02 CARD-MANAGEMENT-02 CARD-MANAGEMENT-08 CARD-MANAGEMENT-03 CARD-LIST-ACTIONS-01 CARD-LIST-ACTIONS-02 CARD-LIST-ACTIONS-03 CardListPage interactions", () => {
+describe("CARD-VIEW-02 CARD-MANAGEMENT-02 CARD-MANAGEMENT-08 CARD-MANAGEMENT-03 CARD-LIST-ACTIONS-01 CARD-LIST-ACTIONS-02 CARD-LIST-ACTIONS-03 CARD-LIST-ACTIONS-04 CARD-LIST-ACTIONS-07 CARD-LIST-ACTIONS-09 CARD-LIST-ACTIONS-10 CardListPage interactions", () => {
   beforeEach(() => {
     // Given: Establish the shared setup used by the following cases.
     dismissToast();

@@ -43,7 +43,7 @@ const LeaveRouteButton = () => {
   );
 };
 
-describe("CARD-MANAGEMENT-05 CARD-MANAGEMENT-06 CARD-MANAGEMENT-07 CARD-MANAGEMENT-11 CARD-MANAGEMENT-12 CARD-MANAGEMENT-13 CARD-MANAGEMENT-14 CardCreatePage", () => {
+describe("CARD-MANAGEMENT-05 CARD-MANAGEMENT-06 CARD-MANAGEMENT-07 CARD-MANAGEMENT-11 CARD-MANAGEMENT-12 CARD-MANAGEMENT-13 CARD-MANAGEMENT-14 CARD-MANAGEMENT-22 CARD-MANAGEMENT-24 CardCreatePage", () => {
   const deck = createLocalDeck({ id: "target-deck", name: "Target deck" });
   const renderPage = (deckId = deck.id) => {
     const router = createMemoryRouter(
@@ -107,7 +107,7 @@ describe("CARD-MANAGEMENT-05 CARD-MANAGEMENT-06 CARD-MANAGEMENT-07 CARD-MANAGEME
     expect(screen.getByText("Created card “Created front”.")).toBeVisible();
   });
 
-  it("CARD-MANAGEMENT-05 creates a Card with tags from Cards in the same Deck", async () => {
+  it("CARD-MANAGEMENT-05 CARD-MANAGEMENT-22 creates a Card with tags from Cards in the same Deck", async () => {
     // Given: Use this case's inputs and any shared test setup.
     replaceRemoteDecks([deck, createLocalDeck({ id: "other-deck" })]);
     replaceRemoteCards([
@@ -140,7 +140,7 @@ describe("CARD-MANAGEMENT-05 CARD-MANAGEMENT-06 CARD-MANAGEMENT-07 CARD-MANAGEME
     });
   });
 
-  it("CARD-MANAGEMENT-05 offers no fallback tags when the Deck has no Cards", async () => {
+  it("CARD-MANAGEMENT-22 offers no fallback tags when the Deck has no Cards", async () => {
     // Given: Use this case's inputs and any shared test setup.
     replaceRemoteDecks([deck]);
     renderPage();

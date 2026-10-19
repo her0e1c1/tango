@@ -227,7 +227,11 @@ test("PERSISTENCE-02 syncs an offline cached Card edit after reconnecting", asyn
   });
 });
 
-test("PERSISTENCE-04 keeps guest edits local and rejects every cloud write", async ({ fixture, page, namespace }) => {
+test("PERSISTENCE-04 PERSISTENCE-11 keeps guest edits local and rejects every cloud write", async ({
+  fixture,
+  page,
+  namespace,
+}) => {
   const { uid, updatedName, updatedFrontText, deck, card } =
     await test.step("Given: An anonymous deck and card ready for local edits", async () => {
       const { uid } = fixture.user();
@@ -392,7 +396,10 @@ test("PERSISTENCE-08 restores study progress from the SDK cache offline", async 
   });
 });
 
-test("PERSISTENCE-09 receives remote edits and tombstones after reopening", async ({ fixture, page }) => {
+test("PERSISTENCE-09 PERSISTENCE-14 PERSISTENCE-15 PERSISTENCE-16 receives remote edits and tombstones after reopening", async ({
+  fixture,
+  page,
+}) => {
   const { deck, edited, deleted, unchanged } =
     await test.step("Given: A remote deck with all cards loaded before closing the application", async () => {
       const deck = fixture.deck();
@@ -449,7 +456,7 @@ test("PERSISTENCE-09 receives remote edits and tombstones after reopening", asyn
 });
 
 for (const allInvalid of [false, true]) {
-  test(`PERSISTENCE-10 starts after reopening ${allInvalid ? "all" : "one"} malformed local Cards`, async ({
+  test(`PERSISTENCE-10 PERSISTENCE-17 starts after reopening ${allInvalid ? "all" : "one"} malformed local Cards`, async ({
     fixture,
     page,
   }, testInfo) => {
@@ -524,7 +531,7 @@ for (const allInvalid of [false, true]) {
   });
 }
 
-test("PERSISTENCE-10 keeps healthy study controls inside the mobile viewport with an invalid Card", async ({
+test("PERSISTENCE-10 PERSISTENCE-18 keeps healthy study controls inside the mobile viewport with an invalid Card", async ({
   fixture,
   page,
 }, testInfo) => {
@@ -603,7 +610,7 @@ test("PERSISTENCE-10 keeps healthy study controls inside the mobile viewport wit
   });
 });
 
-test("PERSISTENCE-10 retains the recovery warning on quarantined Card view and edit links", async ({
+test("PERSISTENCE-10 PERSISTENCE-19 retains the recovery warning on quarantined Card view and edit links", async ({
   fixture,
   page,
 }, testInfo) => {
@@ -650,7 +657,7 @@ test("PERSISTENCE-10 retains the recovery warning on quarantined Card view and e
   }
 });
 
-test("PERSISTENCE-10 retains the warning on a Deck view with all Cards quarantined", async ({
+test("PERSISTENCE-10 PERSISTENCE-20 retains the warning on a Deck view with all Cards quarantined", async ({
   fixture,
   page,
 }, testInfo) => {

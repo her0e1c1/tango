@@ -8,7 +8,7 @@ import { MemoryState } from "./MemoryState";
 
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
-describe("CARD-VIEW-06 memory presentation", () => {
+describe("CARD-VIEW-06 CARD-VIEW-08 memory presentation", () => {
   it("describes recall, reference time, saved deadline, and the target even when markers coincide", () => {
     // Given: Prepare `at`, `schedule` and any shared test state below.
     const at = Date.UTC(2026, 8, 21);

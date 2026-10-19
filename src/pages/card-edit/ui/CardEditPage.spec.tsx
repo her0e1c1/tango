@@ -64,7 +64,7 @@ vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
 import { CardEditPage } from "./CardEditPage";
 
-describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 CARD-VIEW-05 CARD-MANAGEMENT-09 CARD-MANAGEMENT-10 CardEditPage", () => {
+describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 CARD-VIEW-05 CARD-MANAGEMENT-09 CARD-MANAGEMENT-10 CARD-MANAGEMENT-18 CARD-MANAGEMENT-19 CARD-MANAGEMENT-20 CARD-MANAGEMENT-21 CardEditPage", () => {
   const deckId = "card-edit-deck";
   const cardId = "card-id";
   const renderPage = (path = `/card/${cardId}/edit`) => {
@@ -116,7 +116,7 @@ describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 CARD-VIEW-05 CARD-MANAGEMENT-09 
     expect(screen.getByRole("button", { name: "tango" })).toBeVisible();
   });
 
-  it("CARD-MANAGEMENT-01 saves same-Deck Card tag selections while preserving existing Card tags", async () => {
+  it("CARD-MANAGEMENT-01 CARD-MANAGEMENT-18 saves same-Deck Card tag selections while preserving existing Card tags", async () => {
     // Given: Use this case's inputs and any shared test setup.
     replaceRemoteDecks([createLocalDeck({ id: deckId }), createLocalDeck({ id: "other-deck" })]);
     await createCard("user-id", createLocalCard({ id: "source", deckId, tags: ["chapter-1", "exam"] }));
@@ -148,7 +148,7 @@ describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 CARD-VIEW-05 CARD-MANAGEMENT-09 
     expect(getCards().find((card) => card.id === cardId)?.tags).toEqual(["legacy", "exam"]);
   });
 
-  it("CARD-MANAGEMENT-01 retains existing tags when no other Card supplies candidates", async () => {
+  it("CARD-MANAGEMENT-01 CARD-MANAGEMENT-18 retains existing tags when no other Card supplies candidates", async () => {
     // Given: Use this case's inputs and any shared test setup.
     replaceRemoteDecks([createLocalDeck({ id: deckId })]);
     await editCard("user-id", { id: cardId, tags: ["legacy"] });

@@ -15,7 +15,7 @@ const savedDocuments = async (uid: string) =>
     )
   );
 
-test("CARD-LIST-ACTIONS-02 sorts newest first with stable ties without changing saved data", async ({
+test("CARD-LIST-ACTIONS-02 CARD-LIST-ACTIONS-07 sorts newest first with stable ties without changing saved data", async ({
   fixture,
   page,
 }) => {
@@ -58,7 +58,10 @@ test("CARD-LIST-ACTIONS-02 sorts newest first with stable ties without changing 
   });
 });
 
-test("CARD-LIST-ACTIONS-03 restores standard order and resets sorting when revisiting", async ({ fixture, page }) => {
+test("CARD-LIST-ACTIONS-03 CARD-LIST-ACTIONS-11 restores standard order and resets sorting when revisiting", async ({
+  fixture,
+  page,
+}) => {
   const { cards, sort, before } = await test.step("Given: A deck card list with newest sorting selected", async () => {
     const deck = fixture.deck();
     const cards = [fixture.card("card-1"), fixture.card("card-2"), fixture.card("card-3")];
@@ -103,7 +106,10 @@ const clickCheckboxLabel = async (page: Page, name: string) => {
   return checkbox;
 };
 
-test("CARD-LIST-ACTIONS-01 persists tag filters and applies them after reload", async ({ fixture, page }) => {
+test("CARD-LIST-ACTIONS-01 CARD-LIST-ACTIONS-04 persists tag filters and applies them after reload", async ({
+  fixture,
+  page,
+}) => {
   const { deck, matching, wrongTag, anotherCard, selectedTag } =
     await test.step("Given: A deck with overlapping and distinct card tags", async () => {
       const deck = fixture.deck();

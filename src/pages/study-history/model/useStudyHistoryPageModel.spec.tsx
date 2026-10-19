@@ -33,7 +33,7 @@ function wrapper({ children }: { children: ReactNode }) {
   return <MemoryRouter initialEntries={["/study-history"]}>{children}</MemoryRouter>;
 }
 
-describe("STUDY-SESSION-13 answer history lifecycle", () => {
+describe("STUDY-SESSION-13 STUDY-SESSION-33 STUDY-SESSION-38 answer history lifecycle", () => {
   beforeEach(() => {
     // Given: Establish the shared setup used by the following cases.
     subscriptions.length = 0;
