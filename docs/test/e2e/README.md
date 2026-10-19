@@ -46,7 +46,7 @@
 | CARD-LIST-ACTIONS-07 | read | 正常系 | [並び替え後も選択した Card のプレビューと行操作を利用できる](./card-list-actions.md#card-list-actions-07) |
 | CARD-LIST-ACTIONS-08 | read | 正常系 | [別 Card の変更後も行のフォーカスとメニューを維持できる](./card-list-actions.md#card-list-actions-08) |
 | CARD-LIST-ACTIONS-09 | write | 正常系 | [言語やフィルターを変更しても並び順を保持できる](./card-list-actions.md#card-list-actions-09) |
-| CARD-LIST-ACTIONS-10 | read | 正常系 | [filter 保存中も並び替えでき禁止中の操作は実行できない](./card-list-actions.md#card-list-actions-10) |
+| CARD-LIST-ACTIONS-10 | read | 正常系 | [filter 保存中も並び替えでき、禁止中の操作は実行できない](./card-list-actions.md#card-list-actions-10) |
 | CARD-LIST-ACTIONS-11 | read | 正常系 | [画面を離れるか Deck を変更すると並び順が標準に戻る](./card-list-actions.md#card-list-actions-11) |
 | CARD-MANAGEMENT-01 | write | 正常系 | [Card 編集内容を保存して reload 後も確認できる](./card-management.md#card-management-01) |
 | CARD-MANAGEMENT-02 | write | 正常系 | [Card を削除できる](./card-management.md#card-management-02) |
@@ -171,7 +171,7 @@
 | NAVIGATION-38 | read | 正常系 | [Deck 一覧の Review と Study new から開始設定へ進める](./navigation.md#navigation-38) |
 | NAVIGATION-39 | read | 正常系 | [間隔反復 OFF では件数を隠して学習と管理の導線を維持する](./navigation.md#navigation-39) |
 | NAVIGATION-40 | read | 正常系 | [条件の変更と画面復帰で一覧の復習件数を更新する](./navigation.md#navigation-40) |
-| NAVIGATION-41 | write | 正常系 | [view mode 中も閲覧の自動再生で次へ進める](./navigation.md#navigation-41) |
+| NAVIGATION-41 | read | 正常系 | [view mode 中も閲覧の自動再生で次へ進める](./navigation.md#navigation-41) |
 | NAVIGATION-42 | batch | 異常系 | [ローカルデータの削除失敗時は再試行を案内する](./navigation.md#navigation-42) |
 | NAVIGATION-43 | batch | 異常系 | [ローカルデータ削除後の起動失敗時は復旧画面を表示する](./navigation.md#navigation-43) |
 | NAVIGATION-44 | read | 正常系 | [空の Deck 一覧でも追加メニューを利用できる](./navigation.md#navigation-44) |
@@ -209,8 +209,8 @@
 | SETTINGS-11 | batch | 正常系 | [間隔0から正の値へ戻して同じ学習 session の再生操作を利用できる](./settings.md#settings-11) |
 | SETTINGS-12 | write | 正常系 | [Maximum cards を変更しても進行中の学習を同じ位置から再開できる](./settings.md#settings-12) |
 | SETTINGS-13 | read | 正常系 | [旧既定の方向操作だけを現在の4評価へ移行できる](./settings.md#settings-13) |
-| SETTINGS-14 | write | 正常系 | [有効な CSV preview は言語変更後も選択を保持して取り込みを待つ](./settings.md#settings-14) |
-| SETTINGS-15 | write | 異常系 | [CSV の準備・取り込みのエラー案内は言語変更後も再試行内容と通知期限を保持する](./settings.md#settings-15) |
+| SETTINGS-14 | read | 正常系 | [有効な CSV preview は言語変更後も選択を保持して取り込みを待つ](./settings.md#settings-14) |
+| SETTINGS-15 | read | 異常系 | [CSV の準備・取り込みのエラー案内は言語変更後も再試行内容と通知期限を保持する](./settings.md#settings-15) |
 | SETTINGS-16 | write | 正常系 | [自動再生の間隔を0から正の値へ戻すと秒数表示へ戻る](./settings.md#settings-16) |
 | SETTINGS-17 | batch | 正常系 | [間隔0では自動送りと再生操作を無効にして手動で学習できる](./settings.md#settings-17) |
 | STUDY-ACTIONS-01 | write | 正常系 | [good action で学習結果を保存して次の Card へ進める](./study-actions.md#study-actions-01) |
@@ -248,18 +248,18 @@
 | STUDY-CONTROLS-08 | batch | 正常系 | [view mode 中も評価ボタンで次の Card へ進める](./study-controls.md#study-controls-08) |
 | STUDY-CONTROLS-09 | write | 正常系 | [view mode 設定を閲覧・学習・reload 間で共有できる](./study-controls.md#study-controls-09) |
 | STUDY-CONTROLS-10 | write | 正常系 | [横向きの短い画面でも本文と操作ボタンに到達できる](./study-controls.md#study-controls-10) |
-| STUDY-CONTROLS-11 | write | 正常系 | [view mode でタッチスクロールができる](./study-controls.md#study-controls-11) |
+| STUDY-CONTROLS-11 | read | 正常系 | [view mode でタッチスクロールができる](./study-controls.md#study-controls-11) |
 | STUDY-CONTROLS-12 | write | 正常系 | [方向ボタンの読み上げ名で現在の操作を確認できる](./study-controls.md#study-controls-12) |
 | STUDY-CONTROLS-13 | write | 正常系 | [方向キーを長押ししても追加評価せず再押下で進める](./study-controls.md#study-controls-13) |
-| STUDY-CONTROLS-14 | write | 正常系 | [Space の長押しで再生を連続切替せず再押下で切り替える](./study-controls.md#study-controls-14) |
+| STUDY-CONTROLS-14 | read | 正常系 | [Space の長押しで再生を連続切替せず再押下で切り替える](./study-controls.md#study-controls-14) |
 | STUDY-CONTROLS-15 | write | 正常系 | [修飾付きショートカットを無視して通常入力を受け付ける](./study-controls.md#study-controls-15) |
 | STUDY-CONTROLS-16 | write | 正常系 | [修飾付き Enter で view mode を終了しない](./study-controls.md#study-controls-16) |
 | STUDY-CONTROLS-17 | read | 正常系 | [Help dialog 内のキー入力と focus を学習操作から分離できる](./study-controls.md#study-controls-17) |
 | STUDY-CONTROLS-18 | read | 正常系 | [Help dialog 表示中の通知が dialog の操作と focus を妨げない](./study-controls.md#study-controls-18) |
 | STUDY-CONTROLS-19 | write | 正常系 | [閲覧モードボタンの表示設定を閲覧・学習・reload 間で共有できる](./study-controls.md#study-controls-19) |
 | STUDY-CONTROLS-20 | write | 正常系 | [Card・表裏・モードの変更で本文のスクロール位置が先頭へ戻る](./study-controls.md#study-controls-20) |
-| STUDY-CONTROLS-21 | batch | 正常系 | [view mode 中も自動再生で次の Card へ進める](./study-controls.md#study-controls-21) |
-| STUDY-CONTROLS-22 | write | 正常系 | [view mode でピンチ拡大ができる](./study-controls.md#study-controls-22) |
+| STUDY-CONTROLS-21 | write | 正常系 | [view mode 中も自動再生で次の Card へ進める](./study-controls.md#study-controls-21) |
+| STUDY-CONTROLS-22 | read | 正常系 | [view mode でピンチ拡大ができる](./study-controls.md#study-controls-22) |
 | STUDY-CONTROLS-23 | write | 正常系 | [b の長押しで方向ボタンを連続切替せず再押下で切り替える](./study-controls.md#study-controls-23) |
 | STUDY-SESSION-01 | write | 正常系 | [filter と学習上限を反映して session を開始できる](./study-session.md#study-session-01) |
 | STUDY-SESSION-02 | read | 正常系 | [filter に一致する Card がない場合は session を開始できない](./study-session.md#study-session-02) |

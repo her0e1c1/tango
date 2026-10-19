@@ -18,18 +18,18 @@
 | STUDY-CONTROLS-08 | batch | 正常系 | [view mode 中も評価ボタンで次の Card へ進める](#study-controls-08) |
 | STUDY-CONTROLS-09 | write | 正常系 | [view mode 設定を閲覧・学習・reload 間で共有できる](#study-controls-09) |
 | STUDY-CONTROLS-10 | write | 正常系 | [横向きの短い画面でも本文と操作ボタンに到達できる](#study-controls-10) |
-| STUDY-CONTROLS-11 | write | 正常系 | [view mode でタッチスクロールができる](#study-controls-11) |
+| STUDY-CONTROLS-11 | read | 正常系 | [view mode でタッチスクロールができる](#study-controls-11) |
 | STUDY-CONTROLS-12 | write | 正常系 | [方向ボタンの読み上げ名で現在の操作を確認できる](#study-controls-12) |
 | STUDY-CONTROLS-13 | write | 正常系 | [方向キーを長押ししても追加評価せず再押下で進める](#study-controls-13) |
-| STUDY-CONTROLS-14 | write | 正常系 | [Space の長押しで再生を連続切替せず再押下で切り替える](#study-controls-14) |
+| STUDY-CONTROLS-14 | read | 正常系 | [Space の長押しで再生を連続切替せず再押下で切り替える](#study-controls-14) |
 | STUDY-CONTROLS-15 | write | 正常系 | [修飾付きショートカットを無視して通常入力を受け付ける](#study-controls-15) |
 | STUDY-CONTROLS-16 | write | 正常系 | [修飾付き Enter で view mode を終了しない](#study-controls-16) |
 | STUDY-CONTROLS-17 | read | 正常系 | [Help dialog 内のキー入力と focus を学習操作から分離できる](#study-controls-17) |
 | STUDY-CONTROLS-18 | read | 正常系 | [Help dialog 表示中の通知が dialog の操作と focus を妨げない](#study-controls-18) |
 | STUDY-CONTROLS-19 | write | 正常系 | [閲覧モードボタンの表示設定を閲覧・学習・reload 間で共有できる](#study-controls-19) |
 | STUDY-CONTROLS-20 | write | 正常系 | [Card・表裏・モードの変更で本文のスクロール位置が先頭へ戻る](#study-controls-20) |
-| STUDY-CONTROLS-21 | batch | 正常系 | [view mode 中も自動再生で次の Card へ進める](#study-controls-21) |
-| STUDY-CONTROLS-22 | write | 正常系 | [view mode でピンチ拡大ができる](#study-controls-22) |
+| STUDY-CONTROLS-21 | write | 正常系 | [view mode 中も自動再生で次の Card へ進める](#study-controls-21) |
+| STUDY-CONTROLS-22 | read | 正常系 | [view mode でピンチ拡大ができる](#study-controls-22) |
 | STUDY-CONTROLS-23 | write | 正常系 | [b の長押しで方向ボタンを連続切替せず再押下で切り替える](#study-controls-23) |
 
 <a id="study-controls-01"></a>
@@ -271,7 +271,7 @@ Then:
 
 ### STUDY-CONTROLS-11 view mode でタッチスクロールができる
 
-カテゴリ: `write`
+カテゴリ: `read`
 
 区分: 正常系
 
@@ -342,7 +342,7 @@ Then:
 
 ### STUDY-CONTROLS-14 Space の長押しで再生を連続切替せず再押下で切り替える
 
-カテゴリ: `write`
+カテゴリ: `read`
 
 区分: 正常系
 
@@ -506,7 +506,7 @@ Then:
 
 ### STUDY-CONTROLS-21 view mode 中も自動再生で次の Card へ進める
 
-カテゴリ: `batch`
+カテゴリ: `write`
 
 区分: 正常系
 
@@ -528,7 +528,7 @@ Then:
 
 ### STUDY-CONTROLS-22 view mode でピンチ拡大ができる
 
-カテゴリ: `write`
+カテゴリ: `read`
 
 区分: 正常系
 

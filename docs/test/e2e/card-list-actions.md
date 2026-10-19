@@ -17,7 +17,7 @@ Card 一覧上のタグ filter と表示順が、教材や個人学習状態を�
 | CARD-LIST-ACTIONS-07 | read | 正常系 | [並び替え後も選択した Card のプレビューと行操作を利用できる](#card-list-actions-07) |
 | CARD-LIST-ACTIONS-08 | read | 正常系 | [別 Card の変更後も行のフォーカスとメニューを維持できる](#card-list-actions-08) |
 | CARD-LIST-ACTIONS-09 | write | 正常系 | [言語やフィルターを変更しても並び順を保持できる](#card-list-actions-09) |
-| CARD-LIST-ACTIONS-10 | read | 正常系 | [filter 保存中も並び替えでき禁止中の操作は実行できない](#card-list-actions-10) |
+| CARD-LIST-ACTIONS-10 | read | 正常系 | [filter 保存中も並び替えでき、禁止中の操作は実行できない](#card-list-actions-10) |
 | CARD-LIST-ACTIONS-11 | read | 正常系 | [画面を離れるか Deck を変更すると並び順が標準に戻る](#card-list-actions-11) |
 
 <a id="card-list-actions-01"></a>
@@ -227,7 +227,7 @@ Then:
 
 <a id="card-list-actions-10"></a>
 
-### CARD-LIST-ACTIONS-10 [TODO] filter 保存中も並び替えでき禁止中の操作は実行できない
+### CARD-LIST-ACTIONS-10 [TODO] filter 保存中も並び替えでき、禁止中の操作は実行できない
 
 カテゴリ: `read`
 

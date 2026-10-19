@@ -48,7 +48,7 @@ Deck、Card 一覧、閲覧、および全ページの主要画面の表示・�
 | NAVIGATION-38 | read | 正常系 | [Deck 一覧の Review と Study new から開始設定へ進める](#navigation-38) |
 | NAVIGATION-39 | read | 正常系 | [間隔反復 OFF では件数を隠して学習と管理の導線を維持する](#navigation-39) |
 | NAVIGATION-40 | read | 正常系 | [条件の変更と画面復帰で一覧の復習件数を更新する](#navigation-40) |
-| NAVIGATION-41 | write | 正常系 | [view mode 中も閲覧の自動再生で次へ進める](#navigation-41) |
+| NAVIGATION-41 | read | 正常系 | [view mode 中も閲覧の自動再生で次へ進める](#navigation-41) |
 | NAVIGATION-42 | batch | 異常系 | [ローカルデータの削除失敗時は再試行を案内する](#navigation-42) |
 | NAVIGATION-43 | batch | 異常系 | [ローカルデータ削除後の起動失敗時は復旧画面を表示する](#navigation-43) |
 | NAVIGATION-44 | read | 正常系 | [空の Deck 一覧でも追加メニューを利用できる](#navigation-44) |
@@ -1007,7 +1007,7 @@ Then:
 
 ### NAVIGATION-41 view mode 中も閲覧の自動再生で次へ進める
 
-カテゴリ: `write`
+カテゴリ: `read`
 
 区分: 正常系
 

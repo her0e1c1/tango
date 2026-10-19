@@ -21,8 +21,8 @@ Settings で変更した設定が再読み込み後も維持され、学習の�
 | SETTINGS-11 | batch | 正常系 | [間隔0から正の値へ戻して同じ学習 session の再生操作を利用できる](#settings-11) |
 | SETTINGS-12 | write | 正常系 | [Maximum cards を変更しても進行中の学習を同じ位置から再開できる](#settings-12) |
 | SETTINGS-13 | read | 正常系 | [旧既定の方向操作だけを現在の4評価へ移行できる](#settings-13) |
-| SETTINGS-14 | write | 正常系 | [有効な CSV preview は言語変更後も選択を保持して取り込みを待つ](#settings-14) |
-| SETTINGS-15 | write | 異常系 | [CSV の準備・取り込みのエラー案内は言語変更後も再試行内容と通知期限を保持する](#settings-15) |
+| SETTINGS-14 | read | 正常系 | [有効な CSV preview は言語変更後も選択を保持して取り込みを待つ](#settings-14) |
+| SETTINGS-15 | read | 異常系 | [CSV の準備・取り込みのエラー案内は言語変更後も再試行内容と通知期限を保持する](#settings-15) |
 | SETTINGS-16 | write | 正常系 | [自動再生の間隔を0から正の値へ戻すと秒数表示へ戻る](#settings-16) |
 | SETTINGS-17 | batch | 正常系 | [間隔0では自動送りと再生操作を無効にして手動で学習できる](#settings-17) |
 
@@ -344,7 +344,7 @@ Then:
 
 ### SETTINGS-14 [TODO] 有効な CSV preview は言語変更後も選択を保持して取り込みを待つ
 
-カテゴリ: `write`
+カテゴリ: `read`
 
 区分: 正常系
 
@@ -367,7 +367,7 @@ Then:
 
 ### SETTINGS-15 [TODO] CSV の準備・取り込みのエラー案内は言語変更後も再試行内容と通知期限を保持する
 
-カテゴリ: `write`
+カテゴリ: `read`
 
 区分: 異常系
 
