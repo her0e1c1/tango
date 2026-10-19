@@ -129,17 +129,18 @@ traces for every attempt, including tests passing the first time, and retains th
 Actions artifact (HTML, attachments, traces, and `test-results/`) for **seven days**. PR artifact retention keeps the
 repository default.
 
-The existing Storybook Pages workflow runs E2E once for its source SHA, then combines that exact run and attempt's
-complete report under [`e2e/`](https://her0e1c1.github.io/tango/e2e/) with Storybook at the site root. A completed failing
-suite may publish its evidence while E2E CI stays red. Missing, interrupted, incomplete, mismatched, or unverified
-reports are excluded while Storybook delivery continues; stale candidates cannot replace a newer candidate. Build and
-test jobs have no production credentials, and the deployment job only publishes the combined artifact.
+The existing Storybook Pages workflow runs E2E once for its source SHA and selects that run's exact artifact ID.
+After verification, it copies the complete standard HTML report under
+[`e2e/`](https://her0e1c1.github.io/tango/e2e/), preserving attachments and trace-viewer assets alongside Storybook at
+the site root. Failed tests keep their artifacts and red CI status; unsuccessful, missing, or unverified reports are
+excluded while Storybook delivery continues. Stale deployment candidates are skipped. Test/build jobs have no production
+credentials, and one combined Pages artifact is deployed.
 
-**Public E2E publication is currently disabled** in `scripts/prepare-e2e-pages.py`; Storybook continues to publish
-without `e2e/`. The workflow summary reports the exclusion and does not link an old report. Before enabling E2E
-publication, inspect generated DOM snapshots, screenshots, request/response headers and bodies, and attachments for
-test-only data. Do not enable it without that verification, tracing-overhead/size measurements, and a browser check of the staged site. In particular,
-real tokens, sessions, secrets, and personal data must never be published.
+**Public E2E publication is currently disabled** by `E2E_PUBLICATION_VERIFIED: "false"` in the Pages workflow;
+Storybook continues to publish without `e2e/`. The summary reports exclusions and never links an old report. Before
+enabling it, inspect generated DOM snapshots, screenshots, request/response headers and bodies, and attachments for
+test-only data, measure trace overhead and combined size, and check report/trace viewing under `/tango/e2e/` in a browser.
+Real tokens, sessions, secrets, and personal data must never be published.
 
 **Pages keeps only the latest published snapshot**, replaced on the next eligible publication. It is not a seven-day
 public history: expiring the seven-day Actions artifacts does not remove an idle Pages snapshot. The workflow summary
