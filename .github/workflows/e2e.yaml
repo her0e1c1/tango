@@ -54,7 +54,7 @@ jobs:
         if: ${{ always() }}
         run: docker compose -f .devcontainer/compose.yaml -f .devcontainer/compose.e2e.yaml down --volumes --remove-orphans
 
-      - name: Save HTML report and traces (main retention is 7 days)
+      - name: Save HTML report and traces using repository retention
         if: ${{ always() }}
         id: report
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -64,5 +64,3 @@ jobs:
             playwright-report/
             test-results/
           if-no-files-found: ignore
-          # Zero preserves the repository default for PRs and other non-main runs.
-          retention-days: ${{ env.PLAYWRIGHT_MAIN_TRACE == 'true' && 7 || 0 }}

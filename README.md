@@ -126,8 +126,8 @@ mise run e2e
 compose-backed `mise run e2e` task for the acceptance suite. Failed local runs retain screenshots under
 `test-results/`. PR CI writes an HTML report and captures a trace on the first retry. Trusted `main` CI records
 traces for every attempt, including tests passing the first time, and retains the complete `playwright-report`
-Actions artifact (HTML, attachments, traces, and `test-results/`) for **seven days**. PR artifact retention keeps the
-repository default.
+Actions artifact (HTML, attachments, traces, and `test-results/`) using the repository's default retention period,
+for both main and PR runs.
 
 The existing Storybook Pages workflow runs E2E once for its source SHA and selects that run's exact artifact ID.
 After verification, it copies the complete standard HTML report under
@@ -142,8 +142,8 @@ enabling it, inspect generated DOM snapshots, screenshots, request/response head
 test-only data, measure trace overhead and combined size, and check report/trace viewing under `/tango/e2e/` in a browser.
 Real tokens, sessions, secrets, and personal data must never be published.
 
-**Pages keeps only the latest published snapshot**, replaced on the next eligible publication. It is not a seven-day
-public history: expiring the seven-day Actions artifacts does not remove an idle Pages snapshot. The build summary
+**Pages keeps only the latest published snapshot**, replaced on the next eligible publication. Artifact history uses
+the repository's default retention period; expiring Actions artifacts does not remove an idle Pages snapshot. The build summary
 records the source SHA, publication run, and any report candidate URL; the deployment job confirms publication.
 
 Each test and retry uses isolated identifiers and storage, so the suite can run fully in parallel locally. CI runs the
