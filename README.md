@@ -143,8 +143,8 @@ test-only data, measure trace overhead and combined size, and check report/trace
 Real tokens, sessions, secrets, and personal data must never be published.
 
 **Pages keeps only the latest published snapshot**, replaced on the next eligible publication. It is not a seven-day
-public history: expiring the seven-day Actions artifacts does not remove an idle Pages snapshot. The workflow summary
-links the published report and identifies its source SHA and run/attempt.
+public history: expiring the seven-day Actions artifacts does not remove an idle Pages snapshot. The build summary
+records the source SHA, publication run, and any report candidate URL; the deployment job confirms publication.
 
 Each test and retry uses isolated identifiers and storage, so the suite can run fully in parallel locally. CI runs the
 same acceptance suite with its configured worker and retry limits.

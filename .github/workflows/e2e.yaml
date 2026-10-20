@@ -47,14 +47,14 @@ jobs:
       - name: Start E2E services
         run: docker compose -f .devcontainer/compose.yaml -f .devcontainer/compose.e2e.yaml up --wait --wait-timeout 120 --remove-orphans
 
-      - name: Run E2E tests
+      - name: Run E2E tests and record every main attempt
         run: docker compose -f .devcontainer/compose.yaml -f .devcontainer/compose.e2e.yaml run --rm --remove-orphans --env CI --env PLAYWRIGHT_MAIN_TRACE --entrypoint npm dev run e2e
 
       - name: Stop E2E services
         if: ${{ always() }}
         run: docker compose -f .devcontainer/compose.yaml -f .devcontainer/compose.e2e.yaml down --volumes --remove-orphans
 
-      - name: Upload Playwright report
+      - name: Save HTML report and traces (main retention is 7 days)
         if: ${{ always() }}
         id: report
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
