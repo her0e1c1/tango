@@ -70,11 +70,11 @@ jobs:
 
       - name: Copy the complete standard report into e2e/
         id: report
-        if: ${{ steps.report-download.outcome == 'success' && hashFiles('e2e-results/playwright-report/index.html') != '' }}
+        if: ${{ steps.report-download.outcome == 'success' && hashFiles('e2e-results/index.html') != '' }}
         env:
           BASE_URL: ${{ steps.pages.outputs.base_url }}
         run: |
-          cp -a e2e-results/playwright-report storybook-static/e2e
+          cp -a e2e-results storybook-static/e2e
           echo "[E2E report candidate](${BASE_URL%/}/e2e/) — source $GITHUB_SHA." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Check the Pages snapshot is smaller than 1 GB
