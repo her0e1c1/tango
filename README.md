@@ -124,7 +124,27 @@ mise run e2e
 
 `npm run e2e:ui` only opens Playwright's UI and does not start the required app and emulators. Use the
 compose-backed `mise run e2e` task for the acceptance suite. Failed local runs retain screenshots under
-`test-results/`; CI also writes an HTML report and captures a trace on the first retry.
+`test-results/`. PR CI writes an HTML report and captures a trace on the first retry. Trusted `main` CI records
+traces for every attempt, including tests passing the first time, and retains the complete `playwright-report`
+Actions artifact (HTML, attachments, traces, and `test-results/`) using the repository's default retention period,
+for both main and PR runs.
+
+The existing Storybook Pages workflow runs E2E once for its source SHA and selects that run's exact artifact ID.
+After verification, it copies the complete standard HTML report under
+[`e2e/`](https://her0e1c1.github.io/tango/e2e/), preserving attachments and trace-viewer assets alongside Storybook at
+the site root. Failed tests keep their artifacts and red CI status; unsuccessful, missing, or unverified reports are
+excluded while Storybook delivery continues. Stale deployment candidates are skipped. Test/build jobs have no production
+credentials, and one combined Pages artifact is deployed.
+
+**Public E2E publication is currently disabled** by `E2E_PUBLICATION_VERIFIED: "false"` in the Pages workflow;
+Storybook continues to publish without `e2e/`. The summary reports exclusions and never links an old report. Before
+enabling it, inspect generated DOM snapshots, screenshots, request/response headers and bodies, and attachments for
+test-only data, measure trace overhead and combined size, and check report/trace viewing under `/tango/e2e/` in a browser.
+Real tokens, sessions, secrets, and personal data must never be published.
+
+**Pages keeps only the latest published snapshot**, replaced on the next eligible publication. Artifact history uses
+the repository's default retention period; expiring Actions artifacts does not remove an idle Pages snapshot. The build summary
+records the source SHA, publication run, and any report candidate URL; the deployment job confirms publication.
 
 Each test and retry uses isolated identifiers and storage, so the suite can run fully in parallel locally. CI runs the
 same acceptance suite with its configured worker and retry limits.

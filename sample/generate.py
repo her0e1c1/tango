@@ -45,8 +45,9 @@ def parse_file(filepath: str) -> Card | None:
 @click.option("-o", "--output", default="output.json", type=pathlib.Path)
 def main(dir: str, output: pathlib.Path) -> None:
     cards = []
-    for root, _, files in os.walk(dir):
-        for name in files:
+    for root, dirs, files in os.walk(dir):
+        dirs.sort()
+        for name in sorted(files):
             if not re.match(r"^test_.*\.py$", name):
                 continue
             filepath = pathlib.Path(root) / name
