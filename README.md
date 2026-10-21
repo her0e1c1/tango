@@ -126,7 +126,7 @@ mise run e2e
 compose-backed `mise run e2e` task for the acceptance suite. Failed local runs retain screenshots under
 `test-results/`. PR CI writes an HTML report and captures a trace on the first retry. Trusted `main` CI records
 traces for every attempt, including tests passing the first time, and retains the complete `playwright-report`
-Actions artifact (HTML, attachments, traces, and `test-results/`) using the repository's default retention period,
+Actions artifact (HTML, attachments, and traces) using the repository's default retention period,
 for both main and PR runs.
 
 The existing Storybook Pages workflow runs E2E once for its source SHA and selects that run's exact artifact ID.

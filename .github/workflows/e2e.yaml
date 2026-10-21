@@ -60,7 +60,5 @@ jobs:
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: ${{ env.PLAYWRIGHT_MAIN_TRACE == 'true' && format('playwright-report-{0}', github.run_attempt) || 'playwright-report' }}
-          path: |
-            playwright-report/
-            test-results/
+          path: playwright-report/
           if-no-files-found: ignore
