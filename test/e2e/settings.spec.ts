@@ -269,16 +269,23 @@ test("SETTINGS-06 recovers current defaults from invalid persisted preferences",
 });
 
 test("SETTINGS-01 Dark mode is auto-saved across reload", async ({ fixture, page }) => {
-  const { expectedDarkMode, darkMode } =
+  const { expectedDarkMode, darkMode, expectedPreferences } =
     await test.step("Given: Dark mode matches the saved appearance preference", async () => {
       const initialDarkMode = fixture.state.browser.preferences.appearance.darkMode;
       const expectedDarkMode = !initialDarkMode;
-      await fixture.apply(page);
+      await fixture.apply(page, { preferences: { study: { maxNumberOfCardsToLearn: 0, cardInterval: 3 } } });
       await page.goto("/settings");
 
       const darkMode = page.getByRole("checkbox", { name: "Dark mode" });
       await expect(darkMode).toBeChecked({ checked: initialDarkMode });
-      return { expectedDarkMode, darkMode };
+      await expect(page.getByRole("slider", { name: "Maximum cards" })).toHaveValue("0");
+      await expect(page.getByRole("slider", { name: "Autoplay interval" })).toHaveValue("3");
+      const preferences = await readPreferences(page);
+      const expectedPreferences = {
+        ...preferences,
+        appearance: { ...preferences.appearance, darkMode: expectedDarkMode },
+      };
+      return { expectedDarkMode, darkMode, expectedPreferences };
     });
   await test.step("When: Toggle dark mode", async () => {
     await darkMode.locator("xpath=parent::label").click();
@@ -292,6 +299,7 @@ test("SETTINGS-01 Dark mode is auto-saved across reload", async ({ fixture, page
         )
       )
       .toBe(expectedDarkMode);
+    await expect.poll(() => readPreferences(page)).toEqual(expectedPreferences);
   });
   await test.step("When: Reload settings", async () => {
     await page.reload();
@@ -299,6 +307,9 @@ test("SETTINGS-01 Dark mode is auto-saved across reload", async ({ fixture, page
   await test.step("Then: The checkbox and page theme restore the saved mode", async () => {
     await expect(darkMode).toBeChecked({ checked: expectedDarkMode });
     await expect(page.locator("html")).toHaveClass(expectedDarkMode ? /dark/ : /^(?!.*\bdark\b).*$/);
+    await expect(page.getByRole("slider", { name: "Maximum cards" })).toHaveValue("0");
+    await expect(page.getByRole("slider", { name: "Autoplay interval" })).toHaveValue("3");
+    expect(await readPreferences(page)).toEqual(expectedPreferences);
   });
 });
 

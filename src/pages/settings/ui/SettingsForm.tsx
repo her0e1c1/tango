@@ -1,7 +1,7 @@
 import type * as React from "react";
 import { useId } from "react";
 import { AiOutlineDown, AiOutlineEye, AiOutlineGlobal, AiOutlinePlayCircle, AiOutlineTool } from "react-icons/ai";
-import { type UseFormReturn, useWatch } from "react-hook-form";
+import { type UseFormReturn, useController } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 
 import type { SettingsFormValues } from "../model/queries/getSettingsFormValues";
@@ -25,13 +25,15 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
   const shortCommitHash = props.commitHash?.slice(0, 7);
   const commitUrl =
     props.commitHash && props.commitHash !== "unknown" ? `${repositoryUrl}/commit/${props.commitHash}` : undefined;
-  const maxNumberOfCardsToLearn = useWatch({
+  const { field: maximumCardsField } = useController({
     control: props.form.control,
     name: "study.maxNumberOfCardsToLearn",
   });
+  const maxNumberOfCardsToLearn = maximumCardsField.value;
   const maximumCardsLabel =
     maxNumberOfCardsToLearn === 0 ? t("settings.study.maximumCards.allMatching") : maxNumberOfCardsToLearn;
-  const cardInterval = useWatch({ control: props.form.control, name: "study.cardInterval" });
+  const { field: cardIntervalField } = useController({ control: props.form.control, name: "study.cardInterval" });
+  const cardInterval = cardIntervalField.value;
   const idPrefix = useId();
   const inputIds = {
     language: `${idPrefix}-language`,
@@ -194,7 +196,9 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
           >
             <div className="flex w-full items-center gap-2">
               <Slider
-                {...props.form.register("study.maxNumberOfCardsToLearn", { valueAsNumber: true })}
+                {...maximumCardsField}
+                value={String(maximumCardsField.value)}
+                onChange={(event) => maximumCardsField.onChange(event.target.valueAsNumber)}
                 min={props.studyPreferencesLimits.maxNumberOfCardsToLearn.min}
                 max={props.studyPreferencesLimits.maxNumberOfCardsToLearn.max}
                 id={inputIds.maxNumberOfCardsToLearn}
@@ -240,7 +244,9 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
           >
             <div className="flex w-full items-center gap-2">
               <Slider
-                {...props.form.register("study.cardInterval", { valueAsNumber: true })}
+                {...cardIntervalField}
+                value={String(cardIntervalField.value)}
+                onChange={(event) => cardIntervalField.onChange(event.target.valueAsNumber)}
                 min={props.studyPreferencesLimits.cardInterval.min}
                 max={props.studyPreferencesLimits.cardInterval.max}
                 id={inputIds.cardInterval}
