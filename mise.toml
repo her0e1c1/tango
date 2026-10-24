@@ -1,6 +1,9 @@
 min_version = "2026.4.8"
 monorepo_root = true
 
+[settings]
+env_shell_expand = false
+
 [monorepo]
 config_roots = ["sample"]
 
