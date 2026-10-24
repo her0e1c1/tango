@@ -9,6 +9,8 @@ import "@testing-library/jest-dom/vitest";
 import { setDarkMode, updatePreferences, usePreferences } from "@/entities/preference";
 import { createPreferences } from "@/test/factories";
 
+import { SettingsForm } from "../ui/SettingsForm";
+
 import { useSettingsPageModel } from "./useSettingsPageModel";
 
 const preferences = createPreferences({
@@ -26,27 +28,11 @@ const preferences = createPreferences({
 
 const PreferencesFormHarness: React.FC = () => {
   const savedPreferences = usePreferences();
-  const { form } = useSettingsPageModel();
+  const { form, studyPreferencesLimits } = useSettingsPageModel();
 
   return (
     <>
-      <input aria-label="Show playback controls" type="checkbox" {...form.register("controls.showPlaybackControls")} />
-      <input aria-label="Dark mode" type="checkbox" {...form.register("appearance.darkMode")} />
-      <select aria-label="Language" {...form.register("language")}>
-        <option value="system">System</option>
-        <option value="en">English</option>
-        <option value="ja">日本語</option>
-      </select>
-      <input
-        aria-label="Maximum cards"
-        type="range"
-        {...form.register("study.maxNumberOfCardsToLearn", { valueAsNumber: true })}
-      />
-      <input
-        aria-label="Autoplay interval"
-        type="range"
-        {...form.register("study.cardInterval", { valueAsNumber: true })}
-      />
+      <SettingsForm form={form} studyPreferencesLimits={studyPreferencesLimits} />
       <output aria-label="Saved playback controls preference">
         {String(savedPreferences.controls.showPlaybackControls)}
       </output>
@@ -89,6 +75,30 @@ describe("SETTINGS-01 SETTINGS-02 SETTINGS-04 settings page model", () => {
       expect(screen.getByLabelText("Saved language preference")).toHaveTextContent("ja");
       expect(screen.getByLabelText("Saved dark mode preference")).toHaveTextContent("true");
     });
+  });
+
+  it("preserves saved slider values when another setting changes", async () => {
+    // Given: Saved numeric preferences differ from the browser's range defaults.
+    updatePreferences({ study: { maxNumberOfCardsToLearn: 0, cardInterval: 3 } });
+    const { unmount } = render(<PreferencesFormHarness />, { wrapper: MemoryRouter });
+    expect(screen.getByRole("slider", { name: "Maximum cards" })).toHaveValue("0");
+    expect(screen.getByRole("slider", { name: "Autoplay interval" })).toHaveValue("3");
+
+    // When: Change an unrelated setting without touching either slider.
+    await userEvent.click(screen.getByRole("checkbox", { name: "Dark mode" }));
+
+    // Then: Autosave preserves both numeric preferences.
+    expect(screen.getByLabelText("Saved dark mode preference")).toHaveTextContent("true");
+    expect(screen.getByLabelText("Saved maximum cards")).toHaveTextContent("0");
+    expect(screen.getByLabelText("Saved autoplay interval")).toHaveTextContent("3");
+
+    // When: Reopen the settings form from the saved preferences.
+    unmount();
+    render(<PreferencesFormHarness />, { wrapper: MemoryRouter });
+
+    // Then: Both sliders still display their saved values.
+    expect(screen.getByRole("slider", { name: "Maximum cards" })).toHaveValue("0");
+    expect(screen.getByRole("slider", { name: "Autoplay interval" })).toHaveValue("3");
   });
 
   it("preserves preferences outside the form when autosaving a changed theme", async () => {

@@ -38,6 +38,7 @@ Given:
 
 - Fixture: [`empty`](./fixture/empty.yaml)
 - 認証済みユーザーが Settings 画面を開き、変更前の Dark mode 設定が画面に反映されている。
+- Maximum cards は0、自動再生の間隔は3秒で保存されており、どちらのスライダーも操作しない。
 
 When:
 
@@ -47,6 +48,7 @@ Then:
 
 - Dark mode のチェック状態は操作で切り替わり、reload 後も選んだ状態を維持する。
 - アプリケーションの配色に Dark mode の変更が反映される。
+- 自動保存と reload の前後で、Maximum cards の0と自動再生の間隔の3秒を含む他の設定が維持される。
 
 <a id="settings-02"></a>
 
