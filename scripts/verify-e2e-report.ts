@@ -186,19 +186,28 @@ async function verifyTrace(page: Page, selected: JSONReportSpec, failures: Netwo
 
 async function verifyDetail(page: Page, selected: JSONReportSpec, hasTrace: boolean, failures: NetworkChecks) {
   stage = "open a test detail from the list";
-  await page.getByRole("textbox", { name: "Search tests" }).fill(selected.title);
+  const search = page.getByRole("textbox", { name: "Search tests" });
+  await search.fill(selected.title);
+  // Submit the standard form so reload/back restores a URL-backed filter, not transient React state.
+  await search.press("Enter");
+  await expect(page).toHaveURL((url) => new URLSearchParams(url.hash.slice(1)).get("q") === selected.title);
   const entry = page.locator(`a[href*="testId=${selected.id}"]`).first();
   await expect(entry).toBeVisible();
   const listUrl = page.url();
   await entry.click();
   await expect(page.locator(".test-case-column")).toBeVisible();
   if (hasTrace) await verifyTrace(page, selected, failures);
-  stage = "reload the detail and return to the list";
+  stage = "reload the detail";
   await page.reload();
+  stage = "render the reloaded detail";
   await expect(page.locator(".test-case-column")).toBeVisible();
+  stage = "navigate back to the filtered list";
   await page.goBack();
+  stage = "compare the restored list URL";
   await expect(page).toHaveURL(listUrl);
+  stage = "close the detail after back navigation";
   await expect(page.locator(".test-case-column")).toHaveCount(0);
+  stage = "render the restored filtered list";
   await expect(page.getByRole("listitem").first()).toBeVisible();
 }
 
@@ -236,6 +245,11 @@ async function verifyReport() {
     stage = "compare the HTML list with this run's JSON counts";
     await verifyList(page, report, total);
     await verifyDetail(page, selected, Boolean(traced), failures);
+    // Final network assertions used to inherit the preceding navigation stage label.
+    stage = "verify the final report request state";
+    process.stdout.write(
+      `Report request state: httpErrors=${failures.http}; denied=${failures.blocked}; serverExited=${Number(server.exitCode !== null)}.\n`
+    );
     expect(failures.http).toBe(0);
     expect(failures.blocked).toBe(0);
     expect(server.exitCode).toBeNull();
