@@ -12,7 +12,8 @@
 - Treat `docs/test/e2e/**` as the single source of truth for E2E test cases.
 - Playwright tests under `test/e2e/**` must cover every test case documented under `docs/test/e2e/**`.
 - Each Playwright test title must start with its corresponding `docs/test/e2e` test case ID followed by a space.
-- Follow the specification-file prefix and case-number format in `docs/test/e2e/AGENTS.md`; reuse the stable documented ID regardless of specification order instead of allocating a separate sequence in Playwright files.
+- Declare test cases in their paired specification's order, following [the ordering rules](../../docs/test/e2e/AGENTS.md#テストケースの書式): normal before abnormal scenarios, reads before writes, and Create, Update, Delete within writes. Keep other operations in user-flow order and variants of the same operation together.
+- Follow the specification-file prefix and case-number format in `docs/test/e2e/AGENTS.md`; reuse the stable documented ID regardless of specification order instead of allocating a separate sequence in Playwright files. Do not renumber case IDs when reordering tests.
 - Every documented case without `[TODO]` must have at least one active test. Multiple tests may share an ID, and a test may name multiple documented IDs; keep the primary fixture ID first in its title.
 - Keep `[TODO]` cases in the specification without empty or skipped tests. If all cases are pending, retain the paired `.spec.ts` as a module with a TODO comment pointing to its specification.
 - Run `npm run lint:test-specs` to check declared specification coverage without executing test runners.
