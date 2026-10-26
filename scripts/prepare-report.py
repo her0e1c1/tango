@@ -171,9 +171,10 @@ def prepare(source, source_json, destination):
     auth_bodies = set()
     network_count = snapshots = images = auth_attributes = 0
     probes_removed = probe_gifs_removed = probe_bytes_removed = 0
+    sdk_loaders_removed = sdk_iframes_removed = 0
     for name, entries in traces.items():
         require(any(n.endswith(".trace") for n in entries), "attachment is not a trace")
-        probe_resources = set()
+        excluded_resources = set()
         for key, data in list(entries.items()):
             require(key.startswith("resources/") or key.endswith((".trace", ".network", ".stacks")),
                     "unexpected trace entry")
@@ -215,8 +216,33 @@ def prepare(source, source_json, destination):
                     probes_removed += 1
                     probe_gifs_removed += int(gif)
                     if reference:
-                        probe_resources.add("resources/" + reference)
+                        excluded_resources.add("resources/" + reference)
                     # Exclude URL/cache buster, cookies, headers and body together, rather than accepting this host.
+                    continue
+                sdk_loader = (url.path == "/js/api.js" and
+                              (not query or (len(query) == 1 and query[0][0] == "onload"
+                                             and re.fullmatch(r"__iframefcb[0-9]{1,6}", query[0][1]))))
+                sdk_iframe = (url.path.startswith("/_/scs/apps-static/_/js/")
+                              and "/m=gapi_iframes/" in url.path
+                              and re.search(r"/cb=gapi\.loaded_[0-9]+$", url.path)
+                              and (not query or query == [("le", "scs")]))
+                if (url.scheme == "https" and url.hostname == "apis.google.com" and url.port in (None, 443)
+                        and not url.fragment and (sdk_loader or sdk_iframe)
+                        and resource["request"].get("method") == "GET"):
+                    # Auth's _loadGapi() loads these scripts. Their network metadata is unnecessary for DOM replay.
+                    require(resource.get("_resourceType") == "script", "unexpected external SDK resource type")
+                    require(not resource["request"].get("postData"), "unexpected external SDK request body")
+                    require(not any(h["name"].lower() in {"authorization", "proxy-authorization"}
+                                    and h["value"] for h in resource["request"].get("headers", [])),
+                            "unexpected external SDK authorization")
+                    reference = resource["response"].get("content", {}).get("_sha1")
+                    require(resource["response"].get("status") == 200
+                            and (not reference or not entries["resources/" + reference]),
+                            "unexpected captured external SDK payload")
+                    sdk_loaders_removed += int(bool(sdk_loader))
+                    sdk_iframes_removed += int(bool(sdk_iframe))
+                    if reference:
+                        excluded_resources.add("resources/" + reference)
                     continue
                 retained.append(line)
                 network_count += 1
@@ -262,10 +288,11 @@ def prepare(source, source_json, destination):
                             if value:
                                 tokens.add(value.encode())
             entries[key] = b"\n".join(retained) + (b"\n" if retained else b"")
-        for resource in probe_resources:
+        for resource in excluded_resources:
             lookup = resource.removeprefix("resources/").encode()
-            require(not any(lookup in data for key, data in entries.items() if key != resource),
-                    "connectivity probe body is referenced by retained trace")
+            if any(lookup in data for key, data in entries.items() if key != resource):
+                require(not entries[resource], "external body is referenced by retained trace")
+                continue
             probe_bytes_removed += len(entries.pop(resource))
     for name, key in auth_bodies:
         data = traces[name][key]
@@ -394,7 +421,8 @@ def prepare(source, source_json, destination):
                    "jwt_values_removed": sum(bool(JWT.fullmatch(token)) for token in tokens),
                    "auth_attributes_removed": auth_attributes, "dom_snapshots": snapshots, "trace_images": images,
                    "connectivity_probes_removed": probes_removed, "probe_gif_responses_removed": probe_gifs_removed,
-                   "probe_body_bytes_removed": probe_bytes_removed},
+                   "probe_body_bytes_removed": probe_bytes_removed, "gapi_loader_records_removed": sdk_loaders_removed,
+                   "gapi_iframe_records_removed": sdk_iframes_removed},
         "html_bytes": sum(len(data) for data in files.values()),
         "review_required": ["screenshots and arbitrary DOM text", "fixture-only provenance", "publication destination and scope"],
         "files": [{"path": name, "bytes": len(data), "source_sha256": original[name], "prepared_sha256": digest(data)}

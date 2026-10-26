@@ -173,8 +173,11 @@ personal-data detector: screenshots and arbitrary DOM text still require review,
 The pinned Firestore WebChannel transport uses an unattached Image at Google's `/images/cleardot.gif` to diagnose
 connectivity, with a generated base-36 `zx` cache buster. Preparation excludes only that exact GET shape with an empty or
 43-byte one-pixel GIF response, including its URL, cookies, headers and unreferenced body. Unexpected parameters, methods,
-authorization, response types/statuses or shared body references still fail closed. Manifests count these exclusions;
+authorization, response types/statuses or shared nonempty body references still fail closed. Manifests count these exclusions;
 the original trace remains available. This does not allow Google traffic generally or make additional network requests.
+The auth SDK's exact public gapi loader and static `gapi_iframes` script requests are also excluded only when recorded as
+successful GET scripts with empty captured bodies and the expected callback/query shapes. Nonempty SDK payloads,
+authorization or other API paths still fail closed. Shared empty resources remain available to retained records.
 
 CI separately records the existing `ACCOUNT-01` acceptance case against the isolated auth emulator with successful tracing
 under `test-results/privacy-auth-source/`. Both its prepared copy and the real suite's prepared HTML report pass the same
