@@ -40,9 +40,9 @@ async function restrictNetwork(context: BrowserContext) {
     // A redirect must not escape the origin without another routing decision.
     await route.fulfill({ response: await route.fetch({ maxRedirects: 0 }) });
   });
-  await context.routeWebSocket("**/*", (socket) => {
+  await context.routeWebSocket("**/*", async (socket) => {
     failures.blocked += 1;
-    socket.close();
+    await socket.close();
   });
   context.on("response", (response) => {
     if (response.status() >= 400) failures.http += 1;
