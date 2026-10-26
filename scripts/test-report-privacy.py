@@ -174,6 +174,21 @@ class ReportPrivacy(unittest.TestCase):
         # Then: Executable suffixes are not copied into a candidate.
         self.assertFalse(self.output.exists())
 
+    def test_origin_diagnostics_do_not_echo_recorded_values(self):
+        # Given: Rejected origins may contain private host labels, token-like labels, or query values.
+        origins = ["https://PRIVATE-SENTINEL.example.invalid/",
+                   "https://" + token() + ".example.invalid/",
+                   "https://apis.google.com/js/api.js?token=FIXED-PRIVATE-QUERY"]
+        for origin in origins:
+            self.fixture(origin=origin)
+            # When: Run the same origin-only diagnostic boundary used in CI.
+            result = subprocess.run([sys.executable, "scripts/prepare-report.py", str(self.source), str(self.report), str(self.output)], capture_output=True)
+            # Then: Only fixed known hosts or digests appear, never query or host-label payloads.
+            self.assertNotEqual(result.returncode, 0)
+            for sentinel in ("PRIVATE-SENTINEL", token(), token().lower(), "FIXED-PRIVATE-QUERY"):
+                self.assertNotIn(sentinel.encode(), result.stdout + result.stderr)
+            self.assertFalse(self.output.exists())
+
 
 if __name__ == "__main__":
     unittest.main()
