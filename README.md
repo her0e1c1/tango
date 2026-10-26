@@ -155,9 +155,12 @@ Real tokens, sessions, secrets, and personal data must never be published.
 CI checks the generated HTML list, a test detail, and any recorded trace in an isolated browser before stopping the
 E2E services. It compares counts and trace bytes with that run's JSON report, blocks external requests, and saves no
 verification screenshots or traces. Successful PR runs can have no traces; main requires them. A separate fixed-DOM
-fixture then exercises the trace-viewer checks even on trace-free PRs, with its own report and results under
+fixture first exercises the trace-viewer checks even on trace-free PRs, with its own report and results under
 `test-results/report-fixture/`; it does not validate the real main trace payload. These checks verify browser display,
 not the safety of recorded content, and do not enable publication.
+Both page- and worker-originated denial probes use a different loopback port with no credentials or report data.
+CI requires the worker request to reach the deny handler; connection failure alone cannot pass. Real-report viewing
+starts only after that fixed fixture succeeds.
 
 **Pages keeps only the latest published snapshot**, replaced on the next eligible publication. Artifact history uses
 the repository's default retention period; expiring Actions artifacts does not remove an idle Pages snapshot. The build summary

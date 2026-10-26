@@ -8,6 +8,17 @@ const origin = "http://127.0.0.1:9323";
 const reportDirectory = process.argv[2] ?? "playwright-report";
 const reportFile = process.argv[3] ?? "test-results/e2e-report.json";
 const requireTrace = process.env.PLAYWRIGHT_MAIN_TRACE === "true" || process.argv[4] === "--require-trace";
+type NetworkChecks = { blocked: number; workerBlocked: number; http: number };
+// Even if interception regresses, this fixed request cannot leave loopback or carry report data.
+const deniedRequest = () =>
+  fetch("http://127.0.0.1:9324/egress-probe", {
+    credentials: "omit",
+    referrerPolicy: "no-referrer",
+    redirect: "error",
+  }).then(
+    () => false,
+    () => true
+  );
 const specs = (suites: JSONReportSuite[]): JSONReportSuite["specs"] =>
   suites.flatMap((suite) => [...suite.specs, ...specs(suite.suites ?? [])]);
 const tracePaths = (spec: JSONReportSpec) =>
@@ -32,11 +43,12 @@ async function readReport() {
 }
 
 async function restrictNetwork(context: BrowserContext) {
-  const failures = { blocked: 0, http: 0 };
+  const failures = { blocked: 0, workerBlocked: 0, http: 0 };
   // The trace viewer needs its service worker. Routing also covers that worker's network requests.
   await context.route("**/*", async (route) => {
     if (new URL(route.request().url()).origin !== origin) {
       failures.blocked += 1;
+      if (route.request().serviceWorker()) failures.workerBlocked += 1;
       await route.abort();
       return;
     }
@@ -51,6 +63,25 @@ async function restrictNetwork(context: BrowserContext) {
     if (response.status() >= 400) failures.http += 1;
   });
   return failures;
+}
+
+async function verifyWorkerDenial(context: BrowserContext, failures: NetworkChecks) {
+  stage = "verify worker-originated requests are blocked";
+  await expect.poll(() => context.serviceWorkers().length).toBeGreaterThan(0);
+  const worker = context.serviceWorkers()[0];
+  if (!worker) throw new Error("Missing trace viewer worker");
+  const before = { blocked: failures.blocked, workerBlocked: failures.workerBlocked };
+  const rejected = await worker.evaluate(deniedRequest);
+  process.stdout.write(
+    `Worker denial probe: rejected=${Number(rejected)}; routed=${failures.blocked - before.blocked}; workerOwned=${failures.workerBlocked - before.workerBlocked}.\n`
+  );
+  expect(rejected).toBe(true);
+  expect(failures.blocked).toBe(before.blocked + 1);
+  expect(failures.workerBlocked).toBe(before.workerBlocked + 1);
+  // Remove only the expected probe; preserve any other denied request for the final assertion.
+  failures.blocked = before.blocked;
+  failures.workerBlocked = before.workerBlocked;
+  process.stdout.write("Service Worker denial check passed (loopback-only probe).\n");
 }
 
 async function verifyList(page: Page, report: JSONReport, total: number) {
@@ -134,7 +165,7 @@ async function findTraceLink(page: Page, selected: JSONReportSpec) {
   return link;
 }
 
-async function verifyTrace(page: Page, selected: JSONReportSpec) {
+async function verifyTrace(page: Page, selected: JSONReportSpec, failures: NetworkChecks) {
   const detailUrl = page.url();
   const link = await findTraceLink(page, selected);
   const href = await link.getAttribute("href");
@@ -144,14 +175,16 @@ async function verifyTrace(page: Page, selected: JSONReportSpec) {
   stage = "open the trace viewer";
   await link.click();
   await verifySnapshot(page);
+  await verifyWorkerDenial(page.context(), failures);
   stage = "reload the trace viewer";
   await page.reload();
   await verifySnapshot(page);
+  await verifyWorkerDenial(page.context(), failures);
   await page.goBack();
   await expect(page).toHaveURL(detailUrl);
 }
 
-async function verifyDetail(page: Page, selected: JSONReportSpec, hasTrace: boolean) {
+async function verifyDetail(page: Page, selected: JSONReportSpec, hasTrace: boolean, failures: NetworkChecks) {
   stage = "open a test detail from the list";
   await page.getByRole("textbox", { name: "Search tests" }).fill(selected.title);
   const entry = page.locator(`a[href*="testId=${selected.id}"]`).first();
@@ -159,7 +192,7 @@ async function verifyDetail(page: Page, selected: JSONReportSpec, hasTrace: bool
   const listUrl = page.url();
   await entry.click();
   await expect(page.locator(".test-case-column")).toBeVisible();
-  if (hasTrace) await verifyTrace(page, selected);
+  if (hasTrace) await verifyTrace(page, selected, failures);
   stage = "reload the detail and return to the list";
   await page.reload();
   await expect(page.locator(".test-case-column")).toBeVisible();
@@ -197,19 +230,12 @@ async function verifyReport() {
     const page = await context.newPage();
     stage = "verify external requests are blocked";
     await page.goto(origin);
-    expect(
-      await page.evaluate(() =>
-        fetch("https://report-check.invalid/").then(
-          () => false,
-          () => true
-        )
-      )
-    ).toBe(true);
+    expect(await page.evaluate(deniedRequest)).toBe(true);
     expect(failures.blocked).toBe(1);
     failures.blocked = 0;
     stage = "compare the HTML list with this run's JSON counts";
     await verifyList(page, report, total);
-    await verifyDetail(page, selected, Boolean(traced));
+    await verifyDetail(page, selected, Boolean(traced), failures);
     expect(failures.http).toBe(0);
     expect(failures.blocked).toBe(0);
     expect(server.exitCode).toBeNull();
