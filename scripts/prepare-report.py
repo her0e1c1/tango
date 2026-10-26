@@ -170,9 +170,11 @@ def prepare(source, source_json, destination):
     tokens = set()
     auth_bodies = set()
     network_count = snapshots = images = auth_attributes = 0
+    probes_removed = probe_gifs_removed = probe_bytes_removed = 0
     for name, entries in traces.items():
         require(any(n.endswith(".trace") for n in entries), "attachment is not a trace")
-        for key, data in entries.items():
+        probe_resources = set()
+        for key, data in list(entries.items()):
             require(key.startswith("resources/") or key.endswith((".trace", ".network", ".stacks")),
                     "unexpected trace entry")
             if key.endswith(".trace"):
@@ -182,13 +184,42 @@ def prepare(source, source_json, destination):
                 images += 1
             if not key.endswith(".network"):
                 continue
+            retained = []
             for line in data.splitlines():
                 event = json.loads(line)
                 require(event.get("type") == "resource-snapshot", "unexpected network event")
                 resource = event["snapshot"]
-                network_count += 1
                 url = urlsplit(resource["request"]["url"])
                 require(not url.username and not url.password, "unexpected URL credentials")
+                query = parse_qsl(url.query, keep_blank_values=True)
+                probe = (url.scheme in {"http", "https"} and url.hostname == "www.google.com"
+                         and url.port in (None, 80 if url.scheme == "http" else 443)
+                         and url.path == "/images/cleardot.gif" and not url.fragment
+                         and len(query) == 1 and query[0][0] == "zx"
+                         and re.fullmatch(r"[0-9a-z]{2,12}", query[0][1])
+                         and resource["request"].get("method") == "GET")
+                if probe:
+                    # Pinned WebChannel R()/Db()/Bc(): an unattached Image probe with a base-36 cache buster.
+                    require(not resource["request"].get("postData"), "unexpected connectivity probe request body")
+                    require(not any(h["name"].lower() in {"authorization", "proxy-authorization"}
+                                    and h["value"] for h in resource["request"].get("headers", [])),
+                            "unexpected connectivity probe authorization")
+                    content = resource["response"].get("content", {})
+                    reference = content.get("_sha1")
+                    body = entries["resources/" + reference] if reference else b""
+                    gif = (len(body) == 43 and body[:6] in (b"GIF87a", b"GIF89a")
+                           and body[6:10] == b"\x01\x00\x01\x00" and body[-1:] == b";"
+                           and content.get("mimeType", "").split(";")[0] == "image/gif")
+                    require(resource["response"].get("status") in {-1, 0, 200} and (not body or gif),
+                            "unexpected connectivity probe response")
+                    probes_removed += 1
+                    probe_gifs_removed += int(gif)
+                    if reference:
+                        probe_resources.add("resources/" + reference)
+                    # Exclude URL/cache buster, cookies, headers and body together, rather than accepting this host.
+                    continue
+                retained.append(line)
+                network_count += 1
                 local = (url.scheme, url.hostname, url.port) in {
                     ("http", "app.test", 4173), ("http", "auth.app.test", 9099),
                     ("http", "db", 8080), ("http", "127.0.0.1", 4173),
@@ -230,6 +261,12 @@ def prepare(source, source_json, destination):
                                     "unexpected credential header")
                             if value:
                                 tokens.add(value.encode())
+            entries[key] = b"\n".join(retained) + (b"\n" if retained else b"")
+        for resource in probe_resources:
+            lookup = resource.removeprefix("resources/").encode()
+            require(not any(lookup in data for key, data in entries.items() if key != resource),
+                    "connectivity probe body is referenced by retained trace")
+            probe_bytes_removed += len(entries.pop(resource))
     for name, key in auth_bodies:
         data = traces[name][key]
         try:
@@ -355,7 +392,9 @@ def prepare(source, source_json, destination):
         "counts": {"traces": len(traces), "network_records": network_count,
                    "tests": html_total, "credential_values_removed": len(tokens),
                    "jwt_values_removed": sum(bool(JWT.fullmatch(token)) for token in tokens),
-                   "auth_attributes_removed": auth_attributes, "dom_snapshots": snapshots, "trace_images": images},
+                   "auth_attributes_removed": auth_attributes, "dom_snapshots": snapshots, "trace_images": images,
+                   "connectivity_probes_removed": probes_removed, "probe_gif_responses_removed": probe_gifs_removed,
+                   "probe_body_bytes_removed": probe_bytes_removed},
         "html_bytes": sum(len(data) for data in files.values()),
         "review_required": ["screenshots and arbitrary DOM text", "fixture-only provenance", "publication destination and scope"],
         "files": [{"path": name, "bytes": len(data), "source_sha256": original[name], "prepared_sha256": digest(data)}

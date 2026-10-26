@@ -5,6 +5,7 @@ import hashlib
 import importlib.util
 import json
 from pathlib import Path
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -21,6 +22,20 @@ spec.loader.exec_module(privacy)
 def token(audience="tango-e2e", signature=""):
     encode = lambda value: base64.urlsafe_b64encode(json.dumps(value).encode()).rstrip(b"=").decode()
     return ".".join((encode({"alg": "none"}), encode({"aud": audience, "iss": "https://securetoken.google.com/tango-e2e"}), signature))
+
+
+PIXEL = base64.b64decode("R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==")
+
+
+def probe_entries(body=PIXEL, status=200, url="https://www.google.com/images/cleardot.gif?zx=00", method="GET", authorization=False):
+    headers = [{"name": "Cookie", "value": "FIXED-PROBE-COOKIE"}]
+    if authorization:
+        headers.append({"name": "Authorization", "value": "FIXED-UNKNOWN-AUTHORIZATION"})
+    event = {"type": "resource-snapshot", "snapshot": {
+        "request": {"url": url, "method": method, "headers": headers},
+        "response": {"status": status, "headers": [{"name": "Set-Cookie", "value": "FIXED-PROBE-RESPONSE"}],
+                     "content": {"_sha1": "probe.gif", "mimeType": "image/gif"}}}}
+    return {"probe.network": privacy.json_bytes(event) + b"\n", "resources/probe.gif": body}
 
 
 class ReportPrivacy(unittest.TestCase):
@@ -187,6 +202,39 @@ class ReportPrivacy(unittest.TestCase):
             self.assertNotEqual(result.returncode, 0)
             for sentinel in ("PRIVATE-SENTINEL", token(), token().lower(), "FIXED-PRIVATE-QUERY"):
                 self.assertNotIn(sentinel.encode(), result.stdout + result.stderr)
+            self.assertFalse(self.output.exists())
+
+    def test_excludes_only_the_pinned_connectivity_probe(self):
+        # Given: Recorded SDK probes have the observed empty or one-pixel GIF responses.
+        for body, status in [(b"", -1), (b"", 200), (PIXEL, 200)]:
+            with self.subTest(status=status, bytes=len(body)):
+                name, raw, _ = self.fixture(extra=probe_entries(body=body, status=status))
+                # When: Prepare a separate report without changing the original evidence.
+                manifest = privacy.prepare(self.source, self.report, self.output)
+                entries = privacy.unpack((self.output / "html" / name).read_bytes())
+                # Then: Entire probe metadata/body disappears; auth records and source remain intact.
+                self.assertEqual(entries["probe.network"], b"")
+                self.assertNotIn("resources/probe.gif", entries)
+                self.assertNotIn(b"FIXED-PROBE-COOKIE", b"".join(entries.values()))
+                self.assertNotIn(b"FIXED-PROBE-RESPONSE", b"".join(entries.values()))
+                self.assertEqual(manifest["counts"]["connectivity_probes_removed"], 1)
+                self.assertEqual(manifest["counts"]["probe_body_bytes_removed"], len(body))
+                self.assertEqual(manifest["counts"]["network_records"], 1)
+                self.assertEqual((self.source / name).read_bytes(), raw)
+                shutil.rmtree(self.output)
+
+    def test_rejects_unexplained_probe_shapes_and_shared_bodies(self):
+        # Given: A probe-like URL cannot hide other requests, credentials, payloads or retained resource references.
+        cases = [probe_entries(url="https://www.google.com/images/cleardot.gif?zx=00&token=FIXED-UNKNOWN"),
+                 probe_entries(method="POST"), probe_entries(authorization=True),
+                 probe_entries(body=b"<html>FIXED-UNKNOWN</html>"), probe_entries(status=403),
+                 {**probe_entries(), "shared.trace": privacy.json_bytes({"type": "before", "params": {"sha1": "probe.gif"}})}]
+        for extra in cases:
+            self.fixture(extra=extra)
+            # When: Attempt preparation through the public boundary.
+            with self.assertRaises(privacy.PrivacyError):
+                privacy.prepare(self.source, self.report, self.output)
+            # Then: Unknown shapes fail closed; referenced resources are never silently removed.
             self.assertFalse(self.output.exists())
 
 

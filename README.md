@@ -170,6 +170,12 @@ and remaining review requirements. Unexpected JWT signatures/projects, session c
 fields, modified viewer code, and unbound attachments fail preparation. This is a scoped check, not a general secret or
 personal-data detector: screenshots and arbitrary DOM text still require review, and `publication_approved` remains false.
 
+The pinned Firestore WebChannel transport uses an unattached Image at Google's `/images/cleardot.gif` to diagnose
+connectivity, with a generated base-36 `zx` cache buster. Preparation excludes only that exact GET shape with an empty or
+43-byte one-pixel GIF response, including its URL, cookies, headers and unreferenced body. Unexpected parameters, methods,
+authorization, response types/statuses or shared body references still fail closed. Manifests count these exclusions;
+the original trace remains available. This does not allow Google traffic generally or make additional network requests.
+
 CI separately records the existing `ACCOUNT-01` acceptance case against the isolated auth emulator with successful tracing
 under `test-results/privacy-auth-source/`. Both its prepared copy and the real suite's prepared HTML report pass the same
 isolated browser verifier. The original suite keeps PR retry-only tracing and main all-attempt tracing. Original reports
