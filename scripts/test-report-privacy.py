@@ -66,7 +66,7 @@ class ReportPrivacy(unittest.TestCase):
 
     def test_removes_auth_preserves_references_and_original(self):
         # Given: An actual-format trace with emulator auth in a body and action.
-        name, raw, credential = self.fixture()
+        name, raw, credential = self.fixture(extra={"resources/known.json": privacy.json_bytes({"Authorization": "Bearer " + token()})})
         original_html = (self.source / "index.html").read_bytes()
         # When: Prepare a separate private candidate.
         manifest = privacy.prepare(self.source, self.report, self.output)
@@ -76,6 +76,7 @@ class ReportPrivacy(unittest.TestCase):
         self.assertNotIn(credential.encode(), b"".join(prepared.values()))
         self.assertNotIn(b"FIXED-NONCONFIDENTIAL-REFRESH", b"".join(prepared.values()))
         self.assertEqual(json.loads(prepared["resources/body.json"])["refreshToken"], privacy.REDACTED)
+        self.assertEqual(json.loads(prepared["resources/known.json"])["Authorization"], privacy.REDACTED)
         self.assertEqual((self.source / name).read_bytes(), raw)
         self.assertEqual((self.source / "index.html").read_bytes(), original_html)
         self.assertFalse(manifest["publication_approved"])

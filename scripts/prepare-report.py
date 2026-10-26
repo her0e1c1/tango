@@ -193,7 +193,13 @@ def prepare(source, source_json, destination):
                 }
                 mocked_auth = url.hostname in {"identitytoolkit.googleapis.com", "securetoken.googleapis.com"}
                 empty_decoration = url.hostname in {"unpkg.com", "fonts.googleapis.com"}
-                require(local or mocked_auth or empty_decoration, "unexpected network origin")
+                if not (local or mocked_auth or empty_decoration):
+                    # Only repository/pinned-SDK host names may enter diagnostics; never arbitrary hosts or URLs.
+                    known = {"app.test", "auth.app.test", "app", "auth", "db", "localhost", "127.0.0.1",
+                             "tango-e2e.firebaseapp.com", "apis.google.com", "www.googleapis.com", "www.gstatic.com"}
+                    host = url.hostname if url.hostname in known else "other-" + digest((url.hostname or "").encode())[:12]
+                    scheme = url.scheme if url.scheme in {"http", "https", "data", "blob", "about"} else "other"
+                    raise PrivacyError(f"unexpected network origin ({host}; {scheme}; port={url.port or 0})")
                 if mocked_auth:
                     require(parse_qs(url.query).get("key") == ["e2e-api-key"], "unexpected API key")
                 auth = url.hostname == "auth.app.test" or mocked_auth
@@ -249,7 +255,9 @@ def prepare(source, source_json, destination):
     for token in tokens:
         for jwt in JWT.findall(token):
             emulator_jwt(jwt)
-    replacements = {variant for token in tokens for variant in (
+    # Auth headers can also be serialized into WebChannel query/body JSON.
+    replacement_values = tokens | {b"Bearer " + token for token in tokens if JWT.fullmatch(token)}
+    replacements = {variant for token in replacement_values for variant in (
         token, quote(token.decode(), safe="").encode(),
         quote(quote(token.decode(), safe=""), safe="").encode(),
         json.dumps(token.decode())[1:-1].encode())}
