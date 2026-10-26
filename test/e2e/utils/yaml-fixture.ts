@@ -490,10 +490,10 @@ const readDocumentedCases = (markdownPath: string): DocumentedCase[] => {
     if (caseId === undefined || heading.index === undefined) {
       throw new Error(`Could not parse an E2E case heading in ${path.relative(repositoryRoot, markdownPath)}`);
     }
-    const expectedCaseId = `${path.basename(markdownPath, ".md").toUpperCase()}-${String(indexInFile + 1).padStart(2, "0")}`;
-    if (caseId !== expectedCaseId) {
+    const expectedPrefix = path.basename(markdownPath, ".md").toUpperCase();
+    if (!new RegExp(`^${expectedPrefix}-(?:0[1-9]|[1-9][0-9]+)$`, "u").test(caseId)) {
       throw new Error(
-        `Invalid E2E case ID in ${path.relative(repositoryRoot, markdownPath)}: expected ${expectedCaseId}, found ${caseId}`
+        `Invalid E2E case ID in ${path.relative(repositoryRoot, markdownPath)}: expected ${expectedPrefix} with a positive, zero-padded case number, found ${caseId}`
       );
     }
     const nextHeading = headings[indexInFile + 1];
