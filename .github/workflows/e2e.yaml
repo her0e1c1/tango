@@ -102,7 +102,7 @@ jobs:
         run: docker compose -f .devcontainer/compose.yaml -f .devcontainer/compose.e2e.yaml run --rm --remove-orphans --entrypoint npm dev run verify:e2e-report -- prepared-reports/auth/html prepared-reports/auth/report.json --require-trace
 
       - name: Retain non-payload preparation manifests only
-        if: ${{ success() }}
+        if: ${{ !cancelled() && hashFiles('prepared-reports/*/manifest.json') != '' }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: privacy-preparation-manifests

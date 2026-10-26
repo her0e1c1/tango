@@ -38,6 +38,20 @@ def probe_entries(body=PIXEL, status=200, url="https://www.google.com/images/cle
     return {"probe.network": privacy.json_bytes(event) + b"\n", "resources/probe.gif": body}
 
 
+GAPI_MODULE = "https://apis.google.com/_/scs/apps-static/_/js/k=oz.gapi.en.FIXED/m=gapi_iframes/rt=j/sv=1/d=1/ed=1/rs=FIXED/cb=gapi.loaded_0"
+
+
+def sdk_entries(url="https://apis.google.com/js/api.js?onload=__iframefcb123", body=b"", method="GET", resource_type="script", authorization=False):
+    event = {"type": "resource-snapshot", "snapshot": {
+        "_resourceType": resource_type,
+        "request": {"url": url, "method": method, "headers": [{"name": "Cookie", "value": "FIXED-SDK-COOKIE"}]},
+        "response": {"status": 200, "headers": [{"name": "Set-Cookie", "value": "FIXED-SDK-RESPONSE"}],
+                     "content": {"_sha1": "sdk.js", "mimeType": "text/javascript"}}}}
+    if authorization:
+        event["snapshot"]["request"]["headers"].append({"name": "Authorization", "value": "FIXED-UNKNOWN-AUTHORIZATION"})
+    return {"sdk.network": privacy.json_bytes(event) + b"\n", "resources/sdk.js": body}
+
+
 class ReportPrivacy(unittest.TestCase):
     def setUp(self):
         self.temporary = tempfile.TemporaryDirectory(prefix=".report-privacy-", dir=Path.cwd())
@@ -235,6 +249,43 @@ class ReportPrivacy(unittest.TestCase):
             with self.assertRaises(privacy.PrivacyError):
                 privacy.prepare(self.source, self.report, self.output)
             # Then: Unknown shapes fail closed; referenced resources are never silently removed.
+            self.assertFalse(self.output.exists())
+
+    def test_excludes_only_known_empty_sdk_script_records(self):
+        # Given: Known Auth SDK loader requests have empty captured script bodies.
+        cases = [("https://apis.google.com/js/api.js", "gapi_loader_records_removed"),
+                 ("https://apis.google.com/js/api.js?onload=__iframefcb123", "gapi_loader_records_removed"),
+                 (GAPI_MODULE, "gapi_iframe_records_removed"),
+                 (GAPI_MODULE + "?le=scs", "gapi_iframe_records_removed")]
+        for url, counter in cases:
+            extra = {**sdk_entries(url=url), "shared.trace": privacy.json_bytes({"type": "before", "params": {"sha1": "sdk.js"}})}
+            name, raw, _ = self.fixture(extra=extra)
+            # When: Prepare a separate copy without accepting the external host generally.
+            manifest = privacy.prepare(self.source, self.report, self.output)
+            entries = privacy.unpack((self.output / "html" / name).read_bytes())
+            # Then: Entire SDK metadata disappears while shared empty resource references still resolve.
+            self.assertEqual(entries["sdk.network"], b"")
+            self.assertEqual(entries["resources/sdk.js"], b"")
+            self.assertNotIn(b"FIXED-SDK-COOKIE", b"".join(entries.values()))
+            self.assertNotIn(b"FIXED-SDK-RESPONSE", b"".join(entries.values()))
+            self.assertEqual(manifest["counts"][counter], 1)
+            self.assertEqual(manifest["counts"]["network_records"], 1)
+            self.assertEqual((self.source / name).read_bytes(), raw)
+            shutil.rmtree(self.output)
+
+    def test_rejects_unexplained_sdk_paths_queries_and_payloads(self):
+        # Given: Other endpoints, callbacks, fields, methods, resource types or captured bytes are unexplained.
+        cases = [sdk_entries(url="https://apis.google.com/v1/userinfo"),
+                 sdk_entries(url="https://apis.google.com/js/api.js?onload=FIXED-UNKNOWN"),
+                 sdk_entries(url="https://apis.google.com/js/api.js?token=FIXED-UNKNOWN"),
+                 sdk_entries(url=GAPI_MODULE + "?le=FIXED-UNKNOWN"), sdk_entries(method="POST"),
+                 sdk_entries(resource_type="xhr"), sdk_entries(authorization=True), sdk_entries(body=b"FIXED-UNKNOWN")]
+        for extra in cases:
+            self.fixture(extra=extra)
+            # When: Attempt preparation through the public boundary.
+            with self.assertRaises(privacy.PrivacyError):
+                privacy.prepare(self.source, self.report, self.output)
+            # Then: The candidate is rejected, not made publishable by a hostname allowance.
             self.assertFalse(self.output.exists())
 
 
