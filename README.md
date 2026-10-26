@@ -162,8 +162,9 @@ Both page- and worker-originated denial probes use a different loopback port wit
 CI requires the worker request to reach the deny handler; connection failure alone cannot pass. Real-report viewing
 starts only after that fixed fixture succeeds.
 
-Private privacy preparation also makes a separate copy under `test-results/prepared-report/`. It removes recognized
-emulator authentication values from trace bodies, headers, action data, and report metadata, preserving resource lookup
+Private privacy preparation also makes a separate copy under `prepared-reports/full/`. The host owns that new directory;
+container-owned `test-results/` evidence is read without changing ownership or permissions. Preparation removes recognized
+emulator authentication values from trace bodies, headers, widget assertions, action data, and report metadata, preserving resource lookup
 keys and standard viewer assets. A manifest records source run/attempt/commit, source and prepared SHA-256 values, sizes,
 and remaining review requirements. Unexpected JWT signatures/projects, session cookies, network origins, credential
 fields, modified viewer code, and unbound attachments fail preparation. This is a scoped check, not a general secret or

@@ -9,7 +9,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
-from urllib.parse import urlencode
+from urllib.parse import quote, urlencode
 
 
 sys.dont_write_bytecode = True
@@ -25,7 +25,7 @@ def token(audience="tango-e2e", signature=""):
 
 class ReportPrivacy(unittest.TestCase):
     def setUp(self):
-        self.temporary = tempfile.TemporaryDirectory(dir="test-results")
+        self.temporary = tempfile.TemporaryDirectory(prefix=".report-privacy-", dir=Path.cwd())
         self.addCleanup(self.temporary.cleanup)
         self.root = Path(self.temporary.name).resolve()
         self.source = self.root / "raw"
@@ -33,7 +33,7 @@ class ReportPrivacy(unittest.TestCase):
         self.output = self.root / "prepared"
         self.report = self.root / "report.json"
 
-    def fixture(self, credential=None, origin="http://auth.app.test:9099/identitytoolkit.googleapis.com/v1/accounts:signUp", extra=None, form=False):
+    def fixture(self, credential=None, origin="http://auth.app.test:9099/identitytoolkit.googleapis.com/v1/accounts:signUp", extra=None, form=False, popup_email=None):
         for path in (self.source / "data").iterdir():
             path.unlink()
         credential = credential or token()
@@ -45,6 +45,9 @@ class ReportPrivacy(unittest.TestCase):
                    "resources/body.json": privacy.json_bytes(body)}
         if form:
             entries["resources/body.json"] = urlencode({"id_token": credential, "refresh_token": body["refreshToken"]}).encode()
+        if popup_email:
+            assertion = quote(json.dumps({"sub": "fixture-user", "email": popup_email}))
+            entries["resources/body.json"] = f'<button data-id-token="{assertion}">Fixture</button>'.encode()
         if extra:
             entries.update(extra)
         raw = privacy.pack(entries)
@@ -89,6 +92,7 @@ class ReportPrivacy(unittest.TestCase):
             {"origin": "http://auth.app.test:9099/test?%70assword=FIXED-UNKNOWN-PASSWORD"},
             {"origin": "http://auth.app.test:9099/test?flag&password=FIXED-UNKNOWN-PASSWORD"},
             {"origin": "http://auth.app.test:9099/test#access_token=FIXED-UNKNOWN-ACCESS-TOKEN"},
+            {"popup_email": "person@private.example"},
             {"extra": {"resources/unknown.json": b'{"refreshToken":"UNRECOGNIZED-SENSITIVE-SENTINEL"}'}},
             {"extra": {"resources/unknown.json": b'{"password":"UNRECOGNIZED-SENSITIVE-SENTINEL"}'}},
             {"extra": {"resources/unknown.json": b' \n {"password":"UNRECOGNIZED-SENSITIVE-SENTINEL"}'}},
@@ -134,6 +138,18 @@ class ReportPrivacy(unittest.TestCase):
         self.assertNotIn(b"FIXED-NONCONFIDENTIAL-REFRESH", body)
         self.assertEqual((self.source / name).read_bytes(), raw)
 
+    def test_removes_auth_widget_assertions(self):
+        # Given: The emulator's actual widget format carries a fixture IdP assertion.
+        name, raw, _ = self.fixture(popup_email="fixture@example.test")
+        # When: Prepare the separate report.
+        manifest = privacy.prepare(self.source, self.report, self.output)
+        body = privacy.unpack((self.output / "html" / name).read_bytes())["resources/body.json"]
+        # Then: The auth attribute is redacted while resource lookup keys and source evidence remain intact.
+        self.assertIn(privacy.REDACTED.encode(), body)
+        self.assertNotIn(quote("fixture@example.test").encode(), body)
+        self.assertEqual(manifest["counts"]["auth_attributes_removed"], 1)
+        self.assertEqual((self.source / name).read_bytes(), raw)
+
     def test_cli_failure_does_not_echo_payload(self):
         # Given: A malformed source JSON contains a sensitive sentinel.
         self.fixture()
@@ -158,5 +174,4 @@ class ReportPrivacy(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    Path("test-results").mkdir(exist_ok=True)
     unittest.main()

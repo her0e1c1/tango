@@ -10,6 +10,7 @@ node_modules
 /coverage
 /playwright-report
 /test-results
+/prepared-reports
 .stryker-tmp/
 
 # production

@@ -6,6 +6,7 @@ recorded separately. This never certifies arbitrary screenshots or DOM as public
 
 import base64
 import hashlib
+from html.parser import HTMLParser
 import io
 import json
 import os
@@ -14,7 +15,7 @@ import re
 import shutil
 import sys
 import tempfile
-from urllib.parse import parse_qs, parse_qsl, quote, urlsplit
+from urllib.parse import parse_qs, parse_qsl, quote, unquote, urlsplit
 import zipfile
 
 
@@ -28,6 +29,23 @@ VIEWER = Path(os.environ.get("PLAYWRIGHT_PRIVACY_VIEWER_ASSETS", "node_modules/p
 
 class PrivacyError(ValueError):
     """Messages are fixed classifications, never parser text or report values."""
+
+
+class AuthAttributes(HTMLParser):
+    """The pinned Auth Emulator widget stores fake IdP assertions in this attribute."""
+
+    def __init__(self):
+        super().__init__()
+        self.values = []
+
+    def handle_starttag(self, tag, attrs):
+        for key, value in attrs:
+            if key == "data-id-token" and value:
+                claims = json.loads(unquote(value))
+                require(isinstance(claims.get("sub"), str) and bool(claims["sub"]), "unexpected widget assertion")
+                require(not claims.get("email") or claims["email"].endswith("@example.test"),
+                        "unexpected widget identity")
+                self.values.extend((value.encode(), unquote(value).encode()))
 
 
 def require(condition, reason):
@@ -150,7 +168,7 @@ def prepare(source, source_json, destination):
               if name.startswith("data/") and name.endswith(".zip")}
     tokens = set()
     auth_bodies = set()
-    network_count = snapshots = images = 0
+    network_count = snapshots = images = auth_attributes = 0
     for name, entries in traces.items():
         require(any(n.endswith(".trace") for n in entries), "attachment is not a trace")
         for key, data in entries.items():
@@ -209,6 +227,11 @@ def prepare(source, source_json, destination):
         except UnicodeDecodeError:
             # Auth emulator also serves its static popup. Its text is scanned below.
             continue
+        if body is None and data.lstrip().startswith(b"<"):
+            parser = AuthAttributes()
+            parser.feed(data.decode())
+            tokens.update(parser.values)
+            auth_attributes += len(parser.values) // 2
         for item in walk(body):
             if isinstance(item, dict):
                 fields = [(item["name"], item["value"])] if isinstance(item.get("name"), str) and "value" in item else item.items()
@@ -318,7 +341,9 @@ def prepare(source, source_json, destination):
                    "commit": os.environ.get("GITHUB_SHA"), "head_commit": os.environ.get("E2E_SOURCE_HEAD_SHA"),
                    "json_sha256": digest(report_bytes)},
         "counts": {"traces": len(traces), "network_records": network_count,
-                   "tests": html_total, "credential_values_removed": len(tokens), "dom_snapshots": snapshots, "trace_images": images},
+                   "tests": html_total, "credential_values_removed": len(tokens),
+                   "jwt_values_removed": sum(bool(JWT.fullmatch(token)) for token in tokens),
+                   "auth_attributes_removed": auth_attributes, "dom_snapshots": snapshots, "trace_images": images},
         "html_bytes": sum(len(data) for data in files.values()),
         "review_required": ["screenshots and arbitrary DOM text", "fixture-only provenance", "publication destination and scope"],
         "files": [{"path": name, "bytes": len(data), "source_sha256": original[name], "prepared_sha256": digest(data)}
@@ -347,6 +372,8 @@ if __name__ == "__main__":
         result = prepare(*(Path(arg) for arg in sys.argv[1:]))
         print("Private report preparation passed: " + json.dumps(result["counts"]) + "; publication remains disabled.")
         print("Prepared payload bytes=" + str(result["html_bytes"]) + "; manifest SHA-256=" + digest(json_bytes(result)))
+        # Paths are pinned viewer assets or opaque attachment hashes; no recorded values are included.
+        print("Private preparation manifest: " + json_bytes(result).decode())
     except Exception as error:
         # Parser and filesystem exceptions may contain payloads/paths. Never log their messages.
         reason = str(error) if isinstance(error, PrivacyError) else type(error).__name__
