@@ -72,12 +72,28 @@ def json_bytes(value):
 
 
 def structured(data):
+    strict = isinstance(data, bytes)
     text = data.decode() if isinstance(data, bytes) else data
+    text = text.lstrip("\ufeff \t\r\n")
+    if text == REDACTED:
+        return None
     if text.startswith(("{", "[")):
-        return json.loads(text)
+        try:
+            return json.loads(text)
+        except ValueError:
+            if strict:
+                raise PrivacyError("malformed structured resource") from None
+            return None
+    if text.startswith(("http://", "https://")):
+        text = urlsplit(text).query
     if re.match(r"^[A-Za-z_][A-Za-z0-9_]*=", text):
-        return [{"name": key, "value": value}
-                for key, value in parse_qsl(text, keep_blank_values=True, strict_parsing=True)]
+        try:
+            return [{"name": key, "value": value}
+                    for key, value in parse_qsl(text, keep_blank_values=True, strict_parsing=True)]
+        except ValueError:
+            if strict:
+                raise PrivacyError("malformed form resource") from None
+            return None
     return None
 
 
@@ -192,7 +208,7 @@ def prepare(source, source_json, destination):
         data = traces[name][key]
         try:
             body = structured(data)
-        except (ValueError, UnicodeDecodeError):
+        except UnicodeDecodeError:
             # Auth emulator also serves its static popup. Its text is scanned below.
             continue
         for item in walk(body):
@@ -235,10 +251,16 @@ def prepare(source, source_json, destination):
                         require(not field, "unexpected secret field")
                     if key.lower() == "email" and field:
                         require(isinstance(field, str) and field.endswith("@example.test"), "unexpected email identity")
+                    if key.replace("_", "").lower() == "apikey":
+                        require(field in (None, "", "e2e-api-key", REDACTED), "unexpected API key")
+                    if key.lower() in HEADERS:
+                        require(not field or field == REDACTED, "unrecognized credential header")
+                    if key.lower() == "cookies":
+                        require(not field, "unexpected session cookies")
             elif isinstance(item, str):
                 try:
                     nested = structured(item)
-                except ValueError:
+                except UnicodeDecodeError:
                     continue
                 if nested is not None:
                     check_fields(nested)
@@ -252,7 +274,7 @@ def prepare(source, source_json, destination):
             else:
                 try:
                     check_fields(structured(data))
-                except (json.JSONDecodeError, UnicodeDecodeError):
+                except UnicodeDecodeError:
                     pass
             entries[key] = data
         files[name] = pack(entries)
@@ -281,7 +303,12 @@ def prepare(source, source_json, destination):
                 require(name in original and original[name] == digest(raw), "source attachment mismatch")
                 attachment["path"] = str(destination.relative_to(Path.cwd().resolve()) / "html" / name)
             if attachment.get("body"):
-                attachment["body"] = base64.b64encode(redact(base64.b64decode(attachment["body"], validate=True))).decode()
+                body = redact(base64.b64decode(attachment["body"], validate=True))
+                try:
+                    check_fields(structured(body))
+                except UnicodeDecodeError:
+                    pass
+                attachment["body"] = base64.b64encode(body).decode()
     check_fields(report)
     html_total = json.loads(metadata["report.json"])["stats"]["total"]
     if "stats" in report:
@@ -290,7 +317,8 @@ def prepare(source, source_json, destination):
     manifest = {
         "schema": 1, "publication_approved": False,
         "source": {"run_id": os.environ.get("GITHUB_RUN_ID"), "attempt": os.environ.get("GITHUB_RUN_ATTEMPT"),
-                   "commit": os.environ.get("GITHUB_SHA"), "json_sha256": digest(report_bytes)},
+                   "commit": os.environ.get("GITHUB_SHA"), "head_commit": os.environ.get("E2E_SOURCE_HEAD_SHA"),
+                   "json_sha256": digest(report_bytes)},
         "counts": {"traces": len(traces), "network_records": network_count,
                    "tests": html_total, "credential_values_removed": len(tokens), "dom_snapshots": snapshots, "trace_images": images},
         "html_bytes": sum(len(data) for data in files.values()),

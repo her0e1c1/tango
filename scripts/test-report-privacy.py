@@ -9,6 +9,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from urllib.parse import urlencode
 
 
 sys.dont_write_bytecode = True
@@ -32,7 +33,7 @@ class ReportPrivacy(unittest.TestCase):
         self.output = self.root / "prepared"
         self.report = self.root / "report.json"
 
-    def fixture(self, credential=None, origin="http://auth.app.test:9099/identitytoolkit.googleapis.com/v1/accounts:signUp", extra=None):
+    def fixture(self, credential=None, origin="http://auth.app.test:9099/identitytoolkit.googleapis.com/v1/accounts:signUp", extra=None, form=False):
         for path in (self.source / "data").iterdir():
             path.unlink()
         credential = credential or token()
@@ -42,6 +43,8 @@ class ReportPrivacy(unittest.TestCase):
         entries = {"0.trace": privacy.json_bytes({"type": "before", "params": {"value": credential}}) + b"\n",
                    "0.network": privacy.json_bytes({"type": "resource-snapshot", "snapshot": {"request": request, "response": response}}) + b"\n",
                    "resources/body.json": privacy.json_bytes(body)}
+        if form:
+            entries["resources/body.json"] = urlencode({"id_token": credential, "refresh_token": body["refreshToken"]}).encode()
         if extra:
             entries.update(extra)
         raw = privacy.pack(entries)
@@ -82,30 +85,49 @@ class ReportPrivacy(unittest.TestCase):
             {"credential": token(signature="signed")},
             {"credential": token(audience="production")},
             {"origin": "https://production.example.invalid/auth"},
+            {"origin": "http://auth.app.test:9099/test?password=FIXED-UNKNOWN-PASSWORD"},
             {"extra": {"resources/unknown.json": b'{"refreshToken":"UNRECOGNIZED-SENSITIVE-SENTINEL"}'}},
             {"extra": {"resources/unknown.json": b'{"password":"UNRECOGNIZED-SENSITIVE-SENTINEL"}'}},
+            {"extra": {"resources/unknown.json": b' \n {"password":"UNRECOGNIZED-SENSITIVE-SENTINEL"}'}},
+            {"extra": {"resources/unknown.json": b'{"password":"UNRECOGNIZED-SENSITIVE-SENTINEL"'}},
             {"extra": {"resources/unknown.json": b'{"secret":"UNRECOGNIZED-SENSITIVE-SENTINEL"}'}},
             {"extra": {"resources/unknown.json": b'{"email":"person@private.example"}'}},
             {"extra": {"resources/unknown.txt": b'refresh_token=FIXED-UNKNOWN-SENTINEL&password=FIXED-PASSWORD'}},
+            {"extra": {"resources/unknown.txt": b' \n refresh_token=FIXED-UNKNOWN-SENTINEL&password=FIXED-PASSWORD'}},
+            {"extra": {"resources/unknown.txt": b'refresh_token=FIXED-UNKNOWN-SENTINEL&refresh_token='}},
             {"extra": {"resources/unknown.json": b'{"params":[{"name":"refresh_token","value":"FIXED-UNKNOWN-SENTINEL"}]}'}},
+            {"extra": {"resources/unknown.json": b'{"headers":[{"name":"Authorization","value":"Bearer FIXED-UNKNOWN-SENTINEL"}]}'}},
             {"extra": {"../escape": b"no"}},
         ]
         for case in cases:
             with self.subTest(case=list(case)):
                 self.fixture(**case)
-                # When / Then: The public preparation boundary rejects it without creating output.
+                # When: Attempt private preparation with the unexpected content.
                 with self.assertRaises(ValueError):
                     privacy.prepare(self.source, self.report, self.output)
+                # Then: No prepared candidate survives.
                 self.assertFalse(self.output.exists())
 
     def test_rejects_missing_or_unbound_attachments(self):
         # Given: HTML data differs from the file selected by the same-run JSON report.
         name, _, _ = self.fixture()
         (self.source / name).write_bytes(privacy.pack({"0.trace": b"{}"}))
-        # When / Then: Source binding fails closed and no candidate survives.
+        # When: Prepare a report with a mismatched attachment.
         with self.assertRaises(ValueError):
             privacy.prepare(self.source, self.report, self.output)
+        # Then: No candidate survives the source-binding failure.
         self.assertFalse(self.output.exists())
+
+    def test_removes_recognized_form_credentials(self):
+        # Given: An auth-emulator form body carries known fixture credentials.
+        name, raw, credential = self.fixture(form=True)
+        # When: Prepare it through the same public command boundary.
+        privacy.prepare(self.source, self.report, self.output)
+        body = privacy.unpack((self.output / "html" / name).read_bytes())["resources/body.json"]
+        # Then: Both form values are redacted and the original trace remains unchanged.
+        self.assertNotIn(credential.encode(), body)
+        self.assertNotIn(b"FIXED-NONCONFIDENTIAL-REFRESH", body)
+        self.assertEqual((self.source / name).read_bytes(), raw)
 
     def test_cli_failure_does_not_echo_payload(self):
         # Given: A malformed source JSON contains a sensitive sentinel.
@@ -123,9 +145,10 @@ class ReportPrivacy(unittest.TestCase):
         self.fixture()
         path = self.source / "index.html"
         path.write_bytes(path.read_bytes() + b'<script>throw "UNRECOGNIZED-SENSITIVE-SENTINEL"</script>')
-        # When / Then: The candidate is rejected rather than copying executable suffixes.
+        # When: Attempt to prepare the modified viewer.
         with self.assertRaises(privacy.PrivacyError):
             privacy.prepare(self.source, self.report, self.output)
+        # Then: Executable suffixes are not copied into a candidate.
         self.assertFalse(self.output.exists())
 
 

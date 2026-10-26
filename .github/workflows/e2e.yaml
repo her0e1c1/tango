@@ -24,6 +24,7 @@ jobs:
       # A PR targeting main is still untrusted and keeps on-first-retry.
       PLAYWRIGHT_MAIN_TRACE: ${{ github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch' || github.event_name == 'repository_dispatch') }}
       PLAYWRIGHT_PRIVACY_VIEWER_ASSETS: test-results/privacy-viewer-assets
+      E2E_SOURCE_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
