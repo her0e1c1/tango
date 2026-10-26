@@ -5,6 +5,9 @@ import { chromium, expect, type Browser, type BrowserContext, type Page } from "
 import type { JSONReport, JSONReportSpec, JSONReportSuite } from "@playwright/test/reporter";
 
 const origin = "http://127.0.0.1:9323";
+const reportDirectory = process.argv[2] ?? "playwright-report";
+const reportFile = process.argv[3] ?? "test-results/e2e-report.json";
+const requireTrace = process.env.PLAYWRIGHT_MAIN_TRACE === "true" || process.argv[4] === "--require-trace";
 const specs = (suites: JSONReportSuite[]): JSONReportSuite["specs"] =>
   suites.flatMap((suite) => [...suite.specs, ...specs(suite.suites ?? [])]);
 const tracePaths = (spec: JSONReportSpec) =>
@@ -14,7 +17,7 @@ const tracePaths = (spec: JSONReportSpec) =>
 let stage = "read the generated JSON report";
 
 async function readReport() {
-  const report: JSONReport = JSON.parse(await readFile("test-results/e2e-report.json", "utf8"));
+  const report: JSONReport = JSON.parse(await readFile(reportFile, "utf8"));
   const cases = specs(report.suites);
   const total = report.stats.expected + report.stats.unexpected + report.stats.flaky + report.stats.skipped;
   // Both reporters consume this run. Never substitute a retained or synthetic report.
@@ -24,7 +27,7 @@ async function readReport() {
   const selected = traced ?? cases[0];
   if (!selected) throw new Error("No test to inspect");
   // Successful PR runs intentionally have no traces; main must retain executed attempts.
-  expect(process.env.PLAYWRIGHT_MAIN_TRACE === "true" && total > report.stats.skipped && !traced).toBe(false);
+  expect(requireTrace && total > report.stats.skipped && !traced).toBe(false);
   return { report, total, selected, traced };
 }
 
@@ -146,7 +149,7 @@ async function verifyReport() {
   const { report, total, selected, traced } = await readReport();
   const server = spawn(
     process.execPath,
-    ["node_modules/playwright/cli.js", "show-report", "playwright-report", "--host", "127.0.0.1", "--port", "9323"],
+    ["node_modules/playwright/cli.js", "show-report", reportDirectory, "--host", "127.0.0.1", "--port", "9323"],
     { stdio: "ignore" }
   );
   let browser: Browser | undefined;
