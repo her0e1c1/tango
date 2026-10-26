@@ -152,6 +152,11 @@ enabling it, inspect generated DOM snapshots, screenshots, request/response head
 test-only data, measure trace overhead and combined size, and check report/trace viewing under `/tango/e2e/` in a browser.
 Real tokens, sessions, secrets, and personal data must never be published.
 
+CI checks the generated HTML list, a test detail, and any recorded trace in an isolated browser before stopping the
+E2E services. It compares counts and trace bytes with that run's JSON report, blocks external requests, and saves no
+verification screenshots or traces. Successful PR runs can have no traces; main requires them. This checks browser
+display, not the safety of recorded content, and does not enable publication.
+
 **Pages keeps only the latest published snapshot**, replaced on the next eligible publication. Artifact history uses
 the repository's default retention period; expiring Actions artifacts does not remove an idle Pages snapshot. The build summary
 records the source SHA, publication run, and any report candidate URL; the deployment job confirms publication.
