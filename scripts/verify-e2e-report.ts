@@ -91,23 +91,35 @@ async function verifyTraceBytes(page: Page, selected: JSONReportSpec, href: stri
   );
 }
 
+async function verifySnapshot(page: Page) {
+  await expect(page.locator(".timeline-view")).toBeVisible();
+  // Filtering expands grouped test.step actions without depending on the selected error or hook.
+  await page.getByRole("searchbox", { name: "Filter actions" }).fill("Navigate");
+  await page.locator(".action-title").filter({ hasText: "Navigate" }).first().click();
+  const snapshot = page.locator(".snapshot-container iframe.snapshot-visible").contentFrame();
+  await expect(snapshot.locator("body")).toBeVisible();
+  await expect.poll(() => snapshot.locator("body").evaluate(() => location.pathname)).toContain("/snapshot/");
+  await expect(snapshot.locator("body")).not.toHaveText(/Snapshot is not available/);
+}
+
 async function verifyTrace(page: Page, selected: JSONReportSpec) {
   stage = "compare the HTML trace attachment with this run's JSON attachment";
   const detailUrl = page.url();
+  const run =
+    selected.tests[0]?.results.findIndex((result) =>
+      result.attachments.some((attachment) => attachment.name === "trace" && attachment.path)
+    ) ?? -1;
+  expect(run).toBeGreaterThanOrEqual(0);
+  if (run > 0) await page.getByRole("tab", { name: new RegExp(`^Retry #${run}\\b`) }).click();
   const link = page.locator('#attachment-trace a[href^="trace/index.html"]').first();
   const href = await link.getAttribute("href");
   if (!href) throw new Error("Missing trace viewer link");
   await verifyTraceBytes(page, selected, href);
   stage = "load the trace timeline and recorded DOM snapshot";
   await link.click();
-  await expect(page.locator(".timeline-view")).toBeVisible();
-  await page.locator(".action-title").filter({ hasText: "Navigate" }).first().click();
-  const snapshot = page.locator(".snapshot-container iframe.snapshot-visible").contentFrame();
-  await expect(snapshot.locator("body")).toBeVisible();
-  await expect.poll(() => snapshot.locator("body").evaluate(() => location.pathname)).toContain("/snapshot/");
-  await expect(snapshot.locator("body")).not.toHaveText(/Snapshot is not available/);
+  await verifySnapshot(page);
   await page.reload();
-  await expect(page.locator(".timeline-view")).toBeVisible();
+  await verifySnapshot(page);
   await page.goBack();
   await expect(page).toHaveURL(detailUrl);
 }
