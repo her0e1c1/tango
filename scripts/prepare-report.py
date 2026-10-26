@@ -84,9 +84,11 @@ def structured(data):
             if strict:
                 raise PrivacyError("malformed structured resource") from None
             return None
-    if text.startswith(("http://", "https://")):
+    is_url = text.startswith(("http://", "https://"))
+    if is_url:
         text = urlsplit(text).query
-    if re.match(r"^[A-Za-z_][A-Za-z0-9_]*=", text):
+    # URL query names and valid form field names can be percent-encoded or empty.
+    if is_url or re.match(r"^[^\s=&]*=", text):
         try:
             return [{"name": key, "value": value}
                     for key, value in parse_qsl(text, keep_blank_values=True, strict_parsing=True)]
