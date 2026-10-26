@@ -196,10 +196,11 @@ def prepare(source, source_json, destination):
                 mocked_auth = url.hostname in {"identitytoolkit.googleapis.com", "securetoken.googleapis.com"}
                 empty_decoration = url.hostname in {"unpkg.com", "fonts.googleapis.com"}
                 if not (local or mocked_auth or empty_decoration):
-                    # Origin-only diagnostic: no userinfo, path, query, fragment or request/response contents.
-                    host = url.hostname or "[no-host]"
-                    if JWT.search(host.encode()):
-                        host = "[redacted-host]"
+                    # Fixed public SDK/test hosts only; arbitrary DNS labels can themselves contain private values.
+                    known = {"app.test", "auth.app.test", "app", "auth", "db", "localhost", "127.0.0.1",
+                             "tango-e2e.firebaseapp.com", "apis.google.com", "www.googleapis.com", "www.gstatic.com",
+                             "accounts.google.com", "www.google.com", "fonts.gstatic.com"}
+                    host = url.hostname if url.hostname in known else "other-" + digest((url.hostname or "").encode())[:12]
                     scheme = url.scheme if url.scheme in {"http", "https", "data", "blob", "about"} else "other"
                     port = url.port or {"http": 80, "https": 443}.get(scheme, 0)
                     raise PrivacyError(f"unexpected network origin ({scheme}://{host}:{port})")
