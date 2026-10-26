@@ -129,6 +129,16 @@ traces for every attempt, including tests passing the first time, and retains th
 Actions artifact (HTML, attachments, and traces) using the repository's default retention period,
 for both main and PR runs.
 
+To inspect a main-like run privately, explicitly record successful attempts and open the standard HTML report:
+
+```bash
+CI=true PLAYWRIGHT_MAIN_TRACE=true mise run e2e
+npx playwright show-report playwright-report --host 127.0.0.1
+```
+
+The report opens individual traces in the browser without downloading a report ZIP. Keep generated reports private
+until their contents and attachments have been reviewed; this opt-in does not enable Pages publication.
+
 The existing Storybook Pages workflow runs E2E once for its source SHA and selects that run's exact artifact ID.
 After verification, it copies the complete standard HTML report under
 [`e2e/`](https://her0e1c1.github.io/tango/e2e/), preserving attachments and trace-viewer assets alongside Storybook at
