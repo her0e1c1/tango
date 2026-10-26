@@ -87,6 +87,30 @@ describe("STUDY-SESSION-13 STUDY-SESSION-35 daily aggregation across midnight DS
       expect(answers.recentDecks).toMatchObject([{ deckId: "deck", ratedAnswerCount: 1 }]);
       expect({ period, started, completed, history }).toEqual(before);
     });
+    it("ends a custom range at the next midnight after the DST transition day", () => {
+      // Given: Select September 5–6, where the inclusive end date starts at 01:00.
+      expect(Intl.DateTimeFormat().resolvedOptions().timeZone).toBe("America/Santiago");
+      const period = getStudyHistoryRange(
+        new URLSearchParams({ start: "2026-09-05", end: "2026-09-06" }),
+        new Date(2026, 8, 7, 12)
+      ).period;
+      if (period === null) throw new Error("Expected a valid period");
+      const visible = new Set(["deck"]);
+
+      // When: Build daily buckets for the selected custom range.
+      const sessions = aggregateStudyHistory(period, [], [], visible);
+      const answers = aggregateStudyAnswers(
+        period,
+        { records: [], source: "server", truncated: false, invalidCount: 0, hasPendingWrites: false },
+        visible
+      );
+
+      // Then: Exclude September 7 entirely, even though September 6 has no midnight.
+      expect.soft(period).toEqual({ start: Date.parse("2026-09-05T00:00:00-04:00"), end: 1788750000000 });
+      const dates = [Date.parse("2026-09-05T00:00:00-04:00"), 1788667200000];
+      expect.soft(sessions.days.map((day) => day.date)).toEqual(dates);
+      expect.soft(answers.days.map((day) => day.date)).toEqual(dates);
+    });
   } else {
     it("verifies midnight DST in a TZ=America/Santiago subprocess", () => {
       // Given: Start a separate process so the timezone is fixed before loading the aggregators.
@@ -103,8 +127,8 @@ describe("STUDY-SESSION-13 STUDY-SESSION-35 daily aggregation across midnight DS
         }
       );
       console.info(output);
-      // Then: Confirm that all three calendar-period cases executed successfully.
-      expect(output).toContain("3 passed");
+      // Then: Confirm that all four calendar-period cases executed successfully.
+      expect(output).toContain("4 passed");
     }, 35_000);
   }
 });

@@ -21,6 +21,6 @@ export function getStudyHistoryRange(params: URLSearchParams, today: Date) {
   const start = new Date(`${fields.startDate}T00:00:00`);
   const end = new Date(`${fields.endDate}T00:00:00`);
   // The inclusive end date becomes the next local midnight, including daylight-saving changes.
-  end.setDate(end.getDate() + 1);
+  end.setHours(24, 0, 0, 0);
   return { preset: "custom" as const, fields, maxDate, period: { start: start.getTime(), end: end.getTime() } };
 }
