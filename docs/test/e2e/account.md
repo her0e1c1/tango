@@ -2,7 +2,7 @@
 
 ## 目的
 
-認証の失敗から復旧でき、匿名アカウントと Google アカウントの切り替えで、利用できるデータと学習の再開位置が正しく引き継がれる、または分離されることを確認する。
+認証失敗からの復旧と、アカウント切り替え時のデータ・学習位置の引き継ぎと分離を確認する。
 
 ## テストケース
 
@@ -18,8 +18,8 @@
 | ACCOUNT-10 | batch | 正常系 | [既存の別アカウントへログインするとそのデータだけを利用できる](#account-10) |
 | ACCOUNT-11 | batch | 正常系 | [Google sign-in をキャンセルしても匿名データを利用できる](#account-11) |
 | ACCOUNT-14 | batch | 正常系 | [sign-out 後に以前のアカウントのデータを利用できない](#account-14) |
-| ACCOUNT-16 | batch | 正常系 | [アカウント切り替え中に以前のデータを新しいアカウントのデータとして表示しない](#account-16) |
-| ACCOUNT-19 | batch | 正常系 | [表示中の通知は言語変更後も focus と表示期限を維持する](#account-19) |
+| ACCOUNT-16 | batch | 正常系 | [アカウント切り替え中もデータを混在させない](#account-16) |
+| ACCOUNT-19 | batch | 正常系 | [通知の言語を変えてもフォーカスと表示期限を保つ](#account-19) |
 | ACCOUNT-04 | read | 異常系 | [認証初期化失敗から Reload で復帰できる](#account-04) |
 | ACCOUNT-18 | read | 異常系 | [初回の認証初期化失敗を現在の言語で確認できる](#account-18) |
 | ACCOUNT-02 | write | 異常系 | [Google sign-in のエラー表示から再試行できる](#account-02) |
@@ -39,8 +39,7 @@
 Given:
 
 - Fixture: [`study-session-start-local`](./fixture/study-session-start-local.yaml)
-- 匿名ユーザーがこのブラウザーで作成した Deck と Card を利用できる。
-- まだ Google sign-in を開始していない。
+- このブラウザーで作成した匿名ユーザーの Deck と Card があり、Google sign-in は未開始である。
 
 When:
 
@@ -48,7 +47,7 @@ When:
 
 Then:
 
-- 操作前に、新規連携では匿名データを引き継ぐことと、既存の別アカウントへのログインでは引き継がないことが説明される。
+- 新規連携では匿名データを引き継ぎ、既存の別アカウントへのログインでは引き継がないと説明する。
 
 <a id="account-01"></a>
 
@@ -84,8 +83,7 @@ Then:
 Given:
 
 - Fixture: [`google-study-session-middle`](./fixture/google-study-session-middle.yaml)
-- Google アカウントに連携したユーザーが Account 画面で UID を確認できる。
-- 対象ユーザーの変更は同期済みである。
+- Google アカウントに連携済みで、Account 画面で UID を確認できる。変更は同期済みである。
 
 When:
 
@@ -107,8 +105,7 @@ Then:
 Given:
 
 - Fixture: [`empty`](./fixture/empty.yaml)
-- 匿名アカウントで English language の Account 画面を開いている。
-- Google sign-in を開始し、認証 popup での操作を待っている。
+- 匿名アカウントで英語の Account 画面から Google sign-in を開始し、認証 popup での操作を待っている。
 
 When:
 
@@ -116,7 +113,7 @@ When:
 
 Then:
 
-- 処理完了時の成功通知は、その時点の言語である日本語で表示・読み上げされる。
+- 成功通知を日本語で表示・読み上げする。
 
 <a id="account-06"></a>
 
@@ -138,8 +135,7 @@ When:
 
 Then:
 
-- 連携前の Deck と Card を再読み込み後も引き続き利用できる。
-- 同期後は同じ内容を連携したアカウントのデータとして利用できる。
+- 連携前の Deck と Card を再読み込み後も利用でき、同期後は連携先アカウントのデータとして利用できる。
 
 <a id="account-07"></a>
 
@@ -153,7 +149,7 @@ Given:
 
 - Fixture: [`study-session-start-local`](./fixture/study-session-start-local.yaml)
 - 匿名ユーザーがこのブラウザーで作成した Deck と Card を利用できる。
-- 対象 Deck に進行中の学習 session があり、現在のカードと再開位置を確認できる。
+- Deck に進行中の学習があり、現在の Card と再開位置を確認できる。
 - Google アカウントへ新規連携できる。
 
 When:
@@ -162,8 +158,7 @@ When:
 
 Then:
 
-- 連携前の学習 session を再読み込み後も利用でき、同じカード・位置から学習を再開できる。
-- 同期後も同じ学習の再開位置を連携したアカウントで利用できる。
+- 再読み込み後も連携前と同じ Card・位置から学習を再開でき、同期後は連携先アカウントでも同じ位置を利用できる。
 
 <a id="account-08"></a>
 
@@ -177,7 +172,7 @@ Given:
 
 - Fixture: [`study-session-start-local`](./fixture/study-session-start-local.yaml)
 - 匿名ユーザーがこのブラウザーで作成した Deck と Card を利用できる。
-- 連携前にカードへ回答し、学習結果を確認できる。
+- 連携前に Card へ回答し、学習結果を確認できる。
 - Google アカウントへ新規連携できる。
 
 When:
@@ -200,8 +195,7 @@ Given:
 
 - Fixture: [`study-session-start-local`](./fixture/study-session-start-local.yaml)
 - 匿名ユーザーがこのブラウザーで作成した Deck と Card を利用できる。
-- 匿名ユーザーとは異なる既存の Google アカウントにデータがある。
-- その Google アカウントへログインできる。
+- データを持つ既存の別の Google アカウントへログインできる。
 
 When:
 
@@ -231,7 +225,7 @@ When:
 
 Then:
 
-- キャンセルだけでは匿名データを失わず、引き続き利用できる。
+- 匿名データを失わず、引き続き利用できる。
 
 <a id="account-14"></a>
 
@@ -244,9 +238,7 @@ Then:
 Given:
 
 - Fixture: [`google-study-session-middle`](./fixture/google-study-session-middle.yaml)
-- Google アカウントに連携したユーザーに Deck と Card が存在し、閲覧できる。
-- 対象ユーザーに進行中の学習 session が存在し、学習を続けられる。
-- 対象ユーザーの変更は同期済みである。
+- Google アカウントに連携済みで、Deck・Card の閲覧と進行中の学習を利用できる。変更は同期済みである。
 
 When:
 
@@ -254,12 +246,12 @@ When:
 
 Then:
 
-- sign-out 前のアカウントに属する Deck と Card が表示されず、直接開いても利用できない。
-- sign-out 前のアカウントで開始した学習 session を利用できず、再読み込み後も利用できない。
+- 元のアカウントの Deck・Card は表示されず、直接開いても利用できない。
+- 元の学習は再読み込み後も再開できない。
 
 <a id="account-16"></a>
 
-### ACCOUNT-16 [TODO] アカウント切り替え中に以前のデータを新しいアカウントのデータとして表示しない
+### ACCOUNT-16 [TODO] アカウント切り替え中もデータを混在させない
 
 カテゴリ: `batch`
 
@@ -268,8 +260,7 @@ Then:
 Given:
 
 - Fixture: [`google-study-session-middle`](./fixture/google-study-session-middle.yaml)
-- Google アカウントに連携したユーザーに Deck と Card が存在する。
-- 対象ユーザーの変更は同期済みである。
+- Google アカウントに連携済みで Deck と Card があり、変更は同期済みである。
 
 When:
 
@@ -277,11 +268,11 @@ When:
 
 Then:
 
-- 切り替えが完了するまで、切り替え前のデータが新しいアカウントのデータとして表示されない。
+- 切り替え中も、元のデータを新しいアカウントのデータとして表示しない。
 
 <a id="account-19"></a>
 
-### ACCOUNT-19 表示中の通知は言語変更後も focus と表示期限を維持する
+### ACCOUNT-19 通知の言語を変えてもフォーカスと表示期限を保つ
 
 カテゴリ: `batch`
 
@@ -291,8 +282,7 @@ Given:
 
 - Fixture: [`empty`](./fixture/empty.yaml)
 - Google sign-in が完了し、Settings 画面に日本語の成功通知が表示されている。
-- 通知の閉じるボタンに focus がある。
-- 通知の最初の表示から4秒が経過していない。
+- 通知の表示開始から4秒未満で、閉じるボタンにフォーカスがある。
 
 When:
 
@@ -300,9 +290,8 @@ When:
 
 Then:
 
-- 表示中の通知の本文、成功を示す表示、閉じるボタンの読み上げ名と通知の読み上げ内容が English へ更新される。
-- 言語変更そのものでは閉じるボタンの focus や、通知の元の表示時間はリセットされない。
-- 通知は最初の表示から4秒後に消え、言語変更によって重複しない。
+- 通知の本文・成功表示・閉じるボタンの読み上げ名・通知の読み上げを英語に更新する。
+- 閉じるボタンのフォーカスと元の表示期限を維持し、最初の表示から4秒後に消える。通知は重複しない。
 
 <a id="account-04"></a>
 
@@ -320,7 +309,7 @@ Given:
 
 When:
 
-- 認証初期化失敗画面に表示された `Reload` を選択する。
+- `Reload` を選択する。
 
 Then:
 
@@ -346,9 +335,8 @@ When:
 
 Then:
 
-- 空画面ではなく再読み込みできるエラー画面が表示される。
-- 起動失敗画面に元の失敗理由を表示し、認証だけでなく保存データの初期化にも失敗し得る旨を案内する。
-- 失敗の見出し・説明・`Reload` の読み上げ名は現在の言語で表示される。
+- 再読み込みできるエラー画面に元の失敗理由と、認証・保存データの初期化に失敗し得る旨を表示する。
+- 見出し・説明・`Reload` の読み上げ名は現在の言語に従う。
 
 <a id="account-02"></a>
 
@@ -361,9 +349,7 @@ Then:
 Given:
 
 - Fixture: [`empty`](./fixture/empty.yaml)
-- 匿名アカウントで Account 画面を開いている。
-- Google sign-in の失敗が通知され、Account 画面から再度 sign-in できる。
-- 再試行では Google sign-in に成功できる。
+- 匿名アカウントの Account 画面に Google sign-in の失敗が通知されている。再試行は成功できる。
 
 When:
 
@@ -394,7 +380,7 @@ When:
 
 Then:
 
-- 失敗だけでは匿名データを失わず、引き続き利用できる。
+- 匿名データを失わず、引き続き利用できる。
 
 <a id="account-13"></a>
 
@@ -407,9 +393,7 @@ Then:
 Given:
 
 - Fixture: [`empty`](./fixture/empty.yaml)
-- 匿名アカウントで Account 画面を開いている。
-- Google sign-in の失敗によるエラー通知が表示されている。
-- 再試行は成功できる。
+- 匿名アカウントの Account 画面に Google sign-in のエラー通知が表示されている。再試行は成功できる。
 
 When:
 
@@ -431,8 +415,7 @@ Then:
 Given:
 
 - Fixture: [`google-study-session-middle`](./fixture/google-study-session-middle.yaml)
-- Google アカウントに連携したユーザーが Account 画面を開いている。
-- 対象ユーザーに未同期の変更が残っている。
+- 未同期の変更がある Google アカウントで Account 画面を開いている。
 
 When:
 

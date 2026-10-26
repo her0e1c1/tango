@@ -2,37 +2,37 @@
 
 ## 目的
 
-CSV の内容を確認して取り込み、失敗後も再試行できることを確認する。Sample Deck の明示的な追加と自動初期生成でも、重複や確認前の保存を起こさない。
+CSV の確認・取り込み・再試行と、Sample Deck の追加・自動初期生成を確認する。確認前の保存や再試行による重複を防ぐ。
 
 ## テストケース
 
 | ID | カテゴリ | 区分 | テストケース |
 | --- | --- | --- | --- |
-| DECK-IMPORT-01 | read | 正常系 | [有効な CSV を保存せずに preview できる](#deck-import-01) |
-| DECK-IMPORT-15 | read | 正常系 | [4種類の例の内容に一致する CSV をダウンロードできる](#deck-import-15) |
-| DECK-IMPORT-16 | read | 正常系 | [4種類の例を保存せずに preview できる](#deck-import-16) |
-| DECK-IMPORT-20 | read | 正常系 | [ファイル選択の取消後も現在の確認内容を維持できる](#deck-import-20) |
-| DECK-IMPORT-03 | batch | 正常系 | [ログイン中に CSV を import して reload 後も利用できる](#deck-import-03) |
-| DECK-IMPORT-04 | batch | 正常系 | [匿名で CSV を import して reload 後に学習できる](#deck-import-04) |
+| DECK-IMPORT-01 | read | 正常系 | [有効な CSV を保存せずにプレビューできる](#deck-import-01) |
+| DECK-IMPORT-15 | read | 正常系 | [4種類の例を内容どおりに CSV でダウンロードできる](#deck-import-15) |
+| DECK-IMPORT-16 | read | 正常系 | [4種類の例を保存せずにプレビューできる](#deck-import-16) |
+| DECK-IMPORT-20 | read | 正常系 | [ファイル選択を取り消しても確認内容を保持する](#deck-import-20) |
+| DECK-IMPORT-03 | batch | 正常系 | [ログイン中に CSV を取り込んで再読み込み後も利用できる](#deck-import-03) |
+| DECK-IMPORT-04 | batch | 正常系 | [匿名で CSV を取り込んで再読み込み後に学習できる](#deck-import-04) |
 | DECK-IMPORT-06 | batch | 正常系 | [4種類の例を同じ確認・保存の手順で追加できる](#deck-import-06) |
 | DECK-IMPORT-07 | batch | 正常系 | [Sample Deck を一度だけ初期生成できる](#deck-import-07) |
 | DECK-IMPORT-08 | batch | 正常系 | [Sample deck の全内容を匿名で取り込んで学習できる](#deck-import-08) |
 | DECK-IMPORT-09 | batch | 正常系 | [通常ユーザーの Sample deck を同期できる](#deck-import-09) |
-| DECK-IMPORT-10 | batch | 正常系 | [Google 未ログインの Sample deck をこのブラウザーだけに維持できる](#deck-import-10) |
+| DECK-IMPORT-10 | batch | 正常系 | [ログインせず Sample deck をブラウザーだけに保存する](#deck-import-10) |
 | DECK-IMPORT-17 | batch | 正常系 | [同じ例を再び選んで新しい Deck として追加できる](#deck-import-17) |
 | DECK-IMPORT-19 | batch | 正常系 | [例の選択後にアカウントを変更すると以前の内容を保存できない](#deck-import-19) |
 | DECK-IMPORT-21 | batch | 正常系 | [匿名で追加した例をクラウドに保存しない](#deck-import-21) |
-| DECK-IMPORT-02 | read | 異常系 | [不正な行を含む CSV の import を阻止できる](#deck-import-02) |
+| DECK-IMPORT-02 | read | 異常系 | [不正な行を含む CSV を取り込めない](#deck-import-02) |
 | DECK-IMPORT-11 | read | 異常系 | [同じ CSV を修正して再選択できる](#deck-import-11) |
-| DECK-IMPORT-12 | read | 異常系 | [複数行フィールドを含む CSV の論理レコード単位で診断を確認できる](#deck-import-12) |
-| DECK-IMPORT-13 | read | 異常系 | [CSV の引用符エラーを論理レコードと元列値で確認できる](#deck-import-13) |
+| DECK-IMPORT-12 | read | 異常系 | [複数行 CSV の診断を論理レコード単位で表示する](#deck-import-12) |
+| DECK-IMPORT-13 | read | 異常系 | [CSV の引用符エラーに論理レコード番号と元の列値を表示する](#deck-import-13) |
 | DECK-IMPORT-14 | read | 異常系 | [空白だけの CSV をファイル全体のエラーとして拒否できる](#deck-import-14) |
 | DECK-IMPORT-05 | batch | 異常系 | [取り込んだ内容の同期拒否を反映できる](#deck-import-05) |
 | DECK-IMPORT-18 | batch | 異常系 | [例の保存失敗後も同じ内容で重複せず再試行できる](#deck-import-18) |
 
 <a id="deck-import-01"></a>
 
-### DECK-IMPORT-01 有効な CSV を保存せずに preview できる
+### DECK-IMPORT-01 有効な CSV を保存せずにプレビューできる
 
 カテゴリ: `read`
 
@@ -51,15 +51,14 @@ When:
 
 Then:
 
-- Tab／Shift+Tab でファイル選択欄に移動すると、表示されたアップロード領域にフォーカス枠が表示され、前後の操作へ移動すると消える。広い画面・狭い画面と明暗両テーマで位置を判別できる。
-- 通常の Tab 順序でファイル選択欄へ移動し、CSV を選択できる。
-- Deck 名、検証件数、Card の内容を含む preview が表示される。
-- Import 操作が有効になる。
+- 通常の Tab／Shift+Tab の順序でファイル選択欄へ移動し、CSV を選べる。
+- フォーカス枠はアップロード領域に表示され、他の操作へ移ると消える。広い画面・狭い画面と明暗両テーマで判別できる。
+- Deck 名・検証件数・Card の内容をプレビューでき、Import が有効になる。
 - Deck と Card はまだ追加されない。
 
 <a id="deck-import-15"></a>
 
-### DECK-IMPORT-15 4種類の例の内容に一致する CSV をダウンロードできる
+### DECK-IMPORT-15 4種類の例を内容どおりに CSV でダウンロードできる
 
 カテゴリ: `read`
 
@@ -69,12 +68,10 @@ Given:
 
 - Fixture: [`empty`](./fixture/empty.yaml)
 - Google アカウントにログインしている。
-- Import 画面に基本・数式・マークダウン・サンプルデッキの4種類の例がある。
-- 各種類を独立した状態で確認する。
 
 When:
 
-- 各種類の例を切り替え、表裏の表示と CSV の記述を確認し、CSV をダウンロードする。
+- 例ごとに表裏と CSV の記述を確認し、CSV をダウンロードする。
 
 Then:
 
@@ -82,7 +79,7 @@ Then:
 
 <a id="deck-import-16"></a>
 
-### DECK-IMPORT-16 4種類の例を保存せずに preview できる
+### DECK-IMPORT-16 4種類の例を保存せずにプレビューできる
 
 カテゴリ: `read`
 
@@ -92,20 +89,19 @@ Given:
 
 - Fixture: [`empty`](./fixture/empty.yaml)
 - Google アカウントにログインしている。
-- Import 画面に基本・数式・マークダウン・サンプルデッキの4種類の例がある。
-- 各種類を独立した状態で確認し、その例に対応する Deck と Card はまだ存在しない。
+- 選ぶ例に対応する Deck と Card はまだ存在しない。
 
 When:
 
-- 各例を選択して `Try this example` を実行し、追加を確定せずに preview を確認する。
+- 各例を選択して `Try this example` を実行し、追加を確定せずにプレビューを確認する。
 
 Then:
 
-- 例の選択だけでは保存せず、件数・Deck 名・表裏の内容を preview できる。
+- 例の選択だけでは保存せず、件数・Deck 名・表裏の内容をプレビューできる。
 
 <a id="deck-import-20"></a>
 
-### DECK-IMPORT-20 ファイル選択の取消後も現在の確認内容を維持できる
+### DECK-IMPORT-20 ファイル選択を取り消しても確認内容を保持する
 
 カテゴリ: `read`
 
@@ -114,7 +110,7 @@ Then:
 Given:
 
 - Fixture: [`empty`](./fixture/empty.yaml)
-- Import 画面に選択済み CSV の preview またはエラーが表示され、追加可否を確認できる。
+- Import 画面に選択済み CSV のプレビューまたはエラーが表示され、追加可否を確認できる。
 
 When:
 
@@ -122,11 +118,11 @@ When:
 
 Then:
 
-- 現在の preview・エラー・追加可否は変わらない。
+- 現在のプレビュー・エラー・追加可否は変わらない。
 
 <a id="deck-import-03"></a>
 
-### DECK-IMPORT-03 ログイン中に CSV を import して reload 後も利用できる
+### DECK-IMPORT-03 ログイン中に CSV を取り込んで再読み込み後も利用できる
 
 カテゴリ: `batch`
 
@@ -141,17 +137,16 @@ Given:
 
 When:
 
-- Import 画面で CSV の preview を確認して import した後、Deck 一覧を reload して import した Deck を開く。
+- Import 画面で CSV をプレビューして取り込み、Deck 一覧を再読み込みして対象 Deck を開く。
 
 Then:
 
-- import 件数を含む成功結果が通知される。
-- preview に含まれていた Deck とすべての Card を、ログイン中のアカウントのデータとして利用できる。
-- reload 後も Deck と Card の内容が維持される。
+- 取り込み件数を含む成功結果が通知される。
+- プレビューどおりの Deck と全 Card を、再読み込み後もログイン中のアカウントで利用できる。
 
 <a id="deck-import-04"></a>
 
-### DECK-IMPORT-04 匿名で CSV を import して reload 後に学習できる
+### DECK-IMPORT-04 匿名で CSV を取り込んで再読み込み後に学習できる
 
 カテゴリ: `batch`
 
@@ -160,21 +155,21 @@ Then:
 Given:
 
 - Fixture: [`empty`](./fixture/empty.yaml)
-- Google アカウントにログインしていない匿名ユーザーである。
+- 匿名で利用している。
 - 学習可能な Card を含む有効な CSV がある。
 - CSV に対応する Deck と Card は、このブラウザーにまだ存在しない。
 
 When:
 
-- Import 画面で CSV の preview を確認して import した後、reload して import した Deck の学習を開始する。
+- Import 画面で CSV をプレビューして取り込み、再読み込みして対象 Deck の学習を開始する。
 
 Then:
 
 - 保存先の選択肢は表示されない。
-- import 件数を含む成功結果が通知される。
-- import した Deck とすべての Card が、同じブラウザーで reload した後も利用できる。
+- 取り込み件数を含む成功結果が通知される。
+- 取り込んだ Deck とすべての Card が、同じブラウザーで再読み込みした後も利用できる。
 - 取り込んだ Deck と Card はクラウドへ追加されない。
-- 学習画面に import した Card が表示される。
+- 学習画面に取り込んだ Card が表示される。
 
 <a id="deck-import-06"></a>
 
@@ -188,20 +183,18 @@ Given:
 
 - Fixture: [`empty`](./fixture/empty.yaml)
 - Google アカウントにログインしている。
-- Import 画面に基本・数式・マークダウン・サンプルデッキの4種類の例がある。
-- 各種類を独立した状態で確認し、その例に対応する Deck と Card はまだ存在しない。
+- 選ぶ例に対応する Deck と Card はまだ存在しない。
 
 When:
 
-- 各例について `Try this example` を実行し、preview を確認して追加を確定する。
-- Deck 一覧を reload して追加した Deck を開く。
+- 各例について `Try this example` を実行し、プレビューを確認して追加を確定する。
+- Deck 一覧を再読み込みして追加した Deck を開く。
 
 Then:
 
 - 4種類で同じ操作、確認手順を利用できる。
-- 処理中は例の選択、ファイル選択、追加確定を重ねて実行できない。再入場後も処理中の表示が維持される。
 - 明示的な確定後に選んだ全 Card が追加され、件数が通知されて Deck 一覧へ戻る。
-- reload 後も Card を表示できる。
+- 再読み込み後も Card を表示できる。
 
 <a id="deck-import-07"></a>
 
@@ -218,14 +211,12 @@ Given:
 
 When:
 
-- Deck 一覧を開いて初期生成の完了を待ち、ページを reload する。
+- Deck 一覧で全 Card の初期生成を待ち、再読み込みして CSV をダウンロードする。
 
 Then:
 
-- Sample Deck の初期化で全 Card が表示されてから reload とダウンロードを行い、全件が維持される。
-
-- Sample Deck とその Card 群が利用できる。
-- Sample Deck とその Card 群は reload 後も重複しない。
+- Sample Deck と全 Card を利用でき、再読み込み後も重複しない。
+- ダウンロードした CSV に全 Card が含まれる。
 
 <a id="deck-import-08"></a>
 
@@ -242,15 +233,14 @@ Given:
 
 When:
 
-- Sample deck の preview を開き、追加を確定する。
-- reload 後に取り込んだ Deck を開き、学習を開始して解答を表示する。
+- Sample deck のプレビューを開き、追加を確定する。
+- 再読み込み後に取り込んだ Deck を開き、学習を開始して解答を表示する。
 
 Then:
 
-- preview を開くだけでは Deck と Card は追加されない。
-- 件数を含む成功通知が表示される。
-- 追加成功後は reload を待たずに Deck 一覧へ遷移し、取り込んだ Deck が表示される。
-- Sample deck の全 Card の表裏、複数タグ、uniqueKey、引用符と改行が reload 後も維持される。
+- プレビューを開くだけでは Deck と Card は追加されない。
+- 成功後は再読み込みなしで Deck 一覧に戻り、取り込んだ Deck と件数を含む成功通知が表示される。
+- Sample deck の全 Card の表裏、複数タグ、uniqueKey、引用符と改行が再読み込み後も維持される。
 - Deck と Card はこのブラウザーだけで利用でき、クラウドには追加されない。
 - Card 一覧と学習画面で取り込んだ内容を利用でき、解答を表示できる。
 
@@ -269,18 +259,17 @@ Given:
 
 When:
 
-- Sample deck の preview を開き、追加を確定して reload する。
+- Sample deck のプレビューを開き、追加を確定して再読み込みする。
 
 Then:
 
 - 保存できると Deck 一覧へ遷移し、件数が通知される。
-- 同期後も、追加したすべての Card をログイン中のアカウントで一つずつ利用できる。
-- Sample deck の表裏、タグ、uniqueKey、引用符と改行を維持する。
-- 再読み込みや同期によって Deck と Card の複製が増えない。
+- 再読み込み・同期後も全 Card をログイン中のアカウントで利用でき、Deck と Card は重複しない。
+- 表裏・タグ・uniqueKey・引用符・改行を維持する。
 
 <a id="deck-import-10"></a>
 
-### DECK-IMPORT-10 Google 未ログインの Sample deck をこのブラウザーだけに維持できる
+### DECK-IMPORT-10 ログインせず Sample deck をブラウザーだけに保存する
 
 カテゴリ: `batch`
 
@@ -294,15 +283,15 @@ Given:
 When:
 
 - Import 画面を直接開き、Sample deck の追加を確定する。
-- Account 画面で匿名状態を確認し、Deck 一覧へ戻って reload する。
+- Account 画面で匿名状態を確認し、Deck 一覧へ戻って再読み込みする。
 
 Then:
 
-- Google ログイン操作なしで import が成功する。
+- Google ログイン操作なしで取り込みが成功する。
 - 保存先の選択肢は表示されない。
-- 保存成功後は reload を待たずに Deck 一覧へ遷移し、対象の Deck と成功通知が表示される。
+- 保存成功後は再読み込みを待たずに Deck 一覧へ遷移し、対象の Deck と成功通知が表示される。
 - Deck とすべての Card はこのブラウザーだけで利用でき、クラウドには追加されない。
-- reload 後も対象 Deck を開いてすべての Card を表示できる。
+- 再読み込み後も対象 Deck を開いてすべての Card を表示できる。
 
 <a id="deck-import-17"></a>
 
@@ -359,22 +348,21 @@ Then:
 Given:
 
 - Fixture: [`empty`](./fixture/empty.yaml)
-- Google アカウントにログインしていない匿名ユーザーである。
-- Import 画面に基本・数式・マークダウン・サンプルデッキの4種類の例がある。
-- 各種類を独立した状態で確認し、その例に対応する Deck と Card はまだ存在しない。
+- 匿名で利用している。
+- 選ぶ例に対応する Deck と Card はまだ存在しない。
 
 When:
 
-- 各例について preview を確認して追加を確定し、reload して追加した Deck を開く。
+- 各例についてプレビューを確認して追加を確定し、再読み込みして追加した Deck を開く。
 
 Then:
 
-- reload 後も Card を表示できる。
+- 再読み込み後も Card を表示できる。
 - 匿名で追加した Deck と Card はクラウドに保存されない。
 
 <a id="deck-import-02"></a>
 
-### DECK-IMPORT-02 不正な行を含む CSV の import を阻止できる
+### DECK-IMPORT-02 不正な行を含む CSV を取り込めない
 
 カテゴリ: `read`
 
@@ -383,7 +371,7 @@ Then:
 Given:
 
 - Fixture: [`empty`](./fixture/empty.yaml)
-- 必須の uniqueKey が空の行を含む CSV と、必須の4列に足りない行を含む CSV を、それぞれ独立した入力例として用意する。
+- uniqueKey が空の CSV、必須の4列に足りない CSV をそれぞれ確認する。
 - CSV に対応する Deck と Card はまだ存在しない。
 
 When:
@@ -394,8 +382,7 @@ Then:
 
 - 不正な行と理由が入力エラーとして画面内に表示される。
 - 必須列に足りない行を正常な Card へ補完せず、不正な行数に数える。
-- Import 操作は無効のままになる。
-- Deck と Card は追加されない。
+- Import は無効で、Deck と Card は追加されない。
 
 <a id="deck-import-11"></a>
 
@@ -418,13 +405,13 @@ When:
 
 Then:
 
-- 同じファイルを選ぶたびに読み取りと検証が行われ、文字コードエラー・行エラーから修正後の内容で preview と追加可否が更新される。
+- 選び直すたびに再検証され、修正内容に応じてエラー・プレビュー・追加可否が更新される。
 - 表示するファイル名は維持される。ファイル選択欄はキーボードで操作でき、処理中は再選択できない。
 - 追加を確定するまで Deck と Card は保存されない。
 
 <a id="deck-import-12"></a>
 
-### DECK-IMPORT-12 [TODO] 複数行フィールドを含む CSV の論理レコード単位で診断を確認できる
+### DECK-IMPORT-12 [TODO] 複数行 CSV の診断を論理レコード単位で表示する
 
 カテゴリ: `read`
 
@@ -442,14 +429,14 @@ When:
 
 Then:
 
-- 複数行フィールドを含む入力例では、有効な論理レコード1の本文の改行を保持し、タグは `foo`、`bar`、uniqueKey は `key` に正規化する。空の論理レコード2を読み飛ばし、3列の論理レコード3と表裏が空白かつキーが重複する論理レコード4を不正な2レコードとして数える。レコード4に複数の理由があっても不正件数は増えない。
-- 診断番号は1始まりの論理レコード番号とし、引用符内の改行を物理行として加算しない。列contextは引用符の解析後、正規化前の値を保持する。レコード3は `["bad \"front\"","back"," key "]`、レコード4は `[" "," "," foo,foo, bar "," key "]` となる。
-- Import 操作は無効のままになる。
-- Deck と Card は追加されない。
+- レコード1は有効で、本文の改行を保持し、タグは `foo`、`bar`、uniqueKey は `key` に正規化する。
+- 空のレコード2は読み飛ばす。3列のレコード3と、表裏が空白でキーも重複するレコード4は不正とする。不正件数は理由の数にかかわらず2件となる。
+- 診断には1始まりの論理レコード番号を使い、引用符内の改行は数えない。元の列値は引用符の解析後・正規化前の値を示す。レコード3は `["bad \"front\"","back"," key "]`、レコード4は `[" "," "," foo,foo, bar "," key "]` となる。
+- Import は無効で、Deck と Card は追加されない。
 
 <a id="deck-import-13"></a>
 
-### DECK-IMPORT-13 [TODO] CSV の引用符エラーを論理レコードと元列値で確認できる
+### DECK-IMPORT-13 [TODO] CSV の引用符エラーに論理レコード番号と元の列値を表示する
 
 カテゴリ: `read`
 
@@ -467,9 +454,8 @@ When:
 
 Then:
 
-- 引用符エラーの入力例では、論理レコード3に引用符のエラーを表示し、不正件数は1レコードとなる。閉じ引用符が欠落していることとcontext `["unterminated"]`、閉じ引用符の後に余計な文字があることとcontext `["bad\"tail,back,,key"]` をそれぞれ確認できる。
-- Import 操作は無効のままになる。
-- Deck と Card は追加されない。
+- 論理レコード3の引用符エラーを表示し、不正件数は1件となる。閉じ引用符の欠落では元の列値 `["unterminated"]`、閉じ引用符の後に文字が続く場合は元の列値 `["bad\"tail,back,,key"]` をそれぞれ確認できる。
+- Import は無効で、Deck と Card は追加されない。
 
 <a id="deck-import-14"></a>
 
@@ -491,9 +477,8 @@ When:
 
 Then:
 
-- 空白だけの入力では、空のCSVであることをファイル全体のエラーとして報告し、特定のレコード番号や列contextを付けない。
-- Import 操作は無効のままになる。
-- Deck と Card は追加されない。
+- 空の CSV としてファイル全体のエラーを表示し、レコード番号や元の列値は付けない。
+- Import は無効で、Deck と Card は追加されない。
 
 <a id="deck-import-05"></a>
 
@@ -511,12 +496,12 @@ Given:
 
 When:
 
-- CSV を確認して追加し、同期結果を待って reload する。
+- CSV を確認して追加し、同期結果を待って再読み込みする。
 
 Then:
 
-- サーバー保存に失敗した場合は失敗の toast を表示し、成功通知や保存後の画面遷移を行わない。準備済みの識別子を保ち、同じ入力で再試行できる。
-- クラウドから拒否された Card は Firestore の rollback により利用できる Card として表示されない。保存できた Deck が再読み込みや同期によって重複しない。拒否は呼び出し側が toast で通知する。
+- 失敗が通知され、成功通知や保存後の画面遷移は起きない。同じ入力で再試行できる。
+- 拒否された Card は表示されず、保存できた Deck は再読み込み・同期・再試行で重複しない。
 
 <a id="deck-import-18"></a>
 
@@ -530,12 +515,12 @@ Given:
 
 - Fixture: [`empty`](./fixture/empty.yaml)
 - Google アカウントにログインしている。
-- Import 画面の例の preview を確認し、追加を確定したが保存に失敗している。
+- Import 画面の例のプレビューを確認し、追加を確定したが保存に失敗している。
 
 When:
 
-- 同じ preview の内容で追加を再試行する。
+- 同じプレビューの内容で追加を再試行する。
 
 Then:
 
-- 同じ取り込みが重複せず、同じ preview の内容を取り込める。
+- 同じ取り込みが重複せず、同じプレビューの内容を取り込める。
