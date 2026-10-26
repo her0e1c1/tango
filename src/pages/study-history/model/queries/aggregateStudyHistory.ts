@@ -7,8 +7,8 @@ export function aggregateStudyHistory(
   visibleDeckIds: Set<string>
 ) {
   const days: { date: number; started: number; completed: number }[] = [];
-  // Advance calendar dates rather than 24-hour durations across daylight-saving changes.
-  for (const date = new Date(period.start); date.getTime() < period.end; date.setDate(date.getDate() + 1)) {
+  // Reset the time for each next local day: a missing midnight must not carry 01:00 forward.
+  for (const date = new Date(period.start); date.getTime() < period.end; date.setHours(24, 0, 0, 0)) {
     days.push({ date: date.getTime(), started: 0, completed: 0 });
   }
   const byDate = new Map(days.map((day) => [day.date, day]));

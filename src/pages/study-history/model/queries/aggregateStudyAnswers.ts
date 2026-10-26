@@ -51,7 +51,8 @@ export function aggregateStudyAnswers(
     byDate.set(date.getTime(), day);
   }
   const days: ({ date: number } & ReturnType<typeof metrics>)[] = [];
-  for (const date = new Date(period.start); date.getTime() < period.end; date.setDate(date.getDate() + 1)) {
+  // Reset the time for each next local day: a missing midnight must not carry 01:00 forward.
+  for (const date = new Date(period.start); date.getTime() < period.end; date.setHours(24, 0, 0, 0)) {
     days.push({ date: date.getTime(), ...metrics(byDate.get(date.getTime()) ?? []) });
   }
   return {
