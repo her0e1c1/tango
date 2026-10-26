@@ -1,23 +1,24 @@
-# E2E Test Instructions
+# E2E テストの指示
 
-- Group preparation, actions, and expected-result checks with native `await test.step(...)` blocks named `Given: ...`, `When: ...`, and `Then: ...`. Use concise English names describing the scenario, and preserve repeated action/check cycles in execution order.
-- Keep precondition assertions in Given. Make fixture and helper roles clear through the surrounding steps; reuse existing steps and helper boundaries without redundant wrappers, empty phases, or deep nesting.
-- Return values needed by later steps and destructure their results instead of introducing mutable outer state, definite-assignment assertions, or casts. Remove duplicate phase comments while retaining explanations of non-obvious intent or constraints.
-- A grouping-only change preserves operations, assertions, inputs, expected values, test titles and case IDs, fixtures, selectors, timeouts, retries, and skip/TODO status.
+- 準備、操作、期待結果の確認は、`Given: ...`、`When: ...`、`Then: ...` という名前の標準の `await test.step(...)` ブロックにまとめる。シナリオを表す簡潔な英語名を使い、操作と確認を繰り返す場合は実行順を維持する。
+- 前提条件のアサーションは Given に置く。前後のステップから fixture とヘルパーの役割が分かるようにし、既存のステップやヘルパーの境界を再利用する。冗長なラッパー、空のフェーズ、深いネストは追加しない。
+- 後続のステップで必要な値は戻り値として返し、分割代入で受け取る。外側の可変状態、確実な代入アサーション、キャストは追加しない。重複するフェーズコメントは削除し、分かりにくい意図や制約の説明は残す。
+- グループ化だけの変更では、操作、アサーション、入力、期待値、テスト名とケース ID、fixture、セレクター、タイムアウト、リトライ、skip/TODO の状態を維持する。
 
-- Pair each `test/e2e/<name>.spec.ts` with exactly one `docs/test/e2e/<name>.md` using the same basename.
-- Keep every referenced case ID in that paired specification. Multiple tests may share an ID; a test may cover multiple IDs only within the same specification file.
-- Preserve fixture IDs when moving tests. Helpers, fixtures, `AGENTS.md`, and `README.md` are outside the file-pairing contract.
+- 各 `test/e2e/<name>.spec.ts` は、同じベース名を持つ一つの `docs/test/e2e/<name>.md` と対応させる。
+- 参照するすべてのケース ID は、対応する仕様書内に定義する。複数のテストで同じ ID を共有してよい。一つのテストで複数の ID を確認する場合は、同じ仕様ファイル内の ID に限る。
+- テストを移動するときは fixture ID を維持する。ヘルパー、fixture、`AGENTS.md`、`README.md` はファイルの対応規約の対象外とする。
 
-- Treat `docs/test/e2e/**` as the single source of truth for E2E test cases.
-- Playwright tests under `test/e2e/**` must cover every test case documented under `docs/test/e2e/**`.
-- Each Playwright test title must start with its corresponding `docs/test/e2e` test case ID followed by a space.
-- Declare test cases in their paired specification's order, following [the ordering rules](../../docs/test/e2e/AGENTS.md#テストケースの書式): normal before abnormal scenarios, reads before writes, and Create, Update, Delete within writes. Keep other operations in user-flow order and variants of the same operation together.
-- Follow the specification-file prefix and case-number format in `docs/test/e2e/AGENTS.md`; reuse the stable documented ID regardless of specification order instead of allocating a separate sequence in Playwright files. Do not renumber case IDs when reordering tests.
-- Every documented case without `[TODO]` must have at least one active test. Multiple tests may share an ID, and a test may name multiple documented IDs; keep the primary fixture ID first in its title.
-- Keep `[TODO]` cases in the specification without empty or skipped tests. If all cases are pending, retain the paired `.spec.ts` as a module with a TODO comment pointing to its specification.
-- Run `npm run lint:test-specs` to check declared specification coverage without executing test runners.
-- Do not add E2E test cases that are not documented under `docs/test/e2e/**`; remove existing undocumented E2E test cases.
-- When adding a regression test, first add or update the corresponding test case under `docs/test/e2e/**`, then add the Playwright test.
-- When a test case under `docs/test/e2e/**` is changed or removed, update or remove the corresponding Playwright test in the same change.
-- Fixtures, helpers, type declarations, and other supporting code are not required to map one-to-one to documented test cases.
+- E2E テストケースは `docs/test/e2e/**` を唯一の正とする。
+- `test/e2e/**` 配下の Playwright テストは、`docs/test/e2e/**` に記述されたすべてのテストケースを網羅しなければならない。
+- 各 Playwright テスト名は、対応する `docs/test/e2e` のケース ID と、その直後の空白で始める。
+- テストケースは `read` → `write`（`create` → `update` → `delete`）の順に並べる。
+- テストケースは成功系 → 異常系の順に並べる。
+- 仕様ファイルの ID の接頭辞と番号の書式は `docs/test/e2e/AGENTS.md` に従う。仕様書の掲載順にかかわらず、記述された安定した ID を再利用し、Playwright ファイル内で別の連番を割り当てない。
+- `[TODO]` のない各ケースには、少なくとも一つの有効なテストを用意する。複数のテストで同じ ID を共有してよく、一つのテスト名に複数の仕様 ID を記載してもよい。fixture 選択用の主 ID はテスト名の先頭に置く。
+- `[TODO]` のケースは仕様書に残し、空のテストやスキップするテストは作成しない。すべてのケースが未実装の場合は、対応する `.spec.ts` をモジュールとして残し、仕様書を示す TODO コメントを記述する。
+- `npm run lint:test-specs` で、テストランナーを実行せずに仕様の網羅性の宣言を確認する。
+- `docs/test/e2e/**` に記述されていない E2E テストケースは追加しない。既存の未記載の E2E テストケースは削除する。
+- 回帰テストを追加するときは、先に `docs/test/e2e/**` の対応するケースを追加または更新し、その後に Playwright テストを追加する。
+- `docs/test/e2e/**` のケースを変更または削除するときは、同じ変更内で対応する Playwright テストも更新または削除する。
+- fixture、ヘルパー、型宣言などの補助コードは、仕様書のテストケースと一対一に対応させる必要はない。
