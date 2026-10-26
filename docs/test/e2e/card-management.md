@@ -8,80 +8,31 @@ Card を作成・編集・削除でき、失敗後も入力を維持して再試
 
 | ID | カテゴリ | 区分 | テストケース |
 | --- | --- | --- | --- |
-| CARD-MANAGEMENT-01 | write | 正常系 | [Card 編集内容を保存して reload 後も確認できる](#card-management-01) |
-| CARD-MANAGEMENT-02 | write | 正常系 | [Card を削除できる](#card-management-02) |
 | CARD-MANAGEMENT-03 | read | 正常系 | [Card の削除を取り消せる](#card-management-03) |
-| CARD-MANAGEMENT-04 | write | 異常系 | [Card の編集失敗後に再試行できる](#card-management-04) |
-| CARD-MANAGEMENT-05 | write | 正常系 | [ログイン中の Deck に Card を作成できる](#card-management-05) |
-| CARD-MANAGEMENT-06 | write | 正常系 | [匿名で利用中の Deck に Card を作成できる](#card-management-06) |
-| CARD-MANAGEMENT-07 | write | 異常系 | [Card の作成拒否後に重複なく再試行できる](#card-management-07) |
-| CARD-MANAGEMENT-08 | write | 異常系 | [Card の削除失敗後に再試行できる](#card-management-08) |
 | CARD-MANAGEMENT-09 | read | 正常系 | [未保存の Card 編集内容を離脱前に確認できる](#card-management-09) |
-| CARD-MANAGEMENT-10 | read | 異常系 | [Card の未表示の面にある入力エラーを修正できる](#card-management-10) |
 | CARD-MANAGEMENT-11 | read | 正常系 | [未保存の Card 作成内容の離脱を確認できる](#card-management-11) |
-| CARD-MANAGEMENT-12 | write | 正常系 | [Card 作成成功が未回答の離脱確認より優先される](#card-management-12) |
-| CARD-MANAGEMENT-13 | write | 正常系 | [Card 作成中に離脱しても保存処理を維持する](#card-management-13) |
-| CARD-MANAGEMENT-14 | write | 異常系 | [Card 作成失敗後も離脱確認と入力を保持して再試行できる](#card-management-14) |
 | CARD-MANAGEMENT-15 | read | 正常系 | [作成中の未保存の解答をプレビューできる](#card-management-15) |
 | CARD-MANAGEMENT-16 | read | 正常系 | [編集中の未保存の解答と表示形式をプレビューできる](#card-management-16) |
 | CARD-MANAGEMENT-17 | read | 正常系 | [Card の tab と拡大画面を切り替えても下書きを維持する](#card-management-17) |
+| CARD-MANAGEMENT-21 | read | 正常系 | [別のブラウザーから変更が届いても編集中の Card の入力を維持する](#card-management-21) |
+| CARD-MANAGEMENT-23 | read | 正常系 | [通知の表示が変化しても Card の離脱確認を操作できる](#card-management-23) |
+| CARD-MANAGEMENT-24 | read | 正常系 | [未変更の Card 作成画面は確認なしで取り消せる](#card-management-24) |
+| CARD-MANAGEMENT-05 | write | 正常系 | [ログイン中の Deck に Card を作成できる](#card-management-05) |
+| CARD-MANAGEMENT-06 | write | 正常系 | [匿名で利用中の Deck に Card を作成できる](#card-management-06) |
+| CARD-MANAGEMENT-12 | write | 正常系 | [Card 作成成功が未回答の離脱確認より優先される](#card-management-12) |
+| CARD-MANAGEMENT-13 | write | 正常系 | [Card 作成中に離脱しても保存処理を維持する](#card-management-13) |
+| CARD-MANAGEMENT-22 | write | 正常系 | [Card 作成で所属 Deck のタグを選択し新規タグを追加できる](#card-management-22) |
+| CARD-MANAGEMENT-01 | write | 正常系 | [Card 編集内容を保存して reload 後も確認できる](#card-management-01) |
 | CARD-MANAGEMENT-18 | write | 正常系 | [Card のタグ候補を選んで下書きへ反映できる](#card-management-18) |
 | CARD-MANAGEMENT-19 | write | 正常系 | [Card の編集保存中は重ねて操作できない](#card-management-19) |
 | CARD-MANAGEMENT-20 | write | 正常系 | [Card 編集画面の離脱後に保存が完了しても現在の画面を維持する](#card-management-20) |
-| CARD-MANAGEMENT-21 | read | 正常系 | [別のブラウザーから変更が届いても編集中の Card の入力を維持する](#card-management-21) |
-| CARD-MANAGEMENT-22 | write | 正常系 | [Card 作成で所属 Deck のタグを選択し新規タグを追加できる](#card-management-22) |
-| CARD-MANAGEMENT-23 | read | 正常系 | [通知の表示が変化しても Card の離脱確認を操作できる](#card-management-23) |
-| CARD-MANAGEMENT-24 | read | 正常系 | [未変更の Card 作成画面は確認なしで取り消せる](#card-management-24) |
+| CARD-MANAGEMENT-02 | write | 正常系 | [Card を削除できる](#card-management-02) |
+| CARD-MANAGEMENT-10 | read | 異常系 | [Card の未表示の面にある入力エラーを修正できる](#card-management-10) |
+| CARD-MANAGEMENT-07 | write | 異常系 | [Card の作成拒否後に重複なく再試行できる](#card-management-07) |
+| CARD-MANAGEMENT-14 | write | 異常系 | [Card 作成失敗後も離脱確認と入力を保持して再試行できる](#card-management-14) |
 | CARD-MANAGEMENT-25 | write | 異常系 | [Card 作成画面を離れた後の保存拒否で入力画面へ戻らない](#card-management-25) |
-
-<a id="card-management-01"></a>
-
-### CARD-MANAGEMENT-01 Card 編集内容を保存して reload 後も確認できる
-
-カテゴリ: `write`
-
-区分: 正常系
-
-Given:
-
-- Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
-- 認証済みユーザーが所有する Deck が存在する。
-- 対象 Deck に編集対象の Card が存在し、選択に使うタグを同じ Deck の Card が持っている。
-
-When:
-
-- 対象 Card の front text、back text、tags を変更して保存し、画面を reload して編集画面を再度開く。
-
-Then:
-
-- Card の更新成功が通知される。
-- 編集画面に変更後の front text、back text、tags が表示される。
-- 保存成功時だけ所属 Deck の Card 一覧へ戻る。
-- 元の Card が更新され、所属 Deck、学習結果、未変更の独自 tags は維持される。
-
-<a id="card-management-02"></a>
-
-### CARD-MANAGEMENT-02 Card を削除できる
-
-カテゴリ: `write`
-
-区分: 正常系
-
-Given:
-
-- Fixture: [`remote-deck-with-card`](./fixture/remote-deck-with-card.yaml)
-- 認証済みユーザーが所有する Deck が存在する。
-- 対象 Deck の Card は削除対象の1件だけである。
-
-When:
-
-- Card 一覧から対象 Card の削除を確定し、画面を reload する。
-
-Then:
-
-- Card の削除成功が通知される。
-- Card 一覧に対象 Card が表示されず、対象 Deck の Card 件数は0になる。
-- 再読み込みしても削除した Card を閲覧・学習できない。
+| CARD-MANAGEMENT-04 | write | 異常系 | [Card の編集失敗後に再試行できる](#card-management-04) |
+| CARD-MANAGEMENT-08 | write | 異常系 | [Card の削除失敗後に再試行できる](#card-management-08) |
 
 <a id="card-management-03"></a>
 
@@ -107,140 +58,6 @@ Then:
 - 削除 dialog が閉じる。
 - focus が対象 Card の操作メニューボタンに戻る。
 - 対象 Card を同じ内容・学習状態で引き続き利用できる。
-
-<a id="card-management-04"></a>
-
-### CARD-MANAGEMENT-04 Card の編集失敗後に再試行できる
-
-カテゴリ: `write`
-
-区分: 異常系
-
-Given:
-
-- Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
-- 認証済みユーザーが所有する Deck が存在する。
-- 対象 Deck に編集対象の Card が存在する。
-- 最初の編集がブラウザー内で保存できなかった場合は入力が残り、ローカル反映後にクラウドから拒否された場合は Firestore の rollback により元の Card の内容に戻っている。
-- 次の編集は成功できる。
-
-When:
-
-- 必要なら編集画面を開き直して同じ変更内容を入力し、保存を再試行して Card 一覧を reload する。
-
-Then:
-
-- Card 一覧へ戻る。
-- Card の更新成功が通知される。
-- reload 後も対象 Card に変更内容が表示される。
-
-<a id="card-management-05"></a>
-
-### CARD-MANAGEMENT-05 ログイン中の Deck に Card を作成できる
-
-カテゴリ: `write`
-
-区分: 正常系
-
-Given:
-
-- Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
-- Google アカウントにログインしたユーザーが所有する Deck が存在する。
-- モバイル幅の画面を使用し、選択に使うタグを同じ Deck の Card が持っている。
-
-When:
-
-- Card 一覧の Actions の Add card から作成画面を開き、Front / Back の拡大編集で本文を入力する。
-- タグ選択画面でタグを追加または選択し、作成ボタンを続けてクリックして Card を作成し、画面を reload する。
-
-Then:
-
-- Card の作成成功が通知される。
-- 両面の拡大編集画面は viewport の上端から下端まで表示され、見出しや完了ボタンが欠けない。
-- 拡大編集とタグ選択の背景は viewport 全体を覆い、タグ選択画面は下端に隙間なく接する。
-- 作成した Card が reload 後も同じ Deck の Card 一覧に一つだけ表示され、選択したタグを保持する。
-- 同期後も同じアカウントの対象 Deck で利用でき、別の Deck へ追加されたり複製が増えたりしない。
-- 入力検証中と保存中は作成ボタンが無効になり、作成処理が終わるまで追加の作成を受け付けない。
-
-<a id="card-management-06"></a>
-
-### CARD-MANAGEMENT-06 匿名で利用中の Deck に Card を作成できる
-
-カテゴリ: `write`
-
-区分: 正常系
-
-Given:
-
-- Fixture: [`local-deck-with-cards`](./fixture/local-deck-with-cards.yaml)
-- 匿名ユーザーがこのブラウザーで利用できる Deck が存在する。
-- viewport は 360 x 640 である。
-
-When:
-
-- Card 一覧の Actions の Add card から約1,748文字の通常の段落の front text と有効な back text を入力して Card を作成する。
-- 成功通知の Dismiss にポインターで到達できることを確認し、Tab でフォーカスを移して Enter で閉じ、画面を reload する。
-
-Then:
-
-- Card の作成成功が通知され、翻訳された成功メッセージと Card 本文の冒頭を含む最大3行のプレビューが viewport 内に収まる。
-- Dismiss の描画範囲とキーボードのフォーカス表示が viewport 内に収まり、操作できる。閉じた後はページにフォーカスが復元される。
-- アクセシブルな通知は Card の文脈を維持する。
-- 作成した Card が reload 後も同じ Deck の Card 一覧に表示され、front text の全文と back text が切り詰められずに保存される。
-- 作成した Card はこのブラウザーだけで一つ利用でき、クラウドには追加されない。
-
-<a id="card-management-07"></a>
-
-### CARD-MANAGEMENT-07 Card の作成拒否後に重複なく再試行できる
-
-カテゴリ: `write`
-
-区分: 異常系
-
-Given:
-
-- Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
-- Google アカウントにログインしたユーザーが所有する Deck が存在する。
-- 最初の Card 作成が拒否され、クラウドには保存されていないことが確定している。一時的に表示された Card も一覧から消えている。
-- ブラウザー内で保存できなかった場合は作成画面に入力が残り、ローカル反映後にクラウドから拒否された場合は Firestore の rollback により一時的な Card が一覧から消えている。
-- 次の作成は成功できる。
-- 保存できたか不明な通信失敗は、このケースの前提に含めない。その状態からの再試行については重複防止を保証しない。
-
-When:
-
-- 必要なら作成画面を開き直して同じ内容を入力し、作成を再試行して Card 一覧を reload する。
-
-Then:
-
-- Card の作成成功が通知され、失敗通知は残らない。
-- 対象 Deck の Card 一覧に、作成した Card が一つだけ表示される。
-- 最初に入力した front text と back text が維持され、同じアカウントの同じ Deck で利用できる。
-- 再読み込みや同期によって Card の複製が増えない。
-
-<a id="card-management-08"></a>
-
-### CARD-MANAGEMENT-08 Card の削除失敗後に再試行できる
-
-カテゴリ: `write`
-
-区分: 異常系
-
-Given:
-
-- Fixture: [`remote-deck-with-card`](./fixture/remote-deck-with-card.yaml)
-- 認証済みユーザーが所有する Deck と削除対象の Card が存在する。
-- 最初の削除がクラウドから拒否され、Firestore の rollback 後に対象 Card を再び利用でき、削除 dialog は閉じている。
-- 次の削除は成功できる。
-
-When:
-
-- 対象 Card の削除 dialog を開き直して削除を再試行し、Card 一覧を reload する。
-
-Then:
-
-- 削除 dialog が閉じる。
-- Card 一覧に対象 Card が表示されない。
-- 再読み込みしても削除した Card を閲覧・学習できない。
 
 <a id="card-management-09"></a>
 
@@ -268,31 +85,6 @@ Then:
 - 2回目の離脱では Deck 一覧へ1回だけ遷移する。
 - 対象 Card を開き直すと、変更前の front text が表示される。
 
-<a id="card-management-10"></a>
-
-### CARD-MANAGEMENT-10 Card の未表示の面にある入力エラーを修正できる
-
-カテゴリ: `read`
-
-区分: 異常系
-
-Given:
-
-- Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
-- 認証済みユーザーが所有する Card の編集画面を開いている。
-
-When:
-
-- front text と back text を空にし、Back tab を表示した状態で保存を試みる。
-- Back tab に切り替えて拡大編集画面を開き、入力エラーを確認して閉じる。
-
-Then:
-
-- 最初の入力エラーがある Front tab が選択され、対象の入力欄へ focus が移る。
-- 両面の tab にエラーが示され、Back tab を選ぶと back text の入力エラーも確認できる。
-- 拡大編集画面でも入力エラーが表示され、入力欄の読み上げ説明として確認できる。
-- 未入力の値は維持され、Card は保存されず元の内容が変更されない。
-
 <a id="card-management-11"></a>
 
 ### CARD-MANAGEMENT-11 未保存の Card 作成内容の離脱を確認できる
@@ -315,80 +107,6 @@ Then:
 
 - 未保存の入力がある場合は確認 dialog が表示され、Keep editing では入力を保持する。
 - Discard changes では所属 Deck の Card 一覧へ移動し、Card は作成されない。
-
-<a id="card-management-12"></a>
-
-### CARD-MANAGEMENT-12 Card 作成成功が未回答の離脱確認より優先される
-
-カテゴリ: `write`
-
-区分: 正常系
-
-Given:
-
-- Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
-- 認証済みユーザーが所有する Deck の Card 作成画面で両面を入力し、保存を開始している。まだ保存は完了していない。
-
-When:
-
-- 保存処理中に Header で離脱を試みて Keep editing を選択し、再度 Header で離脱を試みて確認を未回答のまま保存完了を待つ。
-
-Then:
-
-- 確認には離脱後も作成が続く説明が表示される。画面に留まった場合は成功時に一覧へ移動し、失敗時に通知される。
-- Keep editing では入力と保存処理を維持し、作成画面に留まる。
-- 保存成功で確認が閉じ、所属 Deck の Card 一覧へ移動する。以前に Header で選んだ画面へは移動しない。
-- 成功通知が表示され、対象 Deck に入力した Card が1件だけ表示され、reload 後も利用できる。
-- サーバーの保存成功後に一覧へ移動し、Card を表示する。応答待ち中は成功扱いにしない。
-
-<a id="card-management-13"></a>
-
-### CARD-MANAGEMENT-13 Card 作成中に離脱しても保存処理を維持する
-
-カテゴリ: `write`
-
-区分: 正常系
-
-Given:
-
-- Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
-- 認証済みユーザーが所有する Deck の Card 作成画面で両面を入力し、保存を開始している。まだ保存は完了していない。
-
-When:
-
-- 保存処理中に Header で離脱を試みて Discard changes を選択し、移動先で保存完了を待つ。
-
-Then:
-
-- 確認には離脱後も作成が続くことと完了時の挙動が表示される。
-- Discard changes で要求した Deck 一覧へ移動し、保存成功後も移動先に留まる。離脱済みの画面から成功通知や自動遷移を行わない。
-- 対象 Deck を開き直すと入力した Card が1件だけ表示され、reload 後も利用できる。
-- 保存成功後に別画面へ移動した場合は、その後のクラウド同期完了によって再び遷移しない。対象 Deck を開き直すと保存した Card が表示される。
-
-<a id="card-management-14"></a>
-
-### CARD-MANAGEMENT-14 Card 作成失敗後も離脱確認と入力を保持して再試行できる
-
-カテゴリ: `write`
-
-区分: 異常系
-
-Given:
-
-- Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
-- 認証済みユーザーが所有する Deck の Card 作成画面で両面を入力し、保存を開始している。まだ保存は完了していない。
-- 今回の保存は失敗し、その後の再試行は成功できる。
-
-When:
-
-- 保存処理中に Header で離脱を試み、確認を未回答のまま保存失敗を待つ。Keep editing を選択して再試行する。
-
-Then:
-
-- ブラウザー内で保存に失敗した場合は離脱確認が残り、成功時の画面遷移は行われない。
-- Keep editing で両面の入力を保持し、再試行の成功後は所属 Deck の Card 一覧へ移動する。
-- 成功通知が表示され、対象 Deck に入力した Card が1件だけ表示され、reload 後も利用できる。
-- サーバーに拒否された場合は保存失敗の toast を表示し、成功後の遷移を行わない。Firestore の rollback により拒否された Card は一覧に残らない。
 
 <a id="card-management-15"></a>
 
@@ -466,6 +184,224 @@ Then:
 
 - tab と拡大画面を切り替えても両面の入力内容が維持され、拡大画面を閉じると起点へ focus が戻る。
 
+<a id="card-management-21"></a>
+
+### CARD-MANAGEMENT-21 [TODO] 別のブラウザーから変更が届いても編集中の Card の入力を維持する
+
+カテゴリ: `read`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
+- 認証済みユーザーが所有する Card の編集画面で、まだ保存していない本文を入力している。
+
+When:
+
+- 別のブラウザーから同じ Card の変更が届く。
+
+Then:
+
+- 編集中の入力を勝手に置き換えない。
+
+<a id="card-management-23"></a>
+
+### CARD-MANAGEMENT-23 [TODO] 通知の表示が変化しても Card の離脱確認を操作できる
+
+カテゴリ: `read`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
+- 認証済みユーザーが所有する Card の編集画面で front text を変更し、まだ保存していない。
+- 通知が表示されている。
+
+When:
+
+- Header から Deck 一覧への離脱を試みる。
+- 離脱確認 dialog の表示中に通知が消えるか置き換わる。
+
+Then:
+
+- 離脱確認 dialog 表示中は、通知が重なっていても dialog の操作を妨げない。
+- dialog 表示中に通知が消えるか置き換わっても、focus は Keep editing に維持される。
+
+<a id="card-management-24"></a>
+
+### CARD-MANAGEMENT-24 未変更の Card 作成画面は確認なしで取り消せる
+
+カテゴリ: `read`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
+- 認証済みユーザーが所有する Deck の Card 作成画面を開き、まだ入力を変更していない。
+
+When:
+
+- Cancel を選択する。
+
+Then:
+
+- 未変更の場合は確認なしで所属 Deck の Card 一覧へ戻る。
+
+<a id="card-management-05"></a>
+
+### CARD-MANAGEMENT-05 ログイン中の Deck に Card を作成できる
+
+カテゴリ: `write`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
+- Google アカウントにログインしたユーザーが所有する Deck が存在する。
+- モバイル幅の画面を使用し、選択に使うタグを同じ Deck の Card が持っている。
+
+When:
+
+- Card 一覧の Actions の Add card から作成画面を開き、Front / Back の拡大編集で本文を入力する。
+- タグ選択画面でタグを追加または選択し、作成ボタンを続けてクリックして Card を作成し、画面を reload する。
+
+Then:
+
+- Card の作成成功が通知される。
+- 両面の拡大編集画面は viewport の上端から下端まで表示され、見出しや完了ボタンが欠けない。
+- 拡大編集とタグ選択の背景は viewport 全体を覆い、タグ選択画面は下端に隙間なく接する。
+- 作成した Card が reload 後も同じ Deck の Card 一覧に一つだけ表示され、選択したタグを保持する。
+- 同期後も同じアカウントの対象 Deck で利用でき、別の Deck へ追加されたり複製が増えたりしない。
+- 入力検証中と保存中は作成ボタンが無効になり、作成処理が終わるまで追加の作成を受け付けない。
+
+<a id="card-management-06"></a>
+
+### CARD-MANAGEMENT-06 匿名で利用中の Deck に Card を作成できる
+
+カテゴリ: `write`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`local-deck-with-cards`](./fixture/local-deck-with-cards.yaml)
+- 匿名ユーザーがこのブラウザーで利用できる Deck が存在する。
+- viewport は 360 x 640 である。
+
+When:
+
+- Card 一覧の Actions の Add card から約1,748文字の通常の段落の front text と有効な back text を入力して Card を作成する。
+- 成功通知の Dismiss にポインターで到達できることを確認し、Tab でフォーカスを移して Enter で閉じ、画面を reload する。
+
+Then:
+
+- Card の作成成功が通知され、翻訳された成功メッセージと Card 本文の冒頭を含む最大3行のプレビューが viewport 内に収まる。
+- Dismiss の描画範囲とキーボードのフォーカス表示が viewport 内に収まり、操作できる。閉じた後はページにフォーカスが復元される。
+- アクセシブルな通知は Card の文脈を維持する。
+- 作成した Card が reload 後も同じ Deck の Card 一覧に表示され、front text の全文と back text が切り詰められずに保存される。
+- 作成した Card はこのブラウザーだけで一つ利用でき、クラウドには追加されない。
+
+<a id="card-management-12"></a>
+
+### CARD-MANAGEMENT-12 Card 作成成功が未回答の離脱確認より優先される
+
+カテゴリ: `write`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
+- 認証済みユーザーが所有する Deck の Card 作成画面で両面を入力し、保存を開始している。まだ保存は完了していない。
+
+When:
+
+- 保存処理中に Header で離脱を試みて Keep editing を選択し、再度 Header で離脱を試みて確認を未回答のまま保存完了を待つ。
+
+Then:
+
+- 確認には離脱後も作成が続く説明が表示される。画面に留まった場合は成功時に一覧へ移動し、失敗時に通知される。
+- Keep editing では入力と保存処理を維持し、作成画面に留まる。
+- 保存成功で確認が閉じ、所属 Deck の Card 一覧へ移動する。以前に Header で選んだ画面へは移動しない。
+- 成功通知が表示され、対象 Deck に入力した Card が1件だけ表示され、reload 後も利用できる。
+- サーバーの保存成功後に一覧へ移動し、Card を表示する。応答待ち中は成功扱いにしない。
+
+<a id="card-management-13"></a>
+
+### CARD-MANAGEMENT-13 Card 作成中に離脱しても保存処理を維持する
+
+カテゴリ: `write`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
+- 認証済みユーザーが所有する Deck の Card 作成画面で両面を入力し、保存を開始している。まだ保存は完了していない。
+
+When:
+
+- 保存処理中に Header で離脱を試みて Discard changes を選択し、移動先で保存完了を待つ。
+
+Then:
+
+- 確認には離脱後も作成が続くことと完了時の挙動が表示される。
+- Discard changes で要求した Deck 一覧へ移動し、保存成功後も移動先に留まる。離脱済みの画面から成功通知や自動遷移を行わない。
+- 対象 Deck を開き直すと入力した Card が1件だけ表示され、reload 後も利用できる。
+- 保存成功後に別画面へ移動した場合は、その後のクラウド同期完了によって再び遷移しない。対象 Deck を開き直すと保存した Card が表示される。
+
+<a id="card-management-22"></a>
+
+### CARD-MANAGEMENT-22 Card 作成で所属 Deck のタグを選択し新規タグを追加できる
+
+カテゴリ: `write`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
+- Google アカウントにログインしたユーザーが所有する Deck の Card 作成画面で、両面の本文を入力している。
+- 所属 Deck の Card にタグがある場合と、どの Card にもタグがない場合を対象とする。
+
+When:
+
+- タグ選択画面で既存候補を選択するか新しいタグを入力し、Card を作成する。タグ候補がない場合はタグなしでも作成する。
+
+Then:
+
+- タグ候補は所属 Deck の Card から集約したタグであり、固定カテゴリや別 Deck のタグは追加されない。Card のタグがなければ候補は空で、タグを新規入力するかタグなしで作成できる。
+- 新規入力したタグ名の前後空白を除き、内部の空白は保持する。選択した既存候補の値は保持し、新規タグを末尾へ追加する。
+
+<a id="card-management-01"></a>
+
+### CARD-MANAGEMENT-01 Card 編集内容を保存して reload 後も確認できる
+
+カテゴリ: `write`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
+- 認証済みユーザーが所有する Deck が存在する。
+- 対象 Deck に編集対象の Card が存在し、選択に使うタグを同じ Deck の Card が持っている。
+
+When:
+
+- 対象 Card の front text、back text、tags を変更して保存し、画面を reload して編集画面を再度開く。
+
+Then:
+
+- Card の更新成功が通知される。
+- 編集画面に変更後の front text、back text、tags が表示される。
+- 保存成功時だけ所属 Deck の Card 一覧へ戻る。
+- 元の Card が更新され、所属 Deck、学習結果、未変更の独自 tags は維持される。
+
 <a id="card-management-18"></a>
 
 ### CARD-MANAGEMENT-18 Card のタグ候補を選んで下書きへ反映できる
@@ -536,30 +472,9 @@ Then:
 - 保存結果は画面を離れた後の完了でも通知され、既定の時間で消える。
 - 以前の保存完了によって現在の画面から遷移しない。
 
-<a id="card-management-21"></a>
+<a id="card-management-02"></a>
 
-### CARD-MANAGEMENT-21 [TODO] 別のブラウザーから変更が届いても編集中の Card の入力を維持する
-
-カテゴリ: `read`
-
-区分: 正常系
-
-Given:
-
-- Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
-- 認証済みユーザーが所有する Card の編集画面で、まだ保存していない本文を入力している。
-
-When:
-
-- 別のブラウザーから同じ Card の変更が届く。
-
-Then:
-
-- 編集中の入力を勝手に置き換えない。
-
-<a id="card-management-22"></a>
-
-### CARD-MANAGEMENT-22 Card 作成で所属 Deck のタグを選択し新規タグを追加できる
+### CARD-MANAGEMENT-02 Card を削除できる
 
 カテゴリ: `write`
 
@@ -567,63 +482,97 @@ Then:
 
 Given:
 
-- Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
-- Google アカウントにログインしたユーザーが所有する Deck の Card 作成画面で、両面の本文を入力している。
-- 所属 Deck の Card にタグがある場合と、どの Card にもタグがない場合を対象とする。
+- Fixture: [`remote-deck-with-card`](./fixture/remote-deck-with-card.yaml)
+- 認証済みユーザーが所有する Deck が存在する。
+- 対象 Deck の Card は削除対象の1件だけである。
 
 When:
 
-- タグ選択画面で既存候補を選択するか新しいタグを入力し、Card を作成する。タグ候補がない場合はタグなしでも作成する。
+- Card 一覧から対象 Card の削除を確定し、画面を reload する。
 
 Then:
 
-- タグ候補は所属 Deck の Card から集約したタグであり、固定カテゴリや別 Deck のタグは追加されない。Card のタグがなければ候補は空で、タグを新規入力するかタグなしで作成できる。
-- 新規入力したタグ名の前後空白を除き、内部の空白は保持する。選択した既存候補の値は保持し、新規タグを末尾へ追加する。
+- Card の削除成功が通知される。
+- Card 一覧に対象 Card が表示されず、対象 Deck の Card 件数は0になる。
+- 再読み込みしても削除した Card を閲覧・学習できない。
 
-<a id="card-management-23"></a>
+<a id="card-management-10"></a>
 
-### CARD-MANAGEMENT-23 [TODO] 通知の表示が変化しても Card の離脱確認を操作できる
+### CARD-MANAGEMENT-10 Card の未表示の面にある入力エラーを修正できる
 
 カテゴリ: `read`
 
-区分: 正常系
+区分: 異常系
 
 Given:
 
 - Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
-- 認証済みユーザーが所有する Card の編集画面で front text を変更し、まだ保存していない。
-- 通知が表示されている。
+- 認証済みユーザーが所有する Card の編集画面を開いている。
 
 When:
 
-- Header から Deck 一覧への離脱を試みる。
-- 離脱確認 dialog の表示中に通知が消えるか置き換わる。
+- front text と back text を空にし、Back tab を表示した状態で保存を試みる。
+- Back tab に切り替えて拡大編集画面を開き、入力エラーを確認して閉じる。
 
 Then:
 
-- 離脱確認 dialog 表示中は、通知が重なっていても dialog の操作を妨げない。
-- dialog 表示中に通知が消えるか置き換わっても、focus は Keep editing に維持される。
+- 最初の入力エラーがある Front tab が選択され、対象の入力欄へ focus が移る。
+- 両面の tab にエラーが示され、Back tab を選ぶと back text の入力エラーも確認できる。
+- 拡大編集画面でも入力エラーが表示され、入力欄の読み上げ説明として確認できる。
+- 未入力の値は維持され、Card は保存されず元の内容が変更されない。
 
-<a id="card-management-24"></a>
+<a id="card-management-07"></a>
 
-### CARD-MANAGEMENT-24 未変更の Card 作成画面は確認なしで取り消せる
+### CARD-MANAGEMENT-07 Card の作成拒否後に重複なく再試行できる
 
-カテゴリ: `read`
+カテゴリ: `write`
 
-区分: 正常系
+区分: 異常系
 
 Given:
 
 - Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
-- 認証済みユーザーが所有する Deck の Card 作成画面を開き、まだ入力を変更していない。
+- Google アカウントにログインしたユーザーが所有する Deck が存在する。
+- 最初の Card 作成が拒否され、クラウドには保存されていないことが確定している。一時的に表示された Card も一覧から消えている。
+- ブラウザー内で保存できなかった場合は作成画面に入力が残り、ローカル反映後にクラウドから拒否された場合は Firestore の rollback により一時的な Card が一覧から消えている。
+- 次の作成は成功できる。
+- 保存できたか不明な通信失敗は、このケースの前提に含めない。その状態からの再試行については重複防止を保証しない。
 
 When:
 
-- Cancel を選択する。
+- 必要なら作成画面を開き直して同じ内容を入力し、作成を再試行して Card 一覧を reload する。
 
 Then:
 
-- 未変更の場合は確認なしで所属 Deck の Card 一覧へ戻る。
+- Card の作成成功が通知され、失敗通知は残らない。
+- 対象 Deck の Card 一覧に、作成した Card が一つだけ表示される。
+- 最初に入力した front text と back text が維持され、同じアカウントの同じ Deck で利用できる。
+- 再読み込みや同期によって Card の複製が増えない。
+
+<a id="card-management-14"></a>
+
+### CARD-MANAGEMENT-14 Card 作成失敗後も離脱確認と入力を保持して再試行できる
+
+カテゴリ: `write`
+
+区分: 異常系
+
+Given:
+
+- Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
+- 認証済みユーザーが所有する Deck の Card 作成画面で両面を入力し、保存を開始している。まだ保存は完了していない。
+- 今回の保存は失敗し、その後の再試行は成功できる。
+
+When:
+
+- 保存処理中に Header で離脱を試み、確認を未回答のまま保存失敗を待つ。Keep editing を選択して再試行する。
+
+Then:
+
+- ブラウザー内で保存に失敗した場合は離脱確認が残り、成功時の画面遷移は行われない。
+- Keep editing で両面の入力を保持し、再試行の成功後は所属 Deck の Card 一覧へ移動する。
+- 成功通知が表示され、対象 Deck に入力した Card が1件だけ表示され、reload 後も利用できる。
+- サーバーに拒否された場合は保存失敗の toast を表示し、成功後の遷移を行わない。Firestore の rollback により拒否された Card は一覧に残らない。
 
 <a id="card-management-25"></a>
 
@@ -647,3 +596,54 @@ Then:
 
 - 保存失敗の toast を表示し、成功後の遷移を行わない。
 - Firestore の rollback により拒否された Card は一覧に残らず、離脱済みの入力画面や離脱確認へ勝手に戻らない。
+
+<a id="card-management-04"></a>
+
+### CARD-MANAGEMENT-04 Card の編集失敗後に再試行できる
+
+カテゴリ: `write`
+
+区分: 異常系
+
+Given:
+
+- Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
+- 認証済みユーザーが所有する Deck が存在する。
+- 対象 Deck に編集対象の Card が存在する。
+- 最初の編集がブラウザー内で保存できなかった場合は入力が残り、ローカル反映後にクラウドから拒否された場合は Firestore の rollback により元の Card の内容に戻っている。
+- 次の編集は成功できる。
+
+When:
+
+- 必要なら編集画面を開き直して同じ変更内容を入力し、保存を再試行して Card 一覧を reload する。
+
+Then:
+
+- Card 一覧へ戻る。
+- Card の更新成功が通知される。
+- reload 後も対象 Card に変更内容が表示される。
+
+<a id="card-management-08"></a>
+
+### CARD-MANAGEMENT-08 Card の削除失敗後に再試行できる
+
+カテゴリ: `write`
+
+区分: 異常系
+
+Given:
+
+- Fixture: [`remote-deck-with-card`](./fixture/remote-deck-with-card.yaml)
+- 認証済みユーザーが所有する Deck と削除対象の Card が存在する。
+- 最初の削除がクラウドから拒否され、Firestore の rollback 後に対象 Card を再び利用でき、削除 dialog は閉じている。
+- 次の削除は成功できる。
+
+When:
+
+- 対象 Card の削除 dialog を開き直して削除を再試行し、Card 一覧を reload する。
+
+Then:
+
+- 削除 dialog が閉じる。
+- Card 一覧に対象 Card が表示されない。
+- 再読み込みしても削除した Card を閲覧・学習できない。

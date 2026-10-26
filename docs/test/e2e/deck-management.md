@@ -8,16 +8,141 @@ Deck を作成・編集・削除でき、失敗後も再試行できることを
 
 | ID | カテゴリ | 区分 | テストケース |
 | --- | --- | --- | --- |
+| DECK-MANAGEMENT-03 | read | 正常系 | [Deck の削除を取り消せる](#deck-management-03) |
+| DECK-MANAGEMENT-08 | read | 正常系 | [未保存の Deck 編集内容を維持して編集を続けられる](#deck-management-08) |
+| DECK-MANAGEMENT-10 | read | 正常系 | [未保存の Deck 編集内容を破棄して一覧へ戻れる](#deck-management-10) |
+| DECK-MANAGEMENT-05 | write | 正常系 | [ログイン中に空の Deck を作成して reload 後も確認できる](#deck-management-05) |
+| DECK-MANAGEMENT-07 | write | 正常系 | [匿名で空の Deck を作成して reload 後も確認できる](#deck-management-07) |
 | DECK-MANAGEMENT-01 | write | 正常系 | [Deck 編集内容を保存して reload 後も確認できる](#deck-management-01) |
 | DECK-MANAGEMENT-02 | batch | 正常系 | [Deck と関連データをまとめて削除できる](#deck-management-02) |
-| DECK-MANAGEMENT-03 | read | 正常系 | [Deck の削除を取り消せる](#deck-management-03) |
-| DECK-MANAGEMENT-04 | batch | 異常系 | [Deck の削除失敗後に再試行できる](#deck-management-04) |
-| DECK-MANAGEMENT-05 | write | 正常系 | [ログイン中に空の Deck を作成して reload 後も確認できる](#deck-management-05) |
 | DECK-MANAGEMENT-06 | write | 異常系 | [ログイン中の Deck 作成拒否を反映できる](#deck-management-06) |
-| DECK-MANAGEMENT-07 | write | 正常系 | [匿名で空の Deck を作成して reload 後も確認できる](#deck-management-07) |
-| DECK-MANAGEMENT-08 | read | 正常系 | [未保存の Deck 編集内容を維持して編集を続けられる](#deck-management-08) |
+| DECK-MANAGEMENT-04 | batch | 異常系 | [Deck の削除失敗後に再試行できる](#deck-management-04) |
 | DECK-MANAGEMENT-09 | batch | 異常系 | [学習 session の終了失敗後も Deck の削除成功を維持する](#deck-management-09) |
-| DECK-MANAGEMENT-10 | read | 正常系 | [未保存の Deck 編集内容を破棄して一覧へ戻れる](#deck-management-10) |
+
+<a id="deck-management-03"></a>
+
+### DECK-MANAGEMENT-03 Deck の削除を取り消せる
+
+カテゴリ: `read`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`study-session-middle`](./fixture/study-session-middle.yaml)
+- 認証済みユーザーが所有する削除対象の Deck が存在する。
+- 対象 Deck の操作メニューボタンから削除 dialog を開いている。
+- dialog に対象 Deck、関連 Card と学習 session への影響、削除を取り消せない旨が表示されている。
+
+When:
+
+- Cancel を選択する。
+
+Then:
+
+- 削除 dialog が閉じる。
+- focus が対象 Deck の操作メニューボタンに戻る。
+- 対象 Deck と Card を引き続き利用でき、学習 session も同じ位置から再開できる。
+
+<a id="deck-management-08"></a>
+
+### DECK-MANAGEMENT-08 未保存の Deck 編集内容を維持して編集を続けられる
+
+カテゴリ: `read`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`deck-unsaved-navigation`](./fixture/deck-unsaved-navigation.yaml)
+- 認証済みユーザーが所有する編集対象の Deck が存在する。
+- Deck 編集画面で name を変更し、まだ保存していない。
+- 通知が表示されている。
+
+When:
+
+- Header から Deck 一覧への離脱を試み、Keep editing を選択する。
+
+Then:
+
+- 離脱は取り消され、変更した name が編集画面に維持される。
+- 離脱確認 dialog 表示中は、通知が重なっていても dialog の操作を妨げない。
+- dialog 表示中に通知が消えるか置き換わっても、focus は Keep editing に維持される。
+
+<a id="deck-management-10"></a>
+
+### DECK-MANAGEMENT-10 未保存の Deck 編集内容を破棄して一覧へ戻れる
+
+カテゴリ: `read`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`deck-unsaved-navigation`](./fixture/deck-unsaved-navigation.yaml)
+- 認証済みユーザーが所有する Deck の編集画面で name を変更し、まだ保存していない。
+- Header から Deck 一覧への離脱を一度試み、Keep editing を選択して編集を続けている。
+
+When:
+
+- Header から再度 Deck 一覧への離脱を試み、Discard changes を選択する。
+
+Then:
+
+- 2回目の離脱では Deck 一覧へ1回だけ遷移する。
+- Deck 一覧には変更前の name が表示される。
+
+<a id="deck-management-05"></a>
+
+### DECK-MANAGEMENT-05 ログイン中に空の Deck を作成して reload 後も確認できる
+
+カテゴリ: `write`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`empty`](./fixture/empty.yaml)
+- Google アカウントにログインしている。
+- 作成対象の Deck はまだ存在しない。
+
+When:
+
+- Deck の作成画面で name、category を入力し、保存した後、Deck 一覧を reload する。
+
+Then:
+
+- Deck の作成成功が通知される。
+- 作成した空の Deck が reload 後も Deck 一覧に一つだけ表示される。
+- 編集画面でも入力した name、category を確認できる。作成・編集画面に改行変換の操作・説明は表示されず、新規 Deck の旧改行変換値は既定の `false` になる。
+- 同期後も同じアカウントの Deck として利用でき、再読み込みや同期によって複製が増えない。
+
+<a id="deck-management-07"></a>
+
+### DECK-MANAGEMENT-07 匿名で空の Deck を作成して reload 後も確認できる
+
+カテゴリ: `write`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`empty`](./fixture/empty.yaml)
+- Google アカウントにログインしていない匿名ユーザーである。
+- 作成対象の Deck はまだ存在しない。
+
+When:
+
+- Deck の作成画面で name と category を入力し、保存した後、Deck 一覧を reload する。
+
+Then:
+
+- 作成画面に保存先の選択肢はない。
+- サーバー応答を待たずに作成を完了できる。
+- Deck の作成成功が通知される。
+- 作成した空の Deck が同じブラウザーで reload した後も、一つだけ Deck 一覧に表示される。
+- 作成した Deck はこのブラウザーだけで利用でき、クラウドには追加されない。
+- 対象 Deck に Card が存在しない。
 
 <a id="deck-management-01"></a>
 
@@ -70,30 +195,29 @@ Then:
 - 対象 Deck の学習 session を再開できない。
 - 操作対象ではない Deck、Card、学習 session は維持され、引き続き再開できる。
 
-<a id="deck-management-03"></a>
+<a id="deck-management-06"></a>
 
-### DECK-MANAGEMENT-03 Deck の削除を取り消せる
+### DECK-MANAGEMENT-06 ログイン中の Deck 作成拒否を反映できる
 
-カテゴリ: `read`
+カテゴリ: `write`
 
-区分: 正常系
+区分: 異常系
 
 Given:
 
-- Fixture: [`study-session-middle`](./fixture/study-session-middle.yaml)
-- 認証済みユーザーが所有する削除対象の Deck が存在する。
-- 対象 Deck の操作メニューボタンから削除 dialog を開いている。
-- dialog に対象 Deck、関連 Card と学習 session への影響、削除を取り消せない旨が表示されている。
+- Fixture: [`empty`](./fixture/empty.yaml)
+- Google アカウントにログインしている。
+- Deck の作成がローカル反映後にクラウドへの同期で拒否される。
 
 When:
 
-- Cancel を選択する。
+- Deck の作成画面で name、category を入力し、保存する。
 
 Then:
 
-- 削除 dialog が閉じる。
-- focus が対象 Deck の操作メニューボタンに戻る。
-- 対象 Deck と Card を引き続き利用でき、学習 session も同じ位置から再開できる。
+- 通常アカウントの作成はサーバー保存の成功まで待ち、保存失敗時は入力を維持して toast を表示する。
+- クラウドから拒否された Deck は Firestore の rollback により利用できる Deck として一覧に残らない。拒否は呼び出し側が toast で通知する。
+- 操作していないのに新しい Deck が繰り返し作成されない。
 
 <a id="deck-management-04"></a>
 
@@ -122,107 +246,6 @@ Then:
 - Deck 一覧に対象 Deck が表示されない。
 - 対象 Deck の Card を利用できず、学習 session も再開できない。
 
-<a id="deck-management-05"></a>
-
-### DECK-MANAGEMENT-05 ログイン中に空の Deck を作成して reload 後も確認できる
-
-カテゴリ: `write`
-
-区分: 正常系
-
-Given:
-
-- Fixture: [`empty`](./fixture/empty.yaml)
-- Google アカウントにログインしている。
-- 作成対象の Deck はまだ存在しない。
-
-When:
-
-- Deck の作成画面で name、category を入力し、保存した後、Deck 一覧を reload する。
-
-Then:
-
-- Deck の作成成功が通知される。
-- 作成した空の Deck が reload 後も Deck 一覧に一つだけ表示される。
-- 編集画面でも入力した name、category を確認できる。作成・編集画面に改行変換の操作・説明は表示されず、新規 Deck の旧改行変換値は既定の `false` になる。
-- 同期後も同じアカウントの Deck として利用でき、再読み込みや同期によって複製が増えない。
-
-<a id="deck-management-06"></a>
-
-### DECK-MANAGEMENT-06 ログイン中の Deck 作成拒否を反映できる
-
-カテゴリ: `write`
-
-区分: 異常系
-
-Given:
-
-- Fixture: [`empty`](./fixture/empty.yaml)
-- Google アカウントにログインしている。
-- Deck の作成がローカル反映後にクラウドへの同期で拒否される。
-
-When:
-
-- Deck の作成画面で name、category を入力し、保存する。
-
-Then:
-
-- 通常アカウントの作成はサーバー保存の成功まで待ち、保存失敗時は入力を維持して toast を表示する。
-- クラウドから拒否された Deck は Firestore の rollback により利用できる Deck として一覧に残らない。拒否は呼び出し側が toast で通知する。
-- 操作していないのに新しい Deck が繰り返し作成されない。
-
-<a id="deck-management-07"></a>
-
-### DECK-MANAGEMENT-07 匿名で空の Deck を作成して reload 後も確認できる
-
-カテゴリ: `write`
-
-区分: 正常系
-
-Given:
-
-- Fixture: [`empty`](./fixture/empty.yaml)
-- Google アカウントにログインしていない匿名ユーザーである。
-- 作成対象の Deck はまだ存在しない。
-
-When:
-
-- Deck の作成画面で name と category を入力し、保存した後、Deck 一覧を reload する。
-
-Then:
-
-- 作成画面に保存先の選択肢はない。
-- サーバー応答を待たずに作成を完了できる。
-- Deck の作成成功が通知される。
-- 作成した空の Deck が同じブラウザーで reload した後も、一つだけ Deck 一覧に表示される。
-- 作成した Deck はこのブラウザーだけで利用でき、クラウドには追加されない。
-- 対象 Deck に Card が存在しない。
-
-<a id="deck-management-08"></a>
-
-### DECK-MANAGEMENT-08 未保存の Deck 編集内容を維持して編集を続けられる
-
-カテゴリ: `read`
-
-区分: 正常系
-
-Given:
-
-- Fixture: [`deck-unsaved-navigation`](./fixture/deck-unsaved-navigation.yaml)
-- 認証済みユーザーが所有する編集対象の Deck が存在する。
-- Deck 編集画面で name を変更し、まだ保存していない。
-- 通知が表示されている。
-
-When:
-
-- Header から Deck 一覧への離脱を試み、Keep editing を選択する。
-
-Then:
-
-- 離脱は取り消され、変更した name が編集画面に維持される。
-- 離脱確認 dialog 表示中は、通知が重なっていても dialog の操作を妨げない。
-- dialog 表示中に通知が消えるか置き換わっても、focus は Keep editing に維持される。
-
 <a id="deck-management-09"></a>
 
 ### DECK-MANAGEMENT-09 学習 session の終了失敗後も Deck の削除成功を維持する
@@ -249,26 +272,3 @@ Then:
 - reload 後も Deck 一覧に対象 Deck が表示されず、その学習 session を再開できない。
 - 対象 Deck のすべての Card を表示・操作できない。削除前にこのブラウザーで開いたことがない Card も対象となる。
 - 操作対象ではない Deck、Card、学習 session は維持され、引き続き再開できる。
-
-<a id="deck-management-10"></a>
-
-### DECK-MANAGEMENT-10 未保存の Deck 編集内容を破棄して一覧へ戻れる
-
-カテゴリ: `read`
-
-区分: 正常系
-
-Given:
-
-- Fixture: [`deck-unsaved-navigation`](./fixture/deck-unsaved-navigation.yaml)
-- 認証済みユーザーが所有する Deck の編集画面で name を変更し、まだ保存していない。
-- Header から Deck 一覧への離脱を一度試み、Keep editing を選択して編集を続けている。
-
-When:
-
-- Header から再度 Deck 一覧への離脱を試み、Discard changes を選択する。
-
-Then:
-
-- 2回目の離脱では Deck 一覧へ1回だけ遷移する。
-- Deck 一覧には変更前の name が表示される。

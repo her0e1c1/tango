@@ -8,40 +8,26 @@ Deck、Card 一覧、閲覧、および全ページの主要画面の表示・�
 
 | ID | カテゴリ | 区分 | テストケース |
 | --- | --- | --- | --- |
-| NAVIGATION-01 | read | 異常系 | [存在しない route から Deck 一覧へ復帰できる](#navigation-01) |
 | NAVIGATION-02 | read | 正常系 | [画面の keyboard shortcut で主要 route へ遷移できる](#navigation-02) |
-| NAVIGATION-03 | write | 異常系 | [共通エラー画面が現在の言語で表示され Reload で復旧する](#navigation-03) |
-| NAVIGATION-04 | read | 異常系 | [処理中の予期しないエラーから復旧できる](#navigation-04) |
-| NAVIGATION-05 | read | 異常系 | [不正な PWA キャッシュによる起動失敗時に手動復旧を案内する](#navigation-05) |
 | NAVIGATION-06 | read | 正常系 | [Deck 一覧から Card 一覧へ遷移できる](#navigation-06) |
-| NAVIGATION-07 | read | 異常系 | [存在しない Deck から復帰できる](#navigation-07) |
 | NAVIGATION-08 | read | 正常系 | [ログイン中の Deck を学習データを変更せずに閲覧できる](#navigation-08) |
 | NAVIGATION-09 | read | 正常系 | [匿名利用中の Deck を先頭から閲覧し直せる](#navigation-09) |
 | NAVIGATION-10 | read | 正常系 | [学習条件に依存せず全 Card を標準順で閲覧できる](#navigation-10) |
 | NAVIGATION-11 | read | 正常系 | [復習期日前の Card も閲覧できる](#navigation-11) |
 | NAVIGATION-12 | read | 正常系 | [空の Deck の閲覧画面から一覧へ戻れる](#navigation-12) |
 | NAVIGATION-13 | read | 正常系 | [1件の Card の長い解答を touch で閲覧して終了できる](#navigation-13) |
-| NAVIGATION-14 | write | 正常系 | [閲覧の表示設定を保存して学習にも反映できる](#navigation-14) |
 | NAVIGATION-15 | read | 正常系 | [学習データを変更せずに閲覧を自動再生できる](#navigation-15) |
 | NAVIGATION-16 | read | 正常系 | [閲覧の進捗スライダーで前後へ移動できる](#navigation-16) |
 | NAVIGATION-17 | read | 正常系 | [読み込み済みの復習件数と集計条件を表示できる](#navigation-17) |
 | NAVIGATION-18 | read | 正常系 | [復習期限の到達で一覧を更新できる](#navigation-18) |
-| NAVIGATION-19 | write | 正常系 | [view mode で長い表面を読みながら移動を防止できる](#navigation-19) |
-| NAVIGATION-20 | write | 正常系 | [閲覧の view mode 終了後に通常の表裏操作へ戻れる](#navigation-20) |
-| NAVIGATION-21 | write | 正常系 | [view mode 中も閲覧ボタンで次へ進める](#navigation-21) |
-| NAVIGATION-22 | batch | 異常系 | [保存データの初期化失敗からローカルデータを削除して再起動する](#navigation-22) |
-| NAVIGATION-23 | read | 異常系 | [保存済みの言語を利用できない場合はエラーを英語で案内する](#navigation-23) |
-| NAVIGATION-24 | read | 異常系 | [個別に処理された失敗では画面全体を復旧画面に置き換えない](#navigation-24) |
 | NAVIGATION-25 | read | 正常系 | [Deck 一覧の追加メニューを開閉して操作項目を選べる](#navigation-25) |
 | NAVIGATION-26 | read | 正常系 | [Deck 一覧の追加メニューから作成とインポートの画面へ遷移できる](#navigation-26) |
 | NAVIGATION-27 | read | 正常系 | [閲覧 Card の表裏を切り替えて裏面の内容を利用できる](#navigation-27) |
 | NAVIGATION-28 | read | 正常系 | [閲覧で未対応の mouse と上下操作は Card を変更しない](#navigation-28) |
-| NAVIGATION-29 | read | 異常系 | [存在しない Deck の閲覧画面から一覧へ戻れる](#navigation-29) |
 | NAVIGATION-30 | read | 正常系 | [閲覧 Help で操作を確認して元の Card へ戻れる](#navigation-30) |
 | NAVIGATION-31 | read | 正常系 | [閲覧の編集リンクから現在の Card を編集画面で開ける](#navigation-31) |
 | NAVIGATION-32 | read | 正常系 | [再生間隔0では閲覧の自動送りを利用できない](#navigation-32) |
 | NAVIGATION-33 | read | 正常系 | [閲覧 Help の表示中は自動送りを中断する](#navigation-33) |
-| NAVIGATION-34 | write | 正常系 | [閲覧の keyboard 操作は focus 対象の標準操作を維持する](#navigation-34) |
 | NAVIGATION-35 | read | 正常系 | [Deck 一覧を状態ごとの区分と操作を含むレイアウトで表示する](#navigation-35) |
 | NAVIGATION-36 | read | 正常系 | [Deck 一覧を学習状態と復習期限の順に並べる](#navigation-36) |
 | NAVIGATION-37 | read | 正常系 | [復習と新規が0件の Deck では理由を区別して表示する](#navigation-37) |
@@ -49,33 +35,24 @@ Deck、Card 一覧、閲覧、および全ページの主要画面の表示・�
 | NAVIGATION-39 | read | 正常系 | [間隔反復 OFF では件数を隠して学習と管理の導線を維持する](#navigation-39) |
 | NAVIGATION-40 | read | 正常系 | [条件の変更と画面復帰で一覧の復習件数を更新する](#navigation-40) |
 | NAVIGATION-41 | read | 正常系 | [view mode 中も閲覧の自動再生で次へ進める](#navigation-41) |
+| NAVIGATION-44 | read | 正常系 | [空の Deck 一覧でも追加メニューを利用できる](#navigation-44) |
+| NAVIGATION-14 | write | 正常系 | [閲覧の表示設定を保存して学習にも反映できる](#navigation-14) |
+| NAVIGATION-19 | write | 正常系 | [view mode で長い表面を読みながら移動を防止できる](#navigation-19) |
+| NAVIGATION-20 | write | 正常系 | [閲覧の view mode 終了後に通常の表裏操作へ戻れる](#navigation-20) |
+| NAVIGATION-21 | write | 正常系 | [view mode 中も閲覧ボタンで次へ進める](#navigation-21) |
+| NAVIGATION-34 | write | 正常系 | [閲覧の keyboard 操作は focus 対象の標準操作を維持する](#navigation-34) |
+| NAVIGATION-45 | write | 正常系 | [Deck 一覧の Continue から既存の学習を再開できる](#navigation-45) |
+| NAVIGATION-01 | read | 異常系 | [存在しない route から Deck 一覧へ復帰できる](#navigation-01) |
+| NAVIGATION-04 | read | 異常系 | [処理中の予期しないエラーから復旧できる](#navigation-04) |
+| NAVIGATION-05 | read | 異常系 | [不正な PWA キャッシュによる起動失敗時に手動復旧を案内する](#navigation-05) |
+| NAVIGATION-07 | read | 異常系 | [存在しない Deck から復帰できる](#navigation-07) |
+| NAVIGATION-23 | read | 異常系 | [保存済みの言語を利用できない場合はエラーを英語で案内する](#navigation-23) |
+| NAVIGATION-24 | read | 異常系 | [個別に処理された失敗では画面全体を復旧画面に置き換えない](#navigation-24) |
+| NAVIGATION-29 | read | 異常系 | [存在しない Deck の閲覧画面から一覧へ戻れる](#navigation-29) |
+| NAVIGATION-03 | write | 異常系 | [共通エラー画面が現在の言語で表示され Reload で復旧する](#navigation-03) |
+| NAVIGATION-22 | batch | 異常系 | [保存データの初期化失敗からローカルデータを削除して再起動する](#navigation-22) |
 | NAVIGATION-42 | batch | 異常系 | [ローカルデータの削除失敗時は再試行を案内する](#navigation-42) |
 | NAVIGATION-43 | batch | 異常系 | [ローカルデータ削除後の起動失敗時は復旧画面を表示する](#navigation-43) |
-| NAVIGATION-44 | read | 正常系 | [空の Deck 一覧でも追加メニューを利用できる](#navigation-44) |
-| NAVIGATION-45 | write | 正常系 | [Deck 一覧の Continue から既存の学習を再開できる](#navigation-45) |
-
-<a id="navigation-01"></a>
-
-### NAVIGATION-01 存在しない route から Deck 一覧へ復帰できる
-
-カテゴリ: `read`
-
-区分: 異常系
-
-Given:
-
-- Fixture: [`empty`](./fixture/empty.yaml)
-- 認証済みユーザーがアプリケーションにアクセスできる。
-- Sample Deck の自動生成が無効である。
-
-When:
-
-- 存在しない route を直接開き、`Go home` を選択する。
-
-Then:
-
-- Deck 一覧へ遷移する。
-- not-found 表示が残らない。
 
 <a id="navigation-02"></a>
 
@@ -99,83 +76,6 @@ Then:
 
 - 各 shortcut に設定された画面へ1回だけ遷移する。
 - Deck と Card の内容は変更されない。
-
-<a id="navigation-03"></a>
-
-### NAVIGATION-03 共通エラー画面が現在の言語で表示され Reload で復旧する
-
-カテゴリ: `write`
-
-区分: 異常系
-
-Given:
-
-- Fixture: [`empty`](./fixture/empty.yaml)
-- 匿名ユーザーが端末内に Deck と Card を作成し、日本語の Settings 画面を開いている。
-- 配色の変更時に一時的な障害が発生する。
-- ブラウザーに設定と追加の保存データがある。
-
-When:
-
-- Dark mode を変更して共通エラー画面を表示し、再読み込みを選択する。
-
-Then:
-
-- 日本語の見出し・説明・Reload のみを表示し、ページの言語も日本語になる。描画・ルート・認証自体の失敗にはローカル DB の削除操作を表示しない。
-- 描画・ルート・初期化の失敗理由がある場合は、再読み込みの案内とともに元のエラーメッセージを表示する。
-- Reload 後は元の URL の日本語の Settings へ復旧する。認証状態、匿名ユーザーの Deck・Card、設定と追加の保存データを保持し、アプリからサイトデータを削除しない。
-
-<a id="navigation-04"></a>
-
-### NAVIGATION-04 処理中の予期しないエラーから復旧できる
-
-カテゴリ: `read`
-
-区分: 異常系
-
-Given:
-
-- Fixture: [`empty`](./fixture/empty.yaml)
-- 認証済みユーザーが Settings を利用している。
-- 画面の利用中または操作後の待ち時間に、予期しないエラーが発生する。エラーの詳細がある場合とない場合がある。
-
-When:
-
-- それぞれのエラーが発生した後、共通の復旧画面で Reload を選択する。
-
-Then:
-
-- エラーの詳細の有無にかかわらず共通の復旧画面が表示され、Reload で Settings に戻る。ローカル DB の削除操作は表示しない。
-- 同じ障害が重ねて通知されても復旧画面や操作が重複せず、データ削除・ログアウト・自動遷移を行わない。
-- 画面を開き直した後も、一つの障害に対して復旧操作を一度だけ実行できる。
-- ブラウザーの元のエラー診断は保持する。最初の障害にメッセージがある場合は復旧画面にも表示し、後続の障害で上書きしない。
-
-<a id="navigation-05"></a>
-
-### NAVIGATION-05 不正な PWA キャッシュによる起動失敗時に手動復旧を案内する
-
-カテゴリ: `read`
-
-区分: 異常系
-
-Given:
-
-- Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
-- 認証済みユーザーが Deck 一覧を表示でき、設定が保存されている。
-- ブラウザーの PWA キャッシュにある Tango のアプリが不正になり、起動途中でエラーになる。復旧画面は表示できる。
-- サーバーから取得できるアプリは正常であり、クラウドの Deck と Card は変更されていない。
-
-When:
-
-- アプリを再読み込みして起動エラーを表示する。
-- 通常の Reload を選択する。
-
-Then:
-
-- 保存済みの不正なアプリを開くと、起動時に共通の復旧画面が表示される。
-- Reload だけでは不正なキャッシュが残り、同じ起動エラーになる。ブラウザーのサイト設定による手動削除の案内とデータ消失の警告を表示し、ローカル DB の削除操作は表示しない。
-- 保存済みの設定とキャッシュを保持し、クラウドの Deck と Card の内容を変更しない。
-- 不正なキャッシュによるブラウザーの診断は許容する。
 
 <a id="navigation-06"></a>
 
@@ -201,27 +101,6 @@ Then:
 - 選択した Deck の Card 本文が表示され、似た識別子を持つ別の Deck の Card は表示されない。
 - 識別子内の `?` と `#` は URL のパス内にエンコードされ、query と fragment は空のままとなる。直接表示と reload 後も同じ Deck と Card が表示される。
 - 表示と遷移によって Deck・Card の内容や学習結果は変わらない。
-
-<a id="navigation-07"></a>
-
-### NAVIGATION-07 存在しない Deck から復帰できる
-
-カテゴリ: `read`
-
-区分: 異常系
-
-Given:
-
-- Fixture: [`empty`](./fixture/empty.yaml)
-- 開こうとしている URL の Deck は存在しない。
-
-When:
-
-- 存在しない Deck の Card 一覧を直接開き、Deck が利用できない旨の画面からホームへ戻る操作を選ぶ。
-
-Then:
-
-- Deck 一覧が表示される。
 
 <a id="navigation-08"></a>
 
@@ -373,32 +252,6 @@ Then:
 - 1件中1件の位置を表示し、左右どちらの端を越えても一覧へ戻る。
 - Deck、Card、学習履歴、学習の再開位置、設定は変化しない。
 
-<a id="navigation-14"></a>
-
-### NAVIGATION-14 閲覧の表示設定を保存して学習にも反映できる
-
-カテゴリ: `write`
-
-区分: 正常系
-
-Given:
-
-- Fixture: [`study-session-middle`](./fixture/study-session-middle.yaml)
-- Card の詳細、Help、方向ボタン、再生操作、閲覧画面の編集リンクを表示する設定である。
-
-When:
-
-- Deck の View を開く。
-- 「…」内の鉛筆で編集リンクの表示・非表示を切り替え、他の表示設定も切り替える。
-- reload してから同じ Deck の学習を Continue する。
-
-Then:
-
-- 編集リンクの表示設定の変更では編集画面へ遷移しない。
-- 編集リンクの表示設定は reload 後も維持される。非表示でも「…」から再表示できる。
-- 編集リンクは閲覧専用とし、その他の表示設定は reload 後と学習画面で共通に反映される。
-- 明示的に変更した表示設定だけが保存され、Deck、Card、学習履歴と閲覧前の学習再開位置は変わらない。
-
 <a id="navigation-15"></a>
 
 ### NAVIGATION-15 学習データを変更せずに閲覧を自動再生できる
@@ -499,141 +352,6 @@ Then:
 - 期日に達した Card が復習件数に加わり、一覧の並び順と合計が同じ時点の復習対象に基づいて更新される。
 - 表示の更新だけでは学習の出題順・現在位置や Card の復習予定を変更しない。
 
-<a id="navigation-19"></a>
-
-### NAVIGATION-19 view mode で長い表面を読みながら移動を防止できる
-
-カテゴリ: `write`
-
-区分: 正常系
-
-Given:
-
-- Fixture: [`study-back-text-long`](./fixture/study-back-text-long.yaml)
-- 長い front text を持つ Card を Deck 閲覧画面で表示している。
-
-When:
-
-- view mode を ON にして wheel・touch・方向キーでスクロールし、左右・上下へドラッグする。
-
-Then:
-
-- 本文の先頭と末尾を読める。スワイプ・方向キーは前後の Card への移動や画面退出を起こさず、view mode を維持する。
-- 学習データは変更されない。
-
-<a id="navigation-20"></a>
-
-### NAVIGATION-20 閲覧の view mode 終了後に通常の表裏操作へ戻れる
-
-カテゴリ: `write`
-
-区分: 正常系
-
-Given:
-
-- Fixture: [`study-session-start`](./fixture/study-session-start.yaml)
-- Deck 閲覧画面で view mode が ON である。
-
-When:
-
-- 本文タップと Enter でそれぞれ view mode を終了し、通常の表面から裏面へ切り替える。
-
-Then:
-
-- 終了操作では表面を維持する。終了後は表裏を切り替えられ、裏面をスクロール・タップでき、左右の操作で Card を移動できる。
-
-<a id="navigation-21"></a>
-
-### NAVIGATION-21 view mode 中も閲覧ボタンで次へ進める
-
-カテゴリ: `write`
-
-区分: 正常系
-
-Given:
-
-- Fixture: [`study-session-start`](./fixture/study-session-start.yaml)
-- 複数の Card を閲覧でき、view mode が ON、自動再生の間隔が正の値である。
-
-When:
-
-- 次の Card ボタンで次の Card へ進む。
-
-Then:
-
-- ボタンで次の Card へ進み、view mode を維持する。学習データは変更されない。
-
-<a id="navigation-22"></a>
-
-### NAVIGATION-22 保存データの初期化失敗からローカルデータを削除して再起動する
-
-カテゴリ: `batch`
-
-区分: 異常系
-
-Given:
-
-- Fixture: [`empty`](./fixture/empty.yaml)
-- 匿名ユーザーの Deck・Card・学習データが Firestore の永続キャッシュに保存されている。
-- 保存データの初期化または購読開始時に読み込みが失敗する。
-- 設定、認証、Card replica を含む IndexedDB、localStorage、sessionStorage と PWA キャッシュがある。
-
-When:
-
-- 保存データの読み込み失敗による復旧画面で、警告を読んでローカルデータの削除を選択する。
-
-Then:
-
-- Tango origin の全 IndexedDB（Firestore・認証・Card replica を含む）・localStorage・sessionStorage を削除して元の URL で起動する。
-- 削除前にログアウト・設定初期化・保存データと未同期変更の消失を警告し、匿名データを復元できないことを明示する。
-- 匿名ユーザーの Deck・Card・学習データは再読み込み後も復活しない。
-- 以前の認証 UID・言語設定・追加の保存データは残らず、新しい匿名ユーザーと既定の設定で利用できる。起動に必要な保存領域が再作成されても以前のデータは復元されない。
-- Service Worker の登録と Cache Storage の内容は保持する。
-- ローカルデータ削除やアプリの読み込みを待つ間は起動中表示を出し、完了時はアプリに切り替える。
-- 削除中は復旧操作を重ねて実行できない。
-
-<a id="navigation-23"></a>
-
-### NAVIGATION-23 [TODO] 保存済みの言語を利用できない場合はエラーを英語で案内する
-
-カテゴリ: `read`
-
-区分: 異常系
-
-Given:
-
-- Fixture: [`empty`](./fixture/empty.yaml)
-- 共通エラー画面で保存済みの言語をまだ利用できない。
-
-When:
-
-- 障害が発生し、共通エラー画面を表示する。
-
-Then:
-
-- 英語のエラー画面を表示する。
-
-<a id="navigation-24"></a>
-
-### NAVIGATION-24 [TODO] 個別に処理された失敗では画面全体を復旧画面に置き換えない
-
-カテゴリ: `read`
-
-区分: 異常系
-
-Given:
-
-- Fixture: [`empty`](./fixture/empty.yaml)
-- ユーザーが画面を利用している。
-
-When:
-
-- 個別の画像などの読み込み失敗、または画面内で案内される操作失敗が発生する。
-
-Then:
-
-- その失敗だけでは、画面全体を復旧画面に置き換えない。
-
 <a id="navigation-25"></a>
 
 ### NAVIGATION-25 Deck 一覧の追加メニューを開閉して操作項目を選べる
@@ -729,28 +447,6 @@ Then:
 - Card を移動せず、表裏も変更しない。
 - Deck、Card、学習履歴、学習の再開位置、設定は変化しない。
 
-<a id="navigation-29"></a>
-
-### NAVIGATION-29 存在しない Deck の閲覧画面から一覧へ戻れる
-
-カテゴリ: `read`
-
-区分: 異常系
-
-Given:
-
-- Fixture: [`browse-filter`](./fixture/browse-filter.yaml)
-- 開こうとしている閲覧 URL の Deck は存在しない。
-
-When:
-
-- 存在しない Deck の閲覧 URL を直接開いて、一覧へ戻る操作を行う。
-
-Then:
-
-- Deck が利用できない旨と一覧へ戻る操作を表示する。
-- Card の操作を表示せず、保存済みの内容や学習結果は変わらない。
-
 <a id="navigation-30"></a>
 
 ### NAVIGATION-30 閲覧 Help で操作を確認して元の Card へ戻れる
@@ -842,30 +538,6 @@ Then:
 
 - Help を開いている間は自動送りされない。閉じると、選択済みの再生状態に従って設定された間隔を待ってから次へ進む。
 - Deck、Card、学習履歴、学習の再開位置、設定を変更しない。
-
-<a id="navigation-34"></a>
-
-### NAVIGATION-34 [TODO] 閲覧の keyboard 操作は focus 対象の標準操作を維持する
-
-カテゴリ: `write`
-
-区分: 正常系
-
-Given:
-
-- Fixture: [`study-session-start-local`](./fixture/study-session-start-local.yaml)
-- 匿名ユーザーが Deck を閲覧している。
-- 再生操作を表示する設定であり、裏面にはスクロール領域がある。
-
-When:
-
-- 本文上と入力欄・ボタン・裏面のスクロール領域にそれぞれ focus を置き、Enter、Space、b を入力する。
-
-Then:
-
-- 本文上の Enter は反転、Space は再生切替、b は方向ボタンの表示切替として働く。
-- 入力欄やボタンの標準キー操作を妨げず、裏面のスクロール領域に focus がある場合の Space はスクロールを優先する。
-- Deck、Card、学習履歴、学習の再開位置は変更しない。表示設定を明示的に切り替えた場合のみ、その設定が保存される。
 
 <a id="navigation-35"></a>
 
@@ -1024,6 +696,377 @@ Then:
 
 - 自動再生で次の Card へ進み、view mode を維持する。学習データは変更されない。
 
+<a id="navigation-44"></a>
+
+### NAVIGATION-44 [TODO] 空の Deck 一覧でも追加メニューを利用できる
+
+カテゴリ: `read`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`empty`](./fixture/empty.yaml)
+- Deck 一覧が空であり、Sample Deck の自動生成は無効である。
+
+When:
+
+- 一覧上部の「追加」を開く。
+
+Then:
+
+- 一覧のアクションには作成とインポートが表示され、一覧が空の場合も利用できる。
+
+<a id="navigation-14"></a>
+
+### NAVIGATION-14 閲覧の表示設定を保存して学習にも反映できる
+
+カテゴリ: `write`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`study-session-middle`](./fixture/study-session-middle.yaml)
+- Card の詳細、Help、方向ボタン、再生操作、閲覧画面の編集リンクを表示する設定である。
+
+When:
+
+- Deck の View を開く。
+- 「…」内の鉛筆で編集リンクの表示・非表示を切り替え、他の表示設定も切り替える。
+- reload してから同じ Deck の学習を Continue する。
+
+Then:
+
+- 編集リンクの表示設定の変更では編集画面へ遷移しない。
+- 編集リンクの表示設定は reload 後も維持される。非表示でも「…」から再表示できる。
+- 編集リンクは閲覧専用とし、その他の表示設定は reload 後と学習画面で共通に反映される。
+- 明示的に変更した表示設定だけが保存され、Deck、Card、学習履歴と閲覧前の学習再開位置は変わらない。
+
+<a id="navigation-19"></a>
+
+### NAVIGATION-19 view mode で長い表面を読みながら移動を防止できる
+
+カテゴリ: `write`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`study-back-text-long`](./fixture/study-back-text-long.yaml)
+- 長い front text を持つ Card を Deck 閲覧画面で表示している。
+
+When:
+
+- view mode を ON にして wheel・touch・方向キーでスクロールし、左右・上下へドラッグする。
+
+Then:
+
+- 本文の先頭と末尾を読める。スワイプ・方向キーは前後の Card への移動や画面退出を起こさず、view mode を維持する。
+- 学習データは変更されない。
+
+<a id="navigation-20"></a>
+
+### NAVIGATION-20 閲覧の view mode 終了後に通常の表裏操作へ戻れる
+
+カテゴリ: `write`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`study-session-start`](./fixture/study-session-start.yaml)
+- Deck 閲覧画面で view mode が ON である。
+
+When:
+
+- 本文タップと Enter でそれぞれ view mode を終了し、通常の表面から裏面へ切り替える。
+
+Then:
+
+- 終了操作では表面を維持する。終了後は表裏を切り替えられ、裏面をスクロール・タップでき、左右の操作で Card を移動できる。
+
+<a id="navigation-21"></a>
+
+### NAVIGATION-21 view mode 中も閲覧ボタンで次へ進める
+
+カテゴリ: `write`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`study-session-start`](./fixture/study-session-start.yaml)
+- 複数の Card を閲覧でき、view mode が ON、自動再生の間隔が正の値である。
+
+When:
+
+- 次の Card ボタンで次の Card へ進む。
+
+Then:
+
+- ボタンで次の Card へ進み、view mode を維持する。学習データは変更されない。
+
+<a id="navigation-34"></a>
+
+### NAVIGATION-34 [TODO] 閲覧の keyboard 操作は focus 対象の標準操作を維持する
+
+カテゴリ: `write`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`study-session-start-local`](./fixture/study-session-start-local.yaml)
+- 匿名ユーザーが Deck を閲覧している。
+- 再生操作を表示する設定であり、裏面にはスクロール領域がある。
+
+When:
+
+- 本文上と入力欄・ボタン・裏面のスクロール領域にそれぞれ focus を置き、Enter、Space、b を入力する。
+
+Then:
+
+- 本文上の Enter は反転、Space は再生切替、b は方向ボタンの表示切替として働く。
+- 入力欄やボタンの標準キー操作を妨げず、裏面のスクロール領域に focus がある場合の Space はスクロールを優先する。
+- Deck、Card、学習履歴、学習の再開位置は変更しない。表示設定を明示的に切り替えた場合のみ、その設定が保存される。
+
+<a id="navigation-45"></a>
+
+### NAVIGATION-45 Deck 一覧の Continue から既存の学習を再開できる
+
+カテゴリ: `write`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`study-session-middle`](./fixture/study-session-middle.yaml)
+- Deck に既存の学習があり、Deck 一覧に Continue が表示されている。
+
+When:
+
+- Deck 一覧で Continue を選択する。
+
+Then:
+
+- 既存の学習を再開する。
+- 一覧表示と再開によって、Deck・Card の内容や学習結果・現在位置を変更しない。
+
+<a id="navigation-01"></a>
+
+### NAVIGATION-01 存在しない route から Deck 一覧へ復帰できる
+
+カテゴリ: `read`
+
+区分: 異常系
+
+Given:
+
+- Fixture: [`empty`](./fixture/empty.yaml)
+- 認証済みユーザーがアプリケーションにアクセスできる。
+- Sample Deck の自動生成が無効である。
+
+When:
+
+- 存在しない route を直接開き、`Go home` を選択する。
+
+Then:
+
+- Deck 一覧へ遷移する。
+- not-found 表示が残らない。
+
+<a id="navigation-04"></a>
+
+### NAVIGATION-04 処理中の予期しないエラーから復旧できる
+
+カテゴリ: `read`
+
+区分: 異常系
+
+Given:
+
+- Fixture: [`empty`](./fixture/empty.yaml)
+- 認証済みユーザーが Settings を利用している。
+- 画面の利用中または操作後の待ち時間に、予期しないエラーが発生する。エラーの詳細がある場合とない場合がある。
+
+When:
+
+- それぞれのエラーが発生した後、共通の復旧画面で Reload を選択する。
+
+Then:
+
+- エラーの詳細の有無にかかわらず共通の復旧画面が表示され、Reload で Settings に戻る。ローカル DB の削除操作は表示しない。
+- 同じ障害が重ねて通知されても復旧画面や操作が重複せず、データ削除・ログアウト・自動遷移を行わない。
+- 画面を開き直した後も、一つの障害に対して復旧操作を一度だけ実行できる。
+- ブラウザーの元のエラー診断は保持する。最初の障害にメッセージがある場合は復旧画面にも表示し、後続の障害で上書きしない。
+
+<a id="navigation-05"></a>
+
+### NAVIGATION-05 不正な PWA キャッシュによる起動失敗時に手動復旧を案内する
+
+カテゴリ: `read`
+
+区分: 異常系
+
+Given:
+
+- Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
+- 認証済みユーザーが Deck 一覧を表示でき、設定が保存されている。
+- ブラウザーの PWA キャッシュにある Tango のアプリが不正になり、起動途中でエラーになる。復旧画面は表示できる。
+- サーバーから取得できるアプリは正常であり、クラウドの Deck と Card は変更されていない。
+
+When:
+
+- アプリを再読み込みして起動エラーを表示する。
+- 通常の Reload を選択する。
+
+Then:
+
+- 保存済みの不正なアプリを開くと、起動時に共通の復旧画面が表示される。
+- Reload だけでは不正なキャッシュが残り、同じ起動エラーになる。ブラウザーのサイト設定による手動削除の案内とデータ消失の警告を表示し、ローカル DB の削除操作は表示しない。
+- 保存済みの設定とキャッシュを保持し、クラウドの Deck と Card の内容を変更しない。
+- 不正なキャッシュによるブラウザーの診断は許容する。
+
+<a id="navigation-07"></a>
+
+### NAVIGATION-07 存在しない Deck から復帰できる
+
+カテゴリ: `read`
+
+区分: 異常系
+
+Given:
+
+- Fixture: [`empty`](./fixture/empty.yaml)
+- 開こうとしている URL の Deck は存在しない。
+
+When:
+
+- 存在しない Deck の Card 一覧を直接開き、Deck が利用できない旨の画面からホームへ戻る操作を選ぶ。
+
+Then:
+
+- Deck 一覧が表示される。
+
+<a id="navigation-23"></a>
+
+### NAVIGATION-23 [TODO] 保存済みの言語を利用できない場合はエラーを英語で案内する
+
+カテゴリ: `read`
+
+区分: 異常系
+
+Given:
+
+- Fixture: [`empty`](./fixture/empty.yaml)
+- 共通エラー画面で保存済みの言語をまだ利用できない。
+
+When:
+
+- 障害が発生し、共通エラー画面を表示する。
+
+Then:
+
+- 英語のエラー画面を表示する。
+
+<a id="navigation-24"></a>
+
+### NAVIGATION-24 [TODO] 個別に処理された失敗では画面全体を復旧画面に置き換えない
+
+カテゴリ: `read`
+
+区分: 異常系
+
+Given:
+
+- Fixture: [`empty`](./fixture/empty.yaml)
+- ユーザーが画面を利用している。
+
+When:
+
+- 個別の画像などの読み込み失敗、または画面内で案内される操作失敗が発生する。
+
+Then:
+
+- その失敗だけでは、画面全体を復旧画面に置き換えない。
+
+<a id="navigation-29"></a>
+
+### NAVIGATION-29 存在しない Deck の閲覧画面から一覧へ戻れる
+
+カテゴリ: `read`
+
+区分: 異常系
+
+Given:
+
+- Fixture: [`browse-filter`](./fixture/browse-filter.yaml)
+- 開こうとしている閲覧 URL の Deck は存在しない。
+
+When:
+
+- 存在しない Deck の閲覧 URL を直接開いて、一覧へ戻る操作を行う。
+
+Then:
+
+- Deck が利用できない旨と一覧へ戻る操作を表示する。
+- Card の操作を表示せず、保存済みの内容や学習結果は変わらない。
+
+<a id="navigation-03"></a>
+
+### NAVIGATION-03 共通エラー画面が現在の言語で表示され Reload で復旧する
+
+カテゴリ: `write`
+
+区分: 異常系
+
+Given:
+
+- Fixture: [`empty`](./fixture/empty.yaml)
+- 匿名ユーザーが端末内に Deck と Card を作成し、日本語の Settings 画面を開いている。
+- 配色の変更時に一時的な障害が発生する。
+- ブラウザーに設定と追加の保存データがある。
+
+When:
+
+- Dark mode を変更して共通エラー画面を表示し、再読み込みを選択する。
+
+Then:
+
+- 日本語の見出し・説明・Reload のみを表示し、ページの言語も日本語になる。描画・ルート・認証自体の失敗にはローカル DB の削除操作を表示しない。
+- 描画・ルート・初期化の失敗理由がある場合は、再読み込みの案内とともに元のエラーメッセージを表示する。
+- Reload 後は元の URL の日本語の Settings へ復旧する。認証状態、匿名ユーザーの Deck・Card、設定と追加の保存データを保持し、アプリからサイトデータを削除しない。
+
+<a id="navigation-22"></a>
+
+### NAVIGATION-22 保存データの初期化失敗からローカルデータを削除して再起動する
+
+カテゴリ: `batch`
+
+区分: 異常系
+
+Given:
+
+- Fixture: [`empty`](./fixture/empty.yaml)
+- 匿名ユーザーの Deck・Card・学習データが Firestore の永続キャッシュに保存されている。
+- 保存データの初期化または購読開始時に読み込みが失敗する。
+- 設定、認証、Card replica を含む IndexedDB、localStorage、sessionStorage と PWA キャッシュがある。
+
+When:
+
+- 保存データの読み込み失敗による復旧画面で、警告を読んでローカルデータの削除を選択する。
+
+Then:
+
+- Tango origin の全 IndexedDB（Firestore・認証・Card replica を含む）・localStorage・sessionStorage を削除して元の URL で起動する。
+- 削除前にログアウト・設定初期化・保存データと未同期変更の消失を警告し、匿名データを復元できないことを明示する。
+- 匿名ユーザーの Deck・Card・学習データは再読み込み後も復活しない。
+- 以前の認証 UID・言語設定・追加の保存データは残らず、新しい匿名ユーザーと既定の設定で利用できる。起動に必要な保存領域が再作成されても以前のデータは復元されない。
+- Service Worker の登録と Cache Storage の内容は保持する。
+- ローカルデータ削除やアプリの読み込みを待つ間は起動中表示を出し、完了時はアプリに切り替える。
+- 削除中は復旧操作を重ねて実行できない。
+
 <a id="navigation-42"></a>
 
 ### NAVIGATION-42 [TODO] ローカルデータの削除失敗時は再試行を案内する
@@ -1068,46 +1111,3 @@ When:
 Then:
 
 - ローカルデータ削除やアプリの読み込みを待つ間は起動中表示を出し、失敗時は復旧画面に切り替える。
-
-<a id="navigation-44"></a>
-
-### NAVIGATION-44 [TODO] 空の Deck 一覧でも追加メニューを利用できる
-
-カテゴリ: `read`
-
-区分: 正常系
-
-Given:
-
-- Fixture: [`empty`](./fixture/empty.yaml)
-- Deck 一覧が空であり、Sample Deck の自動生成は無効である。
-
-When:
-
-- 一覧上部の「追加」を開く。
-
-Then:
-
-- 一覧のアクションには作成とインポートが表示され、一覧が空の場合も利用できる。
-
-<a id="navigation-45"></a>
-
-### NAVIGATION-45 Deck 一覧の Continue から既存の学習を再開できる
-
-カテゴリ: `write`
-
-区分: 正常系
-
-Given:
-
-- Fixture: [`study-session-middle`](./fixture/study-session-middle.yaml)
-- Deck に既存の学習があり、Deck 一覧に Continue が表示されている。
-
-When:
-
-- Deck 一覧で Continue を選択する。
-
-Then:
-
-- 既存の学習を再開する。
-- 一覧表示と再開によって、Deck・Card の内容や学習結果・現在位置を変更しない。

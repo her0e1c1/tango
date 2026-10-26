@@ -21,18 +21,18 @@ Card 一覧（card-list）と Deck 閲覧（deck-view）で、学習条件とは
 | CARD-FILTER-02 | read | 正常系 | [他の Deck のフィルター条件にかかわらず Card を全件表示できる](#card-filter-02) |
 | CARD-FILTER-03 | read | 正常系 | [Card が登録されていない Deck は0件表示になる](#card-filter-03) |
 | CARD-FILTER-04 | read | 正常系 | [フィルターに一致する Card がない場合は0件表示になる](#card-filter-04) |
+| CARD-FILTER-10 | read | 正常系 | [絞り込み結果を追加が新しい順にソートできる](#card-filter-10) |
+| CARD-FILTER-11 | read | 正常系 | [絞り込み結果の表示順を標準へ戻せる](#card-filter-11) |
+| CARD-FILTER-13 | read | 正常系 | [リロードでソートだけを標準へ戻しフィルターを維持する](#card-filter-13) |
+| CARD-FILTER-14 | read | 正常系 | [別の Deck から戻ると元のフィルターを復元できる](#card-filter-14) |
+| CARD-FILTER-15 | read | 正常系 | [Card 未登録の一覧から Card の追加へ進める](#card-filter-15) |
+| CARD-FILTER-16 | read | 正常系 | [Card 未登録の Deck 閲覧から Deck 一覧へ戻れる](#card-filter-16) |
 | CARD-FILTER-05 | write | 正常系 | [リロード後も同じタグと AND / OR 条件を復元できる](#card-filter-05) |
 | CARD-FILTER-06 | write | 正常系 | [フィルターを解除した状態もリロード後に維持できる](#card-filter-06) |
 | CARD-FILTER-07 | write | 正常系 | [単一タグで Card を絞り込める](#card-filter-07) |
 | CARD-FILTER-08 | write | 正常系 | [AND 条件ですべての選択タグを持つ Card に絞り込める](#card-filter-08) |
 | CARD-FILTER-09 | write | 正常系 | [OR 条件でいずれかの選択タグを持つ Card に絞り込める](#card-filter-09) |
-| CARD-FILTER-10 | read | 正常系 | [絞り込み結果を追加が新しい順にソートできる](#card-filter-10) |
-| CARD-FILTER-11 | read | 正常系 | [絞り込み結果の表示順を標準へ戻せる](#card-filter-11) |
 | CARD-FILTER-12 | write | 正常系 | [タグ未選択なら AND / OR にかかわらず全件表示する](#card-filter-12) |
-| CARD-FILTER-13 | read | 正常系 | [リロードでソートだけを標準へ戻しフィルターを維持する](#card-filter-13) |
-| CARD-FILTER-14 | read | 正常系 | [別の Deck から戻ると元のフィルターを復元できる](#card-filter-14) |
-| CARD-FILTER-15 | read | 正常系 | [Card 未登録の一覧から Card の追加へ進める](#card-filter-15) |
-| CARD-FILTER-16 | read | 正常系 | [Card 未登録の Deck 閲覧から Deck 一覧へ戻れる](#card-filter-16) |
 
 <a id="card-filter-01"></a>
 
@@ -140,6 +140,149 @@ Then:
 - Card が未登録であるとは案内せず、条件を勝手に解除して全件表示に切り替えない。
 - Card 一覧では選択タグと AND 条件を確認でき、条件の変更・解除を利用できる。
 - 保存済みフィルターと学習条件は変わらず、Card の内容と学習履歴も変更されない。
+
+<a id="card-filter-10"></a>
+
+### CARD-FILTER-10 絞り込み結果を追加が新しい順にソートできる
+
+カテゴリ: `read`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`card-list-sort`](./fixture/card-list-sort.yaml)
+- 対象 Deck に追加日時が異なる Card と、追加日時が同じ Card がある。
+- Card 一覧は標準順で表示されている。
+- 絞り込みなしの場合と、一部の Card に一致するタグを保存済みの場合をそれぞれ確認する。
+
+When:
+
+- Card 一覧の並び順で「追加が新しい順」を選択する。
+
+Then:
+
+- 表示対象の Card を追加日時の新しい順で表示する。同じ追加日時なら標準の相対順序を維持し、編集日時では順序を変えない。
+- ソート前後で表示対象と件数、選択タグ、AND / OR 条件は変わらない。
+- フィルターに一致しない Card をソートによって追加しない。
+- ソート順は永続化せず、Card、学習条件、学習 session の順序・位置を変更しない。
+
+<a id="card-filter-11"></a>
+
+### CARD-FILTER-11 絞り込み結果の表示順を標準へ戻せる
+
+カテゴリ: `read`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`card-list-sort`](./fixture/card-list-sort.yaml)
+- 対象 Deck の Card 一覧は「追加が新しい順」で表示されている。
+- 絞り込みなしの場合と、一部の Card に一致するタグを保存済みの場合をそれぞれ確認する。
+- 確認中に Card の追加・編集・削除は行わない。
+
+When:
+
+- Card 一覧の並び順で「標準」を選択する。
+
+Then:
+
+- 現在のフィルターに一致する Card が標準の相対順序へ戻る。
+- 表示対象と件数、選択タグ、AND / OR 条件は変わらない。
+- Card、保存済みフィルター、学習条件、学習 session は変更されない。
+
+<a id="card-filter-13"></a>
+
+### CARD-FILTER-13 [TODO] リロードでソートだけを標準へ戻しフィルターを維持する
+
+カテゴリ: `read`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`card-list-sort`](./fixture/card-list-sort.yaml)
+- 一部の Card に一致するタグのフィルターを保存済みで、Card 一覧を「追加が新しい順」で表示している。
+- 絞り込み結果の標準順と追加が新しい順は異なり、確認中に Card の追加・編集・削除は行わない。
+
+When:
+
+- Card 一覧をリロードし、同じ Deck の閲覧画面も開く。
+
+Then:
+
+- 両画面は保存済みフィルターに一致する Card を標準の相対順序で表示する。
+- 選択タグと AND / OR 条件、表示対象と件数はリロード前から変わらない。
+- 保存済みフィルターまで初期化せず、Card、学習条件、学習 session の順序・位置も変更しない。
+
+<a id="card-filter-14"></a>
+
+### CARD-FILTER-14 別の Deck から戻ると元のフィルターを復元できる
+
+カテゴリ: `read`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`browse-filter`](./fixture/browse-filter.yaml)
+- Card を持つ複数の Deck がある。
+- 移動元の Deck には一部の Card に絞り込むタグと AND 条件を保存済みである。
+- 移動元を離れ、フィルター未設定の別の Deck の Card 一覧を経て Deck 閲覧を開いている。
+
+When:
+
+- 移動元の Deck の Card 一覧へ戻り、フィルター欄を開く。
+
+Then:
+
+- 移動元の保存済みの選択タグと AND 条件、および絞り込み結果が復元される。
+- 移動元の Deck の Card だけを表示し、両 Deck の保存済み条件を変更しない。
+
+<a id="card-filter-15"></a>
+
+### CARD-FILTER-15 Card 未登録の一覧から Card の追加へ進める
+
+カテゴリ: `read`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`browse-filter`](./fixture/browse-filter.yaml)
+- 対象 Deck は存在するが、Card が1枚も登録されていない。
+- 対象 Deck の Card フィルターは未設定で、Card 一覧を開いている。
+
+When:
+
+- Card の追加操作を選択する。
+
+Then:
+
+- 対象 Deck の Card 作成画面へ移動できる。
+
+<a id="card-filter-16"></a>
+
+### CARD-FILTER-16 Card 未登録の Deck 閲覧から Deck 一覧へ戻れる
+
+カテゴリ: `read`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`browse-filter`](./fixture/browse-filter.yaml)
+- 対象 Deck は存在するが、Card が1枚も登録されていない。
+- 対象 Deck の Card フィルターは未設定で、Deck 閲覧を開いている。
+
+When:
+
+- Deck 一覧へ戻る操作を選択する。
+
+Then:
+
+- Deck 一覧へ移動できる。
 
 <a id="card-filter-05"></a>
 
@@ -268,57 +411,6 @@ Then:
 - 件数は条件に一致する Card 数であり、対象 Deck のフィルターだけが保存される。
 - 学習条件は変更されず、学習候補による追加の絞り込みも行わない。
 
-<a id="card-filter-10"></a>
-
-### CARD-FILTER-10 絞り込み結果を追加が新しい順にソートできる
-
-カテゴリ: `read`
-
-区分: 正常系
-
-Given:
-
-- Fixture: [`card-list-sort`](./fixture/card-list-sort.yaml)
-- 対象 Deck に追加日時が異なる Card と、追加日時が同じ Card がある。
-- Card 一覧は標準順で表示されている。
-- 絞り込みなしの場合と、一部の Card に一致するタグを保存済みの場合をそれぞれ確認する。
-
-When:
-
-- Card 一覧の並び順で「追加が新しい順」を選択する。
-
-Then:
-
-- 表示対象の Card を追加日時の新しい順で表示する。同じ追加日時なら標準の相対順序を維持し、編集日時では順序を変えない。
-- ソート前後で表示対象と件数、選択タグ、AND / OR 条件は変わらない。
-- フィルターに一致しない Card をソートによって追加しない。
-- ソート順は永続化せず、Card、学習条件、学習 session の順序・位置を変更しない。
-
-<a id="card-filter-11"></a>
-
-### CARD-FILTER-11 絞り込み結果の表示順を標準へ戻せる
-
-カテゴリ: `read`
-
-区分: 正常系
-
-Given:
-
-- Fixture: [`card-list-sort`](./fixture/card-list-sort.yaml)
-- 対象 Deck の Card 一覧は「追加が新しい順」で表示されている。
-- 絞り込みなしの場合と、一部の Card に一致するタグを保存済みの場合をそれぞれ確認する。
-- 確認中に Card の追加・編集・削除は行わない。
-
-When:
-
-- Card 一覧の並び順で「標準」を選択する。
-
-Then:
-
-- 現在のフィルターに一致する Card が標準の相対順序へ戻る。
-- 表示対象と件数、選択タグ、AND / OR 条件は変わらない。
-- Card、保存済みフィルター、学習条件、学習 session は変更されない。
-
 <a id="card-filter-12"></a>
 
 ### CARD-FILTER-12 [TODO] タグ未選択なら AND / OR にかかわらず全件表示する
@@ -342,95 +434,3 @@ Then:
 - 両画面で対象 Deck の全 Card を一度ずつ表示し、タグのない Card も除外しない。
 - 選択タグが空であることを理由に0件表示にしない。
 - 学習条件や他の Deck のフィルターを代わりに適用せず、それらの保存値も変更しない。
-
-<a id="card-filter-13"></a>
-
-### CARD-FILTER-13 [TODO] リロードでソートだけを標準へ戻しフィルターを維持する
-
-カテゴリ: `read`
-
-区分: 正常系
-
-Given:
-
-- Fixture: [`card-list-sort`](./fixture/card-list-sort.yaml)
-- 一部の Card に一致するタグのフィルターを保存済みで、Card 一覧を「追加が新しい順」で表示している。
-- 絞り込み結果の標準順と追加が新しい順は異なり、確認中に Card の追加・編集・削除は行わない。
-
-When:
-
-- Card 一覧をリロードし、同じ Deck の閲覧画面も開く。
-
-Then:
-
-- 両画面は保存済みフィルターに一致する Card を標準の相対順序で表示する。
-- 選択タグと AND / OR 条件、表示対象と件数はリロード前から変わらない。
-- 保存済みフィルターまで初期化せず、Card、学習条件、学習 session の順序・位置も変更しない。
-
-<a id="card-filter-14"></a>
-
-### CARD-FILTER-14 別の Deck から戻ると元のフィルターを復元できる
-
-カテゴリ: `read`
-
-区分: 正常系
-
-Given:
-
-- Fixture: [`browse-filter`](./fixture/browse-filter.yaml)
-- Card を持つ複数の Deck がある。
-- 移動元の Deck には一部の Card に絞り込むタグと AND 条件を保存済みである。
-- 移動元を離れ、フィルター未設定の別の Deck の Card 一覧を経て Deck 閲覧を開いている。
-
-When:
-
-- 移動元の Deck の Card 一覧へ戻り、フィルター欄を開く。
-
-Then:
-
-- 移動元の保存済みの選択タグと AND 条件、および絞り込み結果が復元される。
-- 移動元の Deck の Card だけを表示し、両 Deck の保存済み条件を変更しない。
-
-<a id="card-filter-15"></a>
-
-### CARD-FILTER-15 Card 未登録の一覧から Card の追加へ進める
-
-カテゴリ: `read`
-
-区分: 正常系
-
-Given:
-
-- Fixture: [`browse-filter`](./fixture/browse-filter.yaml)
-- 対象 Deck は存在するが、Card が1枚も登録されていない。
-- 対象 Deck の Card フィルターは未設定で、Card 一覧を開いている。
-
-When:
-
-- Card の追加操作を選択する。
-
-Then:
-
-- 対象 Deck の Card 作成画面へ移動できる。
-
-<a id="card-filter-16"></a>
-
-### CARD-FILTER-16 Card 未登録の Deck 閲覧から Deck 一覧へ戻れる
-
-カテゴリ: `read`
-
-区分: 正常系
-
-Given:
-
-- Fixture: [`browse-filter`](./fixture/browse-filter.yaml)
-- 対象 Deck は存在するが、Card が1枚も登録されていない。
-- 対象 Deck の Card フィルターは未設定で、Deck 閲覧を開いている。
-
-When:
-
-- Deck 一覧へ戻る操作を選択する。
-
-Then:
-
-- Deck 一覧へ移動できる。
