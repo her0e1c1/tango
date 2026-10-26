@@ -86,6 +86,8 @@ class ReportPrivacy(unittest.TestCase):
             {"extra": {"resources/unknown.json": b'{"password":"UNRECOGNIZED-SENSITIVE-SENTINEL"}'}},
             {"extra": {"resources/unknown.json": b'{"secret":"UNRECOGNIZED-SENSITIVE-SENTINEL"}'}},
             {"extra": {"resources/unknown.json": b'{"email":"person@private.example"}'}},
+            {"extra": {"resources/unknown.txt": b'refresh_token=FIXED-UNKNOWN-SENTINEL&password=FIXED-PASSWORD'}},
+            {"extra": {"resources/unknown.json": b'{"params":[{"name":"refresh_token","value":"FIXED-UNKNOWN-SENTINEL"}]}'}},
             {"extra": {"../escape": b"no"}},
         ]
         for case in cases:
@@ -114,6 +116,16 @@ class ReportPrivacy(unittest.TestCase):
         # Then: It fails closed without echoing the parser payload or leaving a candidate.
         self.assertNotEqual(result.returncode, 0)
         self.assertNotIn(b"UNRECOGNIZED-SENSITIVE-SENTINEL", result.stdout + result.stderr)
+        self.assertFalse(self.output.exists())
+
+    def test_rejects_executable_html_after_the_report(self):
+        # Given: Otherwise pinned viewer code has an appended script payload.
+        self.fixture()
+        path = self.source / "index.html"
+        path.write_bytes(path.read_bytes() + b'<script>throw "UNRECOGNIZED-SENSITIVE-SENTINEL"</script>')
+        # When / Then: The candidate is rejected rather than copying executable suffixes.
+        with self.assertRaises(privacy.PrivacyError):
+            privacy.prepare(self.source, self.report, self.output)
         self.assertFalse(self.output.exists())
 
 

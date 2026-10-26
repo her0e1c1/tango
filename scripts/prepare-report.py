@@ -14,7 +14,7 @@ import re
 import shutil
 import sys
 import tempfile
-from urllib.parse import parse_qs, quote, urlsplit
+from urllib.parse import parse_qs, parse_qsl, quote, urlsplit
 import zipfile
 
 
@@ -71,6 +71,16 @@ def json_bytes(value):
     return json.dumps(value, ensure_ascii=False, separators=(",", ":")).encode()
 
 
+def structured(data):
+    text = data.decode() if isinstance(data, bytes) else data
+    if text.startswith(("{", "[")):
+        return json.loads(text)
+    if re.match(r"^[A-Za-z_][A-Za-z0-9_]*=", text):
+        return [{"name": key, "value": value}
+                for key, value in parse_qsl(text, keep_blank_values=True, strict_parsing=True)]
+    return None
+
+
 def emulator_jwt(token):
     header, payload, signature = token.decode().split(".")
     decode = lambda part: json.loads(base64.urlsafe_b64decode(part + "=" * (-len(part) % 4)))
@@ -98,6 +108,7 @@ def prepare(source, source_json, destination):
     require(html.count(MARKER) == 1, "unsupported HTML report format")
     prefix, embedded = html.split(MARKER)
     encoded, suffix = embedded.split(b"</template>", 1)
+    require(not suffix, "unexpected trailing HTML")
     metadata = unpack(base64.b64decode(encoded, validate=True))
     require("report.json" in metadata and all(n.endswith(".json") for n in metadata),
             "unsupported report metadata")
@@ -106,6 +117,8 @@ def prepare(source, source_json, destination):
                   if isinstance(item, dict) and isinstance(item.get("path"), str)
                   and item["path"].startswith("data/")}
     require(referenced == {n for n in files if n.startswith("data/")}, "unbound report data")
+    require(all(re.fullmatch(r"data/[a-f0-9]{40}\.(zip|png|md)", name) for name in referenced),
+            "unsupported report attachment")
     viewer = VIEWER
     static = (viewer / "htmlReport/index.html").read_bytes()
     static = re.sub(rb'<script type="module"[^>]*></script>',
@@ -178,13 +191,14 @@ def prepare(source, source_json, destination):
     for name, key in auth_bodies:
         data = traces[name][key]
         try:
-            body = json.loads(data)
+            body = structured(data)
         except (ValueError, UnicodeDecodeError):
             # Auth emulator also serves its static popup. Its text is scanned below.
             continue
         for item in walk(body):
             if isinstance(item, dict):
-                for key, value in item.items():
+                fields = [(item["name"], item["value"])] if isinstance(item.get("name"), str) and "value" in item else item.items()
+                for key, value in fields:
                     if key.replace("_", "").lower() in AUTH_KEYS and value:
                         require(isinstance(value, str) and len(value) >= 12, "unexpected auth field")
                         tokens.add(value.encode())
@@ -212,6 +226,8 @@ def prepare(source, source_json, destination):
     def check_fields(value):
         for item in walk(value):
             if isinstance(item, dict):
+                if isinstance(item.get("name"), str) and "value" in item:
+                    check_fields({item["name"]: item["value"]})
                 for key, field in item.items():
                     if key.replace("_", "").lower() in AUTH_KEYS:
                         require(not field or field == REDACTED, "unrecognized auth field")
@@ -219,12 +235,13 @@ def prepare(source, source_json, destination):
                         require(not field, "unexpected secret field")
                     if key.lower() == "email" and field:
                         require(isinstance(field, str) and field.endswith("@example.test"), "unexpected email identity")
-            elif isinstance(item, str) and item.startswith(("{", "[")):
+            elif isinstance(item, str):
                 try:
-                    nested = json.loads(item)
+                    nested = structured(item)
                 except ValueError:
                     continue
-                check_fields(nested)
+                if nested is not None:
+                    check_fields(nested)
 
     for name, entries in traces.items():
         for key, data in entries.items():
@@ -234,7 +251,7 @@ def prepare(source, source_json, destination):
                     check_fields(json.loads(line))
             else:
                 try:
-                    check_fields(json.loads(data))
+                    check_fields(structured(data))
                 except (json.JSONDecodeError, UnicodeDecodeError):
                     pass
             entries[key] = data
