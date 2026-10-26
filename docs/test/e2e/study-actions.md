@@ -8,22 +8,46 @@
 
 | ID | カテゴリ | 区分 | テストケース |
 | --- | --- | --- | --- |
+| STUDY-ACTIONS-04 | read | 正常系 | [学習中に前の Card へ戻れない](#study-actions-04) |
 | STUDY-ACTIONS-01 | write | 正常系 | [good action で学習結果を保存して次の Card へ進める](#study-actions-01) |
 | STUDY-ACTIONS-02 | write | 正常系 | [again action で学習結果を保存して次の Card へ進める](#study-actions-02) |
 | STUDY-ACTIONS-03 | write | 正常系 | [スキップで次の Card へ進める](#study-actions-03) |
-| STUDY-ACTIONS-04 | read | 正常系 | [学習中に前の Card へ戻れない](#study-actions-04) |
-| STUDY-ACTIONS-05 | write | 異常系 | [回答履歴の保存失敗時も保存済みの学習状態と位置を維持する](#study-actions-05) |
 | STUDY-ACTIONS-06 | write | 正常系 | [評価以外の学習操作では回答を記録しない](#study-actions-06) |
 | STUDY-ACTIONS-07 | write | 正常系 | [4方向の評価が入力手段によらず一致する](#study-actions-07) |
 | STUDY-ACTIONS-08 | write | 正常系 | [保存中は競合する学習操作を受け付けず成功時に操作待ちを解除する](#study-actions-08) |
 | STUDY-ACTIONS-09 | write | 正常系 | [最後の回答の保存中や session 不在だけでは自動遷移しない](#study-actions-09) |
-| STUDY-ACTIONS-10 | write | 異常系 | [匿名利用ではサーバー応答を待たず保存の操作待ちを解除する](#study-actions-10) |
 | STUDY-ACTIONS-11 | write | 正常系 | [オフライン中の保存は再接続後に一度だけ反映される](#study-actions-11) |
-| STUDY-ACTIONS-12 | write | 異常系 | [学習位置の同期拒否後は復元された位置を表示する](#study-actions-12) |
 | STUDY-ACTIONS-13 | write | 正常系 | [切り替え前の操作結果を現在の学習へ反映しない](#study-actions-13) |
+| STUDY-ACTIONS-16 | write | 正常系 | [明示的な学習中止の成功で一覧へ戻る](#study-actions-16) |
+| STUDY-ACTIONS-05 | write | 異常系 | [回答履歴の保存失敗時も保存済みの学習状態と位置を維持する](#study-actions-05) |
+| STUDY-ACTIONS-10 | write | 異常系 | [匿名利用ではサーバー応答を待たず保存の操作待ちを解除する](#study-actions-10) |
+| STUDY-ACTIONS-12 | write | 異常系 | [学習位置の同期拒否後は復元された位置を表示する](#study-actions-12) |
 | STUDY-ACTIONS-14 | write | 異常系 | [アカウント変更後に以前のアカウントの Card へ回答できない](#study-actions-14) |
 | STUDY-ACTIONS-15 | write | 異常系 | [保存失敗時に操作待ちを解除して購読結果を表示する](#study-actions-15) |
-| STUDY-ACTIONS-16 | write | 正常系 | [明示的な学習中止の成功で一覧へ戻る](#study-actions-16) |
+
+<a id="study-actions-04"></a>
+
+### STUDY-ACTIONS-04 学習中に前の Card へ戻れない
+
+カテゴリ: `read`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`study-session-middle`](./fixture/study-session-middle.yaml)
+- 認証済みユーザーが所有する Deck に、複数の Card を含む進行中の学習 session が存在する。
+- 現在の Card の前に別の Card がある。
+
+When:
+
+- 学習操作と Help の表示を確認する。
+- 進捗スライダーを pointer と keyboard で現在位置より前へ動かそうとする。
+
+Then:
+
+- 前の Card へ戻る学習操作・設定・表示は存在しない。
+- スライダーの後方入力は現在位置を維持し、前方への移動は引き続き利用できる。
 
 <a id="study-actions-01"></a>
 
@@ -102,56 +126,6 @@ Then:
 - Card の記憶状態、復習予定、最終復習、本文やタグを変更しない。
 - session の位置だけが次の Card へ進む。
 - 次の Card の front text が表示される。
-
-<a id="study-actions-04"></a>
-
-### STUDY-ACTIONS-04 学習中に前の Card へ戻れない
-
-カテゴリ: `read`
-
-区分: 正常系
-
-Given:
-
-- Fixture: [`study-session-middle`](./fixture/study-session-middle.yaml)
-- 認証済みユーザーが所有する Deck に、複数の Card を含む進行中の学習 session が存在する。
-- 現在の Card の前に別の Card がある。
-
-When:
-
-- 学習操作と Help の表示を確認する。
-- 進捗スライダーを pointer と keyboard で現在位置より前へ動かそうとする。
-
-Then:
-
-- 前の Card へ戻る学習操作・設定・表示は存在しない。
-- スライダーの後方入力は現在位置を維持し、前方への移動は引き続き利用できる。
-
-<a id="study-actions-05"></a>
-
-### STUDY-ACTIONS-05 回答履歴の保存失敗時も保存済みの学習状態と位置を維持する
-
-カテゴリ: `write`
-
-区分: 異常系
-
-Given:
-
-- Fixture: [`study-session-start`](./fixture/study-session-start.yaml)
-- 認証済みユーザーが所有する Deck に、複数の Card を含む進行中の学習 session が存在する。
-- swipe feedback が有効である。
-- 現在の Card の後に、さらに2枚以上の Card がある。
-- 現在の評価では回答履歴の保存だけが失敗し、学習状態と位置は保存できる。次の Card の評価は保存できる。
-
-When:
-
-- 現在の Card を評価して保存失敗を確認し、画面を再読み込みする。その後、次の Card を評価する。
-
-Then:
-
-- 一部の保存が失敗した試行では保存失敗の toast を表示し、swipe feedback は表示しない。成功した次の評価では swipe feedback を通知する。
-- 最初の Card の学習状態と次の Card への移動は保存されるが、最初の回答履歴は保存されない。再読み込み後も次の Card が表示され、最初の回答を自動で再登録しない。
-- 次の Card での評価は一度だけ保存され、さらに次の Card の front text が表示される。回答履歴には成功した次の評価だけが記録される。
 
 <a id="study-actions-06"></a>
 
@@ -247,6 +221,100 @@ Then:
 - 保存中は完了画面へ進まず、読み込み表示にする。
 - session 不在だけでは一覧へ自動遷移しない。
 
+<a id="study-actions-11"></a>
+
+### STUDY-ACTIONS-11 [TODO] オフライン中の保存は再接続後に一度だけ反映される
+
+カテゴリ: `write`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`study-session-start`](./fixture/study-session-start.yaml)
+- 認証済みユーザーが所有する Deck に進行中の学習 session があり、初回認証と対象 Card の読み込みが完了している。
+- 通信が切れており、評価後の保存が保留される。
+
+When:
+
+- 現在の Card を評価し、保存の保留中に追加の評価を試みた後、再接続して保存成功後に再読み込みする。
+
+Then:
+
+- オフライン中は保存が保留され、再接続後の保存成功まで追加の評価を受け付けない。
+- 再読み込み後も学習結果と現在位置を復元できる。
+- 再接続だけでは新しい回答として再登録されない。
+
+<a id="study-actions-13"></a>
+
+### STUDY-ACTIONS-13 [TODO] 切り替え前の操作結果を現在の学習へ反映しない
+
+カテゴリ: `write`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`study-session-start`](./fixture/study-session-start.yaml)
+- 認証済みユーザーが所有する Deck に進行中の学習 session が存在する。
+- 学習操作の保存結果が届く前に、アカウントまたは学習対象を切り替えている。
+
+When:
+
+- 切り替え前の操作結果が届く。
+
+Then:
+
+- 以前の操作結果で現在の Card が進んだり、以前の学習の結果通知が表示されたりしない。
+
+<a id="study-actions-16"></a>
+
+### STUDY-ACTIONS-16 [TODO] 明示的な学習中止の成功で一覧へ戻る
+
+カテゴリ: `write`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`study-session-start`](./fixture/study-session-start.yaml)
+- 認証済みユーザーが所有する Deck の学習画面を開いている。
+- 学習の中止を保存できる。
+
+When:
+
+- 明示的に学習を中止し、その保存が成功する。
+
+Then:
+
+- 一覧へ戻る。
+
+<a id="study-actions-05"></a>
+
+### STUDY-ACTIONS-05 回答履歴の保存失敗時も保存済みの学習状態と位置を維持する
+
+カテゴリ: `write`
+
+区分: 異常系
+
+Given:
+
+- Fixture: [`study-session-start`](./fixture/study-session-start.yaml)
+- 認証済みユーザーが所有する Deck に、複数の Card を含む進行中の学習 session が存在する。
+- swipe feedback が有効である。
+- 現在の Card の後に、さらに2枚以上の Card がある。
+- 現在の評価では回答履歴の保存だけが失敗し、学習状態と位置は保存できる。次の Card の評価は保存できる。
+
+When:
+
+- 現在の Card を評価して保存失敗を確認し、画面を再読み込みする。その後、次の Card を評価する。
+
+Then:
+
+- 一部の保存が失敗した試行では保存失敗の toast を表示し、swipe feedback は表示しない。成功した次の評価では swipe feedback を通知する。
+- 最初の Card の学習状態と次の Card への移動は保存されるが、最初の回答履歴は保存されない。再読み込み後も次の Card が表示され、最初の回答を自動で再登録しない。
+- 次の Card での評価は一度だけ保存され、さらに次の Card の front text が表示される。回答履歴には成功した次の評価だけが記録される。
+
 <a id="study-actions-10"></a>
 
 ### STUDY-ACTIONS-10 [TODO] 匿名利用ではサーバー応答を待たず保存の操作待ちを解除する
@@ -272,30 +340,6 @@ Then:
 - 後続のローカル保存失敗は `reportError` による診断として報告し、表示は購読結果に従う。
 - 遅延エラーでは後続の操作ロックを変更しない。
 
-<a id="study-actions-11"></a>
-
-### STUDY-ACTIONS-11 [TODO] オフライン中の保存は再接続後に一度だけ反映される
-
-カテゴリ: `write`
-
-区分: 正常系
-
-Given:
-
-- Fixture: [`study-session-start`](./fixture/study-session-start.yaml)
-- 認証済みユーザーが所有する Deck に進行中の学習 session があり、初回認証と対象 Card の読み込みが完了している。
-- 通信が切れており、評価後の保存が保留される。
-
-When:
-
-- 現在の Card を評価し、保存の保留中に追加の評価を試みた後、再接続して保存成功後に再読み込みする。
-
-Then:
-
-- オフライン中は保存が保留され、再接続後の保存成功まで追加の評価を受け付けない。
-- 再読み込み後も学習結果と現在位置を復元できる。
-- 再接続だけでは新しい回答として再登録されない。
-
 <a id="study-actions-12"></a>
 
 ### STUDY-ACTIONS-12 [TODO] 学習位置の同期拒否後は復元された位置を表示する
@@ -320,28 +364,6 @@ Then:
 - 復元された位置の Card を表示する。
 - 同期エラーが通知される。
 - 他の保存が成功していれば、その学習状態や回答履歴は残る。
-
-<a id="study-actions-13"></a>
-
-### STUDY-ACTIONS-13 [TODO] 切り替え前の操作結果を現在の学習へ反映しない
-
-カテゴリ: `write`
-
-区分: 正常系
-
-Given:
-
-- Fixture: [`study-session-start`](./fixture/study-session-start.yaml)
-- 認証済みユーザーが所有する Deck に進行中の学習 session が存在する。
-- 学習操作の保存結果が届く前に、アカウントまたは学習対象を切り替えている。
-
-When:
-
-- 切り替え前の操作結果が届く。
-
-Then:
-
-- 以前の操作結果で現在の Card が進んだり、以前の学習の結果通知が表示されたりしない。
 
 <a id="study-actions-14"></a>
 
@@ -388,25 +410,3 @@ Then:
 
 - 回答・位置変更・中止は保存の失敗で操作待ちを解除する。
 - 画面は購読結果を表示し、rollback の到着を検出してロックを延長しない。
-
-<a id="study-actions-16"></a>
-
-### STUDY-ACTIONS-16 [TODO] 明示的な学習中止の成功で一覧へ戻る
-
-カテゴリ: `write`
-
-区分: 正常系
-
-Given:
-
-- Fixture: [`study-session-start`](./fixture/study-session-start.yaml)
-- 認証済みユーザーが所有する Deck の学習画面を開いている。
-- 学習の中止を保存できる。
-
-When:
-
-- 明示的に学習を中止し、その保存が成功する。
-
-Then:
-
-- 一覧へ戻る。

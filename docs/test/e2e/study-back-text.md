@@ -12,11 +12,11 @@
 | STUDY-BACK-TEXT-02 | read | 正常系 | [裏面 text を選択しても Card の状態を維持できる](#study-back-text-02) |
 | STUDY-BACK-TEXT-03 | read | 正常系 | [overlay 設定 OFF の裏面 tap で同じ Card の表面へ戻れる](#study-back-text-03) |
 | STUDY-BACK-TEXT-04 | read | 正常系 | [長い裏面 text を scroll しても Card の状態を維持できる](#study-back-text-04) |
-| STUDY-BACK-TEXT-05 | write | 正常系 | [左 overlay から設定済み action を実行できる](#study-back-text-05) |
-| STUDY-BACK-TEXT-06 | write | 正常系 | [右 overlay から設定済み action を実行できる](#study-back-text-06) |
 | STUDY-BACK-TEXT-07 | read | 正常系 | [狭い画面でも overlay の下で裏面を全幅表示できる](#study-back-text-07) |
 | STUDY-BACK-TEXT-08 | read | 正常系 | [左 overlay 上の wheel で長い裏面 text を scroll できる](#study-back-text-08) |
 | STUDY-BACK-TEXT-09 | read | 正常系 | [右 overlay 上の touch で長い裏面 text を scroll できる](#study-back-text-09) |
+| STUDY-BACK-TEXT-05 | write | 正常系 | [左 overlay から設定済み action を実行できる](#study-back-text-05) |
+| STUDY-BACK-TEXT-06 | write | 正常系 | [右 overlay から設定済み action を実行できる](#study-back-text-06) |
 
 <a id="study-back-text-01"></a>
 
@@ -113,60 +113,6 @@ Then:
 - 同じ Card の back text が引き続き表示される。
 - Card の学習結果と session の位置が変更されない。
 
-<a id="study-back-text-05"></a>
-
-### STUDY-BACK-TEXT-05 左 overlay から設定済み action を実行できる
-
-カテゴリ: `write`
-
-区分: 正常系
-
-Given:
-
-- Fixture: [`study-back-text-overlays`](./fixture/study-back-text-overlays.yaml)
-- 認証済みユーザーが所有する Deck に、複数の Card を含む進行中の学習 session が存在する。
-- back text swipe overlay の表示設定が有効で、左右には異なる学習 action が設定されている。
-- 現在の Card の次に別の Card がある。
-
-When:
-
-- 現在の Card を裏面へ切り替え、左 overlay を tap する。
-
-Then:
-
-- 左に設定された good 学習結果が一度だけ保存される。
-- Card の内容と作成日時は変わらず、今回の評価が記憶状態と最終復習に反映される。
-- session の位置が次の Card へ一つ進む。
-- 次の Card の front text が表示され、back text は表示されない。
-- overlay の tap で次の Card が誤って裏返ることはない。
-
-<a id="study-back-text-06"></a>
-
-### STUDY-BACK-TEXT-06 右 overlay から設定済み action を実行できる
-
-カテゴリ: `write`
-
-区分: 正常系
-
-Given:
-
-- Fixture: [`study-back-text-overlays`](./fixture/study-back-text-overlays.yaml)
-- 認証済みユーザーが所有する Deck に、複数の Card を含む進行中の学習 session が存在する。
-- back text swipe overlay の表示設定が有効で、左右には異なる学習 action が設定されている。
-- 現在の Card の次に別の Card がある。
-
-When:
-
-- 現在の Card を裏面へ切り替え、右 overlay を tap する。
-
-Then:
-
-- 右に設定された again 学習結果が一度だけ保存される。
-- Card の内容と作成日時は変わらず、今回の評価が記憶状態と最終復習に反映される。
-- session の位置が次の Card へ一つ進む。
-- 次の Card の front text が表示され、back text は表示されない。
-- overlay の tap で次の Card が誤って裏返ることはない。
-
 <a id="study-back-text-07"></a>
 
 ### STUDY-BACK-TEXT-07 狭い画面でも overlay の下で裏面を全幅表示できる
@@ -250,3 +196,57 @@ Then:
 - 右 overlay と viewport 右端の間に scrollbar を直接操作できる領域が残る。
 - overlay に設定された評価や移動は行われない。
 - Card の学習結果と session の位置が変更されない。
+
+<a id="study-back-text-05"></a>
+
+### STUDY-BACK-TEXT-05 左 overlay から設定済み action を実行できる
+
+カテゴリ: `write`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`study-back-text-overlays`](./fixture/study-back-text-overlays.yaml)
+- 認証済みユーザーが所有する Deck に、複数の Card を含む進行中の学習 session が存在する。
+- back text swipe overlay の表示設定が有効で、左右には異なる学習 action が設定されている。
+- 現在の Card の次に別の Card がある。
+
+When:
+
+- 現在の Card を裏面へ切り替え、左 overlay を tap する。
+
+Then:
+
+- 左に設定された good 学習結果が一度だけ保存される。
+- Card の内容と作成日時は変わらず、今回の評価が記憶状態と最終復習に反映される。
+- session の位置が次の Card へ一つ進む。
+- 次の Card の front text が表示され、back text は表示されない。
+- overlay の tap で次の Card が誤って裏返ることはない。
+
+<a id="study-back-text-06"></a>
+
+### STUDY-BACK-TEXT-06 右 overlay から設定済み action を実行できる
+
+カテゴリ: `write`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`study-back-text-overlays`](./fixture/study-back-text-overlays.yaml)
+- 認証済みユーザーが所有する Deck に、複数の Card を含む進行中の学習 session が存在する。
+- back text swipe overlay の表示設定が有効で、左右には異なる学習 action が設定されている。
+- 現在の Card の次に別の Card がある。
+
+When:
+
+- 現在の Card を裏面へ切り替え、右 overlay を tap する。
+
+Then:
+
+- 右に設定された again 学習結果が一度だけ保存される。
+- Card の内容と作成日時は変わらず、今回の評価が記憶状態と最終復習に反映される。
+- session の位置が次の Card へ一つ進む。
+- 次の Card の front text が表示され、back text は表示されない。
+- overlay の tap で次の Card が誤って裏返ることはない。
