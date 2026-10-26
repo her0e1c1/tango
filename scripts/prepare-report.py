@@ -86,16 +86,12 @@ def structured(data):
             return None
     is_url = text.startswith(("http://", "https://"))
     if is_url:
-        text = urlsplit(text).query
+        url = urlsplit(text)
+        text = "&".join(part for part in (url.query, url.fragment.removeprefix("?")) if part)
     # URL query names and valid form field names can be percent-encoded or empty.
-    if is_url or re.match(r"^[^\s=&]*=", text):
-        try:
-            return [{"name": key, "value": value}
-                    for key, value in parse_qsl(text, keep_blank_values=True, strict_parsing=True)]
-        except ValueError:
-            if strict:
-                raise PrivacyError("malformed form resource") from None
-            return None
+    if is_url or re.match(r"^[^\s=]*=", text):
+        return [{"name": key, "value": value}
+                for key, value in parse_qsl(text, keep_blank_values=True)]
     return None
 
 
