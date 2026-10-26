@@ -75,7 +75,7 @@ jobs:
           docker compose -f .devcontainer/compose.yaml -f .devcontainer/compose.e2e.yaml run --rm --remove-orphans
           --env CI --env PLAYWRIGHT_HTML_OUTPUT_DIR=test-results/privacy-auth-source/html
           --env PLAYWRIGHT_JSON_OUTPUT_FILE=test-results/privacy-auth-source/report.json
-          --entrypoint npm dev run e2e -- test/e2e/account.spec.ts --grep '^ACCOUNT-01 '
+          --entrypoint npm dev run e2e -- test/e2e/account.spec.ts --grep 'ACCOUNT-01 '
           --trace on --output=test-results/privacy-auth-source/results
 
       - name: Prepare separate private copies without changing original evidence
