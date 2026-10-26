@@ -22,13 +22,13 @@
 | STUDY-SESSION-39 | read | 正常系 | [端末の日付変更時に相対期間を更新し指定期間を維持する](#study-session-39) |
 | STUDY-SESSION-01 | write | 正常系 | [filter と学習上限を反映して session を開始できる](#study-session-01) |
 | STUDY-SESSION-04 | write | 正常系 | [Restart で新しい session を先頭から開始できる](#study-session-04) |
-| STUDY-SESSION-06 | batch | 正常系 | [複数 Deck の学習 session を独立して維持できる](#study-session-06) |
 | STUDY-SESSION-14 | write | 正常系 | [開始時点の Card・設定・時刻で出題対象を選び直す](#study-session-14) |
 | STUDY-SESSION-15 | write | 正常系 | [間隔反復と shuffle の設定に従って出題順と上限内の Card を選ぶ](#study-session-15) |
 | STUDY-SESSION-19 | write | 正常系 | [アカウント切り替え後に以前のアカウントへ新しい学習を追加しない](#study-session-19) |
 | STUDY-SESSION-20 | write | 正常系 | [通常アカウントの Start・Restart・Continue は保存成功まで遷移を待つ](#study-session-20) |
 | STUDY-SESSION-32 | write | 正常系 | [保存済みの tag filter に一致する Card だけで学習を開始できる](#study-session-32) |
 | STUDY-SESSION-03 | write | 正常系 | [学習画面から戻った後に同じ位置から Continue できる](#study-session-03) |
+| STUDY-SESSION-06 | batch | 正常系 | [複数 Deck の学習 session を独立して維持できる](#study-session-06) |
 | STUDY-SESSION-05 | write | 正常系 | [最後の Card を完了して completion screen を表示できる](#study-session-05) |
 | STUDY-SESSION-07 | write | 正常系 | [匿名での学習結果と再開位置を reload 後も維持できる](#study-session-07) |
 | STUDY-SESSION-08 | batch | 正常系 | [展開した tag filter を自動保存して reload 後も維持できる](#study-session-08) |
@@ -373,30 +373,6 @@ Then:
 - 新しい学習の現在位置は先頭になる。
 - 新しい学習の先頭 Card の front text が表示される。
 
-<a id="study-session-06"></a>
-
-### STUDY-SESSION-06 複数 Deck の学習 session を独立して維持できる
-
-カテゴリ: `batch`
-
-区分: 正常系
-
-Given:
-
-- Fixture: [`multi-study-sessions`](./fixture/multi-study-sessions.yaml)
-- 認証済みユーザーが所有する複数の Deck に、それぞれ異なる位置の学習 session が存在する。
-
-When:
-
-- 一方の Deck で評価を行って Deck 一覧へ戻り、もう一方の Deck を Continue する。
-
-Then:
-
-- 最初の Deck の学習結果と進んだ位置が維持される。
-- 学習した Card の内容と作成日時は変わらず、今回の評価が記憶状態と最終復習に反映される。
-- もう一方の Deck は操作前と同じ学習の現在位置から再開する。
-- 各 Deck の Card と学習結果・現在位置が混在しない。
-
 <a id="study-session-14"></a>
 
 ### STUDY-SESSION-14 [TODO] 開始時点の Card・設定・時刻で出題対象を選び直す
@@ -538,6 +514,30 @@ Then:
 - 最近学習した時刻が分からない場合は、推測した経過時間を表示しない。
 - Deck 一覧へ戻る前に表示されていた Card の front text が表示される。
 - 再開だけで元の開始日時が変わらない。
+
+<a id="study-session-06"></a>
+
+### STUDY-SESSION-06 複数 Deck の学習 session を独立して維持できる
+
+カテゴリ: `batch`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`multi-study-sessions`](./fixture/multi-study-sessions.yaml)
+- 認証済みユーザーが所有する複数の Deck に、それぞれ異なる位置の学習 session が存在する。
+
+When:
+
+- 一方の Deck で評価を行って Deck 一覧へ戻り、もう一方の Deck を Continue する。
+
+Then:
+
+- 最初の Deck の学習結果と進んだ位置が維持される。
+- 学習した Card の内容と作成日時は変わらず、今回の評価が記憶状態と最終復習に反映される。
+- もう一方の Deck は操作前と同じ学習の現在位置から再開する。
+- 各 Deck の Card と学習結果・現在位置が混在しない。
 
 <a id="study-session-05"></a>
 
