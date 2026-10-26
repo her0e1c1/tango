@@ -108,17 +108,35 @@ async function verifySnapshot(page: Page) {
   await expect(snapshot.locator("body")).not.toHaveText(/Snapshot is not available/);
 }
 
-async function verifyTrace(page: Page, selected: JSONReportSpec) {
+async function findTraceLink(page: Page, selected: JSONReportSpec) {
   stage = "select the recorded trace attempt";
-  const detailUrl = page.url();
   const run =
     selected.tests[0]?.results.findIndex((result) =>
       result.attachments.some((attachment) => attachment.name === "trace" && attachment.path)
     ) ?? -1;
   expect(run).toBeGreaterThanOrEqual(0);
-  if (run > 0) await page.getByRole("tab", { name: new RegExp(`^Retry #${run}\\b`) }).click();
+  const tab = page.getByRole("tab", { name: new RegExp(run > 0 ? `^Retry #${run}\\b` : "^Run\\b") });
+  if (run > 0) {
+    await tab.click();
+    await expect(tab).toHaveAttribute("aria-selected", "true");
+  }
   stage = "find the trace viewer link";
-  const link = page.locator('#attachment-trace a[href*="trace/index.html?"]').first();
+  const detail = page.locator(".test-case-column");
+  const link = detail.getByRole("link", { name: "View Trace", exact: true });
+  try {
+    await expect(link).toHaveCount(1);
+  } finally {
+    // Only fixed classifications and counts: never hrefs, attachment names, DOM text, or credentials.
+    process.stdout.write(
+      `Trace link state: retry=${run}; details=${await detail.count()}; links=${await link.count()}.\n`
+    );
+  }
+  return link;
+}
+
+async function verifyTrace(page: Page, selected: JSONReportSpec) {
+  const detailUrl = page.url();
+  const link = await findTraceLink(page, selected);
   const href = await link.getAttribute("href");
   if (!href) throw new Error("Missing trace viewer link");
   stage = "compare the linked trace attachment bytes";
