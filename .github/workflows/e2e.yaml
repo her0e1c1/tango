@@ -53,7 +53,9 @@ jobs:
       - name: Verify the generated report privately in the browser
         if: ${{ !cancelled() }}
         timeout-minutes: 3
-        run: docker compose -f .devcontainer/compose.yaml -f .devcontainer/compose.e2e.yaml run --rm --remove-orphans --env PLAYWRIGHT_MAIN_TRACE --entrypoint npm dev run verify:e2e-report
+        run: |
+          docker compose -f .devcontainer/compose.yaml -f .devcontainer/compose.e2e.yaml run --rm --remove-orphans --env PLAYWRIGHT_MAIN_TRACE --entrypoint npm dev run verify:e2e-report
+          docker compose -f .devcontainer/compose.yaml -f .devcontainer/compose.e2e.yaml run --rm --remove-orphans --entrypoint npm dev run verify:e2e-report:fixture
 
       - name: Stop E2E services
         if: ${{ always() }}
