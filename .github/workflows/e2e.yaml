@@ -81,21 +81,21 @@ jobs:
       - name: Prepare separate private copies without changing original evidence
         if: ${{ success() }}
         run: |
-          python3 scripts/prepare-report.py playwright-report test-results/e2e-report.json test-results/prepared-report
-          python3 scripts/prepare-report.py test-results/privacy-auth-source/html test-results/privacy-auth-source/report.json test-results/prepared-auth-report
+          python3 scripts/prepare-report.py playwright-report test-results/e2e-report.json prepared-reports/full
+          python3 scripts/prepare-report.py test-results/privacy-auth-source/html test-results/privacy-auth-source/report.json prepared-reports/auth
           python3 - <<'PY'
           import json
           from pathlib import Path
-          counts = json.loads(Path('test-results/prepared-auth-report/manifest.json').read_text())['counts']
-          assert counts['traces'] > 0 and counts['credential_values_removed'] > 0
+          counts = json.loads(Path('prepared-reports/auth/manifest.json').read_text())['counts']
+          assert counts['traces'] > 0 and counts['jwt_values_removed'] > 0
           PY
 
       - name: Verify prepared real reports privately in the browser
         if: ${{ success() }}
         timeout-minutes: 3
         run: |
-          docker compose -f .devcontainer/compose.yaml -f .devcontainer/compose.e2e.yaml run --rm --remove-orphans --env PLAYWRIGHT_MAIN_TRACE --entrypoint npm dev run verify:e2e-report -- test-results/prepared-report/html test-results/prepared-report/report.json
-          docker compose -f .devcontainer/compose.yaml -f .devcontainer/compose.e2e.yaml run --rm --remove-orphans --entrypoint npm dev run verify:e2e-report -- test-results/prepared-auth-report/html test-results/prepared-auth-report/report.json --require-trace
+          docker compose -f .devcontainer/compose.yaml -f .devcontainer/compose.e2e.yaml run --rm --remove-orphans --env PLAYWRIGHT_MAIN_TRACE --entrypoint npm dev run verify:e2e-report -- prepared-reports/full/html prepared-reports/full/report.json
+          docker compose -f .devcontainer/compose.yaml -f .devcontainer/compose.e2e.yaml run --rm --remove-orphans --entrypoint npm dev run verify:e2e-report -- prepared-reports/auth/html prepared-reports/auth/report.json --require-trace
 
       - name: Retain non-payload preparation manifests only
         if: ${{ success() }}
@@ -103,8 +103,8 @@ jobs:
         with:
           name: privacy-preparation-manifests
           path: |
-            test-results/prepared-report/manifest.json
-            test-results/prepared-auth-report/manifest.json
+            prepared-reports/full/manifest.json
+            prepared-reports/auth/manifest.json
           if-no-files-found: error
 
       - name: Stop E2E services
