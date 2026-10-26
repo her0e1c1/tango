@@ -162,6 +162,20 @@ Both page- and worker-originated denial probes use a different loopback port wit
 CI requires the worker request to reach the deny handler; connection failure alone cannot pass. Real-report viewing
 starts only after that fixed fixture succeeds.
 
+Private privacy preparation also makes a separate copy under `test-results/prepared-report/`. It removes recognized
+emulator authentication values from trace bodies, headers, action data, and report metadata, preserving resource lookup
+keys and standard viewer assets. A manifest records source run/attempt/commit, source and prepared SHA-256 values, sizes,
+and remaining review requirements. Unexpected JWT signatures/projects, session cookies, network origins, credential
+fields, modified viewer code, and unbound attachments fail preparation. This is a scoped check, not a general secret or
+personal-data detector: screenshots and arbitrary DOM text still require review, and `publication_approved` remains false.
+
+CI separately records the existing `ACCOUNT-01` acceptance case against the isolated auth emulator with successful tracing
+under `test-results/privacy-auth-source/`. Both its prepared copy and the real suite's prepared HTML report pass the same
+isolated browser verifier. The original suite keeps PR retry-only tracing and main all-attempt tracing. Original reports
+are not rewritten. Only non-payload manifests are retained additionally; prepared report data stays on the runner and is
+not selected by Pages or uploaded elsewhere. A future publication requires a separate decision about the exact prepared
+payload, its review gaps, and the existing `/tango/e2e/` destination; changing the gate alone would still select the raw report.
+
 **Pages keeps only the latest published snapshot**, replaced on the next eligible publication. Artifact history uses
 the repository's default retention period; expiring Actions artifacts does not remove an idle Pages snapshot. The build summary
 records the source SHA, publication run, and any report candidate URL; the deployment job confirms publication.
