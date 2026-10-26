@@ -2,18 +2,18 @@
 
 ## 目的
 
-Deck の Card を外部で利用できる形式へ export できることを確認する。
+Card の内容を失わず CSV へ出力できることを確認する。
 
 ## テストケース
 
 | ID | カテゴリ | 区分 | テストケース |
 | --- | --- | --- | --- |
-| DECK-TRANSFER-01 | read | 正常系 | [Deck の Card を CSV で export できる](#deck-transfer-01) |
+| DECK-TRANSFER-01 | read | 正常系 | [Deck の Card を CSV で出力できる](#deck-transfer-01) |
 | DECK-TRANSFER-02 | read | 正常系 | [特殊文字とタグなしの Card を内容を失わず CSV へ出力する](#deck-transfer-02) |
 
 <a id="deck-transfer-01"></a>
 
-### DECK-TRANSFER-01 Deck の Card を CSV で export できる
+### DECK-TRANSFER-01 Deck の Card を CSV で出力できる
 
 カテゴリ: `read`
 
@@ -27,12 +27,12 @@ Given:
 
 When:
 
-- Deck 一覧から対象 Deck の CSV download を実行する。
+- Deck 一覧から対象 Deck の CSV ダウンロードを実行する。
 
 Then:
 
-- 対象 Deck の name に対応する CSV file が download される。
-- CSV に各 Card の front text、back text、tags、unique key が Card ごとの row として含まれる。
+- 対象 Deck の name に対応する CSV ファイルがダウンロードされる。
+- CSV に各 Card の front text、back text、tags、unique key が Card ごとのレコードとして含まれる。
 
 <a id="deck-transfer-02"></a>
 
@@ -50,11 +50,11 @@ Given:
 
 When:
 
-- Deck 一覧から対象 Deck の CSV download を実行する。
+- Deck 一覧から対象 Deck の CSV ダウンロードを実行する。
 
 Then:
 
-- CSV をその形式に従って読み取ると、対象 Deck の各 Card が一つずつのレコードとして得られる。
+- 対象 Deck の各 Card が1レコードずつ含まれる。
 - front text、back text、tags、unique key が保存値と一致し、特殊文字や本文中の改行が余分な列・レコードにならない。
 - タグなしの Card はタグが空のまま含まれ、後続の unique key の列がずれない。
 - 別の Deck の Card は含まれない。

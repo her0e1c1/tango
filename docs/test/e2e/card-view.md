@@ -2,19 +2,19 @@
 
 ## 目的
 
-Card 一覧と Card view で学習情報・裏面を表示し、overlay や存在しない Card から安全に復帰できることを確認する。
+Card の本文・タグ・記憶状態を表示し、裏面のプレビューや閲覧エラーから復帰できることを確認する。
 
 ## テストケース
 
 | ID | カテゴリ | 区分 | テストケース |
 | --- | --- | --- | --- |
 | CARD-VIEW-01 | read | 正常系 | [Card 一覧に学習情報を表示できる](#card-view-01) |
-| CARD-VIEW-02 | read | 正常系 | [Card の裏面 overlay を開ける](#card-view-02) |
-| CARD-VIEW-03 | read | 正常系 | [開いている Card の裏面 overlay を閉じられる](#card-view-03) |
-| CARD-VIEW-04 | read | 正常系 | [Card view を直接開ける](#card-view-04) |
+| CARD-VIEW-02 | read | 正常系 | [Card の裏面オーバーレイを開ける](#card-view-02) |
+| CARD-VIEW-03 | read | 正常系 | [Card の裏面オーバーレイを閉じられる](#card-view-03) |
+| CARD-VIEW-04 | read | 正常系 | [Card 閲覧画面を直接開ける](#card-view-04) |
 | CARD-VIEW-07 | read | 正常系 | [Card の閲覧 URL の変更に表示が追従する](#card-view-07) |
 | CARD-VIEW-08 | read | 正常系 | [未評価の Card に推定した記憶状態を表示しない](#card-view-08) |
-| CARD-VIEW-09 | read | 正常系 | [別の Card や画面への復帰時に記憶状態を更新する](#card-view-09) |
+| CARD-VIEW-09 | read | 正常系 | [Card の切り替え・再表示で記憶状態を更新する](#card-view-09) |
 | CARD-VIEW-06 | write | 正常系 | [評価後の記憶状態を確認できる](#card-view-06) |
 | CARD-VIEW-05 | read | 異常系 | [存在しない Card から復帰できる](#card-view-05) |
 | CARD-VIEW-10 | read | 異常系 | [読み込めない記憶状態を未評価として表示しない](#card-view-10) |
@@ -30,8 +30,7 @@ Card 一覧と Card view で学習情報・裏面を表示し、overlay や存�
 Given:
 
 - Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
-- 認証済みユーザーが所有する Deck が存在する。
-- 対象 Deck に tags を持つ Card が存在する。
+- ログイン中のアカウントが所有する Deck に、タグ付きの Card がある。
 
 When:
 
@@ -39,11 +38,11 @@ When:
 
 Then:
 
-- 対象 Card の front text、tags が表示される。
+- 対象 Card の表面の本文とタグを表示する。
 
 <a id="card-view-02"></a>
 
-### CARD-VIEW-02 Card の裏面 overlay を開ける
+### CARD-VIEW-02 Card の裏面オーバーレイを開ける
 
 カテゴリ: `read`
 
@@ -52,8 +51,7 @@ Then:
 Given:
 
 - Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
-- 認証済みユーザーが所有する Deck が存在する。
-- 対象 Deck に front text と back text を持つ Card が存在する。
+- ログイン中のアカウントが所有する Deck に、両面の本文を持つ Card がある。
 
 When:
 
@@ -61,11 +59,11 @@ When:
 
 Then:
 
-- 対象 Card の back text が overlay に表示される。
+- 対象 Card の裏面の本文をオーバーレイに表示する。
 
 <a id="card-view-03"></a>
 
-### CARD-VIEW-03 開いている Card の裏面 overlay を閉じられる
+### CARD-VIEW-03 Card の裏面オーバーレイを閉じられる
 
 カテゴリ: `read`
 
@@ -74,22 +72,19 @@ Then:
 Given:
 
 - Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
-- 認証済みユーザーが所有する Deck が存在する。
-- 対象 Deck の Card 一覧で、対象 Card の back text overlay が開いている。
+- ログイン中のアカウントが所有する Deck の Card 一覧で、裏面のオーバーレイを開いている。
 
 When:
 
-- overlay の close action を実行する。
+- オーバーレイを閉じる。
 
 Then:
 
-- back text overlay が閉じる。
-- Card 一覧に対象 Card の front text が表示される。
-- Card の内容と学習結果は変わらない。
+- オーバーレイが閉じ、一覧に対象 Card の表面の本文を表示する。Card の内容と学習結果は変わらない。
 
 <a id="card-view-04"></a>
 
-### CARD-VIEW-04 Card view を直接開ける
+### CARD-VIEW-04 Card 閲覧画面を直接開ける
 
 カテゴリ: `read`
 
@@ -98,8 +93,7 @@ Then:
 Given:
 
 - Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
-- 認証済みユーザーが所有する Deck が存在する。
-- 対象 Deck に back text を持つ Card が存在する。
+- ログイン中のアカウントが所有する Deck に、裏面の本文を持つ Card がある。
 
 When:
 
@@ -107,8 +101,7 @@ When:
 
 Then:
 
-- 対象 Card の back text が Card answer として表示される。
-- アプリ共通のヘッダーとナビゲーションが表示される。
+- 裏面の本文を Card answer に表示し、共通ヘッダーとナビゲーションも表示する。
 
 <a id="card-view-07"></a>
 
@@ -121,17 +114,15 @@ Then:
 Given:
 
 - Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
-- 認証済みユーザーが所有する Deck に、back text を持つ複数の Card が存在する。
-- そのうち1枚の Card view を開いている。
+- ログイン中のアカウントが所有する Deck に、裏面の本文を持つ複数の Card があり、その1枚を閲覧している。
 
 When:
 
-- 同じ画面で別の Card の閲覧 URL を開く。
+- 同じ画面で別 Card の閲覧 URL を開く。
 
 Then:
 
-- 遷移先の Card の back text に Card answer の表示が更新される。
-- アプリ共通のヘッダーとナビゲーションが表示される。
+- Card answer を遷移先の裏面の本文に更新し、共通ヘッダーとナビゲーションも表示する。
 
 <a id="card-view-08"></a>
 
@@ -144,19 +135,19 @@ Then:
 Given:
 
 - Fixture: [`local-deck-with-cards`](./fixture/local-deck-with-cards.yaml)
-- 匿名ユーザーがこのブラウザーで利用できる Deck に、まだ評価していない Card がある。
+- 匿名で利用中の Deck に未評価の Card がある。
 
 When:
 
-- 未評価の Card の Card view を開く。
+- 未評価の Card の閲覧画面を開く。
 
 Then:
 
-- FSRS 未開始と表示され、以前の復習予定や閲覧回数から推定した数値を表示しない。
+- FSRS 未開始と表示し、以前の復習予定や閲覧回数から推定した数値は表示しない。
 
 <a id="card-view-09"></a>
 
-### CARD-VIEW-09 別の Card や画面への復帰時に記憶状態を更新する
+### CARD-VIEW-09 Card の切り替え・再表示で記憶状態を更新する
 
 カテゴリ: `read`
 
@@ -165,12 +156,11 @@ Then:
 Given:
 
 - Fixture: [`local-deck-with-cards`](./fixture/local-deck-with-cards.yaml)
-- 匿名ユーザーがこのブラウザーで利用できる Deck に複数の Card がある。
-- 評価済みの Card の記憶状態を一度表示している。
+- 匿名で利用中の Deck に複数の Card があり、評価済み Card の記憶状態を表示している。
 
 When:
 
-- 別の Card を開くか、Card view を離れてから戻る。
+- 別 Card を開くか、閲覧画面を離れて戻る。
 
 Then:
 
@@ -188,11 +178,11 @@ Given:
 
 - Fixture: [`local-deck-with-cards`](./fixture/local-deck-with-cards.yaml)
 - 匿名ユーザーがこのブラウザーで利用できる Deck に、まだ評価していない Card がある。
-- 表示言語は英語または日本語で、モバイル表示や dark mode、復習間隔の ON / OFF でも利用する。
+- 表示言語は英語または日本語で、モバイル表示やダークモード、復習間隔の ON / OFF でも利用する。
 
 When:
 
-- 学習画面で Card を評価してから Card view を開き、再読み込みやオフラインでの閲覧を行う。
+- 学習画面で Card を評価してから Card 閲覧画面を開き、再読み込みやオフラインでの閲覧を行う。
 
 Then:
 
@@ -202,7 +192,7 @@ Then:
 - 基準時刻の数値とマーカーは一致し、次回の復習予定に達したかどうかも同じ基準時刻で示す。
 - 同時刻のマーカーも識別でき、短期・長期の範囲の曲線を確認できる。
 - 再読み込み後や匿名・オフラインの利用中も、一度読み込んだ記憶状態を確認できる。復習間隔の ON / OFF では記憶状態の表示を失わない。
-- 英語・日本語、モバイル、dark mode でテキストと読み上げ名・説明を確認できる。
+- 英語・日本語、モバイル、ダークモードでテキストと読み上げ名・説明を確認できる。
 
 <a id="card-view-05"></a>
 
@@ -236,12 +226,12 @@ Then:
 Given:
 
 - Fixture: [`local-deck-with-cards`](./fixture/local-deck-with-cards.yaml)
-- 匿名ユーザーがこのブラウザーで利用できる Deck に、記憶状態を読み込めない Card があるか、記憶状態の取得が失敗する状況である。
+- 匿名で利用中の Deck に記憶状態を読み込めない Card があるか、取得が失敗する。
 
 When:
 
-- 対象 Card の Card view を開く。
+- 対象 Card の閲覧画面を開く。
 
 Then:
 
-- 読み込めない記憶状態や取得失敗を、未評価の Card として表示しない。
+- 読み込み不能や取得失敗を未評価として表示しない。

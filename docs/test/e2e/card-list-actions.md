@@ -2,7 +2,7 @@
 
 ## 目的
 
-Card 一覧上のタグ filter と表示順が、教材や個人学習状態を変更せずに動作することを確認する。
+Card 一覧のタグフィルター・並び順・行操作が、教材と学習状態を保って動作することを確認する。
 
 ## テストケース
 
@@ -12,13 +12,13 @@ Card 一覧上のタグ filter と表示順が、教材や個人学習状態を�
 | CARD-LIST-ACTIONS-03 | read | 正常系 | [Card の表示順を標準へ戻せる](#card-list-actions-03) |
 | CARD-LIST-ACTIONS-07 | read | 正常系 | [並び替え後も選択した Card のプレビューと行操作を利用できる](#card-list-actions-07) |
 | CARD-LIST-ACTIONS-08 | read | 正常系 | [別 Card の変更後も行のフォーカスとメニューを維持できる](#card-list-actions-08) |
-| CARD-LIST-ACTIONS-10 | read | 正常系 | [filter 保存中も並び替えでき、禁止中の操作は実行できない](#card-list-actions-10) |
+| CARD-LIST-ACTIONS-10 | read | 正常系 | [フィルター保存中も並び替えでき、禁止中の操作は実行できない](#card-list-actions-10) |
 | CARD-LIST-ACTIONS-11 | read | 正常系 | [画面を離れるか Deck を変更すると並び順が標準に戻る](#card-list-actions-11) |
-| CARD-LIST-ACTIONS-01 | write | 正常系 | [tag の filter を保存して Card 一覧へ反映できる](#card-list-actions-01) |
+| CARD-LIST-ACTIONS-01 | write | 正常系 | [タグフィルターを保存して Card 一覧へ反映できる](#card-list-actions-01) |
 | CARD-LIST-ACTIONS-04 | write | 正常系 | [選択済みタグをキーボードで解除して操作を続けられる](#card-list-actions-04) |
-| CARD-LIST-ACTIONS-05 | write | 正常系 | [filter 保存中に変更しても最後の選択を維持できる](#card-list-actions-05) |
+| CARD-LIST-ACTIONS-05 | write | 正常系 | [フィルター保存中に変更しても最後の選択を維持できる](#card-list-actions-05) |
 | CARD-LIST-ACTIONS-09 | write | 正常系 | [言語やフィルターを変更しても並び順を保持できる](#card-list-actions-09) |
-| CARD-LIST-ACTIONS-06 | write | 異常系 | [filter 保存失敗後も選択を維持して次の変更を保存できる](#card-list-actions-06) |
+| CARD-LIST-ACTIONS-06 | write | 異常系 | [フィルター保存失敗後も選択を維持して次の変更を保存できる](#card-list-actions-06) |
 
 <a id="card-list-actions-02"></a>
 
@@ -31,8 +31,8 @@ Card 一覧上のタグ filter と表示順が、教材や個人学習状態を�
 Given:
 
 - Fixture: [`card-list-sort`](./fixture/card-list-sort.yaml)
-- 通常ログインのユーザーが所有する Deck に追加日時が異なる Card と、追加日時が同じ Card が存在する。
-- Card 一覧は標準の順序で表示され、既存の Study session がある。
+- ログイン中のアカウントが所有する Deck に追加日時が異なる Card と、追加日時が同じ Card が存在する。
+- Card 一覧は標準の順序で表示され、既存の学習セッションがある。
 
 When:
 
@@ -41,7 +41,7 @@ When:
 Then:
 
 - 追加日時が新しい Card から表示され、同じ追加日時では標準の相対順序を維持する。編集日時は順序に影響しない。
-- 件数と tag 選択肢、フィルターに一致する Card は変わらない。
+- 件数とタグ候補、フィルターに一致する Card は変わらない。
 - Card・Deck の内容や既存の学習の出題順・現在位置は変わらない。
 - 新しく始める学習の対象や出題順にも影響しない。
 
@@ -56,8 +56,8 @@ Then:
 Given:
 
 - Fixture: [`card-list-sort`](./fixture/card-list-sort.yaml)
-- 通常ログインのユーザーが所有する Deck の Card 一覧で「追加が新しい順」を選択している。
-- 対象 Deck に既存の Study session がある。
+- ログイン中のアカウントが所有する Deck の Card 一覧で「追加が新しい順」を選択している。
+- 対象 Deck に既存の学習セッションがある。
 
 When:
 
@@ -78,16 +78,15 @@ Then:
 Given:
 
 - Fixture: [`card-list-sort`](./fixture/card-list-sort.yaml)
-- 通常ログインのユーザーが所有する Deck の Card 一覧で「追加が新しい順」を選択している。
+- ログイン中のアカウントが所有する Deck の Card 一覧を「追加が新しい順」で表示している。
 
 When:
 
-- 対象 Card の解答プレビューを開いて閉じるか、行の操作を選択する。
+- 対象 Card の解答プレビューを開閉するか、行操作を選択する。
 
 Then:
 
-- プレビューと各行の操作は選択した Card を対象とする。
-- プレビューを開いて閉じても並び順を保持する。
+- プレビューと行操作は選択した Card を対象とし、プレビュー開閉後も並び順を保つ。
 
 <a id="card-list-actions-08"></a>
 
@@ -100,21 +99,20 @@ Then:
 Given:
 
 - Fixture: [`card-list-sort`](./fixture/card-list-sort.yaml)
-- 通常ログインのユーザーが所有する Deck の Card 一覧で「追加が新しい順」を選択している。
+- ログイン中のアカウントが所有する Deck の Card 一覧を「追加が新しい順」で表示している。
 - 操作可能な行にフォーカスがあるか、対象 Card のメニューを開いている。
 
 When:
 
-- 別 Card が追加・更新・削除されるか、メニューの対象 Card が削除される。
+- 別 Card が追加・更新・削除されるか、メニュー対象の Card が削除される。
 
 Then:
 
-- 別 Card の変更では、残る操作可能な行のフォーカスとメニューを維持する。
-- 対象の Card が消えた場合はメニューを閉じる。
+- 別 Card の変更では、残る行のフォーカスとメニューを保つ。対象 Card が削除された場合はメニューを閉じる。
 
 <a id="card-list-actions-10"></a>
 
-### CARD-LIST-ACTIONS-10 [TODO] filter 保存中も並び替えでき、禁止中の操作は実行できない
+### CARD-LIST-ACTIONS-10 [TODO] フィルター保存中も並び替えでき、禁止中の操作は実行できない
 
 カテゴリ: `read`
 
@@ -123,8 +121,8 @@ Then:
 Given:
 
 - Fixture: [`card-list-sort`](./fixture/card-list-sort.yaml)
-- 通常ログインのユーザーが所有する Deck の Card 一覧を開いている。
-- フィルター自動保存中、Card の変更中、または dialog 表示中である。
+- ログイン中のアカウントが所有する Deck の Card 一覧を開いている。
+- フィルター自動保存中、Card の変更中、またはダイアログ表示中である。
 
 When:
 
@@ -133,7 +131,7 @@ When:
 Then:
 
 - フィルター自動保存中も並び順を選択できる。
-- Card の変更中や dialog 表示中に禁止されている操作は引き続き実行できない。
+- Card の変更中やダイアログ表示中に禁止されている操作は引き続き実行できない。
 
 <a id="card-list-actions-11"></a>
 
@@ -146,7 +144,7 @@ Then:
 Given:
 
 - Fixture: [`card-list-sort`](./fixture/card-list-sort.yaml)
-- 通常ログインのユーザーが所有する Deck の Card 一覧で「追加が新しい順」を選択している。
+- ログイン中のアカウントが所有する Deck の Card 一覧で「追加が新しい順」を選択している。
 
 When:
 
@@ -158,7 +156,7 @@ Then:
 
 <a id="card-list-actions-01"></a>
 
-### CARD-LIST-ACTIONS-01 tag の filter を保存して Card 一覧へ反映できる
+### CARD-LIST-ACTIONS-01 タグフィルターを保存して Card 一覧へ反映できる
 
 カテゴリ: `write`
 
@@ -167,18 +165,16 @@ Then:
 Given:
 
 - Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
-- 認証済みユーザーが所有する Deck が存在する。
-- 対象 Deck に tags が異なる複数の Card が存在する。
+- ログイン中のアカウントが所有する Deck に、タグが異なる複数の Card がある。
 
 When:
 
-- Card 一覧で tag filter を変更し、保存完了後に画面を reload する。
+- Card 一覧でタグフィルターを変更し、保存後に再読み込みする。
 
 Then:
 
-- 変更は自動保存され、保存ボタンは表示されない。
-- reload 前に設定した最後の tag filter が表示される。
-- 両方の filter 条件に一致する Card だけが一覧に表示される。
+- 保存ボタンなしで自動保存し、最後のタグフィルターを復元する。
+- 両方のフィルター条件に一致する Card だけを表示する。
 
 <a id="card-list-actions-04"></a>
 
@@ -191,21 +187,19 @@ Then:
 Given:
 
 - Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
-- 認証済みユーザーが所有する Deck の Card 一覧で tag filter を選択し、選択済みタグのチップを表示している。
-- 解除するチップにキーボードのフォーカスがある。
+- ログイン中のアカウントが所有する Deck の Card 一覧でタグフィルターを選択し、選択済みチップにフォーカスがある。
 
 When:
 
-- キーボードで選択済みタグのチップを解除する。
+- キーボードでチップを解除する。
 
 Then:
 
-- 解除直後も、残るチップまたは最後のチップを解除した場合は Filters の見出しへ可視フォーカスを維持する。
-- 続くキーボード操作を継続できる。
+- 残るチップに可視フォーカスを維持する。最後のチップを解除した場合は Filters 見出しに移り、キーボード操作を続けられる。
 
 <a id="card-list-actions-05"></a>
 
-### CARD-LIST-ACTIONS-05 [TODO] filter 保存中に変更しても最後の選択を維持できる
+### CARD-LIST-ACTIONS-05 [TODO] フィルター保存中に変更しても最後の選択を維持できる
 
 カテゴリ: `write`
 
@@ -214,16 +208,15 @@ Then:
 Given:
 
 - Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
-- 認証済みユーザーが所有する Deck の Card 一覧で tag filter の変更を保存中である。
+- ログイン中のアカウントが所有する Deck の Card 一覧でタグフィルターを保存中である。
 
 When:
 
-- 保存中に tag filter を続けて変更し、別画面へ移動してから戻る。
+- 保存中に条件を続けて変更し、別画面へ移動して戻る。
 
 Then:
 
-- 保存中も filter を変更できる。
-- 最後に選んだ条件が以前の条件に戻らない。
+- 保存中も変更でき、最後の選択が以前の条件に戻らない。
 
 <a id="card-list-actions-09"></a>
 
@@ -236,7 +229,7 @@ Then:
 Given:
 
 - Fixture: [`card-list-sort`](./fixture/card-list-sort.yaml)
-- 通常ログインのユーザーが所有する Deck の Card 一覧で「追加が新しい順」を選択している。
+- ログイン中のアカウントが所有する Deck の Card 一覧で「追加が新しい順」を選択している。
 
 When:
 
@@ -248,7 +241,7 @@ Then:
 
 <a id="card-list-actions-06"></a>
 
-### CARD-LIST-ACTIONS-06 [TODO] filter 保存失敗後も選択を維持して次の変更を保存できる
+### CARD-LIST-ACTIONS-06 [TODO] フィルター保存失敗後も選択を維持して次の変更を保存できる
 
 カテゴリ: `write`
 
@@ -257,14 +250,12 @@ Then:
 Given:
 
 - Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
-- 認証済みユーザーが所有する Deck の Card 一覧を開いている。
-- 次の tag filter の変更は保存に失敗し、その後の変更は保存できる。
+- ログイン中のアカウントが所有する Deck の Card 一覧を開いている。次のタグフィルター保存は失敗し、その後は成功する。
 
 When:
 
-- tag filter を変更し、保存失敗後にもう一度条件を変更して保存後に再表示する。
+- 条件を変更し、保存失敗後に再度変更して、保存後に再表示する。
 
 Then:
 
-- 保存失敗時はエラーが通知され、選択は維持される。
-- 次の変更が保存できた後は、選択中のすべての条件を再表示できる。
+- 保存失敗を通知し、選択を維持する。次の保存に成功すると選択中の全条件を再表示できる。
