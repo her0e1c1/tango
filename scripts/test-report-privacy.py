@@ -93,6 +93,7 @@ class ReportPrivacy(unittest.TestCase):
             {"origin": "http://auth.app.test:9099/test?%70assword=FIXED-UNKNOWN-PASSWORD"},
             {"origin": "http://auth.app.test:9099/test?flag&password=FIXED-UNKNOWN-PASSWORD"},
             {"origin": "http://auth.app.test:9099/test#access_token=FIXED-UNKNOWN-ACCESS-TOKEN"},
+            {"origin": "http://fixed:FIXED-UNKNOWN-PASSWORD@auth.app.test:9099/test"},
             {"popup_email": "person@private.example"},
             {"extra": {"resources/unknown.json": b'{"refreshToken":"UNRECOGNIZED-SENSITIVE-SENTINEL"}'}},
             {"extra": {"resources/unknown.json": b'{"password":"UNRECOGNIZED-SENSITIVE-SENTINEL"}'}},

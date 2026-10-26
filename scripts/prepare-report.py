@@ -105,6 +105,7 @@ def structured(data):
     is_url = text.startswith(("http://", "https://"))
     if is_url:
         url = urlsplit(text)
+        require(not url.username and not url.password, "unexpected URL credentials")
         text = "&".join(part for part in (url.query, url.fragment.removeprefix("?")) if part)
     # URL query names and valid form field names can be percent-encoded or empty.
     if is_url or re.match(r"^[^\s=]*=", text):
@@ -187,6 +188,7 @@ def prepare(source, source_json, destination):
                 resource = event["snapshot"]
                 network_count += 1
                 url = urlsplit(resource["request"]["url"])
+                require(not url.username and not url.password, "unexpected URL credentials")
                 local = (url.scheme, url.hostname, url.port) in {
                     ("http", "app.test", 4173), ("http", "auth.app.test", 9099),
                     ("http", "db", 8080), ("http", "127.0.0.1", 4173),
@@ -194,12 +196,13 @@ def prepare(source, source_json, destination):
                 mocked_auth = url.hostname in {"identitytoolkit.googleapis.com", "securetoken.googleapis.com"}
                 empty_decoration = url.hostname in {"unpkg.com", "fonts.googleapis.com"}
                 if not (local or mocked_auth or empty_decoration):
-                    # Only repository/pinned-SDK host names may enter diagnostics; never arbitrary hosts or URLs.
-                    known = {"app.test", "auth.app.test", "app", "auth", "db", "localhost", "127.0.0.1",
-                             "tango-e2e.firebaseapp.com", "apis.google.com", "www.googleapis.com", "www.gstatic.com"}
-                    host = url.hostname if url.hostname in known else "other-" + digest((url.hostname or "").encode())[:12]
+                    # Origin-only diagnostic: no userinfo, path, query, fragment or request/response contents.
+                    host = url.hostname or "[no-host]"
+                    if JWT.search(host.encode()):
+                        host = "[redacted-host]"
                     scheme = url.scheme if url.scheme in {"http", "https", "data", "blob", "about"} else "other"
-                    raise PrivacyError(f"unexpected network origin ({host}; {scheme}; port={url.port or 0})")
+                    port = url.port or {"http": 80, "https": 443}.get(scheme, 0)
+                    raise PrivacyError(f"unexpected network origin ({scheme}://{host}:{port})")
                 if mocked_auth:
                     require(parse_qs(url.query).get("key") == ["e2e-api-key"], "unexpected API key")
                 auth = url.hostname == "auth.app.test" or mocked_auth
