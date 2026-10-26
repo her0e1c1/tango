@@ -95,10 +95,13 @@ async function verifyTraceBytes(page: Page, selected: JSONReportSpec, href: stri
 }
 
 async function verifySnapshot(page: Page) {
+  stage = "load the trace timeline";
   await expect(page.locator(".timeline-view")).toBeVisible();
   // Filtering expands grouped test.step actions without depending on the selected error or hook.
+  stage = "select a recorded navigation action";
   await page.getByRole("searchbox", { name: "Filter actions" }).fill("Navigate");
   await page.locator(".action-title").filter({ hasText: "Navigate" }).first().click();
+  stage = "render the recorded DOM snapshot";
   const snapshot = page.locator(".snapshot-container iframe.snapshot-visible").contentFrame();
   await expect(snapshot.locator("body")).toBeVisible();
   await expect.poll(() => snapshot.locator("body").evaluate(() => location.pathname)).toContain("/snapshot/");
@@ -106,7 +109,7 @@ async function verifySnapshot(page: Page) {
 }
 
 async function verifyTrace(page: Page, selected: JSONReportSpec) {
-  stage = "compare the HTML trace attachment with this run's JSON attachment";
+  stage = "select the recorded trace attempt";
   const detailUrl = page.url();
   const run =
     selected.tests[0]?.results.findIndex((result) =>
@@ -114,13 +117,16 @@ async function verifyTrace(page: Page, selected: JSONReportSpec) {
     ) ?? -1;
   expect(run).toBeGreaterThanOrEqual(0);
   if (run > 0) await page.getByRole("tab", { name: new RegExp(`^Retry #${run}\\b`) }).click();
-  const link = page.locator('#attachment-trace a[href^="trace/index.html"]').first();
+  stage = "find the trace viewer link";
+  const link = page.locator('#attachment-trace a[href*="trace/index.html?"]').first();
   const href = await link.getAttribute("href");
   if (!href) throw new Error("Missing trace viewer link");
+  stage = "compare the linked trace attachment bytes";
   await verifyTraceBytes(page, selected, href);
-  stage = "load the trace timeline and recorded DOM snapshot";
+  stage = "open the trace viewer";
   await link.click();
   await verifySnapshot(page);
+  stage = "reload the trace viewer";
   await page.reload();
   await verifySnapshot(page);
   await page.goBack();
