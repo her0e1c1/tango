@@ -1,0 +1,293 @@
+"""Fixed, nonconfidential regression inputs for the private preparation boundary."""
+
+import base64
+import hashlib
+import importlib.util
+import json
+from pathlib import Path
+import shutil
+import subprocess
+import sys
+import tempfile
+import unittest
+from urllib.parse import quote, urlencode
+
+
+sys.dont_write_bytecode = True
+spec = importlib.util.spec_from_file_location("prepare_report", Path(__file__).with_name("prepare-report.py"))
+privacy = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(privacy)
+
+
+def token(audience="tango-e2e", signature=""):
+    encode = lambda value: base64.urlsafe_b64encode(json.dumps(value).encode()).rstrip(b"=").decode()
+    return ".".join((encode({"alg": "none"}), encode({"aud": audience, "iss": "https://securetoken.google.com/tango-e2e"}), signature))
+
+
+PIXEL = base64.b64decode("R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==")
+
+
+def probe_entries(body=PIXEL, status=200, url="https://www.google.com/images/cleardot.gif?zx=00", method="GET", authorization=False):
+    headers = [{"name": "Cookie", "value": "FIXED-PROBE-COOKIE"}]
+    if authorization:
+        headers.append({"name": "Authorization", "value": "FIXED-UNKNOWN-AUTHORIZATION"})
+    event = {"type": "resource-snapshot", "snapshot": {
+        "request": {"url": url, "method": method, "headers": headers},
+        "response": {"status": status, "headers": [{"name": "Set-Cookie", "value": "FIXED-PROBE-RESPONSE"}],
+                     "content": {"_sha1": "probe.gif", "mimeType": "image/gif"}}}}
+    return {"probe.network": privacy.json_bytes(event) + b"\n", "resources/probe.gif": body}
+
+
+GAPI_MODULE = "https://apis.google.com/_/scs/apps-static/_/js/k=oz.gapi.en.FIXED/m=gapi_iframes/rt=j/sv=1/d=1/ed=1/rs=FIXED/cb=gapi.loaded_0"
+
+
+def sdk_entries(url="https://apis.google.com/js/api.js?onload=__iframefcb123", body=b"", method="GET", resource_type="script", authorization=False):
+    event = {"type": "resource-snapshot", "snapshot": {
+        "_resourceType": resource_type,
+        "request": {"url": url, "method": method, "headers": [{"name": "Cookie", "value": "FIXED-SDK-COOKIE"}]},
+        "response": {"status": 200, "headers": [{"name": "Set-Cookie", "value": "FIXED-SDK-RESPONSE"}],
+                     "content": {"_sha1": "sdk.js", "mimeType": "text/javascript"}}}}
+    if authorization:
+        event["snapshot"]["request"]["headers"].append({"name": "Authorization", "value": "FIXED-UNKNOWN-AUTHORIZATION"})
+    return {"sdk.network": privacy.json_bytes(event) + b"\n", "resources/sdk.js": body}
+
+
+class ReportPrivacy(unittest.TestCase):
+    def setUp(self):
+        self.temporary = tempfile.TemporaryDirectory(prefix=".report-privacy-", dir=Path.cwd())
+        self.addCleanup(self.temporary.cleanup)
+        self.root = Path(self.temporary.name).resolve()
+        self.source = self.root / "raw"
+        (self.source / "data").mkdir(parents=True)
+        self.output = self.root / "prepared"
+        self.report = self.root / "report.json"
+
+    def fixture(self, credential=None, origin="http://auth.app.test:9099/identitytoolkit.googleapis.com/v1/accounts:signUp", extra=None, form=False, popup_email=None):
+        for path in (self.source / "data").iterdir():
+            path.unlink()
+        credential = credential or token()
+        body = {"idToken": credential, "refreshToken": "FIXED-NONCONFIDENTIAL-REFRESH"}
+        request = {"url": origin, "headers": [], "cookies": []}
+        response = {"headers": [], "cookies": [], "content": {"_sha1": "body.json", "mimeType": "application/json"}}
+        entries = {"0.trace": privacy.json_bytes({"type": "before", "params": {"value": credential}}) + b"\n",
+                   "0.network": privacy.json_bytes({"type": "resource-snapshot", "snapshot": {"request": request, "response": response}}) + b"\n",
+                   "resources/body.json": privacy.json_bytes(body)}
+        if form:
+            entries["resources/body.json"] = urlencode({"id_token": credential, "refresh_token": body["refreshToken"]}).encode()
+        if popup_email:
+            assertion = quote(json.dumps({"sub": "fixture-user", "email": popup_email}))
+            entries["resources/body.json"] = f'<button data-id-token="{assertion}">Fixture</button>'.encode()
+        if extra:
+            entries.update(extra)
+        raw = privacy.pack(entries)
+        source_trace = self.root / "trace.zip"
+        source_trace.write_bytes(raw)
+        name = "data/" + hashlib.sha1(raw).hexdigest() + ".zip"
+        (self.source / name).write_bytes(raw)
+        metadata = privacy.pack({"report.json": privacy.json_bytes({"files": [], "stats": {"total": 1}, "attachments": [{"path": name}]})})
+        viewer = privacy.VIEWER / "htmlReport"
+        static = (viewer / "index.html").read_bytes()
+        static = privacy.re.sub(rb'<script type="module"[^>]*></script>', lambda _: b'<script type="module">' + (viewer / "report.js").read_bytes() + b'</script>', static)
+        static = privacy.re.sub(rb'<link rel="stylesheet"[^>]*>', lambda _: b"<style type='text/css'>" + (viewer / "report.css").read_bytes() + b'</style>', static)
+        (self.source / "index.html").write_bytes(static + privacy.MARKER + base64.b64encode(metadata) + b"</template>")
+        self.report.write_bytes(privacy.json_bytes({"attachments": [{"name": "trace", "path": str(source_trace)}]}))
+        return name, raw, credential
+
+    def test_removes_auth_preserves_references_and_original(self):
+        # Given: An actual-format trace with emulator auth in a body and action.
+        name, raw, credential = self.fixture(extra={"resources/known.json": privacy.json_bytes({"Authorization": "Bearer " + token()})})
+        original_html = (self.source / "index.html").read_bytes()
+        # When: Prepare a separate private candidate.
+        manifest = privacy.prepare(self.source, self.report, self.output)
+        prepared = privacy.unpack((self.output / "html" / name).read_bytes())
+        # Then: Lookup keys still resolve, credentials are gone, and evidence is unchanged.
+        self.assertEqual(set(prepared), set(privacy.unpack(raw)))
+        self.assertNotIn(credential.encode(), b"".join(prepared.values()))
+        self.assertNotIn(b"FIXED-NONCONFIDENTIAL-REFRESH", b"".join(prepared.values()))
+        self.assertEqual(json.loads(prepared["resources/body.json"])["refreshToken"], privacy.REDACTED)
+        self.assertEqual(json.loads(prepared["resources/known.json"])["Authorization"], privacy.REDACTED)
+        self.assertEqual((self.source / name).read_bytes(), raw)
+        self.assertEqual((self.source / "index.html").read_bytes(), original_html)
+        self.assertFalse(manifest["publication_approved"])
+        self.assertEqual(manifest["counts"]["credential_values_removed"], 2)
+        self.assertEqual(Path(json.loads((self.output / "report.json").read_bytes())["attachments"][0]["path"]).read_bytes(), (self.output / "html" / name).read_bytes())
+
+    def test_fails_closed_for_unexpected_content(self):
+        # Given: Each unexpected input must fail rather than become an approved candidate.
+        cases = [
+            {"credential": token(signature="signed")},
+            {"credential": token(audience="production")},
+            {"origin": "https://production.example.invalid/auth"},
+            {"origin": "http://auth.app.test:9099/test?password=FIXED-UNKNOWN-PASSWORD"},
+            {"origin": "http://auth.app.test:9099/test?%70assword=FIXED-UNKNOWN-PASSWORD"},
+            {"origin": "http://auth.app.test:9099/test?flag&password=FIXED-UNKNOWN-PASSWORD"},
+            {"origin": "http://auth.app.test:9099/test#access_token=FIXED-UNKNOWN-ACCESS-TOKEN"},
+            {"origin": "http://fixed:FIXED-UNKNOWN-PASSWORD@auth.app.test:9099/test"},
+            {"popup_email": "person@private.example"},
+            {"extra": {"resources/unknown.json": b'{"refreshToken":"UNRECOGNIZED-SENSITIVE-SENTINEL"}'}},
+            {"extra": {"resources/unknown.json": b'{"password":"UNRECOGNIZED-SENSITIVE-SENTINEL"}'}},
+            {"extra": {"resources/unknown.json": b' \n {"password":"UNRECOGNIZED-SENSITIVE-SENTINEL"}'}},
+            {"extra": {"resources/unknown.json": b'{"password":"UNRECOGNIZED-SENSITIVE-SENTINEL"'}},
+            {"extra": {"resources/unknown.json": b'{"secret":"UNRECOGNIZED-SENSITIVE-SENTINEL"}'}},
+            {"extra": {"resources/unknown.json": b'{"email":"person@private.example"}'}},
+            {"extra": {"resources/unknown.txt": b'refresh_token=FIXED-UNKNOWN-SENTINEL&password=FIXED-PASSWORD'}},
+            {"extra": {"resources/unknown.txt": b' \n refresh_token=FIXED-UNKNOWN-SENTINEL&password=FIXED-PASSWORD'}},
+            {"extra": {"resources/unknown.txt": b'refresh_token=FIXED-UNKNOWN-SENTINEL&refresh_token='}},
+            {"extra": {"resources/unknown.txt": b'%78%5B%5D=ok&%70assword=FIXED-UNKNOWN-PASSWORD'}},
+            {"extra": {"resources/unknown.txt": b'flag&%70assword=FIXED-UNKNOWN-PASSWORD'}},
+            {"extra": {"resources/unknown.json": b'{"params":[{"name":"refresh_token","value":"FIXED-UNKNOWN-SENTINEL"}]}'}},
+            {"extra": {"resources/unknown.json": b'{"headers":[{"name":"Authorization","value":"Bearer FIXED-UNKNOWN-SENTINEL"}]}'}},
+            {"extra": {"../escape": b"no"}},
+        ]
+        for case in cases:
+            with self.subTest(case=list(case)):
+                self.fixture(**case)
+                # When: Attempt private preparation with the unexpected content.
+                with self.assertRaises(ValueError):
+                    privacy.prepare(self.source, self.report, self.output)
+                # Then: No prepared candidate survives.
+                self.assertFalse(self.output.exists())
+
+    def test_rejects_missing_or_unbound_attachments(self):
+        # Given: HTML data differs from the file selected by the same-run JSON report.
+        name, _, _ = self.fixture()
+        (self.source / name).write_bytes(privacy.pack({"0.trace": b"{}"}))
+        # When: Prepare a report with a mismatched attachment.
+        with self.assertRaises(ValueError):
+            privacy.prepare(self.source, self.report, self.output)
+        # Then: No candidate survives the source-binding failure.
+        self.assertFalse(self.output.exists())
+
+    def test_removes_recognized_form_credentials(self):
+        # Given: An auth-emulator form body carries known fixture credentials.
+        name, raw, credential = self.fixture(form=True)
+        # When: Prepare it through the same public command boundary.
+        privacy.prepare(self.source, self.report, self.output)
+        body = privacy.unpack((self.output / "html" / name).read_bytes())["resources/body.json"]
+        # Then: Both form values are redacted and the original trace remains unchanged.
+        self.assertNotIn(credential.encode(), body)
+        self.assertNotIn(b"FIXED-NONCONFIDENTIAL-REFRESH", body)
+        self.assertEqual((self.source / name).read_bytes(), raw)
+
+    def test_removes_auth_widget_assertions(self):
+        # Given: The emulator's actual widget format carries a fixture IdP assertion.
+        name, raw, _ = self.fixture(popup_email="fixture@example.test")
+        # When: Prepare the separate report.
+        manifest = privacy.prepare(self.source, self.report, self.output)
+        body = privacy.unpack((self.output / "html" / name).read_bytes())["resources/body.json"]
+        # Then: The auth attribute is redacted while resource lookup keys and source evidence remain intact.
+        self.assertIn(privacy.REDACTED.encode(), body)
+        self.assertNotIn(quote("fixture@example.test").encode(), body)
+        self.assertEqual(manifest["counts"]["auth_attributes_removed"], 1)
+        self.assertEqual((self.source / name).read_bytes(), raw)
+
+    def test_cli_failure_does_not_echo_payload(self):
+        # Given: A malformed source JSON contains a sensitive sentinel.
+        self.fixture()
+        self.report.write_text('{"UNRECOGNIZED-SENSITIVE-SENTINEL":')
+        # When: Invoke the same command CI runs.
+        result = subprocess.run([sys.executable, "scripts/prepare-report.py", str(self.source), str(self.report), str(self.output)], capture_output=True)
+        # Then: It fails closed without echoing the parser payload or leaving a candidate.
+        self.assertNotEqual(result.returncode, 0)
+        self.assertNotIn(b"UNRECOGNIZED-SENSITIVE-SENTINEL", result.stdout + result.stderr)
+        self.assertFalse(self.output.exists())
+
+    def test_rejects_executable_html_after_the_report(self):
+        # Given: Otherwise pinned viewer code has an appended script payload.
+        self.fixture()
+        path = self.source / "index.html"
+        path.write_bytes(path.read_bytes() + b'<script>throw "UNRECOGNIZED-SENSITIVE-SENTINEL"</script>')
+        # When: Attempt to prepare the modified viewer.
+        with self.assertRaises(privacy.PrivacyError):
+            privacy.prepare(self.source, self.report, self.output)
+        # Then: Executable suffixes are not copied into a candidate.
+        self.assertFalse(self.output.exists())
+
+    def test_origin_diagnostics_do_not_echo_recorded_values(self):
+        # Given: Rejected origins may contain private host labels, token-like labels, or query values.
+        origins = ["https://PRIVATE-SENTINEL.example.invalid/",
+                   "https://" + token() + ".example.invalid/",
+                   "https://apis.google.com/js/api.js?token=FIXED-PRIVATE-QUERY"]
+        for origin in origins:
+            self.fixture(origin=origin)
+            # When: Run the same origin-only diagnostic boundary used in CI.
+            result = subprocess.run([sys.executable, "scripts/prepare-report.py", str(self.source), str(self.report), str(self.output)], capture_output=True)
+            # Then: Only fixed known hosts or digests appear, never query or host-label payloads.
+            self.assertNotEqual(result.returncode, 0)
+            for sentinel in ("PRIVATE-SENTINEL", token(), token().lower(), "FIXED-PRIVATE-QUERY"):
+                self.assertNotIn(sentinel.encode(), result.stdout + result.stderr)
+            self.assertFalse(self.output.exists())
+
+    def test_excludes_only_the_pinned_connectivity_probe(self):
+        # Given: Recorded SDK probes have the observed empty or one-pixel GIF responses.
+        for body, status in [(b"", -1), (b"", 200), (PIXEL, 200)]:
+            with self.subTest(status=status, bytes=len(body)):
+                name, raw, _ = self.fixture(extra=probe_entries(body=body, status=status))
+                # When: Prepare a separate report without changing the original evidence.
+                manifest = privacy.prepare(self.source, self.report, self.output)
+                entries = privacy.unpack((self.output / "html" / name).read_bytes())
+                # Then: Entire probe metadata/body disappears; auth records and source remain intact.
+                self.assertEqual(entries["probe.network"], b"")
+                self.assertNotIn("resources/probe.gif", entries)
+                self.assertNotIn(b"FIXED-PROBE-COOKIE", b"".join(entries.values()))
+                self.assertNotIn(b"FIXED-PROBE-RESPONSE", b"".join(entries.values()))
+                self.assertEqual(manifest["counts"]["connectivity_probes_removed"], 1)
+                self.assertEqual(manifest["counts"]["probe_body_bytes_removed"], len(body))
+                self.assertEqual(manifest["counts"]["network_records"], 1)
+                self.assertEqual((self.source / name).read_bytes(), raw)
+                shutil.rmtree(self.output)
+
+    def test_rejects_unexplained_probe_shapes_and_shared_bodies(self):
+        # Given: A probe-like URL cannot hide other requests, credentials, payloads or retained resource references.
+        cases = [probe_entries(url="https://www.google.com/images/cleardot.gif?zx=00&token=FIXED-UNKNOWN"),
+                 probe_entries(method="POST"), probe_entries(authorization=True),
+                 probe_entries(body=b"<html>FIXED-UNKNOWN</html>"), probe_entries(status=403),
+                 {**probe_entries(), "shared.trace": privacy.json_bytes({"type": "before", "params": {"sha1": "probe.gif"}})}]
+        for extra in cases:
+            self.fixture(extra=extra)
+            # When: Attempt preparation through the public boundary.
+            with self.assertRaises(privacy.PrivacyError):
+                privacy.prepare(self.source, self.report, self.output)
+            # Then: Unknown shapes fail closed; referenced resources are never silently removed.
+            self.assertFalse(self.output.exists())
+
+    def test_excludes_only_known_empty_sdk_script_records(self):
+        # Given: Known Auth SDK loader requests have empty captured script bodies.
+        cases = [("https://apis.google.com/js/api.js", "gapi_loader_records_removed"),
+                 ("https://apis.google.com/js/api.js?onload=__iframefcb123", "gapi_loader_records_removed"),
+                 (GAPI_MODULE, "gapi_iframe_records_removed"),
+                 (GAPI_MODULE + "?le=scs", "gapi_iframe_records_removed")]
+        for url, counter in cases:
+            extra = {**sdk_entries(url=url), "shared.trace": privacy.json_bytes({"type": "before", "params": {"sha1": "sdk.js"}})}
+            name, raw, _ = self.fixture(extra=extra)
+            # When: Prepare a separate copy without accepting the external host generally.
+            manifest = privacy.prepare(self.source, self.report, self.output)
+            entries = privacy.unpack((self.output / "html" / name).read_bytes())
+            # Then: Entire SDK metadata disappears while shared empty resource references still resolve.
+            self.assertEqual(entries["sdk.network"], b"")
+            self.assertEqual(entries["resources/sdk.js"], b"")
+            self.assertNotIn(b"FIXED-SDK-COOKIE", b"".join(entries.values()))
+            self.assertNotIn(b"FIXED-SDK-RESPONSE", b"".join(entries.values()))
+            self.assertEqual(manifest["counts"][counter], 1)
+            self.assertEqual(manifest["counts"]["network_records"], 1)
+            self.assertEqual((self.source / name).read_bytes(), raw)
+            shutil.rmtree(self.output)
+
+    def test_rejects_unexplained_sdk_paths_queries_and_payloads(self):
+        # Given: Other endpoints, callbacks, fields, methods, resource types or captured bytes are unexplained.
+        cases = [sdk_entries(url="https://apis.google.com/v1/userinfo"),
+                 sdk_entries(url="https://apis.google.com/js/api.js?onload=FIXED-UNKNOWN"),
+                 sdk_entries(url="https://apis.google.com/js/api.js?token=FIXED-UNKNOWN"),
+                 sdk_entries(url=GAPI_MODULE + "?le=FIXED-UNKNOWN"), sdk_entries(method="POST"),
+                 sdk_entries(resource_type="xhr"), sdk_entries(authorization=True), sdk_entries(body=b"FIXED-UNKNOWN")]
+        for extra in cases:
+            self.fixture(extra=extra)
+            # When: Attempt preparation through the public boundary.
+            with self.assertRaises(privacy.PrivacyError):
+                privacy.prepare(self.source, self.report, self.output)
+            # Then: The candidate is rejected, not made publishable by a hostname allowance.
+            self.assertFalse(self.output.exists())
+
+
+if __name__ == "__main__":
+    unittest.main()

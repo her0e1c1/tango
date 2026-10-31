@@ -23,6 +23,8 @@ jobs:
     env:
       # A PR targeting main is still untrusted and keeps on-first-retry.
       PLAYWRIGHT_MAIN_TRACE: ${{ github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch' || github.event_name == 'repository_dispatch') }}
+      PLAYWRIGHT_PRIVACY_VIEWER_ASSETS: test-results/privacy-viewer-assets
+      E2E_SOURCE_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -49,6 +51,65 @@ jobs:
 
       - name: Run E2E tests and record every main attempt
         run: docker compose -f .devcontainer/compose.yaml -f .devcontainer/compose.e2e.yaml run --rm --remove-orphans --env CI --env PLAYWRIGHT_MAIN_TRACE --entrypoint npm dev run e2e
+
+      - name: Verify the trace viewer with an isolated fixture
+        id: fixture-check
+        if: ${{ !cancelled() }}
+        timeout-minutes: 3
+        run: docker compose -f .devcontainer/compose.yaml -f .devcontainer/compose.e2e.yaml run --rm --remove-orphans --entrypoint npm dev run verify:e2e-report:fixture
+
+      - name: Verify the generated report privately in the browser
+        if: ${{ !cancelled() && steps.fixture-check.outcome == 'success' }}
+        timeout-minutes: 3
+        run: docker compose -f .devcontainer/compose.yaml -f .devcontainer/compose.e2e.yaml run --rm --remove-orphans --env PLAYWRIGHT_MAIN_TRACE --entrypoint npm dev run verify:e2e-report
+
+      - name: Read pinned viewer assets from the existing test image
+        run: docker compose -f .devcontainer/compose.yaml -f .devcontainer/compose.e2e.yaml run --rm --remove-orphans --entrypoint cp dev -a node_modules/playwright-core/lib/vite test-results/privacy-viewer-assets
+
+      - name: Check private report preparation rejects unexpected credentials
+        run: python3 scripts/test-report-privacy.py
+
+      - name: Prepare a separate private full report without changing original evidence
+        run: python3 scripts/prepare-report.py playwright-report test-results/e2e-report.json prepared-reports/full
+
+      - name: Verify the prepared real suite report privately in the browser
+        timeout-minutes: 3
+        run: docker compose -f .devcontainer/compose.yaml -f .devcontainer/compose.e2e.yaml run --rm --remove-orphans --env PLAYWRIGHT_MAIN_TRACE --entrypoint npm dev run verify:e2e-report -- prepared-reports/full/html prepared-reports/full/report.json
+
+      - name: Record a real emulator authentication trace for privacy verification
+        if: ${{ success() }}
+        run: >-
+          docker compose -f .devcontainer/compose.yaml -f .devcontainer/compose.e2e.yaml run --rm --remove-orphans
+          --env CI --env PLAYWRIGHT_HTML_OUTPUT_DIR=test-results/privacy-auth-source/html
+          --env PLAYWRIGHT_JSON_OUTPUT_FILE=test-results/privacy-auth-source/report.json
+          --entrypoint npm dev run e2e -- test/e2e/account.spec.ts --grep 'ACCOUNT-01 '
+          --trace on --output=test-results/privacy-auth-source/results
+
+      - name: Prepare a separate private authentication report
+        if: ${{ success() }}
+        run: |
+          python3 scripts/prepare-report.py test-results/privacy-auth-source/html test-results/privacy-auth-source/report.json prepared-reports/auth
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          counts = json.loads(Path('prepared-reports/auth/manifest.json').read_text())['counts']
+          assert counts['traces'] > 0 and counts['jwt_values_removed'] > 0
+          PY
+
+      - name: Verify the prepared real authentication report privately in the browser
+        if: ${{ success() }}
+        timeout-minutes: 3
+        run: docker compose -f .devcontainer/compose.yaml -f .devcontainer/compose.e2e.yaml run --rm --remove-orphans --entrypoint npm dev run verify:e2e-report -- prepared-reports/auth/html prepared-reports/auth/report.json --require-trace
+
+      - name: Retain non-payload preparation manifests only
+        if: ${{ !cancelled() && hashFiles('prepared-reports/*/manifest.json') != '' }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: privacy-preparation-manifests
+          path: |
+            prepared-reports/full/manifest.json
+            prepared-reports/auth/manifest.json
+          if-no-files-found: error
 
       - name: Stop E2E services
         if: ${{ always() }}
