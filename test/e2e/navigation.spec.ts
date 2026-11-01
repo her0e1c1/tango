@@ -3,70 +3,6 @@ import { readProgress, readSession } from "./utils/study-helpers";
 import { createAnonymousDeck, downloadDeckCards, startAnonymousStudy } from "./utils/ui-helpers";
 import type { Locator, Page } from "@playwright/test";
 
-test("NAVIGATION-17 NAVIGATION-38 shows held review counts and opens existing study settings", async ({
-  fixture,
-  page,
-}) => {
-  const { deck, before } = await test.step("Given: A deck list with held due and new card counts", async () => {
-    const deck = fixture.deck();
-    await fixture.apply(page, { preferences: { study: { useCardInterval: true } } });
-    const before = await requireDocument("deck", deck.id);
-    await page.goto("/");
-    await expect(page.getByRole("article", { name: deck.name, exact: true })).toBeVisible();
-    await expect(page.getByText("1 due · 1 new", { exact: true })).toHaveCount(2);
-    return { deck, before };
-  });
-  await test.step("When: Open the count explanation", async () => {
-    await page.getByText("About counts", { exact: true }).click();
-  });
-  const { review } = await test.step("Then: Counts are explained as device-held data and saved filters", async () => {
-    await expect(page.getByText("Counts use data currently held on this device and saved filters.")).toBeVisible();
-    const review = page.getByRole("button", { name: `Review ${deck.name}`, exact: true });
-    return { review };
-  });
-  await test.step("When: Activate Review with the keyboard", async () => {
-    await review.focus();
-    await page.keyboard.press("Enter");
-  });
-  await test.step("Then: Existing study settings open without creating a session or saving the deck", async () => {
-    await expect(page).toHaveURL(`/deck/${deck.id}/start`);
-    expect(await readSession(fixture.user().uid, deck.id)).toBeUndefined();
-    expect(await requireDocument("deck", deck.id)).toEqual(before);
-  });
-});
-
-test("NAVIGATION-18 updates the list when a review deadline arrives", async ({ fixture, page }) => {
-  const { deck, future, before } =
-    await test.step("Given: The deck list is open just before a future card review deadline", async () => {
-      const deck = fixture.deck();
-      const future = fixture.card("card-future");
-      await fixture.apply(page, { preferences: { study: { useCardInterval: true } } });
-      const before = await requireDocument("card", future.id);
-      const state = fixture.state.remote.cards.find((value) => value.id === future.id);
-      if (!state?.fsrs) throw new Error("Expected a future review deadline");
-      const deadline = new Date(state.fsrs.dueAt);
-      await page.goto("/");
-      await expect(page.getByRole("article", { name: deck.name, exact: true })).toBeVisible();
-      await page.clock.install({ time: new Date(deadline.getTime() - 1000) });
-      await page.clock.pauseAt(new Date(deadline.getTime() - 500));
-      return { deck, future, before };
-    });
-  await test.step("When: Refresh counts before the review deadline", async () => {
-    await page.evaluate(() => window.dispatchEvent(new Event("focus")));
-  });
-  await test.step("Then: The future card is still excluded from due counts", async () => {
-    await expect(page.getByText("1 due · 1 new", { exact: true })).toHaveCount(2);
-  });
-  await test.step("When: Advance the clock to the review deadline", async () => {
-    await page.clock.runFor(500);
-  });
-  await test.step("Then: Due counts update without changing cards or creating a session", async () => {
-    await expect(page.getByText("2 due · 1 new", { exact: true })).toHaveCount(2);
-    expect(await readSession(fixture.user().uid, deck.id)).toBeUndefined();
-    expect(await requireDocument("card", future.id)).toEqual(before);
-  });
-});
-
 const readSavedData = async (page: Page, fixture: E2EFixture) => ({
   learning: await Promise.all(
     (["studySession", "studyAnswer"] as const).map(async (collection) =>
@@ -268,7 +204,7 @@ test("NAVIGATION-08 NAVIGATION-27 NAVIGATION-28 browses remote Cards without cha
   });
 });
 
-test("NAVIGATION-09 NAVIGATION-45 resets local-only viewing position on reload and reentry without saving", async ({
+test("NAVIGATION-09 resets local-only viewing position on reload and reentry without saving", async ({
   fixture,
   page,
 }) => {
@@ -818,119 +754,6 @@ test("NAVIGATION-16 browses forward and backward with the progress slider withou
         .map(({ id, frontText, backText }) => ({ frontText, backText, tags: [], uniqueKey: id }))
     );
   });
-});
-
-test("NAVIGATION-06 NAVIGATION-25 NAVIGATION-26 navigates from the Deck list to its Card list", async ({
-  fixture,
-  page,
-}) => {
-  const { deck, card, actions } = await test.step("Given: A deck list with its Add action focused", async () => {
-    const deck = fixture.deck();
-    const card = fixture.card();
-    await fixture.apply(page);
-
-    await page.goto("/");
-    const actions = page.getByRole("button", { name: "Add", exact: true });
-    await actions.focus();
-    return { deck, card, actions };
-  });
-  await test.step("When: Open Add with Enter", async () => {
-    await actions.press("Enter");
-  });
-  await test.step("Then: The first menu action receives focus", async () => {
-    await expect(page.getByRole("menuitem", { name: "Create deck" })).toBeFocused();
-  });
-  await test.step("When: Move down in the Add menu", async () => {
-    await page.keyboard.press("ArrowDown");
-  });
-  await test.step("Then: Import decks receives focus", async () => {
-    await expect(page.getByRole("menuitem", { name: "Import decks" })).toBeFocused();
-  });
-  await test.step("When: Dismiss Add with Escape", async () => {
-    await page.keyboard.press("Escape");
-  });
-  await test.step("Then: The menu closes and focus returns to Add", async () => {
-    await expect(page.getByRole("menu")).toHaveCount(0);
-    await expect(actions).toBeFocused();
-  });
-  await test.step("When: Switch from deck actions to Add", async () => {
-    await page.getByRole("button", { name: `Open actions for ${deck.name}` }).click();
-    await actions.click();
-  });
-  await test.step("Then: Only the Add menu remains open", async () => {
-    await expect(page.getByRole("menu")).toHaveCount(1);
-    await expect(page.getByRole("menu", { name: "Add", exact: true })).toBeVisible();
-  });
-  await test.step("When: Switch back to deck actions with Enter", async () => {
-    // Use the keyboard to reach the Deck trigger while the list menu may cover it.
-    await page.getByRole("button", { name: `Open actions for ${deck.name}` }).press("Enter");
-  });
-  await test.step("Then: Only that deck action menu remains open", async () => {
-    await expect(page.getByRole("menu")).toHaveCount(1);
-    await expect(page.getByRole("menu", { name: `Actions for ${deck.name}` })).toBeVisible();
-  });
-  await test.step("When: Choose Create deck from Add", async () => {
-    await actions.click();
-    await page.getByRole("menuitem", { name: "Create deck" }).click();
-  });
-  await test.step("Then: The deck creation route opens", async () => {
-    await expect(page).toHaveURL(/\/deck\/new$/);
-  });
-  await test.step("When: Return home and choose Import decks", async () => {
-    await page.goto("/");
-    await actions.click();
-    await page.getByRole("menuitem", { name: "Import decks" }).click();
-  });
-  await test.step("Then: The import route opens", async () => {
-    await expect(page).toHaveURL(/\/import$/);
-  });
-  await test.step("When: Return home and open the deck card list", async () => {
-    await page.goto("/");
-    await page.getByRole("button", { name: `Open cards in ${deck.name}` }).click();
-  });
-  await test.step("Then: The deck route shows its card", async () => {
-    await expect(page).toHaveURL(new RegExp(`/deck/${deck.id}$`));
-    await expect(page.getByText(card.frontText)).toBeVisible();
-  });
-  const { specialDecks, specialCards, before } =
-    await test.step("Given: Additional decks with reserved characters in their identifiers and saved card baselines", async () => {
-      const specialDecks = fixture.state.remote.decks.filter(({ id }) => id !== deck.id);
-      const specialCards = fixture.state.remote.cards.filter(({ deckId }) => deckId !== deck.id);
-      const before = await Promise.all(fixture.state.remote.cards.map(({ id }) => requireDocument("card", id)));
-      return { specialDecks, specialCards, before };
-    });
-  for (const selected of specialDecks) {
-    await test.step("When: Open the selected deck through its home navigation entry", async () => {
-      await page.goto("/");
-      await page.getByRole("button", { name: `Open cards in ${selected.name}`, exact: true }).click();
-    });
-    const { destination } =
-      await test.step("Then: Its identifier is encoded without URL search or fragment changes", async () => {
-        const destination = new URL(page.url());
-        expect(destination.pathname).toBe(`/deck/${encodeURIComponent(selected.id)}`);
-        expect(destination.search).toBe("");
-        expect(destination.hash).toBe("");
-        return { destination };
-      });
-    for (const entry of ["navigation", "direct", "reload"]) {
-      await test.step("When: Reenter through direct navigation or reload when requested", async () => {
-        if (entry === "direct") await page.goto(destination.href);
-        if (entry === "reload") await page.reload();
-      });
-      await test.step("Then: Only the selected deck cards appear without changing saved cards", async () => {
-        await expect(page).toHaveURL(destination.href);
-        for (const candidate of specialCards) {
-          const button = page.getByRole("button", { name: `View ${candidate.frontText}`, exact: true });
-          await expect(button).toHaveCount(Number(candidate.deckId === selected.id));
-          await expect(button).toBeVisible({ visible: candidate.deckId === selected.id });
-        }
-        await expect(page.getByText(card.frontText, { exact: true })).toHaveCount(0);
-        expect(await Promise.all(fixture.state.remote.cards.map(({ id }) => requireDocument("card", id)))).toEqual(
-          before
-        );
-      });
-    }
-  }
 });
 
 test("NAVIGATION-07 recovers home from a missing Deck route", async ({ fixture, page, namespace }) => {

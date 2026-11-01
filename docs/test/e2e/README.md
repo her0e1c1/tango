@@ -119,6 +119,19 @@
 | DECK-IMPORT-14 | read | 異常系 | [空白だけの CSV をファイル全体のエラーとして拒否できる](./deck-import.md#deck-import-14) |
 | DECK-IMPORT-05 | batch | 異常系 | [取り込んだ内容の同期拒否を反映できる](./deck-import.md#deck-import-05) |
 | DECK-IMPORT-18 | batch | 異常系 | [例の保存失敗後も同じ内容で重複せず再試行できる](./deck-import.md#deck-import-18) |
+| DECK-LIST-01 | read | 正常系 | [Deck 一覧から Card 一覧へ遷移できる](./deck-list.md#deck-list-01) |
+| DECK-LIST-02 | read | 正常系 | [読み込み済みの復習件数と集計条件を表示できる](./deck-list.md#deck-list-02) |
+| DECK-LIST-03 | read | 正常系 | [復習期限の到達で一覧を更新できる](./deck-list.md#deck-list-03) |
+| DECK-LIST-04 | read | 正常系 | [Deck 一覧の追加メニューを開閉して操作項目を選べる](./deck-list.md#deck-list-04) |
+| DECK-LIST-05 | read | 正常系 | [追加メニューから作成・インポート画面を開く](./deck-list.md#deck-list-05) |
+| DECK-LIST-06 | read | 正常系 | [Deck 一覧を学習状態ごとに表示する](./deck-list.md#deck-list-06) |
+| DECK-LIST-07 | read | 正常系 | [Deck 一覧を学習状態と復習期限の順に並べる](./deck-list.md#deck-list-07) |
+| DECK-LIST-08 | read | 正常系 | [復習と新規が0件の Deck では理由を区別して表示する](./deck-list.md#deck-list-08) |
+| DECK-LIST-09 | read | 正常系 | [Deck 一覧の Review と Study new から開始設定へ進める](./deck-list.md#deck-list-09) |
+| DECK-LIST-10 | read | 正常系 | [間隔反復 OFF では件数を隠して学習と管理の導線を維持する](./deck-list.md#deck-list-10) |
+| DECK-LIST-11 | read | 正常系 | [条件の変更と画面復帰で一覧の復習件数を更新する](./deck-list.md#deck-list-11) |
+| DECK-LIST-12 | read | 正常系 | [空の Deck 一覧でも追加メニューを利用できる](./deck-list.md#deck-list-12) |
+| DECK-LIST-13 | write | 正常系 | [Deck 一覧の Continue から既存の学習を再開できる](./deck-list.md#deck-list-13) |
 | DECK-MANAGEMENT-03 | read | 正常系 | [Deck の削除を取り消せる](./deck-management.md#deck-management-03) |
 | DECK-MANAGEMENT-08 | read | 正常系 | [未保存の Deck 編集内容を維持して編集を続けられる](./deck-management.md#deck-management-08) |
 | DECK-MANAGEMENT-10 | read | 正常系 | [未保存の Deck 編集内容を破棄して一覧へ戻れる](./deck-management.md#deck-management-10) |
@@ -132,7 +145,6 @@
 | DECK-TRANSFER-01 | read | 正常系 | [Deck の Card を CSV で出力できる](./deck-transfer.md#deck-transfer-01) |
 | DECK-TRANSFER-02 | read | 正常系 | [特殊文字とタグなしの Card を内容を失わず CSV へ出力する](./deck-transfer.md#deck-transfer-02) |
 | NAVIGATION-02 | read | 正常系 | [ショートカットで主要画面へ移動する](./navigation.md#navigation-02) |
-| NAVIGATION-06 | read | 正常系 | [Deck 一覧から Card 一覧へ遷移できる](./navigation.md#navigation-06) |
 | NAVIGATION-08 | read | 正常系 | [ログイン中の Deck を学習データを変更せずに閲覧できる](./navigation.md#navigation-08) |
 | NAVIGATION-09 | read | 正常系 | [匿名利用中の Deck を先頭から閲覧し直せる](./navigation.md#navigation-09) |
 | NAVIGATION-10 | read | 正常系 | [学習条件に依存せず全 Card を標準順で閲覧できる](./navigation.md#navigation-10) |
@@ -141,30 +153,18 @@
 | NAVIGATION-13 | read | 正常系 | [1枚の Card の長い裏面をタッチで閲覧できる](./navigation.md#navigation-13) |
 | NAVIGATION-15 | read | 正常系 | [学習データを変更せずに閲覧を自動再生できる](./navigation.md#navigation-15) |
 | NAVIGATION-16 | read | 正常系 | [閲覧の進捗スライダーで前後へ移動できる](./navigation.md#navigation-16) |
-| NAVIGATION-17 | read | 正常系 | [読み込み済みの復習件数と集計条件を表示できる](./navigation.md#navigation-17) |
-| NAVIGATION-18 | read | 正常系 | [復習期限の到達で一覧を更新できる](./navigation.md#navigation-18) |
-| NAVIGATION-25 | read | 正常系 | [Deck 一覧の追加メニューを開閉して操作項目を選べる](./navigation.md#navigation-25) |
-| NAVIGATION-26 | read | 正常系 | [追加メニューから作成・インポート画面を開く](./navigation.md#navigation-26) |
 | NAVIGATION-27 | read | 正常系 | [閲覧 Card の表裏を切り替えて裏面の内容を利用できる](./navigation.md#navigation-27) |
 | NAVIGATION-28 | read | 正常系 | [閲覧で未対応の mouse と上下操作は Card を変更しない](./navigation.md#navigation-28) |
 | NAVIGATION-30 | read | 正常系 | [閲覧 Help で操作を確認して元の Card へ戻れる](./navigation.md#navigation-30) |
 | NAVIGATION-31 | read | 正常系 | [閲覧の編集リンクから現在の Card を編集画面で開ける](./navigation.md#navigation-31) |
 | NAVIGATION-32 | read | 正常系 | [再生間隔0では閲覧の自動送りを利用できない](./navigation.md#navigation-32) |
 | NAVIGATION-33 | read | 正常系 | [閲覧 Help の表示中は自動送りを中断する](./navigation.md#navigation-33) |
-| NAVIGATION-35 | read | 正常系 | [Deck 一覧を学習状態ごとに表示する](./navigation.md#navigation-35) |
-| NAVIGATION-36 | read | 正常系 | [Deck 一覧を学習状態と復習期限の順に並べる](./navigation.md#navigation-36) |
-| NAVIGATION-37 | read | 正常系 | [復習と新規が0件の Deck では理由を区別して表示する](./navigation.md#navigation-37) |
-| NAVIGATION-38 | read | 正常系 | [Deck 一覧の Review と Study new から開始設定へ進める](./navigation.md#navigation-38) |
-| NAVIGATION-39 | read | 正常系 | [間隔反復 OFF では件数を隠して学習と管理の導線を維持する](./navigation.md#navigation-39) |
-| NAVIGATION-40 | read | 正常系 | [条件の変更と画面復帰で一覧の復習件数を更新する](./navigation.md#navigation-40) |
 | NAVIGATION-41 | read | 正常系 | [view mode 中も閲覧の自動再生で次へ進める](./navigation.md#navigation-41) |
-| NAVIGATION-44 | read | 正常系 | [空の Deck 一覧でも追加メニューを利用できる](./navigation.md#navigation-44) |
 | NAVIGATION-14 | write | 正常系 | [閲覧の表示設定を保存して学習にも反映できる](./navigation.md#navigation-14) |
 | NAVIGATION-19 | write | 正常系 | [view mode で長い表面を読みながら移動を防止できる](./navigation.md#navigation-19) |
 | NAVIGATION-20 | write | 正常系 | [閲覧の view mode 終了後に通常の表裏操作へ戻れる](./navigation.md#navigation-20) |
 | NAVIGATION-21 | write | 正常系 | [view mode 中も閲覧ボタンで次へ進める](./navigation.md#navigation-21) |
 | NAVIGATION-34 | write | 正常系 | [閲覧中もフォーカス対象の標準キー操作を優先する](./navigation.md#navigation-34) |
-| NAVIGATION-45 | write | 正常系 | [Deck 一覧の Continue から既存の学習を再開できる](./navigation.md#navigation-45) |
 | NAVIGATION-01 | read | 異常系 | [存在しない画面から Deck 一覧へ戻れる](./navigation.md#navigation-01) |
 | NAVIGATION-04 | read | 異常系 | [処理中の予期しないエラーから復旧できる](./navigation.md#navigation-04) |
 | NAVIGATION-05 | read | 異常系 | [不正な PWA キャッシュによる起動失敗時に手動復旧を案内する](./navigation.md#navigation-05) |

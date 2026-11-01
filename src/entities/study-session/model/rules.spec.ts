@@ -14,7 +14,7 @@ const session: StudySession = {
   remote: { uid: "uid", startedAt: 0 },
 };
 
-describe("study card selection [STUDY-SESSION-01] [NAVIGATION-17] [NAVIGATION-18]", () => {
+describe("study card selection [STUDY-SESSION-01] [DECK-LIST-02] [DECK-LIST-03]", () => {
   const filter = { selectedTags: ["selected"], tagAndFilter: false };
   const due = calculateFsrsState(null, "good", 0);
   const card = { ...createCard({ id: "due", tags: ["selected"] }), fsrs: due };
