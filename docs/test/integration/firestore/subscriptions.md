@@ -5,7 +5,7 @@
 Card / Deck の公開された購読操作を通して、保存済みの内容と同一クライアント内の変更を取得でき、購読停止後は以前の取得結果を保持することを確認する。
 空の結果、所有者の分離、不正データ、独立したクライアントからの更新は [Snapshot](./snapshot.md) を参照する。停止後の更新到達まで確認する契約は [FIRESTORE-SNAPSHOT-09](./snapshot.md#firestore-snapshot-09) として区別する。
 
-関連 E2E: [CARD-VIEW-01](../../e2e/card-view.md#card-view-01)、[DECK-MANAGEMENT-01](../../e2e/deck-management.md#deck-management-01)
+関連 E2E: [CARD-LIST-01](../../e2e/card-list.md#card-list-01)、[DECK-MANAGEMENT-01](../../e2e/deck-management.md#deck-management-01)
 
 共通の実行・検証前提は [AGENTS.md](./AGENTS.md#共通前提) を参照する。
 

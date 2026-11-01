@@ -32,7 +32,6 @@
 | NAVIGATION-01 | read | 異常系 | [存在しない画面から Deck 一覧へ戻れる](#navigation-01) |
 | NAVIGATION-04 | read | 異常系 | [処理中の予期しないエラーから復旧できる](#navigation-04) |
 | NAVIGATION-05 | read | 異常系 | [不正な PWA キャッシュによる起動失敗時に手動復旧を案内する](#navigation-05) |
-| NAVIGATION-07 | read | 異常系 | [存在しない Deck から復帰できる](#navigation-07) |
 | NAVIGATION-23 | read | 異常系 | [保存済みの言語を利用できない場合はエラーを英語で案内する](#navigation-23) |
 | NAVIGATION-24 | read | 異常系 | [個別に処理された失敗では画面全体を復旧画面に置き換えない](#navigation-24) |
 | NAVIGATION-29 | read | 異常系 | [存在しない Deck の閲覧画面から一覧へ戻れる](#navigation-29) |
@@ -598,27 +597,6 @@ Then:
 - サイト設定からの手動削除とデータ消失を案内し、ローカル DB の削除操作は表示しない。
 - 保存済みの設定とキャッシュを保持し、クラウドの Deck と Card の内容を変更しない。
 - 不正なキャッシュによるブラウザーの診断は許容する。
-
-<a id="navigation-07"></a>
-
-### NAVIGATION-07 存在しない Deck から復帰できる
-
-カテゴリ: `read`
-
-区分: 異常系
-
-Given:
-
-- Fixture: [`empty`](./fixture/empty.yaml)
-- 開こうとしている URL の Deck は存在しない。
-
-When:
-
-- 存在しない Deck の Card 一覧を直接開き、Deck が利用できない旨の画面からホームへ戻る操作を選ぶ。
-
-Then:
-
-- Deck 一覧が表示される。
 
 <a id="navigation-23"></a>
 

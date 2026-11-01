@@ -160,28 +160,33 @@ test("CARD-FILTER-02 CARD-FILTER-14 isolates filters when moving between decks",
   });
 });
 
-test("CARD-FILTER-03 CARD-FILTER-15 CARD-FILTER-16 distinguishes an empty deck and offers recovery", async ({
-  fixture,
-  page,
-}) => {
-  const { deck } = await test.step("Given: An empty deck card list with recovery actions", async () => {
+test("CARD-FILTER-03 distinguishes an empty deck in the card list and View mode", async ({ fixture, page }) => {
+  const { deck } = await test.step("Given: A deck without cards or browsing filters", async () => {
     await fixture.apply(page);
     const deck = fixture.deck("deck-empty");
-    await page.goto(`/deck/${deck.id}`);
-    await expectList(page, []);
-    await expect(page.getByRole("heading", { name: "No cards yet" })).toBeVisible();
     return { deck };
   });
-  await test.step("When: Choose Add card", async () => {
-    await page.getByRole("button", { name: "Add card", exact: true }).click();
+  await test.step("When: Open the empty deck card list", async () => {
+    await page.goto(`/deck/${deck.id}`);
   });
-  await test.step("Then: Card creation opens for the empty deck", async () => {
-    await expect(page).toHaveURL(new RegExp(`/deck/${deck.id}/card/new$`));
+  await test.step("Then: The list shows no cards and empty-state guidance", async () => {
+    await expectList(page, []);
+    await expect(page.getByRole("heading", { name: "No cards yet" })).toBeVisible();
   });
   await test.step("When: Open the empty deck in View mode", async () => {
     await page.goto(`/deck/${deck.id}/view`);
   });
   await test.step("Then: Empty-state guidance replaces browsing controls", async () => {
+    await expect(page.getByRole("heading", { name: "No cards yet" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Card front" })).toHaveCount(0);
+  });
+});
+
+test("CARD-FILTER-16 returns from an empty Deck view to the deck list", async ({ fixture, page }) => {
+  await test.step("Given: An empty deck View with recovery guidance", async () => {
+    await fixture.apply(page);
+    const deck = fixture.deck("deck-empty");
+    await page.goto(`/deck/${deck.id}/view`);
     await expect(page.getByRole("heading", { name: "No cards yet" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Card front" })).toHaveCount(0);
   });

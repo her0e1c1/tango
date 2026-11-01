@@ -16,7 +16,6 @@ Card 一覧と Deck 閲覧で、学習条件から独立したタグの絞り込
 | CARD-FILTER-11 | read | 正常系 | [絞り込み結果の表示順を標準へ戻せる](#card-filter-11) |
 | CARD-FILTER-13 | read | 正常系 | [再読み込みでソートだけを標準へ戻しフィルターを維持する](#card-filter-13) |
 | CARD-FILTER-14 | read | 正常系 | [別の Deck から戻ると元のフィルターを復元できる](#card-filter-14) |
-| CARD-FILTER-15 | read | 正常系 | [Card 未登録の一覧から Card の追加へ進める](#card-filter-15) |
 | CARD-FILTER-16 | read | 正常系 | [Card 未登録の Deck 閲覧から Deck 一覧へ戻れる](#card-filter-16) |
 | CARD-FILTER-05 | write | 正常系 | [再読み込み後も同じタグと AND / OR 条件を復元できる](#card-filter-05) |
 | CARD-FILTER-06 | write | 正常系 | [フィルターを解除した状態も再読み込み後に維持できる](#card-filter-06) |
@@ -201,27 +200,6 @@ When:
 Then:
 
 - 保存済みの選択タグ・AND 条件・絞り込み結果が復元される。
-
-<a id="card-filter-15"></a>
-
-### CARD-FILTER-15 Card 未登録の一覧から Card の追加へ進める
-
-カテゴリ: `read`
-
-区分: 正常系
-
-Given:
-
-- Fixture: [`browse-filter`](./fixture/browse-filter.yaml)
-- Card 未登録・フィルター未設定の Deck の Card 一覧を開いている。
-
-When:
-
-- Card の追加操作を選択する。
-
-Then:
-
-- 対象 Deck の Card 作成画面へ移動する。
 
 <a id="card-filter-16"></a>
 

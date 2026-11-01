@@ -4,7 +4,7 @@
 
 取得済みカードの変更と消去が参照結果に反映され、参照可能なデックに属する同じ所有者のカードだけを取得できることを確認する。購読通知前後の一覧の変化と、購読エラー時に維持される内容も確認する。Firestore document の検証、実際の保存・通信、購読の停止は扱わない。
 
-関連 E2E: [CARD-VIEW-01](../../e2e/card-view.md#card-view-01)、[ACCOUNT-04](../../e2e/account.md#account-04)
+関連 E2E: [CARD-LIST-01](../../e2e/card-list.md#card-list-01)、[ACCOUNT-04](../../e2e/account.md#account-04)
 
 共通の検証前提は [AGENTS.md](./AGENTS.md) を参照する。
 

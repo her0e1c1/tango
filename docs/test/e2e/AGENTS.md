@@ -115,7 +115,7 @@ DECK-IMPORT-01〜DECK-IMPORT-06、DECK-IMPORT-12〜DECK-IMPORT-19、DECK-IMPORT-
 
 ### Card の絞り込みと並び順
 
-CARD-FILTER の各ケースに適用する。
+CARD-FILTER の各ケースと CARD-LIST-04 に適用する。
 
 - Card 一覧と Deck 閲覧は Deck ごとの同じフィルターを使い、対象 Deck の Card だけを表示する。
 - 一覧と閲覧は学習用タグ・復習期日・枚数上限・シャッフルに制限されない。画面を開くだけでは保存済みフィルターを変更しない。

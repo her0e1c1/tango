@@ -29,7 +29,6 @@
 | CARD-FILTER-11 | read | 正常系 | [絞り込み結果の表示順を標準へ戻せる](./card-filter.md#card-filter-11) |
 | CARD-FILTER-13 | read | 正常系 | [再読み込みでソートだけを標準へ戻しフィルターを維持する](./card-filter.md#card-filter-13) |
 | CARD-FILTER-14 | read | 正常系 | [別の Deck から戻ると元のフィルターを復元できる](./card-filter.md#card-filter-14) |
-| CARD-FILTER-15 | read | 正常系 | [Card 未登録の一覧から Card の追加へ進める](./card-filter.md#card-filter-15) |
 | CARD-FILTER-16 | read | 正常系 | [Card 未登録の Deck 閲覧から Deck 一覧へ戻れる](./card-filter.md#card-filter-16) |
 | CARD-FILTER-05 | write | 正常系 | [再読み込み後も同じタグと AND / OR 条件を復元できる](./card-filter.md#card-filter-05) |
 | CARD-FILTER-06 | write | 正常系 | [フィルターを解除した状態も再読み込み後に維持できる](./card-filter.md#card-filter-06) |
@@ -37,6 +36,11 @@
 | CARD-FILTER-08 | write | 正常系 | [AND 条件ですべての選択タグを持つ Card に絞り込める](./card-filter.md#card-filter-08) |
 | CARD-FILTER-09 | write | 正常系 | [OR 条件でいずれかの選択タグを持つ Card に絞り込める](./card-filter.md#card-filter-09) |
 | CARD-FILTER-12 | write | 正常系 | [タグ未選択なら AND / OR にかかわらず全件表示する](./card-filter.md#card-filter-12) |
+| CARD-LIST-01 | read | 正常系 | [Card 一覧に学習情報を表示できる](./card-list.md#card-list-01) |
+| CARD-LIST-02 | read | 正常系 | [Card の裏面オーバーレイを開ける](./card-list.md#card-list-02) |
+| CARD-LIST-03 | read | 正常系 | [Card の裏面オーバーレイを閉じられる](./card-list.md#card-list-03) |
+| CARD-LIST-04 | read | 正常系 | [Card 未登録の一覧から Card の追加へ進める](./card-list.md#card-list-04) |
+| CARD-LIST-05 | read | 異常系 | [存在しない Deck から復帰できる](./card-list.md#card-list-05) |
 | CARD-LIST-ACTIONS-02 | read | 正常系 | [Card を追加が新しい順に表示できる](./card-list-actions.md#card-list-actions-02) |
 | CARD-LIST-ACTIONS-03 | read | 正常系 | [Card の表示順を標準へ戻せる](./card-list-actions.md#card-list-actions-03) |
 | CARD-LIST-ACTIONS-07 | read | 正常系 | [並び替え後も選択した Card のプレビューと行操作を利用できる](./card-list-actions.md#card-list-actions-07) |
@@ -88,9 +92,6 @@
 | CARD-TAG-MANAGEMENT-14 | write | 正常系 | [保留中のタグ変更を再接続後に同期する](./card-tag-management.md#card-tag-management-14) |
 | CARD-TAG-MANAGEMENT-03 | write | 異常系 | [空のタグ名を修正して保存する](./card-tag-management.md#card-tag-management-03) |
 | CARD-TAG-MANAGEMENT-10 | write | 異常系 | [重複するタグ名を修正して保存する](./card-tag-management.md#card-tag-management-10) |
-| CARD-VIEW-01 | read | 正常系 | [Card 一覧に学習情報を表示できる](./card-view.md#card-view-01) |
-| CARD-VIEW-02 | read | 正常系 | [Card の裏面オーバーレイを開ける](./card-view.md#card-view-02) |
-| CARD-VIEW-03 | read | 正常系 | [Card の裏面オーバーレイを閉じられる](./card-view.md#card-view-03) |
 | CARD-VIEW-04 | read | 正常系 | [Card 閲覧画面を直接開ける](./card-view.md#card-view-04) |
 | CARD-VIEW-07 | read | 正常系 | [Card の閲覧 URL の変更に表示が追従する](./card-view.md#card-view-07) |
 | CARD-VIEW-08 | read | 正常系 | [未評価の Card に推定した記憶状態を表示しない](./card-view.md#card-view-08) |
@@ -168,7 +169,6 @@
 | NAVIGATION-01 | read | 異常系 | [存在しない画面から Deck 一覧へ戻れる](./navigation.md#navigation-01) |
 | NAVIGATION-04 | read | 異常系 | [処理中の予期しないエラーから復旧できる](./navigation.md#navigation-04) |
 | NAVIGATION-05 | read | 異常系 | [不正な PWA キャッシュによる起動失敗時に手動復旧を案内する](./navigation.md#navigation-05) |
-| NAVIGATION-07 | read | 異常系 | [存在しない Deck から復帰できる](./navigation.md#navigation-07) |
 | NAVIGATION-23 | read | 異常系 | [保存済みの言語を利用できない場合はエラーを英語で案内する](./navigation.md#navigation-23) |
 | NAVIGATION-24 | read | 異常系 | [個別に処理された失敗では画面全体を復旧画面に置き換えない](./navigation.md#navigation-24) |
 | NAVIGATION-29 | read | 異常系 | [存在しない Deck の閲覧画面から一覧へ戻れる](./navigation.md#navigation-29) |
