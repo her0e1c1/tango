@@ -57,7 +57,7 @@ jobs:
           path: e2e-results
           merge-multiple: true
 
-      - uses: jdx/mise-action@fc42bcc7ddbf51124c30f95a877a0c5168a3bfde # v5.2.1
+      - uses: jdx/mise-action@6be3c7ed4c21d4f76b208d351d95aac273ebb76d # v5.2.4
 
       - name: Install build dependencies
         run: mise run init
