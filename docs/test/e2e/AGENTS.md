@@ -3,7 +3,7 @@
 ## Directory contract
 
 - Pair each specification `<name>.md` with `test/e2e/<name>.spec.ts`; the basenames must match one-to-one.
-- Keep all E2E tests referencing a specification's case IDs in its paired file. This is a file-level contract, not a one-test-per-case restriction.
+- 各仕様書のケース ID を参照する E2E テストは、対応するテストファイルにまとめる。ケースとテストの 1:1 対応は `test/e2e/AGENTS.md` に従う。
 - Exclude `AGENTS.md`, `README.md`, fixtures, and helpers from file pairing. Keep explicit `[TODO]` cases in the specification without empty or skipped tests; a fully pending specification retains a paired test module with a TODO comment.
 
 - `docs/test/e2e/*.md` は `README.md` と `AGENTS.md` を除き、すべて E2E テスト仕様書とする。
@@ -57,7 +57,7 @@
 - 各仕様書のケースは正常系、異常系の順に並べ、各区分内では `read` を先に、`write` と `batch` を後に置く。書き込みは操作内容に応じて Create、Update、Delete の順に並べる。CRUD に当てはめにくい操作は利用の流れに沿って並べ、同じ操作の条件違いや `[TODO]` も同じ位置にまとめる。仕様書内の一覧と `README.md` の索引も本文と同じ順にする。
 - ID の番号は最低2桁のゼロ埋めとする。新規ケースはファイル内の最大番号の次から採番し、並べ替えだけでは既存の ID・anchor を変更しない。
 - ケースの移動先が別ファイルになるなど ID の変更が必要な場合は、anchor、Playwright のテスト名、unit / integration test の参照も同時に更新する。
-- 各 ID を少なくとも一つの Playwright test に対応させる。同じ ID を複数テストで確認してよく、一つのテストで複数 ID を確認してもよい。テスト名の先頭は fixture 選択用の主 ID とし、追加の ID はその直後に空白区切りで記載する。
+- 各ケース ID と Playwright test の対応は `test/e2e/AGENTS.md` の 1:1 規約に従う。
 - 各テストケースには `read`、`write`、`batch` のいずれかのカテゴリと、[共通規約](../AGENTS.md#正常系異常系の区分) に従った区分を明示する。
 - テストケースは `Given` / `When` / `Then` で記述し、それぞれ原則1ブロックとする。
 - `Given` の先頭で共有 fixture YAML を必ず1つ `Fixture: ...` として指定する。
@@ -70,7 +70,7 @@
 
 - `docs/test/e2e/*.md` の仕様書に定義した test case を Playwright test がすべて網羅しなければならない。
 - Playwright 側に仕様書に存在しない E2E test case を追加してはならない。
-- 詳細仕様での E2E case ID の重複を禁止する。複数テストで同じ仕様 ID を共有することは許可する。
+- 詳細仕様での E2E case ID の重複を禁止する。
 - 仕様 ID の記載漏れは `npm run lint:test-specs` で簡易チェックする。fixture は E2E の global setup で browser 起動前に検証する。
 - `README.md` 以外に手動で管理する E2E case ID の索引を作成しない。仕様書を single source of truth とする。
 
