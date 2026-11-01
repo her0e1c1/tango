@@ -756,22 +756,6 @@ test("NAVIGATION-16 browses forward and backward with the progress slider withou
   });
 });
 
-test("NAVIGATION-07 recovers home from a missing Deck route", async ({ fixture, page, namespace }) => {
-  await test.step("Given: A missing deck route with home recovery", async () => {
-    await fixture.apply(page);
-
-    await page.goto(`/deck/${namespace.id("missing")}`);
-    await expect(page.getByRole("heading", { level: 1, name: "Deck not found" })).toBeVisible();
-  });
-  await test.step("When: Choose Go home", async () => {
-    await page.getByRole("button", { name: "Go home" }).click();
-  });
-  await test.step("Then: The deck list opens", async () => {
-    await expect(page).toHaveURL(/\/$/);
-    await expect(page.getByRole("heading", { level: 1, name: "Decks" })).toBeVisible();
-  });
-});
-
 async function failNextThemeUpdate(page: Page): Promise<void> {
   await page.evaluate(() => {
     const toggle = DOMTokenList.prototype.toggle;

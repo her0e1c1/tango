@@ -1,6 +1,5 @@
-import { expect, getDocument, requireDocument, test } from "./utils/fixtures";
+import { expect, getDocument, test } from "./utils/fixtures";
 import { createAnonymousDeck } from "./utils/ui-helpers";
-import type { Page } from "@playwright/test";
 
 test("CARD-VIEW-06 CARD-VIEW-08 CARD-VIEW-09 shows FSRS memory after a rating, reload, and offline navigation", async ({
   fixture,
@@ -62,66 +61,6 @@ test("CARD-VIEW-06 CARD-VIEW-08 CARD-VIEW-09 shows FSRS memory after a rating, r
   });
   await test.step("When: Reconnect the browser", async () => {
     await context.setOffline(false);
-  });
-});
-
-const cardArticle = (page: Page, frontText: string) =>
-  page.getByRole("button", { name: `View ${frontText}`, exact: true }).locator("xpath=ancestor::article[1]");
-
-test("CARD-VIEW-01 shows front text and tags", async ({ fixture, page }) => {
-  const { deck, card } = await test.step("Given: A card with front text and tags", async () => {
-    const deck = fixture.deck();
-    const card = fixture.card();
-    await fixture.apply(page);
-    return { deck, card };
-  });
-  await test.step("When: Open its deck card list", async () => {
-    await page.goto(`/deck/${deck.id}`);
-  });
-  await test.step("Then: The card front and tags are visible", async () => {
-    const article = cardArticle(page, card.frontText);
-    await expect(article.getByText(card.frontText)).toBeVisible();
-    await expect(article.getByRole("group", { name: `Tags: ${card.tags.join(", ")}` })).toBeVisible();
-  });
-});
-
-test("CARD-VIEW-02 opens the selected Card back-text overlay", async ({ fixture, page }) => {
-  const { card } = await test.step("Given: A card in the deck card list", async () => {
-    const deck = fixture.deck();
-    const card = fixture.card();
-    await fixture.apply(page);
-
-    await page.goto(`/deck/${deck.id}`);
-    return { card };
-  });
-  await test.step("When: Open the selected card answer", async () => {
-    await page.getByRole("button", { name: `View ${card.frontText}` }).click();
-  });
-  await test.step("Then: The overlay shows that card back text", async () => {
-    await expect(page.getByRole("button", { name: "Close card" })).toContainText(card.backText);
-  });
-});
-
-test("CARD-VIEW-03 closes the back-text overlay without changing persistent Card data", async ({ fixture, page }) => {
-  const { card, before, overlay } = await test.step("Given: A saved card with its answer overlay open", async () => {
-    const deck = fixture.deck();
-    const card = fixture.card();
-    await fixture.apply(page);
-    const before = await requireDocument("card", card.id);
-
-    await page.goto(`/deck/${deck.id}`);
-    await page.getByRole("button", { name: `View ${card.frontText}` }).click();
-    const overlay = page.getByRole("button", { name: "Close card" });
-    await expect(overlay).toContainText(card.backText);
-    return { card, before, overlay };
-  });
-  await test.step("When: Close the answer overlay", async () => {
-    await overlay.click();
-  });
-  await test.step("Then: The front returns and saved card data is unchanged", async () => {
-    await expect(overlay).toHaveCount(0);
-    await expect(page.getByText(card.frontText)).toBeVisible();
-    expect(await requireDocument("card", card.id)).toEqual(before);
   });
 });
 

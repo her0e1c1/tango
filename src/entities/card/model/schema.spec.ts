@@ -36,7 +36,7 @@ describe("Card content input schema [CARD-MANAGEMENT-05 CARD-MANAGEMENT-10]", ()
   });
 });
 
-describe("Card content schema [CARD-VIEW-01]", () => {
+describe("Card content schema [CARD-LIST-01]", () => {
   it.each(["", "   ", "\n\t"])("rejects blank front text: %j", (frontText) => {
     // Given: Use this case's inputs and any shared test setup.
     // When: Evaluate `cardContentSchema.parse` as part of the following checks.
@@ -65,7 +65,7 @@ describe("Card content schema [CARD-VIEW-01]", () => {
   });
 });
 
-describe("Card operation schemas [CARD-VIEW-01]", () => {
+describe("Card operation schemas [CARD-LIST-01]", () => {
   const card = createCardFixture({ id: "card", deckId: "deck", uid: "uid-a" });
 
   it("applies entity defaults without adding persistence timestamps", () => {

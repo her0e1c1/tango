@@ -2,15 +2,12 @@
 
 ## 目的
 
-Card の本文・タグ・記憶状態を表示し、裏面のプレビューや閲覧エラーから復帰できることを確認する。
+Card 閲覧画面で裏面の本文と記憶状態を表示し、閲覧エラーから復帰できることを確認する。
 
 ## テストケース
 
 | ID | カテゴリ | 区分 | テストケース |
 | --- | --- | --- | --- |
-| CARD-VIEW-01 | read | 正常系 | [Card 一覧に学習情報を表示できる](#card-view-01) |
-| CARD-VIEW-02 | read | 正常系 | [Card の裏面オーバーレイを開ける](#card-view-02) |
-| CARD-VIEW-03 | read | 正常系 | [Card の裏面オーバーレイを閉じられる](#card-view-03) |
 | CARD-VIEW-04 | read | 正常系 | [Card 閲覧画面を直接開ける](#card-view-04) |
 | CARD-VIEW-07 | read | 正常系 | [Card の閲覧 URL の変更に表示が追従する](#card-view-07) |
 | CARD-VIEW-08 | read | 正常系 | [未評価の Card に推定した記憶状態を表示しない](#card-view-08) |
@@ -18,69 +15,6 @@ Card の本文・タグ・記憶状態を表示し、裏面のプレビューや
 | CARD-VIEW-06 | write | 正常系 | [評価後の記憶状態を確認できる](#card-view-06) |
 | CARD-VIEW-05 | read | 異常系 | [存在しない Card から復帰できる](#card-view-05) |
 | CARD-VIEW-10 | read | 異常系 | [読み込めない記憶状態を未評価として表示しない](#card-view-10) |
-
-<a id="card-view-01"></a>
-
-### CARD-VIEW-01 Card 一覧に学習情報を表示できる
-
-カテゴリ: `read`
-
-区分: 正常系
-
-Given:
-
-- Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
-- ログイン中のアカウントが所有する Deck に、タグ付きの Card がある。
-
-When:
-
-- 対象 Deck の Card 一覧を開く。
-
-Then:
-
-- 対象 Card の表面の本文とタグを表示する。
-
-<a id="card-view-02"></a>
-
-### CARD-VIEW-02 Card の裏面オーバーレイを開ける
-
-カテゴリ: `read`
-
-区分: 正常系
-
-Given:
-
-- Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
-- ログイン中のアカウントが所有する Deck に、両面の本文を持つ Card がある。
-
-When:
-
-- Card 一覧で対象 Card を選択する。
-
-Then:
-
-- 対象 Card の裏面の本文をオーバーレイに表示する。
-
-<a id="card-view-03"></a>
-
-### CARD-VIEW-03 Card の裏面オーバーレイを閉じられる
-
-カテゴリ: `read`
-
-区分: 正常系
-
-Given:
-
-- Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
-- ログイン中のアカウントが所有する Deck の Card 一覧で、裏面のオーバーレイを開いている。
-
-When:
-
-- オーバーレイを閉じる。
-
-Then:
-
-- オーバーレイが閉じ、一覧に対象 Card の表面の本文を表示する。Card の内容と学習結果は変わらない。
 
 <a id="card-view-04"></a>
 

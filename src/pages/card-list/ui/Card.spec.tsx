@@ -4,7 +4,7 @@ import "@testing-library/jest-dom/vitest";
 import { describe, expect, it, vi } from "vitest";
 import { Card } from "./Card";
 const card = { id: "card", frontText: "Front", tags: ["one", "two"] };
-describe("Card [CARD-VIEW-01 CARD-VIEW-02]", () => {
+describe("Card [CARD-LIST-01 CARD-LIST-02]", () => {
   it("shows text and tags and routes view and edit by card ID", () => {
     // Given: Prepare `view`, `edit` and any shared test state below.
     const view = vi.fn();
