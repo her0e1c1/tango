@@ -273,6 +273,8 @@ def prepare(source, source_json, destination):
                                                             and re.fullmatch(r"__iframefcb[0-9]{1,6}", query[0][1])),
                             "loader_rule_matches": bool(sdk_loader),
                             "iframe_prefix_matches": url.path.startswith("/_/scs/apps-static/_/js/"),
+                            # Historical public example only; it never changes the rejection predicate.
+                            "iframe_public_candidate_prefix_matches": url.path.startswith("/_/scs/abc-static/_/js/"),
                             "iframe_module_matches": "/m=gapi_iframes/" in url.path,
                             "iframe_callback_matches": bool(re.search(r"/cb=gapi\.loaded_[0-9]+$", url.path)),
                             "iframe_query_matches": not query or query == [("le", "scs")],

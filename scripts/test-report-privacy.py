@@ -238,7 +238,7 @@ class ReportPrivacy(unittest.TestCase):
         ]
         allowed_keys = {"category", "https", "default_port", "fragment_absent", "get_method", "script_resource",
                         "loader_path_matches", "loader_query_empty", "loader_query_is_onload", "loader_callback_matches",
-                        "loader_rule_matches", "iframe_prefix_matches", "iframe_module_matches", "iframe_callback_matches",
+                        "loader_rule_matches", "iframe_prefix_matches", "iframe_public_candidate_prefix_matches", "iframe_module_matches", "iframe_callback_matches",
                         "iframe_query_matches", "iframe_rule_matches", "request_body_absent", "authorization_absent",
                         "response_status_matches", "response_reference_resolved", "response_body_empty"}
         for extra, mismatch in cases:
@@ -256,6 +256,29 @@ class ReportPrivacy(unittest.TestCase):
             self.assertTrue(all(type(value) is bool for value in diagnostic.values()))
             self.assertFalse(diagnostic[mismatch])
             for sentinel in ("PRIVATE-", "apis.google.com", "http://", "https://", "FIXED-SDK-COOKIE", "FIXED-SDK-RESPONSE", "FIXED-UNKNOWN-AUTHORIZATION"):
+                self.assertNotIn(sentinel.encode(), result.stdout + result.stderr)
+            self.assertFalse(self.output.exists())
+
+
+    def test_public_candidate_prefix_is_diagnostic_only_and_unknown_prefix_stays_rejected(self):
+        # Given: A historical public candidate and an unknown prefix both fall outside the approved prefix.
+        for replacement, matches in (("abc-static", True), ("PRIVATE-PREFIX", False)):
+            url = GAPI_MODULE.replace("apps-static", replacement) + "?le=scs"
+            self.fixture(extra=sdk_entries(url=url))
+            # When: Attempt preparation through the same CLI boundary as CI.
+            result = subprocess.run([sys.executable, "scripts/prepare-report.py", str(self.source), str(self.report), str(self.output)], capture_output=True)
+            # Then: A fixed boolean distinguishes the candidate without accepting it or exposing either URL.
+            self.assertNotEqual(result.returncode, 0)
+            rows = [line.removeprefix("Rejected network structure: ") for line in result.stdout.decode().splitlines()
+                    if line.startswith("Rejected network structure: ")]
+            self.assertEqual(len(rows), 1)
+            diagnostic = json.loads(rows[0])
+            self.assertIs(diagnostic["iframe_public_candidate_prefix_matches"], matches)
+            self.assertFalse(diagnostic["iframe_prefix_matches"])
+            self.assertFalse(diagnostic["iframe_rule_matches"])
+            for condition in ("iframe_module_matches", "iframe_callback_matches", "iframe_query_matches"):
+                self.assertTrue(diagnostic[condition])
+            for sentinel in (url, "abc-static", "PRIVATE-PREFIX", "apis.google.com", "https://", "FIXED-SDK-COOKIE", "FIXED-SDK-RESPONSE"):
                 self.assertNotIn(sentinel.encode(), result.stdout + result.stderr)
             self.assertFalse(self.output.exists())
 
