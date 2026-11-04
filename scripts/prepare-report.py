@@ -336,31 +336,47 @@ def prepare(source, source_json, destination):
         require(not JWT.search(data), "unredacted token")
         return data
 
-    def check_fields(value):
-        for item in walk(value):
-            if isinstance(item, dict):
-                if isinstance(item.get("name"), str) and "value" in item:
-                    check_fields({item["name"]: item["value"]})
-                for key, field in item.items():
-                    if key.replace("_", "").lower() in AUTH_KEYS:
-                        require(not field or field == REDACTED, "unrecognized auth field")
-                    if key.replace("_", "").lower() in {"password", "clientsecret", "privatekey", "sessioncookie", "secret", "token"}:
-                        require(not field, "unexpected secret field")
-                    if key.lower() == "email" and field:
-                        require(isinstance(field, str) and field.endswith("@example.test"), "unexpected email identity")
-                    if key.replace("_", "").lower() == "apikey":
-                        require(field in (None, "", "e2e-api-key", REDACTED), "unexpected API key")
-                    if key.lower() in HEADERS:
-                        require(not field or field == REDACTED, "unrecognized credential header")
-                    if key.lower() == "cookies":
-                        require(not field, "unexpected session cookies")
-            elif isinstance(item, str):
-                try:
-                    nested = structured(item)
-                except UnicodeDecodeError:
-                    continue
-                if nested is not None:
-                    check_fields(nested)
+    def check_fields(value, study_fields=False):
+        if isinstance(value, dict):
+            document_name = value.get("name")
+            study_document = isinstance(document_name, str) and re.fullmatch(
+                r"projects/tango-e2e/databases/\(default\)/documents/studyAnswer/[^/]+", document_name)
+            if isinstance(value.get("name"), str) and "value" in value:
+                check_fields({value["name"]: value["value"]})
+            for key, field in value.items():
+                canonical = key.replace("_", "").lower()
+                if key == "sessionId" and study_fields:
+                    # Only the immediate typed study-domain reference has this meaning.
+                    require(isinstance(field, dict) and set(field) == {"stringValue"}
+                            and isinstance(field["stringValue"], str), "unexpected study identifier encoding")
+                    identifier = field["stringValue"]
+                    generated = bool(re.fullmatch(r"[0-9]{1,10}(?:-[0-9]{1,10}){3}", identifier)) and all(
+                        int(part) <= 4294967295 for part in identifier.split("-"))
+                    fixture = re.fullmatch(r"[a-z]+(?:-[a-z]+)*-[0-9]+-[0-9a-f]{10}-[a-z0-9_-]+", identifier)
+                    require(generated or fixture, "unexpected study identifier")
+                elif canonical in AUTH_KEYS:
+                    require(not field or field == REDACTED, "unrecognized auth field")
+                if canonical in {"password", "clientsecret", "privatekey", "sessioncookie", "secret", "token"}:
+                    require(not field, "unexpected secret field")
+                if key.lower() == "email" and field:
+                    require(isinstance(field, str) and field.endswith("@example.test"), "unexpected email identity")
+                if canonical == "apikey":
+                    require(field in (None, "", "e2e-api-key", REDACTED), "unexpected API key")
+                if key.lower() in HEADERS:
+                    require(not field or field == REDACTED, "unrecognized credential header")
+                if key.lower() == "cookies":
+                    require(not field, "unexpected session cookies")
+                check_fields(field, bool(study_document and key == "fields"))
+        elif isinstance(value, list):
+            for item in value:
+                check_fields(item)
+        elif isinstance(value, str):
+            try:
+                nested = structured(value)
+            except UnicodeDecodeError:
+                return
+            if nested is not None:
+                check_fields(nested)
 
     for name, entries in traces.items():
         for key, data in entries.items():

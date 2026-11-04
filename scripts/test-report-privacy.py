@@ -288,6 +288,62 @@ class ReportPrivacy(unittest.TestCase):
             # Then: The candidate is rejected, not made publishable by a hostname allowance.
             self.assertFalse(self.output.exists())
 
+    def test_preserves_only_typed_study_answer_session_references(self):
+        # Given: Application-generated and namespaced fixture IDs are typed studyAnswer references.
+        for identifier in ("1-2-3-4294967295", "study-controls-15-0123456789-linked-session"):
+            document = {"name": "projects/tango-e2e/databases/(default)/documents/studyAnswer/fixed-answer",
+                        "fields": {"sessionId": {"stringValue": identifier}}}
+            for data in (privacy.json_bytes(document), ("req0___data__=" + quote(json.dumps(document))).encode()):
+                name, raw, _ = self.fixture(extra={"resources/study.json": data})
+                # When: Prepare the separate report through its public boundary, including nested form JSON.
+                privacy.prepare(self.source, self.report, self.output)
+                # Then: The study reference survives exactly and original evidence stays unchanged.
+                entries = privacy.unpack((self.output / "html" / name).read_bytes())
+                self.assertEqual(entries["resources/study.json"], data)
+                self.assertEqual((self.source / name).read_bytes(), raw)
+                shutil.rmtree(self.output)
+
+    def test_rejects_unbound_malformed_and_credential_bearing_study_shapes(self):
+        # Given: A document name alone cannot exempt other fields, encodings, projects or collections.
+        name = "projects/tango-e2e/databases/(default)/documents/studyAnswer/fixed-answer"
+        field = {"stringValue": "1-2-3-4"}
+        cases = [
+            {"fields": {"sessionId": field}},
+            {"name": name.replace("tango-e2e", "other-project"), "fields": {"sessionId": field}},
+            {"name": name.replace("studyAnswer", "authSession"), "fields": {"sessionId": field}},
+            {"name": name, "fields": {"nested": {"sessionId": field}}},
+            {"name": name, "fields": {"session_id": field}},
+            {"name": name, "fields": {"sessionId": "1-2-3-4"}},
+            {"name": name, "fields": {"sessionId": {"stringValue": 123}}},
+            {"name": name, "fields": {"sessionId": {"stringValue": ""}}},
+            {"name": name, "fields": {"sessionId": {"stringValue": "1-2-3-4294967296"}}},
+            {"name": name, "fields": {"sessionId": {"stringValue": "FIXED-UNKNOWN-IDENTIFIER"}}},
+            {"name": name, "fields": {"sessionId": {"stringValue": "1-2-3-4", "extra": ""}}},
+            {"name": name, "fields": {"sessionId": field, "refreshToken": "FIXED-UNKNOWN-CREDENTIAL"}},
+            {"sessionId": "1-2-3-4"},
+        ]
+        for document in cases:
+            self.fixture(extra={"resources/study.json": privacy.json_bytes(document)})
+            # When: Attempt private preparation for each unsupported shape.
+            with self.assertRaises(privacy.PrivacyError):
+                privacy.prepare(self.source, self.report, self.output)
+            # Then: No candidate is accepted by a global field-name exemption.
+            self.assertFalse(self.output.exists())
+
+    def test_still_redacts_auth_emulator_session_strings_everywhere(self):
+        # Given: The emulator auth body contains a nonconfidential session marker copied elsewhere.
+        marker = "FIXED-NONCONFIDENTIAL-AUTH-SESSION"
+        extra = {"resources/body.json": privacy.json_bytes({"idToken": token(), "sessionId": marker}),
+                 "resources/copy.json": privacy.json_bytes({"sessionId": marker})}
+        name, raw, _ = self.fixture(extra=extra)
+        # When: Prepare the separate candidate.
+        privacy.prepare(self.source, self.report, self.output)
+        entries = privacy.unpack((self.output / "html" / name).read_bytes())
+        # Then: Auth sessions remain redacted and the raw evidence is retained unchanged.
+        self.assertEqual(json.loads(entries["resources/copy.json"])["sessionId"], privacy.REDACTED)
+        self.assertNotIn(marker.encode(), b"".join(entries.values()))
+        self.assertEqual((self.source / name).read_bytes(), raw)
+
 
 if __name__ == "__main__":
     unittest.main()
