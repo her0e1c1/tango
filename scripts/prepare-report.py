@@ -253,14 +253,39 @@ def prepare(source, source_json, destination):
                 mocked_auth = url.hostname in {"identitytoolkit.googleapis.com", "securetoken.googleapis.com"}
                 empty_decoration = url.hostname in {"unpkg.com", "fonts.googleapis.com"}
                 if not (local or mocked_auth or empty_decoration):
-                    # Fixed public SDK/test hosts only; arbitrary DNS labels can themselves contain private values.
-                    known = {"app.test", "auth.app.test", "app", "auth", "db", "localhost", "127.0.0.1",
-                             "tango-e2e.firebaseapp.com", "apis.google.com", "www.googleapis.com", "www.gstatic.com",
-                             "accounts.google.com", "www.google.com", "fonts.gstatic.com"}
-                    host = url.hostname if url.hostname in known else "other-" + digest((url.hostname or "").encode())[:12]
-                    scheme = url.scheme if url.scheme in {"http", "https", "data", "blob", "about"} else "other"
-                    port = url.port or {"http": 80, "https": 443}.get(scheme, 0)
-                    raise PrivacyError(f"unexpected network origin ({scheme}://{host}:{port})")
+                    # Actions logs are public: expose only fixed rule classifications, never recorded strings.
+                    diagnostic = {"category": "other-origin-rejected"}
+                    if url.hostname == "apis.google.com":
+                        content = resource["response"].get("content", {})
+                        reference = content.get("_sha1")
+                        resolved = not reference or "resources/" + reference in entries
+                        diagnostic = {
+                            "category": "sdk-loader-rejected",
+                            "https": url.scheme == "https",
+                            "default_port": url.port in (None, 443),
+                            "fragment_absent": not url.fragment,
+                            "get_method": resource["request"].get("method") == "GET",
+                            "script_resource": resource.get("_resourceType") == "script",
+                            "loader_path_matches": url.path == "/js/api.js",
+                            "loader_query_empty": not query,
+                            "loader_query_is_onload": len(query) == 1 and query[0][0] == "onload",
+                            "loader_callback_matches": bool(len(query) == 1 and query[0][0] == "onload"
+                                                            and re.fullmatch(r"__iframefcb[0-9]{1,6}", query[0][1])),
+                            "loader_rule_matches": bool(sdk_loader),
+                            "iframe_prefix_matches": url.path.startswith("/_/scs/apps-static/_/js/"),
+                            "iframe_module_matches": "/m=gapi_iframes/" in url.path,
+                            "iframe_callback_matches": bool(re.search(r"/cb=gapi\.loaded_[0-9]+$", url.path)),
+                            "iframe_query_matches": not query or query == [("le", "scs")],
+                            "iframe_rule_matches": bool(sdk_iframe),
+                            "request_body_absent": not resource["request"].get("postData"),
+                            "authorization_absent": not any(h["name"].lower() in {"authorization", "proxy-authorization"}
+                                                            and h["value"] for h in resource["request"].get("headers", [])),
+                            "response_status_matches": resource["response"].get("status") == 200,
+                            "response_reference_resolved": resolved,
+                            "response_body_empty": bool(resolved and (not reference or not entries["resources/" + reference])),
+                        }
+                    print("Rejected network structure: " + json_bytes(diagnostic).decode())
+                    raise PrivacyError("unexpected network origin")
                 if mocked_auth:
                     require(parse_qs(url.query).get("key") == ["e2e-api-key"], "unexpected API key")
                 auth = url.hostname == "auth.app.test" or mocked_auth

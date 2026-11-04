@@ -207,16 +207,58 @@ class ReportPrivacy(unittest.TestCase):
         # Given: Rejected origins may contain private host labels, token-like labels, or query values.
         origins = ["https://PRIVATE-SENTINEL.example.invalid/",
                    "https://" + token() + ".example.invalid/",
-                   "https://apis.google.com/js/api.js?token=FIXED-PRIVATE-QUERY"]
+                   "https://apis.google.com/js/api.js?token=FIXED-PRIVATE-QUERY",
+                   "https://apis.google.com:PRIVATE-PORT/js/api.js"]
         for origin in origins:
             self.fixture(origin=origin)
             # When: Run the same origin-only diagnostic boundary used in CI.
             result = subprocess.run([sys.executable, "scripts/prepare-report.py", str(self.source), str(self.report), str(self.output)], capture_output=True)
-            # Then: Only fixed known hosts or digests appear, never query or host-label payloads.
+            # Then: No recorded URL, hostname, path, query value, or token is echoed.
             self.assertNotEqual(result.returncode, 0)
-            for sentinel in ("PRIVATE-SENTINEL", token(), token().lower(), "FIXED-PRIVATE-QUERY"):
+            for sentinel in (origin, "https://", "apis.google.com", "/js/api.js", "PRIVATE-SENTINEL", token(), token().lower(), "FIXED-PRIVATE-QUERY", "PRIVATE-PORT"):
                 self.assertNotIn(sentinel.encode(), result.stdout + result.stderr)
             self.assertFalse(self.output.exists())
+
+    def test_rejected_loader_diagnostics_use_only_fixed_categories_and_booleans(self):
+        # Given: A known loader can fail each URL-shape condition while carrying private strings.
+        cases = [
+            (sdk_entries(url="https://apis.google.com/js/api.js?onload=__iframefcb123456789"), "loader_callback_matches"),
+            (sdk_entries(url="https://apis.google.com/js/api.js?PRIVATE-KEY=PRIVATE-VALUE"), "loader_query_is_onload"),
+            (sdk_entries(url="https://apis.google.com/PRIVATE-PATH?PRIVATE-KEY=PRIVATE-VALUE"), "loader_path_matches"),
+            (sdk_entries(url=GAPI_MODULE + "?le=PRIVATE-VALUE"), "iframe_query_matches"),
+            (sdk_entries(url=GAPI_MODULE.replace("gapi_iframes", "PRIVATE-MODULE")), "iframe_module_matches"),
+            (sdk_entries(url=GAPI_MODULE.replace("gapi.loaded_0", "PRIVATE-CALLBACK")), "iframe_callback_matches"),
+            (sdk_entries(url="https://apis.google.com/PRIVATE-PATH", authorization=True), "authorization_absent"),
+            (sdk_entries(url="https://apis.google.com/PRIVATE-PATH", resource_type="xhr"), "script_resource"),
+            (sdk_entries(url="https://apis.google.com/PRIVATE-PATH", body=b"PRIVATE-BODY"), "response_body_empty"),
+            (sdk_entries(method="POST"), "get_method"),
+            (sdk_entries(url="http://apis.google.com/js/api.js"), "https"),
+            (sdk_entries(url="https://apis.google.com:444/js/api.js"), "default_port"),
+            (sdk_entries(url="https://apis.google.com/js/api.js#PRIVATE-FRAGMENT"), "fragment_absent"),
+        ]
+        allowed_keys = {"category", "https", "default_port", "fragment_absent", "get_method", "script_resource",
+                        "loader_path_matches", "loader_query_empty", "loader_query_is_onload", "loader_callback_matches",
+                        "loader_rule_matches", "iframe_prefix_matches", "iframe_module_matches", "iframe_callback_matches",
+                        "iframe_query_matches", "iframe_rule_matches", "request_body_absent", "authorization_absent",
+                        "response_status_matches", "response_reference_resolved", "response_body_empty"}
+        for extra, mismatch in cases:
+            self.fixture(extra=extra)
+            # When: Invoke the same preparer command CI executes.
+            result = subprocess.run([sys.executable, "scripts/prepare-report.py", str(self.source), str(self.report), str(self.output)], capture_output=True)
+            # Then: It still rejects, with only a fixed category and boolean condition results.
+            self.assertNotEqual(result.returncode, 0)
+            rows = [line.removeprefix("Rejected network structure: ") for line in result.stdout.decode().splitlines()
+                    if line.startswith("Rejected network structure: ")]
+            self.assertEqual(len(rows), 1)
+            diagnostic = json.loads(rows[0])
+            self.assertEqual(set(diagnostic), allowed_keys)
+            self.assertEqual(diagnostic.pop("category"), "sdk-loader-rejected")
+            self.assertTrue(all(type(value) is bool for value in diagnostic.values()))
+            self.assertFalse(diagnostic[mismatch])
+            for sentinel in ("PRIVATE-", "apis.google.com", "http://", "https://", "FIXED-SDK-COOKIE", "FIXED-SDK-RESPONSE", "FIXED-UNKNOWN-AUTHORIZATION"):
+                self.assertNotIn(sentinel.encode(), result.stdout + result.stderr)
+            self.assertFalse(self.output.exists())
+
 
     def test_excludes_only_the_pinned_connectivity_probe(self):
         # Given: Recorded SDK probes have the observed empty or one-pixel GIF responses.
