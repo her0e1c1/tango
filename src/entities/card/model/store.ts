@@ -43,27 +43,26 @@ function updateDeckIndex(
   changedIds: ReadonlySet<CardId>
 ): CardState["cardIdsByDeckId"] {
   const changedDecks = new Map<string, Set<CardId>>();
+  function idsForDeck(deckId: string): Set<CardId> {
+    const ids = changedDecks.get(deckId) ?? new Set(cardIdsByDeckId.get(deckId));
+    changedDecks.set(deckId, ids);
+    return ids;
+  }
   for (const id of changedIds) {
     const previous = Object.hasOwn(cardsById, id) ? cardsById[id] : undefined;
     const current = Object.hasOwn(next, id) ? next[id] : undefined;
     // Content and FSRS edits preserve membership; only additions, removals and moves change the index.
     if (previous?.deckId === current?.deckId) continue;
-    for (const card of [previous, current]) {
-      if (card && !changedDecks.has(card.deckId))
-        changedDecks.set(card.deckId, new Set(cardIdsByDeckId.get(card.deckId)));
-    }
-    if (previous) changedDecks.get(previous.deckId)?.delete(id);
-    if (current) changedDecks.get(current.deckId)?.add(id);
+    if (previous) idsForDeck(previous.deckId).delete(id);
+    if (current) idsForDeck(current.deckId).add(id);
   }
   if (changedDecks.size === 0) return cardIdsByDeckId;
   const index = new Map(cardIdsByDeckId);
   for (const [deckId, ids] of changedDecks) {
-    if (ids.size > 0)
-      index.set(
-        deckId,
-        [...ids].sort((left, right) => left.localeCompare(right))
-      );
-    else index.delete(deckId);
+    index.set(
+      deckId,
+      [...ids].sort((left, right) => left.localeCompare(right))
+    );
   }
   return index;
 }
