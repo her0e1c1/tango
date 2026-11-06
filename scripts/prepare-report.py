@@ -239,10 +239,14 @@ def prepare(source, source_json, destination):
                     content = resource["response"].get("content", {})
                     reference = content.get("_sha1")
                     require(resource["response"].get("status") == 200, "unexpected external SDK response status")
-                    require(isinstance(reference, str) and "resources/" + reference in entries,
-                            "unresolved external SDK response body")
-                    require(not content.get("text") and not entries["resources/" + reference],
-                            "unexpected captured external SDK payload")
+                    require(not content.get("text"), "unexpected captured external SDK payload")
+                    require("_file" not in content, "unsupported external SDK response body reference")
+                    # Non-live Playwright traces intentionally omit script bodies and their references.
+                    # Absence is distinct from a present but unresolved reference; never synthesize a body.
+                    if "_sha1" in content:
+                        require(isinstance(reference, str) and "resources/" + reference in entries,
+                                "unresolved external SDK response body")
+                        require(not entries["resources/" + reference], "unexpected captured external SDK payload")
                     sdk_loaders_removed += int(bool(sdk_loader))
                     sdk_iframes_removed += int(bool(sdk_iframe))
                     if reference:
