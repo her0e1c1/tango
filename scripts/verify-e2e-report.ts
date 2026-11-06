@@ -60,7 +60,32 @@ async function restrictNetwork(context: BrowserContext) {
     await socket.close();
   });
   context.on("response", (response) => {
-    if (response.status() >= 400) failures.http += 1;
+    if (response.status() < 400) return;
+    failures.http += 1;
+    const request = response.request();
+    const path = new URL(response.url()).pathname;
+    const endpoint =
+      (
+        [
+          ["/trace/closest-screenshot/", "trace-screenshot"],
+          ["/trace/snapshot/", "trace-snapshot"],
+          ["/trace/sha1/", "trace-resource"],
+          ["/trace/", "trace-other"],
+        ] as const
+      ).find(([prefix]) => path.startsWith(prefix))?.[1] ?? "report-other";
+    // Fixed categories only: recorded URLs, resource names, headers and bodies must never reach CI logs.
+    process.stdout.write(
+      `Report HTTP error: ${JSON.stringify({
+        status: response.status() === 404 ? "not-found" : response.status() < 500 ? "client-error" : "server-error",
+        owner: request.serviceWorker()
+          ? "worker-network"
+          : response.fromServiceWorker()
+            ? "worker-replay"
+            : "page-network",
+        endpoint,
+        count: 1,
+      })}.\n`
+    );
   });
   return failures;
 }
