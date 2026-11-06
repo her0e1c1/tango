@@ -532,10 +532,11 @@ describe("Card replica and Store deltas", () => {
     // Given: Prepare `cardA` and any shared test state below.
     connection.isAnonymous = true;
     const cardA = createCard({ id: "card-a", uid, deckId: "deck", frontText: "created" });
-    // Given: Subscribe offline and confirm that no Card exists before creating Card A.
+    // Given: Keep the anonymous-account SDK offline with no existing Card or replica.
     await disableNetwork(connection.db);
+    // When: Start the Card subscription and wait for initial readiness.
     await new Promise<void>((resolve, reject) => stops.push(subscribeCards(uid, reject, resolve)));
-    // Given: Confirm the initial empty subscription.
+    // Then: The initial subscription contains no Cards.
     expect(getCards()).toEqual([]);
 
     // When: Exercise `saveCard` with the prepared inputs.
