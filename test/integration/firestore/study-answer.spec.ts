@@ -137,7 +137,7 @@ describe("StudyAnswer persistence and access [STUDY-ACTIONS-01] [STUDY-ACTIONS-0
     connection.db = environment.authenticatedContext(uid, linkedToken).firestore() as unknown as Firestore;
   });
   beforeEach(async () => {
-    // Given: Reset the project and authentication; save and subscribe to the owner's Deck, ten Cards and session.
+    // Given: Reset authentication and data; seed the owner's Deck, ten Cards and session, then subscribe to Cards.
     await environment.clearFirestore();
     cardStore.setState({ cardsById: Object.fromEntries(cardIds.map((id) => [id, createCard({ id, deckId, uid })])) });
     deckStore.setState({ remoteDecks: [createDeck({ id: deckId, uid })] });

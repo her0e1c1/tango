@@ -541,8 +541,8 @@ describe("Card replica and Store deltas", () => {
 
     // When: Exercise `saveCard` with the prepared inputs.
     await saveCard(uid, cardA);
+    // Then: Display Card A with the created text.
     await loaded([cardA.id]);
-    // Then: Verify the expected result in the assertions below.
     expect(getCards()[0]?.frontText).toBe("created");
 
     // When: Exercise `editCard` with the prepared inputs.
@@ -559,8 +559,8 @@ describe("Card replica and Store deltas", () => {
 
     // When: Exercise `deleteCard` with the prepared inputs.
     await deleteCard(uid, cardA.id);
+    // Then: Hide Card A without creating a replica database.
     await loaded([]);
-    // Then: Verify the expected result in the assertions below.
     expect(await indexedDB.databases()).toEqual([]);
   });
 
@@ -719,8 +719,8 @@ describe("Card replica and Store deltas", () => {
       .firestore() as unknown as Firestore;
     replaceRemoteDecks([createDeck({ id: "deck", uid })]);
     start();
+    // Then: Display only UID B's Card and clear UID A's diagnostics.
     await loaded(["card-c"]);
-    // Then: Verify the expected result in the assertions below.
     expect(store.cardStore.getState().invalidCardIds).toEqual([]);
     const state = store.cardStore.getState();
     // Observe arrival on the old receiving client before checking that its stopped subscriber stayed silent.
