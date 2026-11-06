@@ -36,7 +36,7 @@ vi.mock("@/entities/deck/api/firestore", async (original) => {
 
 vi.mock("@/entities/card/api/firestore", async (original) => {
   const actual = await original<typeof import("@/entities/card/api/firestore")>();
-  const { cardStore } = await import("@/entities/card/model/store");
+  const { applyCardChanges, cardStore } = await import("@/entities/card/model/store");
   const { createCardSchema } = await import("@/entities/card/model/schema");
   const operations = {
     ...actual,
@@ -48,23 +48,16 @@ vi.mock("@/entities/card/api/firestore", async (original) => {
         createdAt: Date.now(),
         updatedAt: Date.now(),
       };
-      cardStore.setState((state) => ({
-        cardsById: { ...state.cardsById, [card.id]: card },
-      }));
+      applyCardChanges([card]);
     },
     editCard: async (_uid: string, input: { id: string }) => {
       await Promise.resolve();
-      cardStore.setState((state) => ({
-        cardsById: Object.fromEntries(
-          Object.values(state.cardsById).map((card) => [card.id, card.id === input.id ? { ...card, ...input } : card])
-        ),
-      }));
+      const card = cardStore.getState().cardsById[input.id];
+      if (card) applyCardChanges([{ ...card, ...input }]);
     },
     deleteCard: async (_uid: string, id: string) => {
       await Promise.resolve();
-      cardStore.setState((state) => ({
-        cardsById: Object.fromEntries(Object.entries(state.cardsById).filter(([key]) => key !== id)),
-      }));
+      applyCardChanges([], { removedCardIds: [id] });
     },
     subscribeCards: () => () => undefined,
   };

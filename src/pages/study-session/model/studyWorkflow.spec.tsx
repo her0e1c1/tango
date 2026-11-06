@@ -39,7 +39,8 @@ vi.mock("@/entities/preference", async (importOriginal) => ({
 }));
 vi.mock("@/entities/card", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/entities/card")>()),
-  useCards: () => mocks.cards,
+  useCardsByDeckId: () => ({ cards: mocks.cards, tags: [] }),
+  useHasCards: () => mocks.cards.length > 0,
   getCards: () => mocks.cards,
 }));
 vi.mock("@/entities/deck", async (importOriginal) => ({
