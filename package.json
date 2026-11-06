@@ -82,7 +82,7 @@
     "@firebase/firestore": "^4.17.2",
     "@firebase/rules-unit-testing": "^6.0.0",
     "@playwright/test": "^1.61.1",
-    "@rolldown/plugin-babel": "^0.2.4",
+    "@rolldown/plugin-babel": "^0.3.0",
     "@storybook/addon-a11y": "^10.6.2",
     "@storybook/addon-docs": "^10.6.2",
     "@storybook/addon-themes": "^10.6.1",
