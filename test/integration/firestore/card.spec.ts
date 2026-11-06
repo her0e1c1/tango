@@ -19,6 +19,7 @@ import {
   waitForPendingWrites,
   type DocumentReference,
   getDocs,
+  getDocsFromServer,
   getFirestore,
   query,
   where,
@@ -161,22 +162,28 @@ describe("firestore/card", { retry: 3 }, () => {
   });
 
   it("[FIRESTORE-CARD-05] reports failed imported Cards while persisting valid Cards", async () => {
-    // Given: Use this case's inputs and any shared test setup.
-    // When: Exercise `initDeck` with the prepared inputs.
+    // Given: An owned Deck and separate new IDs for valid and invalid imported Cards.
     const deckId = await initDeck();
     const valid = { ...newCard, deckId, id: uuid(), frontText: "valid" };
     const invalid = { ...newCard, deckId, id: uuid(), frontText: 42 } as unknown as RemoteCard;
 
-    // Then: Verify the expected result in the assertions below.
-    await expect(
-      Promise.allSettled([createCardCommand("uid", valid), createCardCommand("uid", invalid)]).then((results) => {
+    // When: Create both Cards independently and wait for both outcomes before reporting failure.
+    const imported = Promise.allSettled([createCardCommand("uid", valid), createCardCommand("uid", invalid)]).then(
+      (results) => {
         const failure = results.find((result) => result.status === "rejected");
         if (failure?.status === "rejected") throw failure.reason;
-      })
-    ).rejects.toThrow();
+      }
+    );
+
+    // Then: Report the failure, retain the valid Card, and confirm the invalid ID is absent on the server.
+    await expect(imported).rejects.toThrow();
 
     const data = (await getDoc(doc(db, "card", valid.id))).data();
     expect(data).toEqual({ ...valid, createdAt: expect.any(Number), updatedAt: expect.any(Timestamp) });
+    const ownedCards = await getDocsFromServer(query(collection(db, "card"), where("uid", "==", "uid")));
+    const savedIds = ownedCards.docs.map((snapshot) => snapshot.id);
+    expect(savedIds).toContain(valid.id);
+    expect(savedIds).not.toContain(invalid.id);
   });
 
   it("[FIRESTORE-CARD-06] does not recreate an existing Card deleted after import planning", async () => {

@@ -116,7 +116,7 @@ Then:
 
 <a id="firestore-card-05"></a>
 
-### FIRESTORE-CARD-05 [TODO] 一部の入力失敗を返しつつ有効な Card を保存できる
+### FIRESTORE-CARD-05 一部の入力失敗を返しつつ有効な Card を保存できる
 
 カテゴリ: `batch`
 
@@ -129,7 +129,7 @@ Given:
 
 When:
 
-- 両方の Card を一つの一括作成操作で保存する。
+- 有効な Card と不正な Card の新規作成をそれぞれ独立して実行し、両方の結果を待つ。
 
 Then:
 
