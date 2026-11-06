@@ -1,13 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { createCard } from "@/test/factories";
-import {
-  filterCardsByDeckId,
-  filterCardsByTags,
-  filterTagsByDeckId,
-  getCardContentValidationErrors,
-  mustFindCardById,
-} from "./rules";
+import { filterCardsByDeckId, filterCardsByTags, getCardContentValidationErrors, mustFindCardById } from "./rules";
 
 describe("DECK-IMPORT-02 getCardContentValidationErrors", () => {
   it("returns field errors from the Card content schema", () => {
@@ -56,19 +50,6 @@ describe("CARD-FILTER-01 CARD-FILTER-02 CARD-FILTER-03 filterCardsByDeckId", () 
     // Then: Verify the expected result in the assertions below.
     expect(filterCardsByDeckId(cards, "empty-deck")).toEqual([]);
     expect(cards).toEqual(originalCards);
-  });
-});
-
-describe("CARD-FILTER-02 filterTagsByDeckId", () => {
-  it("returns unique sorted tags for the specified deckId", () => {
-    // Given: Prepare `card1`, `card2`, `card3` and any shared test state below.
-    const card1 = createCard({ id: "card-1", deckId: "deck-a", tags: ["n5", "kanji"] });
-    const card2 = createCard({ id: "card-2", deckId: "deck-a", tags: ["kanji", "verb"] });
-    const card3 = createCard({ id: "card-3", deckId: "deck-b", tags: ["other"] });
-
-    // When: Evaluate `filterTagsByDeckId` as part of the following checks.
-    // Then: Verify the expected result in the assertions below.
-    expect(filterTagsByDeckId([card1, card2, card3], "deck-a")).toEqual(["kanji", "n5", "verb"]);
   });
 });
 

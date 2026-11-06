@@ -27,10 +27,6 @@ export const getCardContentValidationErrors = (card: CardRaw): CardContentErrors
 export const filterCardsByDeckId = (cards: Card[], deckId: string): Card[] =>
   cards.filter((card) => card.deckId === deckId);
 
-// Collects unique tags for one Deck and sorts them so filter controls receive a deterministic order.
-export const filterTagsByDeckId = (cards: Card[], deckId: string): string[] =>
-  [...new Set(filterCardsByDeckId(cards, deckId).flatMap((card) => card.tags))].sort();
-
 // Returns the requested Card or throws when a caller's Card reference no longer resolves.
 export const mustFindCardById = (cards: readonly Card[], id: CardId): Card => {
   const card = cards.find((candidate) => candidate.id === id);

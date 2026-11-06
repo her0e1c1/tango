@@ -3,7 +3,7 @@ import { seedCardFsrs } from "@/test/studyStateFixtures";
 import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { replaceAuthSession } from "@/entities/auth";
-import { cardStore } from "@/entities/card/model/store";
+import { replaceRemoteCards } from "@/test/utils/entityFixtures";
 import { deckStore } from "@/entities/deck/model/store";
 import { updatePreferences } from "@/entities/preference";
 import { createCard, createDeck, createPreferences } from "@/test/factories";
@@ -15,9 +15,7 @@ vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 const now = Date.parse("2026-09-21T00:00:00Z");
 const deck = createDeck({ id: "deck", uid: "uid", studyFilter: { selectedTags: [], tagAndFilter: false } });
 function setDeadline(dueAt: number) {
-  cardStore.setState({
-    cardsById: { card: createCard({ id: "card", deckId: deck.id, uid: "uid" }) },
-  });
+  replaceRemoteCards([createCard({ id: "card", deckId: deck.id, uid: "uid" })]);
   seedCardFsrs("card", dueAt);
 }
 
