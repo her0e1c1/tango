@@ -24,6 +24,7 @@ REDACTED = "[REDACTED E2E AUTH]"
 JWT = re.compile(rb"eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]*")
 AUTH_KEYS = {"idtoken", "refreshtoken", "accesstoken", "oauthidtoken", "oauthaccesstoken", "sessionid"}
 HEADERS = {"authorization", "proxy-authorization", "cookie", "set-cookie"}
+SDK_IFRAME_PREFIXES = ("/_/scs/apps-static/_/js/", "/_/scs/abc-static/_/js/")
 VIEWER = Path(os.environ.get("PLAYWRIGHT_PRIVACY_VIEWER_ASSETS", "node_modules/playwright-core/lib/vite"))
 
 
@@ -222,7 +223,7 @@ def prepare(source, source_json, destination):
                 sdk_loader = (url.path == "/js/api.js" and
                               (not query or (len(query) == 1 and query[0][0] == "onload"
                                              and re.fullmatch(r"__iframefcb[0-9]{1,6}", query[0][1]))))
-                sdk_iframe = (url.path.startswith("/_/scs/apps-static/_/js/")
+                sdk_iframe = (url.path.startswith(SDK_IFRAME_PREFIXES)
                               and "/m=gapi_iframes/" in url.path
                               and re.search(r"/cb=gapi\.loaded_[0-9]+$", url.path)
                               and (not query or query == [("le", "scs")]))
@@ -235,10 +236,17 @@ def prepare(source, source_json, destination):
                     require(not any(h["name"].lower() in {"authorization", "proxy-authorization"}
                                     and h["value"] for h in resource["request"].get("headers", [])),
                             "unexpected external SDK authorization")
-                    reference = resource["response"].get("content", {}).get("_sha1")
-                    require(resource["response"].get("status") == 200
-                            and (not reference or not entries["resources/" + reference]),
-                            "unexpected captured external SDK payload")
+                    content = resource["response"].get("content", {})
+                    reference = content.get("_sha1")
+                    require(resource["response"].get("status") == 200, "unexpected external SDK response status")
+                    require(not content.get("text"), "unexpected captured external SDK payload")
+                    require("_file" not in content, "unsupported external SDK response body reference")
+                    # Non-live Playwright traces intentionally omit script bodies and their references.
+                    # Absence is distinct from a present but unresolved reference; never synthesize a body.
+                    if "_sha1" in content:
+                        require(isinstance(reference, str) and "resources/" + reference in entries,
+                                "unresolved external SDK response body")
+                        require(not entries["resources/" + reference], "unexpected captured external SDK payload")
                     sdk_loaders_removed += int(bool(sdk_loader))
                     sdk_iframes_removed += int(bool(sdk_iframe))
                     if reference:
@@ -272,8 +280,8 @@ def prepare(source, source_json, destination):
                             "loader_callback_matches": bool(len(query) == 1 and query[0][0] == "onload"
                                                             and re.fullmatch(r"__iframefcb[0-9]{1,6}", query[0][1])),
                             "loader_rule_matches": bool(sdk_loader),
-                            "iframe_prefix_matches": url.path.startswith("/_/scs/apps-static/_/js/"),
-                            # Historical public example only; it never changes the rejection predicate.
+                            "iframe_prefix_matches": url.path.startswith(SDK_IFRAME_PREFIXES),
+                            # Classify the separately approved additional prefix without printing its recorded path.
                             "iframe_public_candidate_prefix_matches": url.path.startswith("/_/scs/abc-static/_/js/"),
                             "iframe_module_matches": "/m=gapi_iframes/" in url.path,
                             "iframe_callback_matches": bool(re.search(r"/cb=gapi\.loaded_[0-9]+$", url.path)),
