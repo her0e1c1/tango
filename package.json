@@ -15,6 +15,8 @@
     "db": "firebase emulators:start",
     "e2e": "npm run lint:test-specs && playwright test",
     "e2e:ui": "npm run lint:test-specs && playwright test --ui",
+    "verify:e2e-report": "node scripts/verify-e2e-report.ts",
+    "verify:e2e-report:fixture": "playwright test --config scripts/report-fixture/playwright.config.ts && node scripts/verify-e2e-report.ts test-results/report-fixture/html test-results/report-fixture/report.json --require-trace",
     "test": "npm run test:unit",
     "test:coverage": "vitest run --project=unit --coverage",
     "test:unit": "vitest run --project=unit",
