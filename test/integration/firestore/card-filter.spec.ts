@@ -62,7 +62,9 @@ async function seed(cardFilter?: CardFilter) {
 async function restore(expected: [string, CardFilter][]) {
   stop?.();
   clearRemoteDecks();
+  // When: Restart the subscription after discarding the previously received Decks.
   start();
+  // Then: Restore each requested Deck's filter from the subscription.
   await vi.waitFor(() => {
     for (const [id, value] of expected) {
       if (JSON.stringify(filter(id)) !== JSON.stringify(value)) throw new Error("Filter has not restored");
@@ -226,7 +228,6 @@ describe("Card filter persistence", () => {
         mockUserToken: { user_id: uid, firebase: { sign_in_provider: "google.com", identities: {} } },
       });
       try {
-        // Given: Use the current iteration or branch inputs from the enclosing case.
         // When: Exercise `updateDoc` with the prepared inputs.
         await updateDoc(doc(writer, "deck", a), { cardFilter: value, updatedAt: serverTimestamp() });
         await waitForPendingWrites(writer);

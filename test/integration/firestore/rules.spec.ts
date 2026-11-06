@@ -384,8 +384,8 @@ describe("Firestore ownership and guest write restrictions", () => {
           const data = { uid: "uid", name: "Deleted" };
           await createData("deck", reference.id, { ...data, deletedAt: 1000 });
           const before = (await getDoc(reference)).data();
-          // When: Evaluate `setDoc` as part of the following checks.
-          // Then: Verify the expected result in the assertions below.
+          // When: Attempt this row's overwrite, deletion-field removal or deletion-field reset.
+          // Then: Rules reject restoration and preserve the saved Deck.
           await assertFails(
             operation === "replace"
               ? setDoc(reference, data)
@@ -495,8 +495,8 @@ describe("Firestore ownership and guest write restrictions", () => {
           await createData("deck", deckId, { uid: "uid" });
           await createData("card", reference.id, { ...data, deletedAt: 1000 });
           const before = (await getDoc(reference)).data();
-          // When: Evaluate `setDoc` as part of the following checks.
-          // Then: Verify the expected result in the assertions below.
+          // When: Attempt this row's overwrite, deletion-field removal or deletion-field reset.
+          // Then: Rules reject restoration and preserve the saved Card.
           await assertFails(
             operation === "replace"
               ? setDoc(reference, data)
@@ -966,14 +966,17 @@ describe("Firestore ownership and guest write restrictions", () => {
       // When: Evaluate `updateDoc` as part of the following checks.
       // Then: Verify the expected result in the assertions below.
       await assertSucceeds(updateDoc(reference, { fsrs: { ...validFsrs, difficulty: 0, stability: Infinity } }));
+      // Given: Replace the stored Card with another owner's Card before testing authorization.
       await createData("card", "card", { ...card, uid: "other" });
       // When: Evaluate `updateDoc` as part of the following checks.
       // Then: Verify the expected result in the assertions below.
       await assertFails(updateDoc(reference, { fsrs: validFsrs }));
+      // Given: Restore ownership but tombstone the Card before attempting the same FSRS update.
       await createData("card", "card", { ...card, deletedAt: 1000 });
       // When: Evaluate `updateDoc` as part of the following checks.
       // Then: Verify the expected result in the assertions below.
       await assertFails(updateDoc(reference, { fsrs: validFsrs }));
+      // Given: Restore the active Card but change its parent Deck's owner.
       await createData("card", "card", card);
       await createData("deck", "deck", { uid: "other" });
       // When: Evaluate `updateDoc` as part of the following checks.

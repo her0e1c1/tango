@@ -48,7 +48,6 @@ describe("Query realtime subscriptions", () => {
     // When: Subscribe to the prepared owner's Card content.
     const stopCards = subscribeCards(uid, onError);
     try {
-      // Given: Use the current iteration or branch inputs from the enclosing case.
       // Then: Verify the expected result in the assertions below.
       await vi.waitFor(() => {
         expect(Object.values(cardStore.getState().cardsById)).toContainEqual(
@@ -85,7 +84,7 @@ describe("Query realtime subscriptions", () => {
         expect(Object.values(cardStore.getState().cardsById)).toContainEqual(expect.objectContaining({ id: card.id }));
       });
 
-      // When: Exercise `editDeck` with the prepared inputs.
+      // When: Edit both the Deck name and Card front text to Updated.
       await editDeck(uid, { ...deck, name: "Updated" });
       await editCard(uid, { ...card, frontText: "Updated" });
       // Then: Verify the expected result in the assertions below.
@@ -98,7 +97,7 @@ describe("Query realtime subscriptions", () => {
         );
       });
 
-      // When: Exercise `deleteCard` with the prepared inputs.
+      // When: Logically delete both the Card and its Deck.
       await deleteCard(uid, card.id);
       await deleteDeck(uid, deck.id);
       // Then: Verify the expected result in the assertions below.

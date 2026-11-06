@@ -181,6 +181,7 @@ describe("Card replica and Store deltas", () => {
     start();
     await loaded(["a", "b", "boundary", "unchanged"]);
     await checkpoint(2000);
+    // When: Stop, deliver same-boundary additions, edits and tombstones, then clear memory and resume.
     stop();
     await seed([
       card("same-ms", 2000),
@@ -188,11 +189,10 @@ describe("Card replica and Store deltas", () => {
       { ...card("b", 3000), deletedAt: 3000 },
       card("c", 3000),
     ]);
-    // When: Exercise `clearRemoteCards` with the prepared inputs.
     clearRemoteCards();
     start();
+    // Then: Restore the complete current set, retaining boundary and untouched Cards.
     await loaded(["a", "boundary", "c", "same-ms", "unchanged"]);
-    // Then: Verify the expected result in the assertions below.
     await vi.waitFor(() => expect(getCards().find(({ id }) => id === "a")?.frontText).toBe("edited"));
     await checkpoint(3000);
     expect(errors).toEqual([]);
@@ -234,9 +234,9 @@ describe("Card replica and Store deltas", () => {
       // When: Exercise `clearRemoteCards` with the prepared inputs.
       clearRemoteCards();
       start();
+      // Then: Recover both Cards and their confirmed checkpoint despite this row's replica damage.
       await loaded(["new", "old"]);
       await checkpoint(2000);
-      // Then: Verify the expected result in the assertions below.
       expect(errors).toEqual([]);
     }
   );
@@ -301,16 +301,16 @@ describe("Card replica and Store deltas", () => {
       updatedAt: serverTimestamp(),
     }).catch((error: unknown) => error);
     await localPending();
+    // When: Stop with a pending edit, reconnect for rejection, then clear memory and resume.
     stop();
-    // When: Exercise `enableNetwork` with the prepared inputs.
     await enableNetwork(connection.db);
     // Then: Verify the expected result in the assertions below.
     await expect(rejected).resolves.toMatchObject({ code: "permission-denied" });
-    // When: Exercise `clearRemoteCards` with the prepared inputs.
+    // When: Resume after discarding the in-memory Cards.
     clearRemoteCards();
     start();
+    // Then: Restore the previously confirmed Card in both memory and replica.
     await loaded(["boundary", "old"]);
-    // Then: Verify the expected result in the assertions below.
     expect(getCards().find(({ id }) => id === "old")?.frontText).toBe("old");
     expect((await readReplica()).cards.find(({ id }) => id === "old")?.frontText).toBe("old");
   });
@@ -333,8 +333,8 @@ describe("Card replica and Store deltas", () => {
         await disableNetwork(connection.db);
       }
       const changes = vi.spyOn(QuerySnapshot.prototype, "docChanges");
+      // When: Resume into the malformed window, reconnecting after the cached result for that row.
       start();
-      // When: Exercise `enableNetwork` with the prepared inputs.
       if (source === "cached") {
         await vi.waitUntil(() =>
           changes.mock.contexts.some((snapshot) => snapshot instanceof QuerySnapshot && snapshot.metadata.fromCache)
@@ -390,8 +390,8 @@ describe("Card replica and Store deltas", () => {
     replaceRemoteDecks([createDeck({ id: "deck", uid })]);
     await seed([card("b")]);
     start();
+    // Then: Load only the new owner's Card without completing the canceled owner's readiness.
     await loaded(["b"]);
-    // Then: Verify the expected result in the assertions below.
     expect(ready).not.toHaveBeenCalled();
     expect((await readReplica()).metadata.uid).toBe(uid);
   });
@@ -491,13 +491,13 @@ describe("Card replica and Store deltas", () => {
     await checkpoint(1000);
     stop();
     await disableNetwork(connection.db);
+    // When: Clear memory, restore the cached subscription and request an offline edit.
     clearRemoteCards();
     await new Promise<void>((resolve, reject) => stops.push(subscribeCards(uid, reject, resolve)));
-    // When: Exercise `updateDoc` with the prepared inputs.
     const write = updateDoc(doc(connection.db, "card", "old"), { frontText: "pending", updatedAt: serverTimestamp() });
     await localPending();
+    // Then: Keep the confirmed checkpoint and Card values while the edit is pending.
     await checkpoint(1000);
-    // Then: Verify the expected result in the assertions below.
     expect(getCards()[0]?.frontText).toBe("old");
     expect((await readReplica()).cards[0]?.frontText).toBe("old");
     // When: Exercise `enableNetwork` with the prepared inputs.
@@ -513,9 +513,9 @@ describe("Card replica and Store deltas", () => {
     start();
     await loaded(["old"]);
     await checkpoint(1000);
+    // When: Go offline and request an FSRS update before reconnecting below.
     await disableNetwork(connection.db);
     const fsrs = calculateFsrsState(null, "good", 1000);
-    // When: Exercise `updateDoc` with the prepared inputs.
     const write = updateDoc(doc(connection.db, "card", "old"), { fsrs, updatedAt: serverTimestamp() });
     await localPending();
     // Then: Verify the expected result in the assertions below.
@@ -532,16 +532,17 @@ describe("Card replica and Store deltas", () => {
     // Given: Prepare `cardA` and any shared test state below.
     connection.isAnonymous = true;
     const cardA = createCard({ id: "card-a", uid, deckId: "deck", frontText: "created" });
-    // When: Exercise `disableNetwork` with the prepared inputs.
+    // Given: Keep the anonymous-account SDK offline with no existing Card or replica.
     await disableNetwork(connection.db);
+    // When: Start the Card subscription and wait for initial readiness.
     await new Promise<void>((resolve, reject) => stops.push(subscribeCards(uid, reject, resolve)));
-    // Then: Verify the expected result in the assertions below.
+    // Then: The initial subscription contains no Cards.
     expect(getCards()).toEqual([]);
 
     // When: Exercise `saveCard` with the prepared inputs.
     await saveCard(uid, cardA);
+    // Then: Display Card A with the created text.
     await loaded([cardA.id]);
-    // Then: Verify the expected result in the assertions below.
     expect(getCards()[0]?.frontText).toBe("created");
 
     // When: Exercise `editCard` with the prepared inputs.
@@ -558,8 +559,8 @@ describe("Card replica and Store deltas", () => {
 
     // When: Exercise `deleteCard` with the prepared inputs.
     await deleteCard(uid, cardA.id);
+    // Then: Hide Card A without creating a replica database.
     await loaded([]);
-    // Then: Verify the expected result in the assertions below.
     expect(await indexedDB.databases()).toEqual([]);
   });
 
@@ -589,28 +590,29 @@ describe("Card replica and Store deltas", () => {
       const damagedCardA = cardWithDamagedFsrs(cardA.id, damage);
       const cardB = card("card-b");
       await seed([damagedCardA]);
-      // When: Exercise `subscribeCachedAnonymousCards` with the prepared inputs.
+      // Given: Complete initial anonymous readiness with only Card A diagnosed as invalid.
       await subscribeCachedAnonymousCards();
-      // Then: Verify the expected result in the assertions below.
       expect(store.cardStore.getState().invalidCardIds).toEqual([cardA.id]);
       // When: Exercise `enableNetwork` with the prepared inputs.
       await enableNetwork(connection.db);
 
-      // Repair Card A and add Card B in the same notification.
+      // When: Repair Card A and add Card B in the same notification.
       await seed([cardA, cardB]);
+      // Then: Display A and B without an invalid-Card diagnostic.
       await loaded([cardA.id, cardB.id]);
-      // Then: Verify the expected result in the assertions below.
       expect(store.cardStore.getState().invalidCardIds).toEqual([]);
 
-      // Re-isolate Card A while publishing Card B's update.
+      // When: Re-isolate Card A while publishing Card B's update.
       await seed([damagedCardA, { ...cardB, frontText: "changed" }]);
+      // Then: Display only changed B and diagnose only A without repairing its saved FSRS.
       await loaded([cardB.id]);
       expect(getCards()[0]?.frontText).toBe("changed");
       expect(store.cardStore.getState().invalidCardIds).toEqual([cardA.id]);
       expect((await getDocFromCache(doc(connection.db, "card", cardA.id))).data()?.fsrs).toEqual(damagedCardA.fsrs);
 
-      // A second repair must restore Card A without reverting Card B.
+      // When: Repair Card A a second time.
       await seed([cardA]);
+      // Then: Restore A without reverting B or retaining diagnostics.
       await loaded([cardA.id, cardB.id]);
       expect(store.cardStore.getState().invalidCardIds).toEqual([]);
       expect(getCards().find(({ id }) => id === cardB.id)?.frontText).toBe("changed");
@@ -627,31 +629,35 @@ describe("Card replica and Store deltas", () => {
       const damagedCardA = cardWithDamagedFsrs(cardA.id, damage);
       const cardB = card("card-b");
       await seed([damagedCardA, cardB]);
-      // When: Exercise `subscribeCachedAnonymousCards` with the prepared inputs.
+      // Given: Complete initial readiness with only valid B displayed and only A diagnosed.
       await subscribeCachedAnonymousCards();
-      // Then: Verify the expected result in the assertions below.
       expect(getCards().map(({ id }) => id)).toEqual([cardB.id]);
       expect(store.cardStore.getState().invalidCardIds).toEqual([cardA.id]);
       // When: Exercise `enableNetwork` with the prepared inputs.
       await enableNetwork(connection.db);
 
-      // Card B's logical deletion must retain Card A's diagnostic.
+      // When: Logically delete Card B.
       await seed([{ ...cardB, deletedAt: 2000 }]);
+      // Then: Hide B, preserve its tombstone and retain A's diagnostic.
       await loaded([]);
-      // Then: Verify the expected result in the assertions below.
       expect(store.cardStore.getState().invalidCardIds).toEqual([cardA.id]);
       expect((await getDocFromCache(doc(connection.db, "card", cardB.id))).data()?.deletedAt).toBe(2000);
 
+      // When: Repair Card A.
       await seed([cardA]);
+      // Then: Display A and clear its diagnostic.
       await loaded([cardA.id]);
       expect(store.cardStore.getState().invalidCardIds).toEqual([]);
 
+      // When: Re-isolate Card A with the same damaged FSRS.
       await seed([damagedCardA]);
+      // Then: Hide A and restore its diagnostic.
       await vi.waitFor(() => expect(store.cardStore.getState().invalidCardIds).toEqual([cardA.id]));
       expect(getCards()).toEqual([]);
 
-      // A valid tombstone clears the re-isolated Card A's diagnostic.
+      // When: Replace the re-isolated Card A with a valid tombstone.
       await seed([{ ...cardA, deletedAt: 3000 }]);
+      // Then: Clear A's diagnostic while keeping it hidden and preserving its tombstone.
       await vi.waitFor(() => expect(store.cardStore.getState().invalidCardIds).toEqual([]));
       expect(getCards()).toEqual([]);
       expect((await getDocFromCache(doc(connection.db, "card", cardA.id))).data()?.deletedAt).toBe(3000);
@@ -667,14 +673,14 @@ describe("Card replica and Store deltas", () => {
       const cardA = cardWithDamagedFsrs("card-a", damage);
       const cardB = card("card-b");
       await seed([cardA, cardB]);
-      // When: Exercise `subscribeCachedAnonymousCards` with the prepared inputs.
+      // Given: Complete initial readiness with only valid B displayed and only A diagnosed.
       await subscribeCachedAnonymousCards();
-      // Then: Verify the expected result in the assertions below.
       expect(getCards().map(({ id }) => id)).toEqual([cardB.id]);
       expect(store.cardStore.getState().invalidCardIds).toEqual([cardA.id]);
       // When: Exercise `enableNetwork` with the prepared inputs.
       await enableNetwork(connection.db);
 
+      // When: Physically delete A and B together through the external Rules-disabled setup context.
       await environment.withSecurityRulesDisabled(async (context) => {
         const batch = writeBatch(context.firestore() as unknown as Firestore);
         batch.delete(doc(context.firestore(), "card", cardA.id));
@@ -700,10 +706,9 @@ describe("Card replica and Store deltas", () => {
     await getDocs(query(collection(connection.db, "card"), where("uid", "==", uid)));
     const receivingDbA = connection.db;
     const ready = vi.fn();
-    // When: Exercise `subscribeCards` with the prepared inputs.
+    // Given: Receive UID A's valid Card A and invalid Card B before switching owners.
     stops.push(subscribeCards(uid, (error) => errors.push(error), ready));
     await loaded(["card-a"]);
-    // Then: Verify the expected result in the assertions below.
     await vi.waitFor(() => expect(store.cardStore.getState().invalidCardIds).toEqual(["card-b"]));
     // When: Exercise `stop` with the prepared inputs.
     stop();
@@ -714,8 +719,8 @@ describe("Card replica and Store deltas", () => {
       .firestore() as unknown as Firestore;
     replaceRemoteDecks([createDeck({ id: "deck", uid })]);
     start();
+    // Then: Display only UID B's Card and clear UID A's diagnostics.
     await loaded(["card-c"]);
-    // Then: Verify the expected result in the assertions below.
     expect(store.cardStore.getState().invalidCardIds).toEqual([]);
     const state = store.cardStore.getState();
     // Observe arrival on the old receiving client before checking that its stopped subscriber stayed silent.
@@ -730,7 +735,7 @@ describe("Card replica and Store deltas", () => {
         )
       )
     );
-    // When: Exercise `card` with the prepared inputs.
+    // When: Deliver a late update for UID A and wait for arrival on its old receiving SDK.
     await seed([{ ...card("card-a"), uid: uidA, frontText: "late" }]);
     await received;
     // Then: Verify the expected result in the assertions below.
@@ -746,9 +751,8 @@ describe("Card replica and Store deltas", () => {
     await getDocs(query(collection(connection.db, "card"), where("uid", "==", uid)));
     await disableNetwork(connection.db);
     const ready = vi.fn();
-    // When: Exercise `subscribeCards` with the prepared inputs.
+    // Given: Complete initial readiness with Card A cached while offline.
     stops.push(subscribeCards(uid, (error) => errors.push(error), ready));
-    // Then: Verify the expected result in the assertions below.
     await vi.waitFor(() => expect(ready).toHaveBeenCalled());
     const readyCount = ready.mock.calls.length;
     const state = store.cardStore.getState();

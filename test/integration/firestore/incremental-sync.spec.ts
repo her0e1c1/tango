@@ -172,20 +172,18 @@ describe("Firestore synchronization contracts", () => {
   afterAll(async () => environment.cleanup());
 
   it("[FIRESTORE-INCREMENTAL-SYNC-01] merges consecutive snapshots without losing unchanged or same-timestamp documents", async () => {
-    // Given: Use this case's inputs and any shared test setup.
-    // When: Exercise `startContent` with the prepared inputs.
+    // Given: Start with empty subscriptions, then load Decks and Cards created in one remote batch.
     await startContent();
     await serverBarrier("deck");
-    // Then: Verify the expected result in the assertions below.
+    // Given: Confirm the initial empty result before creating the same-timestamp documents.
     expect(getDecks()).toEqual([]);
     expect(getCards()).toEqual([]);
-    // When: Exercise `writeBatch` with the prepared inputs.
     const batch = writeBatch(remote);
     for (const id of ["deck", "unchanged"]) batch.set(doc(remote, "deck", id), deckData(id));
     for (const id of ["a", "b"]) batch.set(doc(remote, "card", id), cardData(id));
     await batch.commit();
     const boundary = (await getDoc(doc(remote, "card", "a"))).data()?.updatedAt as Timestamp;
-    // Then: Verify the expected result in the assertions below.
+    // Given: Confirm the shared update timestamp and receipt of both Decks and Cards.
     expect(boundary).toEqual((await getDoc(doc(remote, "card", "b"))).data()?.updatedAt);
     await vi.waitFor(() => {
       expect(getCards()).toHaveLength(2);
@@ -207,14 +205,13 @@ describe("Firestore synchronization contracts", () => {
   });
 
   it.each(["card", "deck"])("[FIRESTORE-INCREMENTAL-SYNC-02] applies a remote %s tombstone", async (kind) => {
-    // Given: Use this case's inputs and any shared test setup.
+    // Given: Save two Decks with one Card each and receive both Cards before deleting either row's target.
     await setDoc(doc(remote, "deck", "deck"), deckData("deck"));
     await setDoc(doc(remote, "deck", "other"), deckData("other"));
     await setDoc(doc(remote, "card", "a"), cardData("a"));
     await setDoc(doc(remote, "card", "other"), cardData("other", "other"));
-    // When: Exercise `startContent` with the prepared inputs.
     await startContent();
-    // Then: Verify the expected result in the assertions below.
+    // Given: Wait for the initial Cards to reach the receiving client.
     await vi.waitFor(() => expect(getCards()).toHaveLength(2));
     await serverBarrier("card");
     // When: Exercise `updateDoc` with the prepared inputs.
@@ -228,14 +225,13 @@ describe("Firestore synchronization contracts", () => {
   });
 
   it("[FIRESTORE-INCREMENTAL-SYNC-03] receives stopped changes when subscribing again", async () => {
-    // Given: Use this case's inputs and any shared test setup.
+    // Given: Receive Cards A, B and unchanged before stopping their subscription.
     await setDoc(doc(remote, "deck", "deck"), deckData("deck"));
     for (const id of ["a", "b", "unchanged"]) await setDoc(doc(remote, "card", id), cardData(id));
-    // When: Exercise `startContent` with the prepared inputs.
     await startContent();
-    // Then: Verify the expected result in the assertions below.
+    // Given: Confirm all three initial Cards are loaded.
     await vi.waitFor(() => expect(getCards()).toHaveLength(3));
-    // When: Exercise `stopContent` with the prepared inputs.
+    // When: Stop, edit A, tombstone B and add C remotely, then subscribe again.
     stopContent();
     const batch = writeBatch(remote);
     batch.update(doc(remote, "card", "a"), { frontText: "changed", updatedAt: serverTimestamp() });
@@ -256,21 +252,20 @@ describe("Firestore synchronization contracts", () => {
     async (offset) => {
       // Given: Use this case's inputs and any shared test setup.
       await setDoc(doc(remote, "deck", "deck"), deckData("deck"));
-      // When: Exercise `startContent` with the prepared inputs.
       await startContent();
-      // Then: Verify the expected result in the assertions below.
+      // Given: Confirm the Deck has synchronized before going offline and shifting the clock.
       await vi.waitFor(() => expect(getDecks().find(({ id }) => id === "deck")?.name).toBe("deck"));
       await serverBarrier("deck");
-      // When: Exercise `disableNetwork` with the prepared inputs.
       await disableNetwork(connection.db);
       const now = Date.now();
       const clock = vi.spyOn(Date, "now").mockReturnValue(now + offset);
+      // When: Edit the Deck offline with this row's shifted client clock.
       const rejection = editDeck(uid, { id: "deck", name: "pending" }).catch((error: unknown) => error);
       clock.mockRestore();
       // Then: Verify the expected result in the assertions below.
       await vi.waitFor(() => expect(getDecks().find(({ id }) => id === "deck")?.name).toBe("pending"));
+      // When: Change the remote owner and reconnect so Rules reject the pending edit.
       await seed("deck", "deck", { ...deckData("deck"), uid: "different-owner" });
-      // When: Exercise `enableNetwork` with the prepared inputs.
       await enableNetwork(connection.db);
       // Then: Verify the expected result in the assertions below.
       await expect(rejection).resolves.toMatchObject({ code: "permission-denied" });
@@ -283,17 +278,17 @@ describe("Firestore synchronization contracts", () => {
   it("[FIRESTORE-SNAPSHOT-13] receives the complete repaired snapshot after a validation error", async () => {
     // Given: Use this case's inputs and any shared test setup.
     await setDoc(doc(remote, "deck", "deck"), deckData("deck"));
-    // When: Exercise `subscribeDecks` with the prepared inputs.
     stops.push(subscribeDecks(uid, onError));
-    // Then: Verify the expected result in the assertions below.
+    // Given: Receive the valid Deck before delivering a batch containing an invalid sibling.
     await vi.waitFor(() => expect(getDecks().find(({ id }) => id === "deck")?.name).toBe("deck"));
     await serverBarrier("deck");
-    // When: Exercise `writeBatch` with the prepared inputs.
+    // Given: Save the existing Deck's change together with a malformed Deck.
     const batch = writeBatch(remote);
     batch.update(doc(remote, "deck", "deck"), { name: "changed", updatedAt: serverTimestamp() });
     batch.set(doc(remote, "deck", "invalid"), { ...deckData("invalid"), name: 42 });
     await batch.commit();
-    // Then: Verify the expected result in the assertions below.
+    // When: Receive the malformed snapshot.
+    // Then: Report validation errors and retain the preceding complete valid result.
     await vi.waitFor(() => expect(errors.length).toBeGreaterThan(0));
     expect(getDecks().find(({ id }) => id === "deck")?.name).toBe("deck");
     expect(getDecks().map(({ name }) => name)).toEqual(["deck"]);
@@ -334,7 +329,7 @@ describe("Firestore synchronization contracts", () => {
       expect(started).toHaveLength(1);
       expect(getStudySession("deck")?.lastStudiedAt).toBe(1000);
     });
-    // When: Exercise `stopStarted` with the prepared inputs.
+    // When: Stop start-history delivery, try a foreign owner and complete the session at time 2000.
     stopStarted();
     const foreignHistory = vi.fn();
     stops.push(subscribeStudyHistory({ ...input, uid: "another-owner", metric: "started" }, foreignHistory, onError));
@@ -358,8 +353,7 @@ describe("Firestore synchronization contracts", () => {
   it.each([2, 1000])(
     "[FIRESTORE-STUDY-HISTORY-05] merges more than %s new answers and keeps history scopes independent",
     async (maximum) => {
-      // Given: Use this case's inputs and any shared test setup.
-      // When: Exercise `setDoc` with the prepared inputs.
+      // Given: Save one answer and synchronize independent Deck, all-Deck and past-period scopes.
       await setDoc(doc(remote, "studyAnswer", "initial"), answerData(3000));
       const initial = history(maximum);
       const allDecks = history(maximum, null);
@@ -367,9 +361,8 @@ describe("Firestore synchronization contracts", () => {
       await serverHistory(initial, 1);
       await serverHistory(allDecks, 1);
       await serverHistory(past, 0);
+      // When: Add more answers than this row's limit, including backdated and other-Deck answers.
       for (let offset = 0; offset < maximum + 3; offset += 400) {
-        // Given: Prepare `batch` and any shared test state below.
-        // When: Exercise `writeBatch` with the prepared inputs.
         const batch = writeBatch(remote);
         for (let index = offset; index < Math.min(offset + 400, maximum + 3); index += 1)
           batch.set(doc(remote, "studyAnswer", `answer-${String(index).padStart(4, "0")}`), answerData(4000));
@@ -471,12 +464,14 @@ describe("Firestore synchronization contracts", () => {
     // When: Evaluate `setDoc` as part of the following checks.
     // Then: Verify the expected result in the assertions below.
     await assertSucceeds(setDoc(reference, data));
-    // When: Evaluate `updateDoc` as part of the following checks.
-    // Then: Verify the expected result in the assertions below.
     if (kind !== "studyAnswer") {
       const fields = { deck: { name: "edited" }, card: { fsrs: {} }, studySession: { currentIndex: 1 } }[kind];
+      // When: Update with a numeric, fixed Timestamp or missing updatedAt inside each assertion.
+      // Then: Rules reject each update lacking the server request time.
       for (const updatedAt of [1000, Timestamp.fromMillis(1000), undefined])
         await assertFails(updateDoc(reference, { ...fields, ...(updatedAt === undefined ? {} : { updatedAt }) }));
+      // When: Update with serverTimestamp inside the following assertion.
+      // Then: Rules permit the server-timed update.
       await assertSucceeds(updateDoc(reference, { ...fields, updatedAt: serverTimestamp() }));
     }
   }
@@ -484,32 +479,32 @@ describe("Firestore synchronization contracts", () => {
   it("[FIRESTORE-RULES-DECK-27] requires server update times for deck writes", async () => {
     // Given: Use this case's inputs and any shared test setup.
     // When: Attempt the timestamp variants through the shared write helper.
-    // Then: The helper checks Rules authorization and the saved server timestamp.
     await expectServerUpdateTime("deck");
+    // Then: The authorized write has a saved Timestamp.
     expect((await getDoc(doc(remote, "deck", "new"))).data()?.updatedAt).toBeInstanceOf(Timestamp);
   });
 
   it("[FIRESTORE-RULES-CARD-27] requires server update times for card writes", async () => {
     // Given: Use this case's inputs and any shared test setup.
     // When: Attempt the timestamp variants through the shared write helper.
-    // Then: The helper checks Rules authorization and the saved server timestamp.
     await expectServerUpdateTime("card");
+    // Then: The authorized write has a saved Timestamp.
     expect((await getDoc(doc(remote, "card", "new"))).data()?.updatedAt).toBeInstanceOf(Timestamp);
   });
 
   it("[FIRESTORE-RULES-STUDY-SESSION-04] requires server update times for studySession writes", async () => {
     // Given: Use this case's inputs and any shared test setup.
     // When: Attempt the timestamp variants through the shared write helper.
-    // Then: The helper checks Rules authorization and the saved server timestamp.
     await expectServerUpdateTime("studySession");
+    // Then: The authorized write has a saved Timestamp.
     expect((await getDoc(doc(remote, "studySession", "new"))).data()?.updatedAt).toBeInstanceOf(Timestamp);
   });
 
   it("[FIRESTORE-RULES-STUDY-ANSWER-05] requires server update times for studyAnswer writes", async () => {
     // Given: Use this case's inputs and any shared test setup.
     // When: Attempt the timestamp variants through the shared write helper.
-    // Then: The helper checks Rules authorization and the saved server timestamp.
     await expectServerUpdateTime("studyAnswer");
+    // Then: The authorized write has a saved Timestamp.
     expect((await getDoc(doc(remote, "studyAnswer", "new"))).data()?.updatedAt).toBeInstanceOf(Timestamp);
   });
 });
