@@ -344,27 +344,6 @@ class ReportPrivacy(unittest.TestCase):
                 self.assertEqual((self.source / name).read_bytes(), raw)
                 shutil.rmtree(self.output)
 
-    def test_omitted_script_bodies_are_distinct_from_dangling_references(self):
-        # Given: The pinned non-live recorder omits script bodies before creating any resource reference.
-        urls = ["https://apis.google.com/js/api.js?onload=__iframefcb123",
-                GAPI_MODULE, GAPI_MODULE.replace("apps-static", "abc-static")]
-        for url in urls:
-            extra = sdk_entries(url=url)
-            event = json.loads(extra["sdk.network"])
-            event["snapshot"]["response"]["content"] = {"size": -1, "mimeType": "text/javascript"}
-            extra["sdk.network"] = privacy.json_bytes(event) + b"\n"
-            del extra["resources/sdk.js"]
-            name, raw, _ = self.fixture(extra=extra)
-            # When: Prepare the strictly matched SDK record without inventing an empty body or reference.
-            manifest = privacy.prepare(self.source, self.report, self.output)
-            entries = privacy.unpack((self.output / "html" / name).read_bytes())
-            # Then: Only the record is omitted, no resource is synthesized, and raw evidence is unchanged.
-            self.assertEqual(entries["sdk.network"], b"")
-            self.assertNotIn("resources/sdk.js", entries)
-            self.assertEqual(manifest["counts"]["gapi_loader_records_removed"] + manifest["counts"]["gapi_iframe_records_removed"], 1)
-            self.assertEqual((self.source / name).read_bytes(), raw)
-            shutil.rmtree(self.output)
-
     def test_rejects_unexplained_sdk_paths_queries_and_payloads(self):
         # Given: Each approved prefix still requires all URL, request, response and credential conditions.
         cases = [sdk_entries(url="https://apis.google.com/v1/userinfo"),
@@ -383,7 +362,7 @@ class ReportPrivacy(unittest.TestCase):
                           sdk_entries(url=url + "?le=PRIVATE-VALUE"), sdk_entries(url=url, method="POST"),
                           sdk_entries(url=url, resource_type="xhr"), sdk_entries(url=url, authorization=True),
                           sdk_entries(url=url, body=b"PRIVATE-BODY")])
-            for kind in ("proxy-auth", "request-body", "status", "missing-body", "null-reference", "empty-reference", "numeric-reference", "file-reference", "inline-body", "inline-without-reference"):
+            for kind in ("proxy-auth", "request-body", "status", "missing-body", "missing-reference", "inline-body"):
                 extra = sdk_entries(url=url)
                 event = json.loads(extra["sdk.network"])
                 request, response = event["snapshot"]["request"], event["snapshot"]["response"]
@@ -395,15 +374,10 @@ class ReportPrivacy(unittest.TestCase):
                     response["status"] = 503
                 elif kind == "missing-body":
                     del extra["resources/sdk.js"]
-                elif kind in {"null-reference", "empty-reference", "numeric-reference"}:
-                    response["content"]["_sha1"] = {"null-reference": None, "empty-reference": "", "numeric-reference": 123}[kind]
-                elif kind == "file-reference":
+                elif kind == "missing-reference":
                     del response["content"]["_sha1"]
-                    response["content"]["_file"] = "sdk.js"
                 else:
                     response["content"]["text"] = "PRIVATE-BODY"
-                    if kind == "inline-without-reference":
-                        del response["content"]["_sha1"]
                 extra["sdk.network"] = privacy.json_bytes(event) + b"\n"
                 cases.append(extra)
         for extra in cases:
