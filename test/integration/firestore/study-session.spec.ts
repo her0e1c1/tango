@@ -68,7 +68,7 @@ describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [ST
   let deckId: string;
 
   beforeEach(() => {
-    // Given: Establish the shared setup used by the following cases.
+    // Given: Reset session state and authenticate the owner with one Deck, three Cards and fixed preferences.
     clearStudySessions();
     cardStore.setState({ cardsById: {} });
     deckStore.setState({ remoteDecks: [] });
@@ -111,9 +111,9 @@ describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [ST
   it("[FIRESTORE-STUDY-SESSION-01] restores saved order and cursor after resubscribing", async () => {
     // Given: Prepare `onError`, `started` and any shared test state below.
     const onError = vi.fn();
+    // When: Subscribe, start a new session and advance to its second Card.
     stop = subscribeStudySessions("uid", onError);
     const started = await startRemote();
-    // When: Exercise `setStudySessionIndex` with the prepared inputs.
     await setStudySessionIndex(deckId, 1);
     await waitForPendingWrites(testDb);
     // Then: Verify the expected result in the assertions below.
@@ -286,11 +286,11 @@ describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [ST
     await waitForPendingWrites(testDb);
 
     const previous = getStudySession(deckId);
-    // When: Stop the old subscription and clear local sessions while offline.
+    // Given: Stop the old subscription and discard local sessions while offline.
     stop();
     await disableNetwork(testDb);
     clearStudySessions();
-    // Then: Verify the expected result in the assertions below.
+    // Given: Confirm that no local session remains before restoring from cache.
     expect(getStudySession(deckId)).toBeUndefined();
     // When: Exercise `subscribeStudySessions` with the prepared inputs.
     stop = subscribeStudySessions("uid", vi.fn());
@@ -386,15 +386,13 @@ describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [ST
     const touchedAt = Date.now() + 1000;
     const clock = vi.spyOn(Date, "now").mockReturnValue(touchedAt);
     try {
-      // Given: Use the current iteration or branch inputs from the enclosing case.
       // When: Exercise `touchStudySession` with the prepared inputs.
       await touchStudySession(deckId);
     } finally {
       clock.mockRestore();
     }
     await waitForPendingWrites(testDb);
-    // When: Observe the prepared result through the following checks.
-    // Then: Verify the expected result in the assertions below.
+    // Then: Change only recency and updatedAt in the saved session.
     expect((await readSession(started.sessionId)).data()).toEqual({
       ...original,
       lastStudiedAt: touchedAt,

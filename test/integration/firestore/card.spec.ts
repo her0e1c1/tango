@@ -139,24 +139,23 @@ describe("firestore/card", { retry: 3 }, () => {
   });
 
   it("[FIRESTORE-CARD-04] preserves a rated Card when retrying a prepared create", async () => {
-    // Given: Prepare `deckId`, `c` and any shared test state below.
+    // Given: Save the initial Card under the owner's Deck, then rate it before retrying creation.
     const deckId = await initDeck();
     const c = { ...newCard, deckId, id: uuid(), frontText: "upserted" };
 
-    // When: Exercise `createCardCommand` with the prepared inputs.
     await createCardCommand("uid", c);
 
     const data = (await getDoc(doc(db, "card", c.id))).data();
-    // Then: Verify the expected result in the assertions below.
+    // Given: Confirm initial creation before preparing the rated Card.
     expect(data).toEqual({ ...c, createdAt: expect.any(Number), updatedAt: expect.any(Timestamp) });
     const reference = doc(db, "card", c.id);
-    // When: Exercise `updateDoc` with the prepared inputs.
     await updateDoc(reference, { fsrs: calculateFsrsState(null, "good", 1000), updatedAt: serverTimestamp() });
     const rated = (await getDoc(reference)).data();
 
+    // When: Retry creation with the same Card ID and original input.
     await createCardCommand("uid", c);
 
-    // Then: Verify the expected result in the assertions below.
+    // Then: Preserve all rated values, including FSRS and timestamps.
     expect((await getDoc(reference)).data()).toEqual(rated);
   });
 
@@ -213,12 +212,12 @@ describe("firestore/card", { retry: 3 }, () => {
   });
 
   it("[FIRESTORE-CARD-08] should exists a card", async () => {
-    // Given: Prepare `deckId`, `c` and any shared test state below.
+    // Given: Create the owner's Card; getDoc waits for its pending writes before reading.
     const deckId = await initDeck();
     const c = { ...newCard, deckId, id: uuid() };
-    // When: Exercise `createCardCommand` with the prepared inputs.
     await createCardCommand("uid", c);
-    // Then: Verify the expected result in the assertions below.
+    // When: Read the created Card by ID inside the following assertion.
+    // Then: The document exists.
     expect((await getDoc(doc(db, "card", c.id))).exists()).toBe(true);
   });
 });

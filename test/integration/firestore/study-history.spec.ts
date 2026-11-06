@@ -64,7 +64,7 @@ describe("Firestore history reads", () => {
     batch.set(doc(testDb, "studySession", crypto.randomUUID()), document(deckId, start + 1, start + 1, "completed"));
     await batch.commit();
 
-    // Given: Read each requested history scope through the public subscription helper below.
+    // The shared reader maps each query action to its requested server/cache snapshot check.
     async function read(deck: string | null, metric: "started" | "completed", cached = false) {
       let records: StudyHistoryRecord[] | undefined;
       let fromCache: boolean | undefined;
@@ -96,9 +96,9 @@ describe("Firestore history reads", () => {
         stop();
       }
     }
+    // When: Read the parameterized server history scopes through the helper.
     const stopSessions = subscribeStudySessions("uid", () => undefined);
     onTestFinished(stopSessions);
-    // When: Read the parameterized server history scopes through the helper.
     // Then: Verify boundaries, Deck filtering, and independent start/completion records.
     expect((await read(null, "started")).records).toHaveLength(131);
     expect((await read(null, "completed")).records.map((record) => record.deckId).sort()).toEqual(
@@ -140,7 +140,7 @@ describe("Firestore history reads", () => {
     } finally {
       await enableNetwork(testDb);
     }
-    // When: Exercise `stopSessions` with the prepared inputs.
+    // When: Replace the owner's subscriptions with subscriptions for another UID.
     stopSessions();
     const stopForeign = subscribeStudySessions("another-user", () => undefined);
     onTestFinished(stopForeign);
@@ -237,11 +237,17 @@ describe("Bounded answer history", () => {
     // Then: Verify the expected result in the assertions below.
     expect(online).toMatchObject({ source: "server", truncated: false, invalidCount: 1, hasPendingWrites: false });
     expect(online.records.map((record) => record.id)).toEqual(["d", "c", "b", "a"].map((id) => `${prefix}-${id}`));
+    // When: Query without a Deck constraint inside the following assertion.
+    // Then: Include all five valid answers in the requested period.
     expect((await readAnswerHistory({ ...input, deckId: null })).records).toHaveLength(5);
+    // When: Query with a limit of two documents.
     const bounded = await readAnswerHistory({ ...input, limit: 2 });
+    // Then: Report truncation and the invalid document while returning only the valid answer.
     expect(bounded).toMatchObject({ truncated: true, invalidCount: 1 });
     expect(bounded.records.map((record) => record.id)).toEqual([`${prefix}-d`]);
+    // When: Query the independent millisecond-precision period.
     const milliseconds = await readAnswerHistory({ ...input, from: millisecondTime, to: millisecondTime + 1 });
+    // Then: Preserve the answer's identifiers, rating and exact millisecond time.
     expect(milliseconds.records).toEqual([
       {
         id: millisecondId,
@@ -259,8 +265,13 @@ describe("Bounded answer history", () => {
       expect(await readAnswerHistory(input, true)).toMatchObject({ source: "cache", records: online.records });
       const user = auth.currentUser;
       if (!user) throw new Error("Missing test user");
+      // Given: The same cached history is available to the application's anonymous-account path.
       Object.assign(user, { isAnonymous: true });
+      // When: Read through that path inside the following assertion.
+      // Then: Return the cached records without changing their source.
       expect(await readAnswerHistory(input, true)).toMatchObject({ source: "cache", records: online.records });
+      // When: Read a period absent from cache inside the following assertion.
+      // Then: Return an empty, non-truncated cache result.
       expect(await readAnswerHistory({ ...input, from: from + 100, to: from + 101 }, true)).toMatchObject({
         source: "cache",
         records: [],
@@ -305,7 +316,7 @@ describe("Bounded answer history", () => {
     });
     const snapshots: StudyAnswerHistory[] = [];
     const errors: Error[] = [];
-    // When: Subscribe to the requested answer history scope.
+    // Given: Subscribe to the initially empty answer-history scope.
     const stop = subscribeStudyAnswerHistory(
       input,
       (value) => snapshots.push(value),
@@ -313,8 +324,7 @@ describe("Bounded answer history", () => {
     );
     let stopObserver: (() => void) | undefined;
     try {
-      // Given: Use the current iteration or branch inputs from the enclosing case.
-      // Then: Verify the expected result in the assertions below.
+      // Given: Confirm the receiving subscription has synchronized with the empty server result.
       await vi.waitFor(() => expect(snapshots.at(-1)).toMatchObject({ source: "server", records: [] }));
       // When: Exercise `disableNetwork` with the prepared inputs.
       await disableNetwork(testDb);

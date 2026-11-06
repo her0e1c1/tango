@@ -137,7 +137,7 @@ describe("StudyAnswer persistence and access [STUDY-ACTIONS-01] [STUDY-ACTIONS-0
     connection.db = environment.authenticatedContext(uid, linkedToken).firestore() as unknown as Firestore;
   });
   beforeEach(async () => {
-    // Given: Establish the shared setup used by the following cases.
+    // Given: Reset the project and authentication; save and subscribe to the owner's Deck, ten Cards and session.
     await environment.clearFirestore();
     cardStore.setState({ cardsById: Object.fromEntries(cardIds.map((id) => [id, createCard({ id, deckId, uid })])) });
     deckStore.setState({ remoteDecks: [createDeck({ id: deckId, uid })] });
@@ -200,11 +200,11 @@ describe("StudyAnswer persistence and access [STUDY-ACTIONS-01] [STUDY-ACTIONS-0
   );
 
   it("[FIRESTORE-STUDY-ANSWER-02] rejects stale positions without another answer", async () => {
-    // Given: Prepare `input` and any shared test state below.
+    // Given: Save this operation once so its original session position is stale.
     const input = operation();
-    // When: Exercise `saveStudyOperation` with the prepared inputs.
     await saveStudyOperation(input);
-    // Then: Verify the expected result in the assertions below.
+    // When: Retry the same saved operation inside the rejection assertion.
+    // Then: Reject the stale position without adding an answer or increasing FSRS reps.
     await expect(saveStudyOperation(input)).rejects.toThrow("session does not match");
     expect((await answers()).size).toBe(1);
     expect((await getDoc(stateReference(input.cardId))).data()?.fsrs.reps).toBe(1);
@@ -227,12 +227,11 @@ describe("StudyAnswer persistence and access [STUDY-ACTIONS-01] [STUDY-ACTIONS-0
   });
 
   it("[FIRESTORE-STUDY-ANSWER-04] records ten answers and completes", async () => {
-    // Given: Use this case's inputs and any shared test setup.
+    // Given: beforeEach provides the owner's ten-Card session at position zero.
     let final = operation();
+    // When: Answer all ten Cards in order with their corresponding positions and answer times.
     for (const [index, cardId] of cardIds.entries()) {
-      // Given: Use the current iteration or branch inputs from the enclosing case.
       final = operation({ cardId, currentIndex: index, answeredAt: 2000 + index });
-      // When: Save the answer prepared for this Card and session position.
       await saveStudyOperation(final);
     }
     // Then: Verify the expected result in the assertions below.
@@ -246,9 +245,8 @@ describe("StudyAnswer persistence and access [STUDY-ACTIONS-01] [STUDY-ACTIONS-0
   });
 
   it("[FIRESTORE-STUDY-ANSWER-05] preserves answers across abandonment and restart", async () => {
-    // Given: Prepare `first` and any shared test state below.
+    // Given: Save the first answer, abandon its session and prepare a new session with the same Cards.
     const first = operation();
-    // When: Exercise `saveStudyOperation` with the prepared inputs.
     await saveStudyOperation(first);
     await updateDoc(doc(connection.db, "studySession", sessionId), {
       endReason: "abandoned",
@@ -257,6 +255,7 @@ describe("StudyAnswer persistence and access [STUDY-ACTIONS-01] [STUDY-ACTIONS-0
     });
     const nextSessionId = "next-session";
     await setDoc(doc(connection.db, "studySession", nextSessionId), sessionData());
+    // When: Answer the same Card in the new session using its previously saved FSRS.
     await saveStudyOperation(
       operation({
         sessionId: nextSessionId,
@@ -275,6 +274,8 @@ describe("StudyAnswer persistence and access [STUDY-ACTIONS-01] [STUDY-ACTIONS-0
     expect((await answers()).size).toBe(0);
     expect(await hasState()).toBe(false);
     expect((await getDoc(doc(connection.db, "studySession", sessionId))).data()?.currentIndex).toBe(1);
+    // When: Try rating from the position that preceded the skip.
+    // Then: Reject the stale operation.
     await expect(saveStudyOperation(operation())).rejects.toBeDefined();
   });
 
@@ -294,14 +295,12 @@ describe("StudyAnswer persistence and access [STUDY-ACTIONS-01] [STUDY-ACTIONS-0
     // Given: Prepare `online` and any shared test state below.
     const online = vi.spyOn(navigator, "onLine", "get").mockReturnValue(false);
     try {
-      // Given: Use the current iteration or branch inputs from the enclosing case.
       // When: Exercise `saveStudyOperation` with the prepared inputs.
       await saveStudyOperation(operation());
     } finally {
       online.mockRestore();
     }
-    // When: Observe the prepared result through the following checks.
-    // Then: Verify the expected result in the assertions below.
+    // Then: Save one answer despite the browser's offline flag.
     expect((await answers()).size).toBe(1);
   });
 
@@ -500,8 +499,10 @@ describe("StudyAnswer persistence and access [STUDY-ACTIONS-01] [STUDY-ACTIONS-0
     // Then: Verify the expected result in the assertions below.
     expect((await getDoc(stateReference())).data()?.fsrs).toEqual(data?.fsrs);
     expect((await answers()).size).toBe(1);
+    // When: Parse an otherwise saved Card with invalid FSRS inside the following assertion.
+    // Then: Reject the malformed state instead of restoring it.
     expect(() => parseCardDocument(stateReference().id, { ...data, fsrs: {} })).toThrow();
-    // When: Exercise `setDoc` with the prepared inputs.
+    // When: Reset the session and save another rating at time 602000.
     await setDoc(doc(connection.db, "studySession", sessionId), sessionData());
     await saveStudyOperation(operation({ answeredAt: 602_000 }));
     // Then: Verify the expected result in the assertions below.
