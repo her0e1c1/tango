@@ -17,6 +17,7 @@ import { actAsync } from "@/test/act";
 import { createCard as createRemoteCard, createLocalCard, createLocalDeck, createPreferences } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
+  authUid: "user-id",
   preferences: null as unknown as Preferences,
   setDarkMode: vi.fn(),
   beforeCardWrite: undefined as (() => Promise<void>) | undefined,
@@ -39,7 +40,7 @@ vi.mock("@hookform/resolvers/zod", async (importOriginal) => {
 });
 
 vi.mock("@/entities/auth", () => ({
-  getAuthUid: () => "user-id",
+  getAuthUid: () => mocks.authUid,
 }));
 vi.mock("@/entities/preference", () => ({
   usePreferences: () => mocks.preferences,
@@ -89,6 +90,7 @@ describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 CARD-VIEW-05 CARD-MANAGEMENT-09 
 
   beforeEach(async () => {
     // Given: Establish the shared setup used by the following cases.
+    mocks.authUid = "user-id";
     replaceRemoteCards([]);
     dismissToast();
     vi.mocked(editCard).mockClear();
@@ -377,8 +379,59 @@ describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 CARD-VIEW-05 CARD-MANAGEMENT-09 
     await actAsync(async () => write.resolve());
 
     // Then: Verify the expected result in the assertions below.
-    expect(screen.queryByText("Updated card “Front text”.")).not.toBeInTheDocument();
+    expect(await screen.findByText("Updated card “Front text”.")).toBeVisible();
     expect(screen.getByRole("heading", { name: "Previous page" })).toBeVisible();
+  });
+
+  it("CARD-MANAGEMENT-20 waits for saved content after leaving before notifying once", async () => {
+    // Given: The write can return before the existing subscription reflects the edited content.
+    mocks.skipCardWrite = true;
+    const view = renderPage();
+    const front = screen.getByRole("textbox", { name: "Front text" });
+    await userEvent.clear(front);
+    await userEvent.type(front, "Saved after leaving");
+
+    // When: Save and leave while the read model still holds the original values.
+    await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
+    await actAsync(async () => view.router.navigate("/previous"));
+    await userEvent.click(screen.getByRole("button", { name: "Discard changes" }));
+
+    // Then: Returning from the write alone does not announce success.
+    expect(screen.queryByText("Updated card “Saved after leaving”.")).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Previous page" })).toBeVisible();
+
+    // When: The existing subscription observes the submitted content.
+    const saved = { ...getCards()[0]!, frontText: "Saved after leaving" };
+    await actAsync(async () => replaceRemoteCards([saved]));
+
+    // Then: The result is announced without reviving or navigating the editor.
+    expect(await screen.findByText("Updated card “Saved after leaving”.")).toBeVisible();
+    expect(view.router.state.location.pathname).toBe("/previous");
+
+    // When: Dismiss the result and receive the same saved snapshot again.
+    await actAsync(async () => dismissToast());
+    await actAsync(async () => replaceRemoteCards([saved]));
+
+    // Then: The completed operation does not issue a duplicate notification.
+    expect(screen.queryByText("Updated card “Saved after leaving”.")).not.toBeInTheDocument();
+  });
+
+  it("CARD-MANAGEMENT-20 suppresses completion after the account changes", async () => {
+    // Given: An edit is pending for the original authenticated user.
+    const write = Promise.withResolvers<void>();
+    mocks.beforeCardWrite = () => write.promise;
+    const view = renderPage();
+    await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
+    await actAsync(async () => view.router.navigate("/previous"));
+    await userEvent.click(screen.getByRole("button", { name: "Discard changes" }));
+
+    // When: The old write finishes after switching accounts.
+    mocks.authUid = "other-user";
+    await actAsync(async () => write.resolve());
+
+    // Then: Neither an old-account notification nor navigation crosses the account boundary.
+    expect(screen.queryByText("Updated card “Front text”.")).not.toBeInTheDocument();
+    expect(view.router.state.location.pathname).toBe("/previous");
   });
 
   it("does not revive the editor after a late failure", async () => {
@@ -419,7 +472,7 @@ describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 CARD-VIEW-05 CARD-MANAGEMENT-09 
     // When: Exercise `actAsync` with the prepared inputs.
     await actAsync(async () => write.resolve());
     // Then: Verify the expected result in the assertions below.
-    expect(screen.queryByText("Updated card “Front text”.")).not.toBeInTheDocument();
+    expect(await screen.findByText("Updated card “Front text”.")).toBeVisible();
     expect(screen.getByRole("textbox", { name: "Front text" })).toHaveValue("Other front");
     expect(view.router.state.location.pathname).toBe("/card/other-card/edit");
   });

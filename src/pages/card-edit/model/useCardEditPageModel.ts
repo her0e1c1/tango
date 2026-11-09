@@ -1,5 +1,4 @@
 import { useFormState, useWatch } from "react-hook-form";
-import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { type Card, useCard, useCardsByDeckId } from "@/entities/card";
@@ -16,9 +15,7 @@ import {
 } from "@/features/card-form";
 import { useMountedGuard } from "@/shared/lib/useMountedGuard";
 import { routes, useNavigationGuard } from "@/shared/router";
-import { showToast } from "@/shared/ui/toast";
 
-import { isCardEditAcknowledged } from "./queries/isCardEditAcknowledged";
 import { submit } from "./actions/submit";
 import { getCardEditInfo } from "./queries/getCardEditInfo";
 import { useCardEditFormState } from "./useCardEditFormState";
@@ -34,28 +31,19 @@ export function useCardEditPageModel(card: Card) {
   const preferences = usePreferences();
   const deck = useDeck(snapshot.deckId);
   const navigate = useNavigate();
-  const [pending, setPending] = useState<import("@/entities/card").CardContentInput>();
   const { isDirty, isSubmitting } = useFormState({ control: form.control });
-  const guard = useNavigationGuard(isDirty || isSubmitting || pending !== undefined);
+  const guard = useNavigationGuard(isDirty || isSubmitting);
   const isMounted = useMountedGuard();
   const cardListPath = routes.cardList.to(snapshot.deckId);
 
   const onSubmit = form.handleSubmit(async (values) => {
-    if (!isMounted() || pending !== undefined) return;
+    if (!isMounted()) return;
     const submitted = await submit({ cardId: snapshot.id, values });
-    if (submitted !== undefined && isMounted()) setPending(submitted);
-  });
-  useEffect(() => {
-    if (!isCardEditAcknowledged(card, pending)) return;
-    showToast({
-      messageKey: "cardForm.toast.updated",
-      messageParams: { name: pending.frontText },
-      tone: "success",
-    });
+    if (submitted === undefined || !isMounted()) return;
     void guard.allowNavigation({ historyAction: "REPLACE", to: cardListPath }, () =>
       navigate(cardListPath, { replace: true })
     );
-  }, [card, cardListPath, guard, navigate, pending]);
+  });
   const tagValues = useWatch({ control: form.control, name: "tags" });
   const { tagRowIds, setTagRowIds } = useCardTagState(form.getValues("tags"));
   const { tags: availableTags } = useCardsByDeckId(snapshot.deckId);
@@ -76,7 +64,7 @@ export function useCardEditPageModel(card: Card) {
       selectCardTag({ name: tag, selected }, form.getValues, form.setValue, setTagRowIds),
     navigationGuard: guard.element,
     onCancel: () => void navigate(-1),
-    pending: pending !== undefined,
+    pending: isSubmitting,
     onSubmit,
   };
 }

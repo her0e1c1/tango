@@ -1,5 +1,5 @@
 import { getAuthUid } from "@/entities/auth";
-import { editCard, type CardContentInput, type CardId } from "@/entities/card";
+import { editCard, waitForCardContent, type CardContentInput, type CardId } from "@/entities/card";
 import { showToast } from "@/shared/ui/toast";
 
 interface SubmitCardEditInput {
@@ -25,5 +25,11 @@ export async function submit({ cardId, values }: SubmitCardEditInput): Promise<C
   }
 
   if (getAuthUid() !== uid) return;
+  if (!(await waitForCardContent(uid, cardId, input)) || getAuthUid() !== uid) return;
+  showToast({
+    messageKey: "cardForm.toast.updated",
+    messageParams: { name: input.frontText },
+    tone: "success",
+  });
   return { frontText: input.frontText, backText: input.backText, tags: input.tags };
 }

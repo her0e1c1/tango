@@ -2,7 +2,7 @@ import { getDecks } from "@/entities/deck/@x/card";
 import { createStore } from "zustand/vanilla";
 
 import { cardIdSchema } from "./schema";
-import type { Card, CardId, RemoteCard } from "./types";
+import type { Card, CardContentInput, CardId, RemoteCard } from "./types";
 
 interface CardState {
   cardsById: Record<CardId, RemoteCard>;
@@ -94,5 +94,27 @@ export function applyCardChanges(
             )
           : previousInvalidIds,
     };
+  });
+}
+
+// Wait for the existing read model, not a second Firestore listener. The caller owns navigation.
+export function waitForCardContent(uid: string, id: CardId, content: CardContentInput): Promise<boolean> {
+  return new Promise((resolve) => {
+    function check() {
+      const card = findCardById(id);
+      const available = card !== undefined && card.uid === uid;
+      const matches =
+        available &&
+        card.frontText === content.frontText &&
+        card.backText === content.backText &&
+        card.tags.length === content.tags.length &&
+        card.tags.every((tag, index) => tag === content.tags[index]);
+      if (!available || matches) {
+        stop();
+        resolve(matches);
+      }
+    }
+    const stop = cardStore.subscribe(check);
+    check();
   });
 }
