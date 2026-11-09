@@ -152,8 +152,10 @@
       "includes": ["playwright.config.ts", "test/e2e/**/*.{ts,tsx}"],
       "linter": {
         "rules": {
-          "nursery": {
-            "noPlaywrightMissingAwait": "error",
+          "correctness": {
+            "noPlaywrightMissingAwait": "error"
+          },
+          "suspicious": {
             "noPlaywrightWaitForTimeout": "error",
             "noPlaywrightForceOption": "error",
             "noConditionalExpect": "error"

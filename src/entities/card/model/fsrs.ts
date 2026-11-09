@@ -24,10 +24,9 @@ const libraryStates = { learning: State.Learning, review: State.Review, relearni
 function restoreCard(schedule: FsrsState): FsrsCard {
   const saved = fsrsStateSchema.parse(schedule);
   return {
-    due: new Date(saved.dueAt),
+    ...createEmptyCard(new Date(saved.dueAt)),
     stability: saved.stability,
     difficulty: saved.difficulty,
-    elapsed_days: 0,
     scheduled_days: saved.scheduledDays,
     learning_steps: saved.learningSteps,
     reps: saved.reps,

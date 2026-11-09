@@ -31,6 +31,7 @@ export async function startAnonymousStudy(page: Page, deckId: string) {
   await page.goto(`/deck/${deckId}/start`);
   await page.getByRole("button", { name: "Start 2 cards", exact: true }).click();
   await expect(page.getByRole("slider", { name: "Study progress" })).toHaveValue("0");
+  // biome-ignore lint/performance/useDomNodeTextContent: Playwright reads rendered text here, not raw DOM text content.
   return page.locator("#frontText").innerText();
 }
 
