@@ -58,7 +58,17 @@ jobs:
 
       - name: Require the report before replacing the Pages snapshot
         if: ${{ env.E2E_PUBLICATION_VERIFIED == 'true' }}
-        run: test -f e2e-results/index.html
+        env:
+          REPORT_ARTIFACT_ID: ${{ needs.e2e.outputs.artifact-id }}
+        run: |
+          if [ -z "$REPORT_ARTIFACT_ID" ]; then
+            echo "::error::Successful E2E run returned no report artifact ID; preserving the current Pages snapshot."
+            exit 1
+          fi
+          if [ ! -f e2e-results/index.html ]; then
+            echo "::error::Downloaded E2E artifact has no index.html; preserving the current Pages snapshot."
+            exit 1
+          fi
 
       - uses: jdx/mise-action@f5be966e4a917d54244728e6a5fdcd1d93a35e6c # v5.2.6
 
