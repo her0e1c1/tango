@@ -41,5 +41,10 @@ export const useCardsByDeckId = (deckId: string): { cards: Card[]; tags: string[
         .filter((card): card is Card => card !== undefined && card.uid === uid)
     )
   );
-  return { cards, tags: [...new Set(cards.flatMap((card) => card.tags))].sort() };
+  return {
+    cards,
+    tags: [...new Set(cards.flatMap((card) => card.tags))].sort((left, right) =>
+      left < right ? -1 : left > right ? 1 : 0
+    ),
+  };
 };
