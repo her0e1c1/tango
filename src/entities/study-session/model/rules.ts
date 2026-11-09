@@ -50,7 +50,8 @@ export function selectStudyCards<TCard extends StudyCardSelectionCard>(
 // Resolves whether an active session can study now, is waiting for Cards, or is invalid.
 export const resolveStudySession = <Card extends { id: string }>(
   session: StudySession | undefined,
-  cards: readonly Card[]
+  cards: readonly Card[],
+  hasCards = cards.length > 0
 ): ResolvedStudySession<Card> => {
   if (session == null) return { status: "invalid" };
 
@@ -60,8 +61,8 @@ export const resolveStudySession = <Card extends { id: string }>(
   const card = cards.find(({ id }) => id === cardId);
   if (card != null) return { status: "studying", session, card };
 
-  // An empty collection can still be an in-flight read; loaded Cards prove that the persisted Card is absent.
-  return { status: cards.length === 0 ? "preparing" : "invalid" };
+  // Scoped callers retain the existing global cache-emptiness heuristic; read-state redesign belongs to #947.
+  return { status: hasCards ? "invalid" : "preparing" };
 };
 
 export const canMoveStudySession = (session: StudySession): boolean =>

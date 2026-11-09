@@ -1,4 +1,4 @@
-import { cardStore } from "@/entities/card/model/store";
+import { applyCardChanges, cardStore } from "@/entities/card/model/store";
 import type { RemoteCard } from "@/entities/card/model/types";
 import { deckStore } from "@/entities/deck/model/store";
 import type { Deck } from "@/entities/deck";
@@ -41,7 +41,7 @@ export function startStudy(
 }
 
 export const replaceRemoteCards = (remoteCards: RemoteCard[]): void => {
-  cardStore.setState({ cardsById: Object.fromEntries(remoteCards.map((card) => [card.id, card])) });
+  applyCardChanges(remoteCards, { removedCardIds: Object.keys(cardStore.getState().cardsById) });
 };
 
 export const replaceInvalidCardIds = (invalidCardIds: readonly string[]): void => {

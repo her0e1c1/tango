@@ -6,10 +6,15 @@ import type { Card, CardId, RemoteCard } from "./types";
 
 interface CardState {
   cardsById: Record<CardId, RemoteCard>;
+  cardIdsByDeckId: ReadonlyMap<string, readonly CardId[]>;
   invalidCardIds: readonly CardId[];
 }
 
-export const cardStore = createStore<CardState>(() => ({ cardsById: {}, invalidCardIds: [] }));
+export const cardStore = createStore<CardState>(() => ({
+  cardsById: {},
+  cardIdsByDeckId: new Map(),
+  invalidCardIds: [],
+}));
 
 export function getCards(): Card[] {
   const { cardsById } = cardStore.getState();
@@ -28,8 +33,39 @@ export const findCardById = (id: CardId): Card | undefined => {
 };
 
 export const clearRemoteCards = (): void => {
-  cardStore.setState({ cardsById: {}, invalidCardIds: [] });
+  cardStore.setState({ cardsById: {}, cardIdsByDeckId: new Map(), invalidCardIds: [] });
 };
+
+function updateDeckIndex(
+  cardsById: CardState["cardsById"],
+  next: CardState["cardsById"],
+  cardIdsByDeckId: CardState["cardIdsByDeckId"],
+  changedIds: ReadonlySet<CardId>
+): CardState["cardIdsByDeckId"] {
+  const changedDecks = new Map<string, Set<CardId>>();
+  function idsForDeck(deckId: string): Set<CardId> {
+    const ids = changedDecks.get(deckId) ?? new Set(cardIdsByDeckId.get(deckId));
+    changedDecks.set(deckId, ids);
+    return ids;
+  }
+  for (const id of changedIds) {
+    const previous = Object.hasOwn(cardsById, id) ? cardsById[id] : undefined;
+    const current = Object.hasOwn(next, id) ? next[id] : undefined;
+    // Content and FSRS edits preserve membership; only additions, removals and moves change the index.
+    if (previous?.deckId === current?.deckId) continue;
+    if (previous) idsForDeck(previous.deckId).delete(id);
+    if (current) idsForDeck(current.deckId).add(id);
+  }
+  if (changedDecks.size === 0) return cardIdsByDeckId;
+  const index = new Map(cardIdsByDeckId);
+  for (const [deckId, ids] of changedDecks) {
+    index.set(
+      deckId,
+      [...ids].sort((left, right) => left.localeCompare(right))
+    );
+  }
+  return index;
+}
 
 export function applyCardChanges(
   cards: readonly RemoteCard[],
@@ -40,7 +76,7 @@ export function applyCardChanges(
 ): void {
   if (cards.length + removedCardIds.length + invalidCardIds.length === 0) return;
   const changedIds = new Set([...cards.map((card) => card.id), ...removedCardIds, ...invalidCardIds]);
-  cardStore.setState(({ cardsById, invalidCardIds: previousInvalidIds }) => {
+  cardStore.setState(({ cardsById, cardIdsByDeckId, invalidCardIds: previousInvalidIds }) => {
     const next = { ...cardsById };
     // Invalid changes hide the previous valid value without rewriting the saved document.
     for (const id of [...removedCardIds, ...invalidCardIds]) delete next[id];
@@ -50,6 +86,7 @@ export function applyCardChanges(
     }
     return {
       cardsById: next,
+      cardIdsByDeckId: updateDeckIndex(cardsById, next, cardIdsByDeckId, changedIds),
       invalidCardIds:
         invalidCardIds.length > 0 || previousInvalidIds.some((id) => changedIds.has(id))
           ? [...previousInvalidIds.filter((id) => !changedIds.has(id)), ...invalidCardIds].sort()
