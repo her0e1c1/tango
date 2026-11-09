@@ -27,7 +27,8 @@ export async function submit({ cardId, values }: SubmitCardEditInput): Promise<b
     try {
       await editCard(uid, input);
     } catch {
-      if (getAuthUid() === uid) showToast({ messageKey: "toast.saveFailure", tone: "error" });
+      if (!completion.signal.aborted && getAuthUid() === uid)
+        showToast({ messageKey: "toast.saveFailure", tone: "error" });
       return false;
     }
 

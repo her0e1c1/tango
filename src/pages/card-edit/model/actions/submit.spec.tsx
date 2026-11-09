@@ -93,4 +93,43 @@ describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 card edit submission", () => {
     });
     expect(editCard).toHaveBeenLastCalledWith("opening-user", { id: "card-id", ...input.values });
   });
+  it("CARD-MANAGEMENT-20 suppresses an old failure after a newer edit succeeds", async () => {
+    // Given: The first save remains pending while another visit saves the same Card.
+    const firstWrite = Promise.withResolvers<void>();
+    vi.mocked(editCard).mockImplementationOnce(() => firstWrite.promise);
+    render(<ToastViewport />);
+    const oldSave = submit({ cardId: "card-id", values: { frontText: "Old", backText: "Back", tags: [] } });
+
+    // When: The newer operation succeeds, followed by rejection of the old write.
+    await actAsync(async () => {
+      expect(await submit({ cardId: "card-id", values: { frontText: "New", backText: "Back", tags: [] } })).toBe(true);
+      firstWrite.reject(new Error("old write rejected"));
+      expect(await oldSave).toBe(false);
+    });
+
+    // Then: The successful current edit is not replaced by an obsolete error.
+    expect(screen.getByText("Updated card “New”.")).toBeVisible();
+    expect(screen.queryByText("Unable to save changes. Try again.")).not.toBeInTheDocument();
+  });
+
+  it("CARD-MANAGEMENT-20 rechecks supersession when observation has just completed", async () => {
+    // Given: The old operation is waiting for its submitted content to be observed.
+    const observation = Promise.withResolvers<boolean>();
+    vi.mocked(waitForCardContent).mockImplementationOnce(() => observation.promise);
+    render(<ToastViewport />);
+    const oldSave = submit({ cardId: "card-id", values: { frontText: "Old", backText: "Back", tags: [] } });
+    await Promise.resolve();
+
+    // When: A new save starts after observation resolves but before the old continuation resumes.
+    await actAsync(async () => {
+      observation.resolve(true);
+      const newSave = submit({ cardId: "card-id", values: { frontText: "New", backText: "Back", tags: [] } });
+      expect(await oldSave).toBe(false);
+      expect(await newSave).toBe(true);
+    });
+
+    // Then: Only the current save announces success.
+    expect(screen.getByText("Updated card “New”.")).toBeVisible();
+    expect(screen.queryByText("Updated card “Old”.")).not.toBeInTheDocument();
+  });
 });
