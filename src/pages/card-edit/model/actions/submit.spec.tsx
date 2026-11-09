@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import { editCard } from "@/entities/card";
+import { editCard, waitForCardContent } from "@/entities/card";
 import { ToastViewport } from "@/shared/ui/toast";
 import { dismissToast } from "@/test/utils/toast";
 import { actAsync } from "@/test/act";
@@ -17,6 +17,7 @@ vi.mock("@/entities/auth", () => ({
 vi.mock("@/entities/card", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/entities/card")>()),
   editCard: vi.fn(),
+  waitForCardContent: vi.fn(),
 }));
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
@@ -25,6 +26,7 @@ describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 card edit submission", () => {
     // Given: Establish the shared setup used by the following cases.
     dismissToast();
     vi.mocked(editCard).mockReset();
+    vi.mocked(waitForCardContent).mockReset().mockResolvedValue(true);
     session.uid = "opening-user";
   });
 
