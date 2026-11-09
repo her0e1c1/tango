@@ -35,7 +35,7 @@ export async function submit({ cardId, values }: SubmitCardEditInput): Promise<b
     if (getAuthUid() !== uid || completion.signal.aborted) return false;
     if (
       !(await waitForCardContent(uid, cardId, input, completion.signal)) ||
-      completion.signal.aborted ||
+      pendingEdits.get(cardId) !== completion ||
       getAuthUid() !== uid
     )
       return false;
