@@ -1,4 +1,4 @@
-import type { CardId, CardCreateCommand, CardEditInput } from "../model/types";
+import type { CardId, CardCreateCommand, CardEditInput, CardContentInput } from "../model/types";
 import { FirebaseError } from "firebase/app";
 import {
   getDocFromCache,
@@ -18,7 +18,7 @@ import { auth, db } from "@/shared/firebase";
 import { omitUndefined } from "@/shared/lib/omitUndefined";
 import { mapCardDocument, parseCardDocument, parseLocalCardDocuments } from "./document";
 import { createCardSchema, deleteCardSchema, editCardSchema } from "../model/schema";
-import { applyCardChanges, clearRemoteCards, findCardById } from "../model/store";
+import { applyCardChanges, cardStore, clearRemoteCards, findCardById } from "../model/store";
 
 import { restoreCardReplica, saveConfirmedCards } from "./replica";
 
@@ -204,4 +204,26 @@ function requireOwnedCard(uid: string, id: CardId) {
   if (card === undefined) throw new Error(`Card "${id}" was not found`);
   if (!uid || card.uid !== uid) throw new Error("Card owner does not match the authenticated user");
   return card;
+}
+
+// Wait for the existing read model, not a second Firestore listener. The caller owns navigation.
+export function waitForCardContent(uid: string, id: CardId, content: CardContentInput): Promise<boolean> {
+  return new Promise((resolve) => {
+    function check() {
+      const card = findCardById(id);
+      const available = card !== undefined && card.uid === uid;
+      const matches =
+        available &&
+        card.frontText === content.frontText &&
+        card.backText === content.backText &&
+        card.tags.length === content.tags.length &&
+        card.tags.every((tag, index) => tag === content.tags[index]);
+      if (!available || matches) {
+        stop();
+        resolve(matches);
+      }
+    }
+    const stop = cardStore.subscribe(check);
+    check();
+  });
 }

@@ -45,7 +45,7 @@ describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 card edit submission", () => {
       });
 
       // Then: Verify the expected result in the assertions below.
-      expect(saved).toEqual(values);
+      expect(saved).toBe(true);
       expect(editCard).toHaveBeenCalledWith(uid ?? "", {
         id: card.id,
         frontText: "Edited front",
@@ -74,7 +74,7 @@ describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 card edit submission", () => {
     });
 
     // Then: Verify the expected result in the assertions below.
-    await expect(saved).resolves.toEqual({ frontText: "Submitted", backText: "Back", tags: ["custom-tag"] });
+    await expect(saved).resolves.toBe(true);
   });
 
   it("returns false with shared feedback on failure and retries the same Card", async () => {
@@ -85,11 +85,11 @@ describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 card edit submission", () => {
     const input = { cardId: "card-id", values: { frontText: "Retry", backText: "Back", tags: [] } };
     // Then: Verify the expected result in the assertions below.
     await actAsync(async () => {
-      expect(await submit(input)).toBeUndefined();
+      expect(await submit(input)).toBe(false);
     });
     expect(screen.getByText("Unable to save changes. Try again.")).toBeVisible();
     await actAsync(async () => {
-      expect(await submit(input)).toEqual(input.values);
+      expect(await submit(input)).toBe(true);
     });
     expect(editCard).toHaveBeenLastCalledWith("opening-user", { id: "card-id", ...input.values });
   });

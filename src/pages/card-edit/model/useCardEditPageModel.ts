@@ -39,7 +39,7 @@ export function useCardEditPageModel(card: Card) {
   const onSubmit = form.handleSubmit(async (values) => {
     if (!isMounted()) return;
     const submitted = await submit({ cardId: snapshot.id, values });
-    if (submitted === undefined || !isMounted()) return;
+    if (!submitted || !isMounted()) return;
     void guard.allowNavigation({ historyAction: "REPLACE", to: cardListPath }, () =>
       navigate(cardListPath, { replace: true })
     );
