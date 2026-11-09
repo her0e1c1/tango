@@ -27,10 +27,10 @@ jobs:
   build:
     name: Build Storybook and add the reviewed E2E report
     needs: e2e
-    # E2E failures keep their artifacts and red status while Storybook delivery continues.
+    # Keep the current Pages snapshot when E2E fails instead of removing its report.
     if: >-
       !cancelled() &&
-      (needs.e2e.result == 'success' || needs.e2e.result == 'failure')
+      needs.e2e.result == 'success'
     runs-on: ubuntu-latest
     env:
       # Publish the existing emulator-only report without a separate preparation pipeline.
@@ -49,13 +49,26 @@ jobs:
         if: >-
           env.E2E_PUBLICATION_VERIFIED == 'true' && needs.e2e.result == 'success' &&
           needs.e2e.outputs.artifact-id != ''
-        # A missing/unavailable report must not block the existing Storybook site.
-        continue-on-error: true
+        # A failed download must not replace the current site with a report-less snapshot.
         with:
           # Never search other runs or download an arbitrary latest artifact.
           artifact-ids: ${{ needs.e2e.outputs.artifact-id }}
           path: e2e-results
           merge-multiple: true
+
+      - name: Require the report before replacing the Pages snapshot
+        if: ${{ env.E2E_PUBLICATION_VERIFIED == 'true' }}
+        env:
+          REPORT_ARTIFACT_ID: ${{ needs.e2e.outputs.artifact-id }}
+        run: |
+          if [ -z "$REPORT_ARTIFACT_ID" ]; then
+            echo "::error::Successful E2E run returned no report artifact ID; preserving the current Pages snapshot."
+            exit 1
+          fi
+          if [ ! -f e2e-results/index.html ]; then
+            echo "::error::Downloaded E2E artifact has no index.html; preserving the current Pages snapshot."
+            exit 1
+          fi
 
       - uses: jdx/mise-action@f5be966e4a917d54244728e6a5fdcd1d93a35e6c # v5.2.6
 
