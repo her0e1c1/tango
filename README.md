@@ -146,11 +146,11 @@ the site root. Failed tests keep their artifacts and red CI status; unsuccessful
 excluded while Storybook delivery continues. Stale deployment candidates are skipped. Test/build jobs have no production
 credentials, and one combined Pages artifact is deployed.
 
-**Public E2E publication is currently disabled** by `E2E_PUBLICATION_VERIFIED: "false"` in the Pages workflow;
-Storybook continues to publish without `e2e/`. The summary reports exclusions and never links an old report. Before
-enabling it, inspect generated DOM snapshots, screenshots, request/response headers and bodies, and attachments for
-test-only data, measure trace overhead and combined size, and check report/trace viewing under `/tango/e2e/` in a browser.
-Real tokens, sessions, secrets, and personal data must never be published.
+The Pages workflow publishes the successful trusted-main report unchanged, using the existing artifact rather than a
+separate report-preparation pipeline. E2E uses isolated emulator accounts and test fixtures, including unsigned emulator
+tokens; never add production credentials, real account sessions, secrets, or personal data to these tests. Review changes
+to captured data before publication. Set `E2E_PUBLICATION_VERIFIED: "false"` to omit E2E reports while keeping Storybook
+publishable. The summary reports exclusions and never links an old report.
 
 **Pages keeps only the latest published snapshot**, replaced on the next eligible publication. Artifact history uses
 the repository's default retention period; expiring Actions artifacts does not remove an idle Pages snapshot. The build summary
