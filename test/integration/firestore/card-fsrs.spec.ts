@@ -53,7 +53,7 @@ describe("Card FSRS persistence", () => {
     });
   });
   beforeEach(async () => {
-    // Given: Establish the shared setup used by the following cases.
+    // Given: Reset the project, authenticate a unique owner and seed that owner's Deck with Rules disabled.
     await environment.clearFirestore();
     uid = crypto.randomUUID();
     connection.uid = uid;
@@ -142,9 +142,9 @@ describe("Card FSRS persistence", () => {
     // Given: Prepare `settled` and any shared test state below.
     await seed("card", "card", createCard({ id: "card", deckId: "deck", uid, fsrs }));
     await start();
+    // When: Go offline and request deletion of the subscribed Card.
     await disableNetwork(connection.db);
     let settled = false;
-    // When: Exercise `deleteCard(uid, "card").then` with the prepared inputs.
     const deletion = deleteCard(uid, "card").then(() => {
       settled = true;
     });

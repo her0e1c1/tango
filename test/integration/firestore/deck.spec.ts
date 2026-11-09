@@ -117,11 +117,10 @@ describe.concurrent("firestore/deck", { retry: 3 }, () => {
       const reference = doc(db, "deck", deck.id);
       const before = (await getDocFromServer(reference)).data();
       const errors: Error[] = [];
+      // When: Subscribe to the saved Deck before applying the partial edit.
       const unsubscribe = subscribeDecks("uid", (error) => errors.push(error));
       try {
-        // Given: Use the current iteration or branch inputs from the enclosing case.
-        // When: Evaluate `getDecks` as part of the following checks.
-        // Then: Verify the expected result in the assertions below.
+        // Then: Receive the saved settings, including this row's legacy convertToBr value.
         await vi.waitFor(() => {
           expect(getDecks().find((value) => value.id === deck.id)).toMatchObject(deck);
         });
