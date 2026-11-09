@@ -32,7 +32,12 @@ export async function submit({ cardId, values }: SubmitCardEditInput): Promise<b
     }
 
     if (getAuthUid() !== uid || completion.signal.aborted) return false;
-    if (!(await waitForCardContent(uid, cardId, input, completion.signal)) || getAuthUid() !== uid) return false;
+    if (
+      !(await waitForCardContent(uid, cardId, input, completion.signal)) ||
+      completion.signal.aborted ||
+      getAuthUid() !== uid
+    )
+      return false;
     showToast({
       messageKey: "cardForm.toast.updated",
       messageParams: { name: input.frontText },
