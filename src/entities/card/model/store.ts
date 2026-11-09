@@ -89,7 +89,9 @@ export function applyCardChanges(
       cardIdsByDeckId: updateDeckIndex(cardsById, next, cardIdsByDeckId, changedIds),
       invalidCardIds:
         invalidCardIds.length > 0 || previousInvalidIds.some((id) => changedIds.has(id))
-          ? [...previousInvalidIds.filter((id) => !changedIds.has(id)), ...invalidCardIds].sort()
+          ? [...previousInvalidIds.filter((id) => !changedIds.has(id)), ...invalidCardIds].sort((left, right) =>
+              left < right ? -1 : left > right ? 1 : 0
+            )
           : previousInvalidIds,
     };
   });

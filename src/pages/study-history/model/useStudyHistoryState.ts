@@ -30,18 +30,19 @@ export function useStudyHistoryState(uid: string | null, deckId: string | null, 
     const onError = (error: Error) => {
       if (active) setResult({ request, error });
     };
+    const onRead = (metric: "started" | "completed") => (records: StudyHistoryRecord[], fromCache: boolean) => {
+      if (!active) return;
+      setResult((previous) => ({
+        ...(previous.request === request ? previous : { request }),
+        [metric]: { records, fromCache },
+      }));
+    };
     try {
       for (const metric of ["started", "completed"] as const) {
         stops.push(
           subscribeStudyHistory(
             { uid: request.uid, period: request.period, deckId: request.deckId, metric },
-            (records, fromCache) => {
-              if (!active) return;
-              setResult((previous) => ({
-                ...(previous.request === request ? previous : { request }),
-                [metric]: { records, fromCache },
-              }));
-            },
+            onRead(metric),
             onError
           )
         );
