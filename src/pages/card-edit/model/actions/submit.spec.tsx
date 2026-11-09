@@ -38,7 +38,7 @@ describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 card edit submission", () => {
       render(<ToastViewport />);
       session.uid = uid;
       const values = { frontText: "Edited front", backText: "Edited back", tags: [...card.tags] };
-      let saved: Awaited<ReturnType<typeof submit>>;
+      let saved = false;
       // When: Exercise `actAsync` with the prepared inputs.
       await actAsync(async () => {
         saved = await submit({ cardId: card.id, values });
