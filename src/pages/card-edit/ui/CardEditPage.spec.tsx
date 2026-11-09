@@ -416,6 +416,38 @@ describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 CARD-VIEW-05 CARD-MANAGEMENT-09 
     expect(screen.queryByText("Updated card “Saved after leaving”.")).not.toBeInTheDocument();
   });
 
+  it("CARD-MANAGEMENT-20 supersedes an older pending edit when the same Card is edited again", async () => {
+    // Given: The first edit has not reached the read model after leaving its Page.
+    mocks.skipCardWrite = true;
+    const view = renderPage();
+    const front = screen.getByRole("textbox", { name: "Front text" });
+    await userEvent.clear(front);
+    await userEvent.type(front, "First edit");
+    await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
+    await actAsync(async () => view.router.navigate("/previous"));
+    await userEvent.click(screen.getByRole("button", { name: "Discard changes" }));
+    await actAsync(async () => view.router.navigate(`/card/${cardId}/edit`));
+
+    // When: A second edit of that Card finishes before the first content is observed.
+    const nextFront = screen.getByRole("textbox", { name: "Front text" });
+    await userEvent.clear(nextFront);
+    await userEvent.type(nextFront, "Second edit");
+    mocks.skipCardWrite = false;
+    await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
+
+    // Then: Only the newer operation announces success and navigates normally.
+    expect(await screen.findByText("Updated card “Second edit”.")).toBeVisible();
+    expect(await screen.findByRole("heading", { name: "Card list" })).toBeVisible();
+
+    // When: Old content appears in a subsequent subscription event.
+    await actAsync(async () => dismissToast());
+    await actAsync(async () => replaceRemoteCards([{ ...getCards()[0]!, frontText: "First edit" }]));
+
+    // Then: The obsolete operation has no remaining success notification or navigation.
+    expect(screen.queryByText("Updated card “First edit”.")).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Card list" })).toBeVisible();
+  });
+
   it("CARD-MANAGEMENT-20 suppresses completion after the account changes", async () => {
     // Given: An edit is pending for the original authenticated user.
     const write = Promise.withResolvers<void>();

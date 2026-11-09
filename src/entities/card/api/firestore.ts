@@ -207,7 +207,12 @@ function requireOwnedCard(uid: string, id: CardId) {
 }
 
 // Wait for the existing read model, not a second Firestore listener. The caller owns navigation.
-export function waitForCardContent(uid: string, id: CardId, content: CardContentInput): Promise<boolean> {
+export function waitForCardContent(
+  uid: string,
+  id: CardId,
+  content: CardContentInput,
+  signal: AbortSignal
+): Promise<boolean> {
   return new Promise((resolve) => {
     function check() {
       const card = findCardById(id);
@@ -218,12 +223,14 @@ export function waitForCardContent(uid: string, id: CardId, content: CardContent
         card.backText === content.backText &&
         card.tags.length === content.tags.length &&
         card.tags.every((tag, index) => tag === content.tags[index]);
-      if (!available || matches) {
+      if (signal.aborted || !available || matches) {
         stop();
-        resolve(matches);
+        signal.removeEventListener("abort", check);
+        resolve(!signal.aborted && matches);
       }
     }
     const stop = cardStore.subscribe(check);
+    signal.addEventListener("abort", check, { once: true });
     check();
   });
 }
