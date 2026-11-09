@@ -7,7 +7,6 @@
 - Exclude `AGENTS.md`, `README.md`, fixtures, and helpers from file pairing. Keep explicit `[TODO]` cases in the specification without empty or skipped tests; a fully pending specification retains a paired test module with a TODO comment.
 
 - `docs/test/e2e/*.md` は `README.md` と `AGENTS.md` を除き、すべて E2E テスト仕様書とする。
-- `README.md` にはテストケースの一覧テーブルのみを記述する。
 - 一般的な説明や規約文書を `docs/test/e2e` 直下に追加しない。
 - E2E 仕様書の記述規約はこの `AGENTS.md` を正とする。
 - 各仕様書は1つ以上の E2E test case を含む。
@@ -22,7 +21,9 @@
 - Google account 連携は Auth emulator の local popup flow で確認し、実際の外部 identity provider には接続しない。
 - 設定は browser storage に保存する。Deck、Card、StudySession、StudyAnswer は匿名・通常ログインとも同じ Firestore API と永続 cache を使用する。
 - 単一タブを対象とし、同じ学習状態を複数端末から同時更新する使い方は対象外とする。
-- E2E は代表的な利用者導線を対象とし、各 validation rule や設定・入力手段の組み合わせは unit / component test で確認する。
+- E2E はユーザーの振る舞いと代表的な利用導線を主眼とし、利用開始から目的の結果へ到達できることを確認する。
+- 詳細なロジック・境界値・回帰は、その境界を担う結合テスト仕様へ記述する。特殊 ID による取り違えなど、画面・router・状態の連携は RTL、表示・UI は Storybook、実際の保存・購読・Rules は Firestore で確認する。各 validation rule は unit も利用する。
+- 実ブラウザーや永続化をまたぐこと自体が必要な利用導線は E2E に残す。RTL の直接入場・再マウントはブラウザー再読み込みや永続化の保証ではない。移動はケースごとに仕様・実装・参照をそろえ、他のケースを一括で削除しない。
 
 ## 保存先の用語
 
@@ -54,7 +55,7 @@
 ## テストケースの書式
 
 - ID の prefix は仕様ファイル名から `.md` を除いて大文字化する（例: `card-view.md` → `CARD-VIEW`）。
-- 各仕様書のケースは正常系、異常系の順に並べ、各区分内では `read` を先に、`write` と `batch` を後に置く。書き込みは操作内容に応じて Create、Update、Delete の順に並べる。CRUD に当てはめにくい操作は利用の流れに沿って並べ、同じ操作の条件違いや `[TODO]` も同じ位置にまとめる。仕様書内の一覧と `README.md` の索引も本文と同じ順にする。
+- 各仕様書のケースは正常系、異常系の順に並べ、各区分内では `read` を先に、`write` と `batch` を後に置く。書き込みは操作内容に応じて Create、Update、Delete の順に並べる。CRUD に当てはめにくい操作は利用の流れに沿って並べ、同じ操作の条件違いや `[TODO]` も同じ位置にまとめる。仕様書内の一覧も本文と同じ順にする。
 - ID の番号は最低2桁のゼロ埋めとする。新規ケースはファイル内の最大番号の次から採番し、並べ替えだけでは既存の ID・anchor を変更しない。
 - ケースの移動先が別ファイルになるなど ID の変更が必要な場合は、anchor、Playwright のテスト名、unit / integration test の参照も同時に更新する。
 - 各ケース ID と Playwright test の対応は `test/e2e/AGENTS.md` の 1:1 規約に従う。
@@ -72,7 +73,7 @@
 - Playwright 側に仕様書に存在しない E2E test case を追加してはならない。
 - 詳細仕様での E2E case ID の重複を禁止する。
 - 仕様 ID の記載漏れは `npm run lint:test-specs` で簡易チェックする。fixture は E2E の global setup で browser 起動前に検証する。
-- `README.md` 以外に手動で管理する E2E case ID の索引を作成しない。仕様書を single source of truth とする。
+- 各仕様書を single source of truth とし、全ケースを重複管理する README や別の索引を設けない。
 
 ## 共通の期待結果
 
@@ -180,7 +181,7 @@ STUDY-SESSION-28〜STUDY-SESSION-29 には開始・完了・中止の計数に�
 
 ## 変更時の確認
 
-- `npm run lint:test-specs`: E2E・Firestore・Storybook の仕様 ID が、各テストソース内の文字列先頭にあるかを確認する。Storybook は `play` の step 名に ID を付ける。テストランナーや browser / emulator は起動しない。
+- `npm run lint:test-specs`: E2E・Firestore・Storybook・RTL の仕様 ID が、各テストソース内の文字列先頭にあるかを確認する。Storybook は `play` の step 名に ID を付ける。テストランナーや browser / emulator は起動しない。
 - `npm run lint:markdown`: Markdown の構文と形式を確認する。
 - `mise run e2e`: 全 fixture の検証後に E2E test を実行する。
 

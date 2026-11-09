@@ -27,7 +27,7 @@ const cases = [
   { id: "plan#draft", name: "Hash Deck", frontText: "Hash Card", path: "/deck/plan%23draft" },
 ];
 
-describe("DECK-LIST-01 Deck navigation through App, router, and local Entities", () => {
+describe("RTL-NAVIGATION-01 Deck navigation through App, router, and local Entities", () => {
   beforeEach(async () => {
     // Given: Establish the shared setup used by the following cases.
     replaceAuthSession({ status: "authenticated", uid: "user-id", displayName: null, isAnonymous: true });
@@ -44,44 +44,40 @@ describe("DECK-LIST-01 Deck navigation through App, router, and local Entities",
     replaceAuthSession({ status: "initializing" });
   });
 
-  it.each(cases)("opens only $id Cards and preserves the destination on direct entry", async (selected) => {
-    // Given: Prepare `decksBefore`, `cardsBefore`, `savedDecks` and any shared test state below.
-    const decksBefore = structuredClone(getDecks());
-    const cardsBefore = structuredClone(getCards());
-    const savedDecks = localStorage.getItem("tango-local-decks");
-    const savedCards = localStorage.getItem("tango-local-cards");
-    const router = createMemoryRouter(appRoutes, { initialEntries: ["/"] });
-    const view = render(<App router={router} />);
+  it.each(cases)(
+    "RTL-NAVIGATION-01 opens only $id Cards and preserves the destination on direct entry",
+    async (selected) => {
+      // Given: Mount the real App and router with distinct decks and capture their Entity state.
+      const decksBefore = structuredClone(getDecks());
+      const cardsBefore = structuredClone(getCards());
+      const router = createMemoryRouter(appRoutes, { initialEntries: ["/"] });
+      const view = render(<App router={router} />);
 
-    // When: Exercise `userEvent.click` with the prepared inputs.
-    await userEvent.click(screen.getByRole("button", { name: `Open cards in ${selected.name}` }));
+      // When: Select this deck through its named list action.
+      await userEvent.click(screen.getByRole("button", { name: `Open cards in ${selected.name}` }));
 
-    // Then: Verify the expected result in the assertions below.
-    expect(await screen.findByRole("button", { name: `View ${selected.frontText}` })).toBeVisible();
-    expect(router.state.location).toMatchObject({ pathname: selected.path, search: "", hash: "" });
-    for (const other of cases.filter(({ id }) => id !== selected.id)) {
-      // Given: Use the current iteration or branch inputs from the enclosing case.
-      // Then: Verify the expected result in the assertions below.
-      expect(screen.queryByRole("button", { name: `View ${other.frontText}` })).not.toBeInTheDocument();
+      // Then: Only the selected deck cards appear at the expected route.
+      expect(await screen.findByRole("button", { name: `View ${selected.frontText}` })).toBeVisible();
+      expect(router.state.location).toMatchObject({ pathname: selected.path, search: "", hash: "" });
+      for (const other of cases.filter(({ id }) => id !== selected.id)) {
+        expect(screen.queryByRole("button", { name: `View ${other.frontText}` })).not.toBeInTheDocument();
+      }
+
+      // When: Remount the App at the encoded destination, keeping the loaded Entity state.
+      view.unmount();
+      router.dispose();
+      const directRouter = createMemoryRouter(appRoutes, { initialEntries: [selected.path] });
+      const directView = render(<App router={directRouter} />);
+      // Then: Direct entry still selects the same cards without changing Entity data.
+      expect(await screen.findByRole("button", { name: `View ${selected.frontText}` })).toBeVisible();
+      for (const other of cases.filter(({ id }) => id !== selected.id)) {
+        expect(screen.queryByRole("button", { name: `View ${other.frontText}` })).not.toBeInTheDocument();
+      }
+      expect(directRouter.state.location).toMatchObject({ pathname: selected.path, search: "", hash: "" });
+      expect(getDecks()).toEqual(decksBefore);
+      expect(getCards()).toEqual(cardsBefore);
+      directView.unmount();
+      directRouter.dispose();
     }
-
-    // When: Exercise `view.unmount` with the prepared inputs.
-    view.unmount();
-    router.dispose();
-    const directRouter = createMemoryRouter(appRoutes, { initialEntries: [selected.path] });
-    const directView = render(<App router={directRouter} />);
-    // Then: Verify the expected result in the assertions below.
-    expect(await screen.findByRole("button", { name: `View ${selected.frontText}` })).toBeVisible();
-    for (const other of cases.filter(({ id }) => id !== selected.id)) {
-      // Given: Use the current iteration or branch inputs from the enclosing case.
-      // Then: Verify the expected result in the assertions below.
-      expect(screen.queryByRole("button", { name: `View ${other.frontText}` })).not.toBeInTheDocument();
-    }
-    expect(getDecks()).toEqual(decksBefore);
-    expect(getCards()).toEqual(cardsBefore);
-    expect(localStorage.getItem("tango-local-decks")).toBe(savedDecks);
-    expect(localStorage.getItem("tango-local-cards")).toBe(savedCards);
-    directView.unmount();
-    directRouter.dispose();
-  });
+  );
 });

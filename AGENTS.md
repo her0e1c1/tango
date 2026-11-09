@@ -78,6 +78,12 @@ Delegate independent reviews of the same commit to three reviewers: [simplicity]
 - In parameterized tests, map each row's inputs and expected results to the appropriate phases. When a case repeats actions and assertions, repeat When / Then comments or E2E steps following the specification's sequence.
 - When a change only adds phase comments to existing tests, preserve execution order, inputs, expected values, specifications, and case IDs.
 
+### Test Boundaries
+
+- E2E tests cover representative user journeys across the application. Put detailed logic, boundary values, and regressions in the integration level that owns the observable contract.
+- Integration specifications have three boundaries: Firestore for real persistence, subscriptions, and Rules; Storybook for composed component rendering and UI interactions; React Testing Library (RTL) for logic-oriented behavior across screens, routers, and state after user actions.
+- Migrate cases individually with their specifications and references. Do not bulk-delete other E2E cases, or claim mocked persistence and memory-router remounts verify real persistence or browser reloads.
+
 ### Firestore Integration Tests
 
 - Keep persistence, subscription, and security-rule tests under `test/integration/firestore`, based on contracts in `docs/test/integration/firestore`. Keep browser-facing user flows in E2E tests.
@@ -91,12 +97,18 @@ Delegate independent reviews of the same commit to three reviewers: [simplicity]
 - Test observable UI behavior with real composed components and forms. Mock only boundaries outside the contract, using story-side setup and public callback spies; do not add production interfaces solely for tests.
 - Update the corresponding specification when adding or changing a play, including regressions. Rendering-only stories and setup-only plays do not verify behavior; a callback notification does not prove persistence or navigation.
 
+### React Testing Library Integration Tests
+
+- Describe screen/router/state regressions in `docs/test/integration/rtl` and implement them under `test/integration/**/*.spec.{ts,tsx}` using the existing integration project. Keep visual detail in Storybook.
+- Begin each `it` / `it.each` title with its `RTL-*` specification ID and update references when moving a contract. Parameterized rows may share an ID when documented.
+- Use real application modules across the tested boundary and mock only outside it. Assert user-visible results, navigation, or public state rather than private implementation details.
+
 ### Other Unit and Integration Tests
 
 - Unit tests with dedicated specifications under `docs/test/unit` must reference the relevant `UNIT-*` case ID in the test title. Documentation rules stay in the corresponding `docs/test/unit/**/AGENTS.md`.
-- Unit/integration tests without a dedicated unit specification use `docs/test/e2e` as their runtime behavior specification and reference at least one existing E2E case ID in the outermost `describe` title, or the test title when there is no `describe`.
+- Unit/integration tests use their dedicated unit or integration specification when one exists. Otherwise, existing tests may continue to use `docs/test/e2e` as their runtime behavior specification. Reference at least one relevant specification case ID in the outermost `describe` title, or the test title when there is no `describe`.
 - Co-locate unit tests under `src/**/*.spec.{ts,tsx}` for deterministic rules, state transitions, validation, and module or component behavior without real external services.
 - Put integration tests under `test/integration/**/*.spec.{ts,tsx}` for contracts across application modules, persistence, stores, or emulators. Do not mock the boundary being verified.
-- Parameterized tests must include a representative row matching the referenced E2E Given / When / Then. Additional boundary-value or equivalence-class rows must preserve the same behavior and invariants.
+- Parameterized tests must include a representative row matching the referenced specification Given / When / Then. Additional boundary-value or equivalence-class rows must preserve the same behavior and invariants.
 - Do not derive cases or expected results solely from implementation details: branches, private functions, internal state shapes, mock call counts, or coverage gaps.
 - Enforce static constraints, such as dependency direction and type correctness, with lint or typecheck rather than runtime tests; these checks do not require E2E IDs.

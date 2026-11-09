@@ -1,5 +1,9 @@
 # E2E Test Instructions
 
+- Implement representative user journeys: start from a user-relevant state, perform the intended interaction, and verify the resulting screen or outcome. Keep each journey focused on the user goal.
+- Put detailed logic, boundary values, and regressions in the appropriate integration specification and test. Use RTL for combined screen/router/state behavior (such as special-ID routing), Storybook for rendering and UI contracts, and Firestore for real persistence/subscription/Rules contracts.
+- Keep browser- or persistence-dependent user journeys in E2E when that boundary is essential. A memory-router remount is not a browser reload or persistence-restoration check. Migrate cases individually, keeping specifications, test IDs, and implementations aligned without bulk-removing unrelated cases.
+
 - Group setup, actions, and expected-result assertions in standard `await test.step(...)` blocks named `Given: ...`, `When: ...`, and `Then: ...`. Use concise English scenario names and preserve execution order when actions and assertions repeat.
 - Put precondition assertions in Given. Make fixture and helper roles clear from the surrounding steps and reuse existing step and helper boundaries. Do not add redundant wrappers, empty phases, or deep nesting.
 - Return values needed by later steps and receive them through destructuring. Do not add outer mutable state, definite assignment assertions, or casts. Remove duplicate phase comments while keeping explanations of non-obvious intent and constraints.

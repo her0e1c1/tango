@@ -33,19 +33,16 @@ Deck 一覧の表示・並び順、復習と新規の件数、追加・管理画
 Given:
 
 - Fixture: [`deck-navigation`](./fixture/deck-navigation.yaml)
-- ログイン中のユーザーが Deck と Card を所有している。
-- Deck の URL 識別子は、英数字だけのものと、それに `?`・`#` を含む接尾辞が続くものがあり、名前と Card 本文が異なる。
+- ログイン中のユーザーが Card の入った Deck を所有し、Deck 一覧を開いている。
 
 When:
 
-- 各 Deck を一覧から開き、その URL の直接表示と再読み込みも行う。
+- 一覧から利用したい Deck を選ぶ。
 
 Then:
 
-- 選択した Deck の Card 一覧を開く。デッキ名の読み上げ名は「Open cards in …」／「…のカード一覧を開く」とし、学習進捗を変えない View／閲覧メニューと区別する。
-- 選択した Deck の Card 本文だけを表示し、似た識別子の別 Deck と取り違えない。
-- 識別子内の `?`・`#` を URL のパス内でエンコードし、query と fragment は空にする。直接表示・再読み込み後も同じ Deck と Card を表示する。
-- 表示と遷移によって Deck・Card の内容や学習結果は変わらない。
+- 選択した Deck の Card 一覧が開き、その Deck の Card を閲覧できる。
+- 似た識別子の取り違えと URL の境界値は [RTL の遷移契約](../integration/rtl/navigation.md#rtl-navigation-01) で確認する。
 
 <a id="deck-list-02"></a>
 

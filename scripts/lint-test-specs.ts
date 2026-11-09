@@ -27,6 +27,7 @@ function readCases(directory: string) {
 
 for (const [directory, testDirectory, pattern] of [
   ["docs/test/e2e", "test/e2e", /\.spec\.tsx?$/u],
+  ["docs/test/integration/rtl", "test/integration", /\.spec\.tsx?$/u],
   ["docs/test/integration/firestore", "test/integration/firestore", /\.spec\.tsx?$/u],
   ["docs/test/integration/storybook", "test/integration/storybook", /\.stories\.tsx?$/u],
 ] as const) {

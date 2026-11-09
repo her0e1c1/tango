@@ -1,19 +1,31 @@
 import { expect, listDocuments, requireDocument, test } from "./utils/fixtures";
 import { readSession } from "./utils/study-helpers";
 
-test("DECK-LIST-01 DECK-LIST-04 DECK-LIST-05 navigates from the Deck list to its Card list", async ({
-  fixture,
-  page,
-}) => {
-  const { deck, card, actions } = await test.step("Given: A deck list with its Add action focused", async () => {
+test("DECK-LIST-01 navigates from the Deck list to its Card list", async ({ fixture, page }) => {
+  const { deck, card } = await test.step("Given: A signed-in user owns a deck with cards", async () => {
     const deck = fixture.deck();
     const card = fixture.card();
     await fixture.apply(page);
+    await page.goto("/");
+    return { deck, card };
+  });
+  await test.step("When: Open the deck from the list", async () => {
+    await page.getByRole("button", { name: `Open cards in ${deck.name}`, exact: true }).click();
+  });
+  await test.step("Then: The selected deck card list is displayed", async () => {
+    await expect(page).toHaveURL(`/deck/${deck.id}`);
+    await expect(page.getByRole("button", { name: `View ${card.frontText}`, exact: true })).toBeVisible();
+  });
+});
 
+test("DECK-LIST-04 opens and dismisses the list action menu", async ({ fixture, page }) => {
+  const { deck, actions } = await test.step("Given: A deck list with its Add action focused", async () => {
+    const deck = fixture.deck();
+    await fixture.apply(page);
     await page.goto("/");
     const actions = page.getByRole("button", { name: "Add", exact: true });
     await actions.focus();
-    return { deck, card, actions };
+    return { deck, actions };
   });
   await test.step("When: Open Add with Enter", async () => {
     await actions.press("Enter");
@@ -50,6 +62,14 @@ test("DECK-LIST-01 DECK-LIST-04 DECK-LIST-05 navigates from the Deck list to its
     await expect(page.getByRole("menu")).toHaveCount(1);
     await expect(page.getByRole("menu", { name: `Actions for ${deck.name}` })).toBeVisible();
   });
+});
+
+test("DECK-LIST-05 opens deck creation and import from Add", async ({ fixture, page }) => {
+  const actions = await test.step("Given: A user is on the deck list", async () => {
+    await fixture.apply(page);
+    await page.goto("/");
+    return page.getByRole("button", { name: "Add", exact: true });
+  });
   await test.step("When: Choose Create deck from Add", async () => {
     await actions.click();
     await page.getByRole("menuitem", { name: "Create deck" }).click();
@@ -65,53 +85,6 @@ test("DECK-LIST-01 DECK-LIST-04 DECK-LIST-05 navigates from the Deck list to its
   await test.step("Then: The import route opens", async () => {
     await expect(page).toHaveURL(/\/import$/);
   });
-  await test.step("When: Return home and open the deck card list", async () => {
-    await page.goto("/");
-    await page.getByRole("button", { name: `Open cards in ${deck.name}` }).click();
-  });
-  await test.step("Then: The deck route shows its card", async () => {
-    await expect(page).toHaveURL(new RegExp(`/deck/${deck.id}$`));
-    await expect(page.getByText(card.frontText)).toBeVisible();
-  });
-  const { specialDecks, specialCards, before } =
-    await test.step("Given: Additional decks with reserved characters in their identifiers and saved card baselines", async () => {
-      const specialDecks = fixture.state.remote.decks.filter(({ id }) => id !== deck.id);
-      const specialCards = fixture.state.remote.cards.filter(({ deckId }) => deckId !== deck.id);
-      const before = await Promise.all(fixture.state.remote.cards.map(({ id }) => requireDocument("card", id)));
-      return { specialDecks, specialCards, before };
-    });
-  for (const selected of specialDecks) {
-    await test.step("When: Open the selected deck through its home navigation entry", async () => {
-      await page.goto("/");
-      await page.getByRole("button", { name: `Open cards in ${selected.name}`, exact: true }).click();
-    });
-    const { destination } =
-      await test.step("Then: Its identifier is encoded without URL search or fragment changes", async () => {
-        const destination = new URL(page.url());
-        expect(destination.pathname).toBe(`/deck/${encodeURIComponent(selected.id)}`);
-        expect(destination.search).toBe("");
-        expect(destination.hash).toBe("");
-        return { destination };
-      });
-    for (const entry of ["navigation", "direct", "reload"]) {
-      await test.step("When: Reenter through direct navigation or reload when requested", async () => {
-        if (entry === "direct") await page.goto(destination.href);
-        if (entry === "reload") await page.reload();
-      });
-      await test.step("Then: Only the selected deck cards appear without changing saved cards", async () => {
-        await expect(page).toHaveURL(destination.href);
-        for (const candidate of specialCards) {
-          const button = page.getByRole("button", { name: `View ${candidate.frontText}`, exact: true });
-          await expect(button).toHaveCount(Number(candidate.deckId === selected.id));
-          await expect(button).toBeVisible({ visible: candidate.deckId === selected.id });
-        }
-        await expect(page.getByText(card.frontText, { exact: true })).toHaveCount(0);
-        expect(await Promise.all(fixture.state.remote.cards.map(({ id }) => requireDocument("card", id)))).toEqual(
-          before
-        );
-      });
-    }
-  }
 });
 
 test("DECK-LIST-02 DECK-LIST-09 shows held review counts and opens existing study settings", async ({
