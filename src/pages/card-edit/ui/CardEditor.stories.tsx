@@ -2,6 +2,7 @@ import { useCardTagForm } from "@/test/useCardTagForm";
 import { editCard as persistCard } from "@/entities/card";
 import { APP_STORY_UID, prepareAppStory } from "@/storybook/appStory";
 import { createCard, createDeck } from "@/test/factories";
+import { replaceRemoteCards } from "@/test/utils/entityFixtures";
 import { ToastViewport } from "@/shared/ui/toast";
 import { useCardEditFormState } from "../model/useCardEditFormState";
 import { submit } from "../model/actions/submit";
@@ -128,7 +129,17 @@ function SavingEditorExample() {
 const savingParameters = { page: { path: "/", decks: [editingDeck], cards: [editingCard] } };
 const prepareEditing: NonNullable<Story["beforeEach"]> = async (context) => {
   const cleanup = await prepareAppStory(context);
-  mocked(persistCard).mockResolvedValue(undefined);
+  mocked(persistCard).mockImplementation(async (_uid, input) => {
+    // A successful write is observed through the same read model as the Page action.
+    replaceRemoteCards([
+      {
+        ...editingCard,
+        frontText: input.frontText ?? editingCard.frontText,
+        backText: input.backText ?? editingCard.backText,
+        tags: input.tags ?? editingCard.tags,
+      },
+    ]);
+  });
   onSaved.mockClear();
   return () => {
     mocked(persistCard).mockReset();
