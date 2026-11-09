@@ -260,28 +260,28 @@ class ReportPrivacy(unittest.TestCase):
             self.assertFalse(self.output.exists())
 
 
-    def test_public_candidate_prefix_is_diagnostic_only_and_unknown_prefix_stays_rejected(self):
-        # Given: A historical public candidate and an unknown prefix both fall outside the approved prefix.
+    def test_additional_prefix_diagnostics_stay_non_disclosing_when_other_conditions_fail(self):
+        # Given: An approved prefix with an invalid query and an unknown prefix must still be rejected.
         for replacement, matches in (("abc-static", True), ("PRIVATE-PREFIX", False)):
-            url = GAPI_MODULE.replace("apps-static", replacement) + "?le=scs"
+            url = GAPI_MODULE.replace("apps-static", replacement) + ("?le=PRIVATE-VALUE" if matches else "?le=scs")
             self.fixture(extra=sdk_entries(url=url))
             # When: Attempt preparation through the same CLI boundary as CI.
             result = subprocess.run([sys.executable, "scripts/prepare-report.py", str(self.source), str(self.report), str(self.output)], capture_output=True)
-            # Then: A fixed boolean distinguishes the candidate without accepting it or exposing either URL.
+            # Then: Fixed booleans disclose no recorded values and neither candidate is accepted.
             self.assertNotEqual(result.returncode, 0)
             rows = [line.removeprefix("Rejected network structure: ") for line in result.stdout.decode().splitlines()
                     if line.startswith("Rejected network structure: ")]
             self.assertEqual(len(rows), 1)
             diagnostic = json.loads(rows[0])
             self.assertIs(diagnostic["iframe_public_candidate_prefix_matches"], matches)
-            self.assertFalse(diagnostic["iframe_prefix_matches"])
+            self.assertIs(diagnostic["iframe_prefix_matches"], matches)
             self.assertFalse(diagnostic["iframe_rule_matches"])
-            for condition in ("iframe_module_matches", "iframe_callback_matches", "iframe_query_matches"):
-                self.assertTrue(diagnostic[condition])
-            for sentinel in (url, "abc-static", "PRIVATE-PREFIX", "apis.google.com", "https://", "FIXED-SDK-COOKIE", "FIXED-SDK-RESPONSE"):
+            self.assertTrue(diagnostic["iframe_module_matches"])
+            self.assertTrue(diagnostic["iframe_callback_matches"])
+            self.assertIs(diagnostic["iframe_query_matches"], not matches)
+            for sentinel in (url, "abc-static", "PRIVATE-", "apis.google.com", "https://", "FIXED-SDK-COOKIE", "FIXED-SDK-RESPONSE"):
                 self.assertNotIn(sentinel.encode(), result.stdout + result.stderr)
             self.assertFalse(self.output.exists())
-
 
     def test_excludes_only_the_pinned_connectivity_probe(self):
         # Given: Recorded SDK probes have the observed empty or one-pixel GIF responses.
@@ -317,40 +317,101 @@ class ReportPrivacy(unittest.TestCase):
             self.assertFalse(self.output.exists())
 
     def test_excludes_only_known_empty_sdk_script_records(self):
-        # Given: Known Auth SDK loader requests have empty captured script bodies.
+        # Given: Both approved iframe prefixes and the initial loader have empty resolved bodies.
         cases = [("https://apis.google.com/js/api.js", "gapi_loader_records_removed"),
-                 ("https://apis.google.com/js/api.js?onload=__iframefcb123", "gapi_loader_records_removed"),
-                 (GAPI_MODULE, "gapi_iframe_records_removed"),
-                 (GAPI_MODULE + "?le=scs", "gapi_iframe_records_removed")]
+                 ("https://apis.google.com/js/api.js?onload=__iframefcb123", "gapi_loader_records_removed")]
+        for prefix in ("apps-static", "abc-static"):
+            cases.extend((GAPI_MODULE.replace("apps-static", prefix) + query, "gapi_iframe_records_removed")
+                         for query in ("", "?le=scs"))
         for url, counter in cases:
-            extra = {**sdk_entries(url=url), "shared.trace": privacy.json_bytes({"type": "before", "params": {"sha1": "sdk.js"}})}
+            for shared in (False, True):
+                extra = sdk_entries(url=url)
+                if shared:
+                    extra["shared.trace"] = privacy.json_bytes({"type": "before", "params": {"sha1": "sdk.js"}})
+                name, raw, _ = self.fixture(extra=extra)
+                # When: Prepare a separate copy without accepting the external host generally.
+                manifest = privacy.prepare(self.source, self.report, self.output)
+                entries = privacy.unpack((self.output / "html" / name).read_bytes())
+                # Then: Entire SDK records disappear, referenced empty bodies survive, and original evidence is intact.
+                self.assertEqual(entries["sdk.network"], b"")
+                self.assertEqual("resources/sdk.js" in entries, shared)
+                if shared:
+                    self.assertEqual(entries["resources/sdk.js"], b"")
+                for marker in (url.encode(), b"FIXED-SDK-COOKIE", b"FIXED-SDK-RESPONSE"):
+                    self.assertNotIn(marker, b"".join(entries.values()))
+                self.assertEqual(manifest["counts"][counter], 1)
+                self.assertEqual(manifest["counts"]["network_records"], 1)
+                self.assertEqual((self.source / name).read_bytes(), raw)
+                shutil.rmtree(self.output)
+
+    def test_omitted_script_bodies_are_distinct_from_dangling_references(self):
+        # Given: The pinned non-live recorder omits script bodies before creating any resource reference.
+        urls = ["https://apis.google.com/js/api.js?onload=__iframefcb123",
+                GAPI_MODULE, GAPI_MODULE.replace("apps-static", "abc-static")]
+        for url in urls:
+            extra = sdk_entries(url=url)
+            event = json.loads(extra["sdk.network"])
+            event["snapshot"]["response"]["content"] = {"size": -1, "mimeType": "text/javascript"}
+            extra["sdk.network"] = privacy.json_bytes(event) + b"\n"
+            del extra["resources/sdk.js"]
             name, raw, _ = self.fixture(extra=extra)
-            # When: Prepare a separate copy without accepting the external host generally.
+            # When: Prepare the strictly matched SDK record without inventing an empty body or reference.
             manifest = privacy.prepare(self.source, self.report, self.output)
             entries = privacy.unpack((self.output / "html" / name).read_bytes())
-            # Then: Entire SDK metadata disappears while shared empty resource references still resolve.
+            # Then: Only the record is omitted, no resource is synthesized, and raw evidence is unchanged.
             self.assertEqual(entries["sdk.network"], b"")
-            self.assertEqual(entries["resources/sdk.js"], b"")
-            self.assertNotIn(b"FIXED-SDK-COOKIE", b"".join(entries.values()))
-            self.assertNotIn(b"FIXED-SDK-RESPONSE", b"".join(entries.values()))
-            self.assertEqual(manifest["counts"][counter], 1)
-            self.assertEqual(manifest["counts"]["network_records"], 1)
+            self.assertNotIn("resources/sdk.js", entries)
+            self.assertEqual(manifest["counts"]["gapi_loader_records_removed"] + manifest["counts"]["gapi_iframe_records_removed"], 1)
             self.assertEqual((self.source / name).read_bytes(), raw)
             shutil.rmtree(self.output)
 
     def test_rejects_unexplained_sdk_paths_queries_and_payloads(self):
-        # Given: Other endpoints, callbacks, fields, methods, resource types or captured bytes are unexplained.
+        # Given: Each approved prefix still requires all URL, request, response and credential conditions.
         cases = [sdk_entries(url="https://apis.google.com/v1/userinfo"),
                  sdk_entries(url="https://apis.google.com/js/api.js?onload=FIXED-UNKNOWN"),
-                 sdk_entries(url="https://apis.google.com/js/api.js?token=FIXED-UNKNOWN"),
-                 sdk_entries(url=GAPI_MODULE + "?le=FIXED-UNKNOWN"), sdk_entries(method="POST"),
-                 sdk_entries(resource_type="xhr"), sdk_entries(authorization=True), sdk_entries(body=b"FIXED-UNKNOWN")]
+                 sdk_entries(url="https://apis.google.com/js/api.js?token=FIXED-UNKNOWN")]
+        for prefix in ("apps-static", "abc-static"):
+            url = GAPI_MODULE.replace("apps-static", prefix)
+            cases.extend([sdk_entries(url=url.replace(prefix, "PRIVATE-PREFIX")),
+                          sdk_entries(url=url.replace("apis.google.com", "private.example.invalid")),
+                          sdk_entries(url=url.replace("https:", "http:")),
+                          sdk_entries(url=url.replace("apis.google.com", "apis.google.com:444")),
+                          sdk_entries(url=url.replace("https://", "https://PRIVATE-USER:PRIVATE-PASSWORD@")),
+                          sdk_entries(url=url + "#PRIVATE-FRAGMENT"),
+                          sdk_entries(url=url.replace("gapi_iframes", "PRIVATE-MODULE")),
+                          sdk_entries(url=url.replace("gapi.loaded_0", "PRIVATE-CALLBACK")),
+                          sdk_entries(url=url + "?le=PRIVATE-VALUE"), sdk_entries(url=url, method="POST"),
+                          sdk_entries(url=url, resource_type="xhr"), sdk_entries(url=url, authorization=True),
+                          sdk_entries(url=url, body=b"PRIVATE-BODY")])
+            for kind in ("proxy-auth", "request-body", "status", "missing-body", "null-reference", "empty-reference", "numeric-reference", "file-reference", "inline-body", "inline-without-reference"):
+                extra = sdk_entries(url=url)
+                event = json.loads(extra["sdk.network"])
+                request, response = event["snapshot"]["request"], event["snapshot"]["response"]
+                if kind == "proxy-auth":
+                    request["headers"].append({"name": "Proxy-Authorization", "value": "PRIVATE-AUTH"})
+                elif kind == "request-body":
+                    request["postData"] = {"text": "PRIVATE-BODY"}
+                elif kind == "status":
+                    response["status"] = 503
+                elif kind == "missing-body":
+                    del extra["resources/sdk.js"]
+                elif kind in {"null-reference", "empty-reference", "numeric-reference"}:
+                    response["content"]["_sha1"] = {"null-reference": None, "empty-reference": "", "numeric-reference": 123}[kind]
+                elif kind == "file-reference":
+                    del response["content"]["_sha1"]
+                    response["content"]["_file"] = "sdk.js"
+                else:
+                    response["content"]["text"] = "PRIVATE-BODY"
+                    if kind == "inline-without-reference":
+                        del response["content"]["_sha1"]
+                extra["sdk.network"] = privacy.json_bytes(event) + b"\n"
+                cases.append(extra)
         for extra in cases:
             self.fixture(extra=extra)
             # When: Attempt preparation through the public boundary.
             with self.assertRaises(privacy.PrivacyError):
                 privacy.prepare(self.source, self.report, self.output)
-            # Then: The candidate is rejected, not made publishable by a hostname allowance.
+            # Then: No unrecognized prefix, payload or authentication shape yields an approved candidate.
             self.assertFalse(self.output.exists())
 
     def test_preserves_only_typed_study_answer_session_references(self):
