@@ -329,6 +329,7 @@ const verifyUnlimitedCardLocale = async (page: Page) => {
 const cardCountLabel = (count: number) => `${String(count)} ${count === 1 ? "card" : "cards"}`;
 
 test("SETTINGS-02 SETTINGS-12 Maximum cards limits the next study session", async ({ fixture, page }) => {
+  test.slow(true, "Three learning limits each exercise persistence, a new session and session continuation");
   const { deck, numberOfCards, expectedMaximum } =
     await test.step("Given: A deck with enough cards to exercise the learning limit", async () => {
       const deck = fixture.deck();
@@ -538,6 +539,7 @@ test("SETTINGS-07 Advanced disclosure keeps keyboard focus visible without chang
   baseURL,
   fixture,
 }, testInfo) => {
+  test.slow(true, "Four viewport and theme combinations each exercise keyboard navigation and reload persistence");
   for (const viewport of [
     { width: 1100, height: 900 },
     { width: 360, height: 640 },

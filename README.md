@@ -142,9 +142,9 @@ until their contents and attachments have been reviewed; this opt-in does not en
 The existing Storybook Pages workflow runs E2E once for its source SHA and selects that run's exact artifact ID.
 After verification, it copies the complete standard HTML report under
 [`e2e/`](https://her0e1c1.github.io/tango/e2e/), preserving attachments and trace-viewer assets alongside Storybook at
-the site root. Failed tests keep their artifacts and red CI status; unsuccessful, missing, or unverified reports are
-excluded while Storybook delivery continues. Stale deployment candidates are skipped. Test/build jobs have no production
-credentials, and one combined Pages artifact is deployed.
+the site root. Failed tests keep their artifacts and red CI status; unsuccessful E2E runs leave the current Pages snapshot
+unchanged. Report download failures also stop publication rather than removing an existing report. Stale deployment
+candidates are skipped. Test/build jobs have no production credentials, and one combined Pages artifact is deployed.
 
 The Pages workflow publishes the successful trusted-main report unchanged, using the existing artifact rather than a
 separate report-preparation pipeline. E2E uses isolated emulator accounts and test fixtures, including unsigned emulator

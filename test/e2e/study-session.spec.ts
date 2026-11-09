@@ -146,6 +146,7 @@ test("STUDY-SESSION-11 keeps unavailable Deck selection without displaying all h
     await fixture.apply(page);
     const path = `/study-history?deckId=${namespace.id("missing")}`;
     await page.goto(path);
+    await page.getByRole("heading", { level: 1, name: "Study history" }).waitFor();
     await expect(page.getByRole("status").filter({ hasText: "The selected deck is unavailable." })).toHaveText(
       "The selected deck is unavailable.All decks"
     );
