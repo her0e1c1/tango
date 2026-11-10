@@ -1,3 +1,4 @@
+import "@/test/mockNativeDialog";
 /**
  * @file Verifies the "CardList" contract with automated examples.
  * The examples make the expected behavior concrete with cases such as "renders the heading, zero
@@ -21,7 +22,7 @@ import { CardList } from "./CardList";
 const card = createCard({ id: "card-id", frontText: "Front", backText: "Back", tags: [] });
 const otherCard = createCard({ id: "other-id", frontText: "Other", backText: "Other back", tags: ["two"] });
 
-describe("CardList [CARD-LIST-01] [CARD-LIST-ACTIONS-01] [CARD-MANAGEMENT-08] [CARD-LIST-ACTIONS-02] CARD-LIST-ACTIONS-04 CARD-LIST-ACTIONS-07 CARD-LIST-ACTIONS-08", () => {
+describe("CardList [CARD-LIST-01 CARD-LIST-02 CARD-LIST-03] [CARD-LIST-ACTIONS-01] [CARD-MANAGEMENT-08] [CARD-LIST-ACTIONS-02] CARD-LIST-ACTIONS-04 CARD-LIST-ACTIONS-07 CARD-LIST-ACTIONS-08", () => {
   it("renders the heading, zero count, and collapsed no-filter summary", () => {
     // Given: Use this case's inputs and any shared test setup.
     // When: Exercise `render` with the prepared inputs.
@@ -216,7 +217,13 @@ describe("CardList [CARD-LIST-01] [CARD-LIST-ACTIONS-01] [CARD-MANAGEMENT-08] [C
     // Given: Prepare `onShowCard`, `onClose` and any shared test state below.
     const onShowCard = vi.fn();
     const onClose = vi.fn();
-    render(<CardList cards={[card]} onShowCard={onShowCard} overlay={{ content: <div>Overlay back</div>, onClose }} />);
+    render(
+      <CardList
+        cards={[card]}
+        onShowCard={onShowCard}
+        preview={{ title: "Front", content: <div>Overlay back</div>, onClose }}
+      />
+    );
 
     // When: Exercise `fireEvent.click` with the prepared inputs.
     fireEvent.click(screen.getByRole("button", { name: "View Front" }));

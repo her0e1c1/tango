@@ -13,9 +13,9 @@ import { ActionsMenu } from "@/shared/ui/actions-menu";
 import { Button } from "@/shared/ui/button";
 import { RemovableTag } from "@/shared/ui/content";
 import { Select } from "@/shared/ui/forms";
-import { Overlay } from "@/shared/ui/feedback";
 
 import { Card, type CardActionsProps } from "./Card";
+import { CardAnswerPreview } from "./CardAnswerPreview";
 
 interface CardListItem {
   id: CardId;
@@ -23,9 +23,10 @@ interface CardListItem {
   tags: string[];
 }
 
-interface CardListOverlayProps {
+interface CardListPreviewProps {
+  title: string;
   content: React.ReactNode;
-  onClose?: () => void;
+  onClose: () => void;
 }
 
 interface CardListFilterState {
@@ -51,7 +52,7 @@ export interface CardListProps {
   filter?: CardListFilterState;
   filterSlot?: React.ReactNode;
   card?: CardActionsProps;
-  overlay?: CardListOverlayProps;
+  preview?: CardListPreviewProps;
   onShowCard?: (id: CardId) => void;
   onRemoveTag?: (tag: string) => void;
   onAddCard?: () => void;
@@ -153,6 +154,16 @@ export const CardList: React.FC<CardListProps> = (props) => {
   const sortId = React.useId();
   const summaryRef = React.useRef<HTMLElement>(null);
   const tagRefs = React.useRef<Map<string, HTMLButtonElement>>(new Map());
+  const previewTriggerRef = React.useRef<HTMLButtonElement | null>(null);
+  const sortRef = React.useRef<HTMLSelectElement>(null);
+  const restorePreviewFocus = () => {
+    const sort = sortRef.current;
+    // A route change unmounts this list; do not move focus back into the departing Page.
+    if (sort === null || !sort.isConnected) return;
+    const trigger = previewTriggerRef.current;
+    const target = trigger?.isConnected && !trigger.disabled ? trigger : sort;
+    if (!target.disabled && !target.closest("[inert]")) target.focus({ preventScroll: true });
+  };
 
   const handleRemoveTag = (tag: string) => {
     const currentIndex = filter.selectedTags.indexOf(tag);
@@ -176,15 +187,14 @@ export const CardList: React.FC<CardListProps> = (props) => {
 
   return (
     <>
-      {props.overlay != null && (
-        <Overlay
-          position="center"
-          ariaLabel={t("cardList.closeCard")}
-          className="overflow-y-auto bg-surface-elevated"
-          {...(props.overlay.onClose !== undefined ? { onClick: props.overlay.onClose } : {})}
+      {props.preview != null && (
+        <CardAnswerPreview
+          title={props.preview.title}
+          onClose={props.preview.onClose}
+          restoreTriggerFocus={restorePreviewFocus}
         >
-          {props.overlay.content}
-        </Overlay>
+          {props.preview.content}
+        </CardAnswerPreview>
       )}
 
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -224,6 +234,7 @@ export const CardList: React.FC<CardListProps> = (props) => {
       <label htmlFor={sortId} className="flex flex-wrap items-center gap-2 text-caption font-medium text-ink">
         {t("cardList.sort.label")}
         <Select
+          ref={sortRef}
           id={sortId}
           className="w-auto"
           value={props.sortOrder ?? "standard"}
@@ -287,7 +298,15 @@ export const CardList: React.FC<CardListProps> = (props) => {
           cards={props.cards}
           disabled={Boolean(props.disabled)}
           {...(props.card !== undefined ? { card: props.card } : {})}
-          {...(props.onShowCard !== undefined ? { onShowCard: props.onShowCard } : {})}
+          {...(props.onShowCard !== undefined
+            ? {
+                onShowCard: (id: CardId) => {
+                  previewTriggerRef.current =
+                    document.activeElement instanceof HTMLButtonElement ? document.activeElement : null;
+                  props.onShowCard?.(id);
+                },
+              }
+            : {})}
         />
       ) : props.empty ? (
         <CardListEmpty empty={props.empty} />

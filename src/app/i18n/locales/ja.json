@@ -367,6 +367,7 @@
       "intervalZeroDescription": "一致するすべてのカードは次回の復習待ちです。"
     },
     "closeCard": "カードを閉じる",
+    "answer": "解答",
     "sort": {
       "label": "並び順",
       "standard": "標準",

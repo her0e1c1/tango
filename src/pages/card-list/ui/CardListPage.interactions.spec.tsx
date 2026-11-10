@@ -1,3 +1,4 @@
+import "@/test/mockNativeDialog";
 import type { Card } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
 import type { Preferences } from "@/entities/preference";
@@ -145,7 +146,7 @@ describe("CARD-LIST-02 CARD-MANAGEMENT-02 CARD-MANAGEMENT-08 CARD-MANAGEMENT-03 
     // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByRole("button", { name: "View Front" }));
     // Then: Verify the expected result in the assertions below.
-    expect(screen.getByRole("button", { name: "Close card" })).toHaveTextContent(oldest.backText);
+    expect(screen.getByRole("dialog", { name: oldest.frontText })).toHaveTextContent(oldest.backText);
     // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByRole("button", { name: "Close card" }));
     // Then: Verify the expected result in the assertions below.
@@ -360,7 +361,7 @@ describe("CARD-LIST-02 CARD-MANAGEMENT-02 CARD-MANAGEMENT-08 CARD-MANAGEMENT-03 
     await userEvent.click(screen.getByRole("button", { name: "View Front" }));
 
     // Then: Verify the expected result in the assertions below.
-    expect(screen.getByLabelText("Close card")).toHaveTextContent(languageCard.backText);
+    expect(screen.getByRole("dialog", { name: languageCard.frontText })).toHaveTextContent(languageCard.backText);
   });
 
   it.each([true, false])(

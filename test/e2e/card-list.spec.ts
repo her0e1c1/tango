@@ -21,7 +21,10 @@ test("CARD-LIST-01 shows front text and tags", async ({ fixture, page }) => {
   });
 });
 
-test("CARD-LIST-02 opens the selected Card back-text overlay", async ({ fixture, page }) => {
+test("CARD-LIST-02 opens the selected Card answer with keyboard focus inside the preview", async ({
+  fixture,
+  page,
+}) => {
   const { card } = await test.step("Given: A card in the deck card list", async () => {
     const deck = fixture.deck();
     const card = fixture.card();
@@ -31,33 +34,128 @@ test("CARD-LIST-02 opens the selected Card back-text overlay", async ({ fixture,
     return { card };
   });
   await test.step("When: Open the selected card answer", async () => {
-    await page.getByRole("button", { name: `View ${card.frontText}` }).click();
+    const opener = page.getByRole("button", { name: `View ${card.frontText}`, exact: true });
+    for (let stops = 0; stops < 20; stops += 1) {
+      if (await opener.evaluate((element) => element === document.activeElement)) break;
+      await page.keyboard.press("Tab");
+    }
+    await expect(opener).toBeFocused();
+    await page.keyboard.press("Enter");
   });
-  await test.step("Then: The overlay shows that card back text", async () => {
-    await expect(page.getByRole("button", { name: "Close card" })).toContainText(card.backText);
+  await test.step("Then: The named preview owns focus and background navigation is unavailable", async () => {
+    const preview = page.getByRole("dialog", { name: card.frontText, exact: true });
+    await expect(preview).toContainText(card.backText);
+    await expect(preview.getByRole("heading", { name: card.frontText, exact: true })).toBeFocused();
+    await page.getByRole("combobox", { name: "Sort order" }).evaluate((element) => element.focus());
+    await expect(preview.getByRole("heading", { name: card.frontText, exact: true })).toBeFocused();
+    await page.keyboard.press("Tab");
+    await expect(preview.getByRole("button", { name: "Close card" })).toBeFocused();
+    await page.keyboard.press("Shift+Tab");
+    await expect(preview.getByRole("region", { name: "Answer", exact: true })).toBeFocused();
+    await page.keyboard.press("Tab");
+    await expect(preview.getByRole("button", { name: "Close card" })).toBeFocused();
+    await page.keyboard.press("s");
+    await page.keyboard.press("t");
+    await expect(preview).toBeVisible();
+    await expect(page).toHaveURL(/\/deck\/[^/]+$/);
   });
 });
 
-test("CARD-LIST-03 closes the back-text overlay without changing persistent Card data", async ({ fixture, page }) => {
-  const { card, before, overlay } = await test.step("Given: A saved card with its answer overlay open", async () => {
+test("CARD-LIST-03 closes the answer and returns focus without changing saved data", async ({ fixture, page }) => {
+  const { card, before, deckBefore, sortBefore, preferencesBefore, preview } =
+    await test.step("Given: A saved card with its answer preview open", async () => {
+      const deck = fixture.deck();
+      const card = fixture.card();
+      await fixture.apply(page);
+      const before = await requireDocument("card", card.id);
+      const deckBefore = await requireDocument("deck", deck.id);
+
+      await page.goto(`/deck/${deck.id}`);
+      await page.getByRole("button", { name: `View ${card.frontText}` }).click();
+      const preview = page.getByRole("dialog", { name: card.frontText, exact: true });
+      await expect(preview).toContainText(card.backText);
+      const sortBefore = await page.getByRole("combobox", { name: "Sort order" }).inputValue();
+      const preferencesBefore = await page.evaluate(() => localStorage.getItem("tango-config"));
+      return { card, before, deckBefore, sortBefore, preferencesBefore, preview };
+    });
+  await test.step("When: Close the answer with Escape", async () => {
+    await page.keyboard.press("Escape");
+  });
+  await test.step("Then: The same opener regains focus and saved data and list conditions are unchanged", async () => {
+    await expect(preview).toHaveCount(0);
+    await expect(page.getByRole("button", { name: `View ${card.frontText}`, exact: true })).toBeFocused();
+    await expect(page.getByText(card.frontText)).toBeVisible();
+    expect(await requireDocument("card", card.id)).toEqual(before);
+    expect(await requireDocument("deck", card.deckId)).toEqual(deckBefore);
+    await expect(page.getByRole("combobox", { name: "Sort order" })).toHaveValue(sortBefore);
+    expect(await page.evaluate(() => localStorage.getItem("tango-config"))).toBe(preferencesBefore);
+  });
+});
+
+test("CARD-LIST-06 reads and selects rich answers without dismissing the preview", async ({ fixture, page }) => {
+  const { preview, reader } = await test.step("Given: An answer containing Markdown, wide code and math", async () => {
     const deck = fixture.deck();
     const card = fixture.card();
     await fixture.apply(page);
-    const before = await requireDocument("card", card.id);
-
     await page.goto(`/deck/${deck.id}`);
-    await page.getByRole("button", { name: `View ${card.frontText}` }).click();
-    const overlay = page.getByRole("button", { name: "Close card" });
-    await expect(overlay).toContainText(card.backText);
-    return { card, before, overlay };
+    await page.getByRole("button", { name: `View ${card.frontText}`, exact: true }).click();
+    const preview = page.getByRole("dialog", { name: card.frontText, exact: true });
+    const reader = preview.getByRole("region", { name: "Answer", exact: true });
+    await expect(reader).toBeVisible();
+    return { preview, reader };
   });
-  await test.step("When: Close the answer overlay", async () => {
-    await overlay.click();
+  await test.step("When: Select answer text, follow references and scroll with the keyboard", async () => {
+    const text = reader.getByText("Selectable answer text.", { exact: true });
+    const box = await text.evaluate((element) => {
+      const range = document.createRange();
+      range.selectNodeContents(element);
+      const rect = range.getBoundingClientRect();
+      return { x: rect.x, y: rect.y, width: rect.width, height: rect.height };
+    });
+    await page.mouse.move(box.x + 1, box.y + box.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(box.x + box.width - 1, box.y + box.height / 2, { steps: 10 });
+    await page.mouse.up();
   });
-  await test.step("Then: The front returns and saved card data is unchanged", async () => {
-    await expect(overlay).toHaveCount(0);
-    await expect(page.getByText(card.frontText)).toBeVisible();
-    expect(await requireDocument("card", card.id)).toEqual(before);
+  await test.step("Then: Text is selected and the preview remains open", async () => {
+    await expect.poll(() => page.evaluate(() => window.getSelection()?.toString())).toContain("answer");
+    await expect(preview).toBeVisible();
+  });
+  await test.step("When: Follow the answer link and return from its footnote", async () => {
+    await reader.getByRole("link", { name: "Reference", exact: true }).click();
+  });
+  await test.step("Then: The footnote is readable within the same preview", async () => {
+    await expect(reader.getByText("Footnote answer.", { exact: false })).toBeInViewport();
+    await expect(preview).toBeVisible();
+  });
+  await test.step("When: Return, follow the note marker, and return again", async () => {
+    await reader.getByRole("link", { name: "Back to reference 1", exact: true }).click();
+    await reader.getByRole("link", { name: "1", exact: true }).click();
+    await reader.getByRole("link", { name: "Back to reference 1", exact: true }).click();
+    await reader.focus();
+    await page.keyboard.press("PageDown");
+  });
+  await test.step("Then: The answer scrolls vertically and remains open", async () => {
+    await expect.poll(() => reader.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
+    await expect(preview).toBeVisible();
+  });
+  await test.step("When: Read horizontally overflowing code and math with the keyboard", async () => {
+    const code = reader.locator("pre");
+    await code.focus();
+    await page.keyboard.press("ArrowRight");
+  });
+  await test.step("Then: The code can scroll horizontally", async () => {
+    await expect.poll(() => reader.locator("pre").evaluate((element) => element.scrollLeft)).toBeGreaterThan(0);
+  });
+  await test.step("When: Focus the wide math and move horizontally", async () => {
+    await reader.locator(".katex-display").focus();
+    await page.keyboard.press("ArrowRight");
+  });
+  await test.step("Then: The math can scroll horizontally without closing the preview", async () => {
+    await expect
+      .poll(() => reader.locator(".katex-display").evaluate((element) => element.scrollLeft))
+      .toBeGreaterThan(0);
+    await expect(preview).toBeVisible();
   });
 });
 

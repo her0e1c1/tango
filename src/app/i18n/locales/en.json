@@ -367,6 +367,7 @@
       "intervalZeroDescription": "All matching cards are scheduled for future review."
     },
     "closeCard": "Close card",
+    "answer": "Answer",
     "sort": {
       "label": "Sort order",
       "standard": "Standard",

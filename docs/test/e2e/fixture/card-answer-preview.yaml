@@ -1,0 +1,92 @@
+extends: empty.yaml
+auth:
+  users:
+    - uid: user-1
+      provider: google
+remote:
+  decks:
+    - id: deck-1
+      uid: user-1
+      name: Answer preview
+      category: math
+  cards:
+    - id: card-1
+      deckId: deck-1
+      uid: user-1
+      frontText: Reading card
+      uniqueKey: reading-card
+      tags: [reading]
+      backText: |
+        Selectable answer text.
+
+        [Reference](#user-content-fn-1) and a note[^1].
+
+        ```text
+        wide-code-wide-code-wide-code-wide-code-wide-code-wide-code-wide-code-wide-code-wide-code-wide-code-wide-code-wide-code-wide-code-wide-code-wide-code-wide-code-wide-code-wide-code-wide-code-wide-code-wide-code-wide-code-wide-code-wide-code-wide-code-wide-code-wide-code-wide-code-wide-code-wide-code-wide-code-wide-code-wide-code-wide-code-wide-code-wide-code-wide-code-wide-code-wide-code-wide-code-wide-code-wide-code-wide-code-wide-code-wide-code-wide-code-wide-code-wide-code-wide-code-wide-code-wide-code-wide-code-wide-code-wide-code-wide-code-
+        ```
+
+        $$
+        \underbrace{x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x}_{wide}
+        $$
+
+        Reading paragraph 1.
+
+        Reading paragraph 2.
+
+        Reading paragraph 3.
+
+        Reading paragraph 4.
+
+        Reading paragraph 5.
+
+        Reading paragraph 6.
+
+        Reading paragraph 7.
+
+        Reading paragraph 8.
+
+        Reading paragraph 9.
+
+        Reading paragraph 10.
+
+        Reading paragraph 11.
+
+        Reading paragraph 12.
+
+        Reading paragraph 13.
+
+        Reading paragraph 14.
+
+        Reading paragraph 15.
+
+        Reading paragraph 16.
+
+        Reading paragraph 17.
+
+        Reading paragraph 18.
+
+        Reading paragraph 19.
+
+        Reading paragraph 20.
+
+        Reading paragraph 21.
+
+        Reading paragraph 22.
+
+        Reading paragraph 23.
+
+        Reading paragraph 24.
+
+        Reading paragraph 25.
+
+        Reading paragraph 26.
+
+        Reading paragraph 27.
+
+        Reading paragraph 28.
+
+        Reading paragraph 29.
+
+        Reading paragraph 30.
+
+        [^1]: Footnote answer.
