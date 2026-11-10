@@ -12,7 +12,11 @@ Card 一覧の本文・タグ、裏面のプレビュー、Card 未登録時の�
 | CARD-LIST-02 | read | 正常系 | [Card の解答プレビューを開ける](#card-list-02) |
 | CARD-LIST-03 | read | 正常系 | [Card の解答プレビューを閉じて一覧へ戻れる](#card-list-03) |
 | CARD-LIST-04 | read | 正常系 | [Card 未登録の一覧から Card の追加へ進める](#card-list-04) |
-| CARD-LIST-06 | read | 正常系 | [解答の文字選択・リンク・スクロールを利用できる](#card-list-06) |
+| CARD-LIST-06 | read | 正常系 | [解答の文章を選択できる](#card-list-06) |
+| CARD-LIST-07 | read | 正常系 | [解答のリンクと脚注をたどれる](#card-list-07) |
+| CARD-LIST-08 | read | 正常系 | [解答の本文をキーボードで縦にスクロールできる](#card-list-08) |
+| CARD-LIST-09 | read | 正常系 | [解答のコードをキーボードで横にスクロールできる](#card-list-09) |
+| CARD-LIST-10 | read | 正常系 | [解答の数式をキーボードで横にスクロールできる](#card-list-10) |
 | CARD-LIST-05 | read | 異常系 | [存在しない Deck から復帰できる](#card-list-05) |
 
 <a id="card-list-01"></a>
@@ -104,7 +108,7 @@ Then:
 
 <a id="card-list-06"></a>
 
-### CARD-LIST-06 解答の文字選択・リンク・スクロールを利用できる
+### CARD-LIST-06 解答の文章を選択できる
 
 カテゴリ: `read`
 
@@ -113,16 +117,99 @@ Then:
 Given:
 
 - Fixture: [`card-answer-preview`](./fixture/card-answer-preview.yaml)
-- ログイン中のアカウントが所有する Card の解答に、選択できる文章、リンク・脚注、長い本文、横に長いコードと数式がある。
+- ログイン中のアカウントが所有する Card の解答プレビューに、選択できる文章を表示している。
 
 When:
 
-- Card 一覧から解答を開き、文章を選択し、リンクと脚注をたどり、本文・コード・数式をキーボードでスクロールする。
+- ポインターをドラッグして解答の文章を選択する。
 
 Then:
 
-- 文章を選択でき、リンク・脚注と戻るリンクを利用できる。
-- プレビューが閉じず、本文の下部とコード・数式の横に続く内容を確認できる。
+- 文章が選択され、プレビューは開いたままである。
+
+<a id="card-list-07"></a>
+
+### CARD-LIST-07 解答のリンクと脚注をたどれる
+
+カテゴリ: `read`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`card-answer-preview`](./fixture/card-answer-preview.yaml)
+- 解答プレビューに脚注へのリンクと注番号、脚注から本文へ戻るリンクがある。
+
+When:
+
+- 解答のリンクと注番号から脚注へ移動し、それぞれ本文へ戻る。
+
+Then:
+
+- 脚注と元の注番号が表示範囲へ移り、プレビューは開いたままである。
+
+<a id="card-list-08"></a>
+
+### CARD-LIST-08 解答の本文をキーボードで縦にスクロールできる
+
+カテゴリ: `read`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`card-answer-preview`](./fixture/card-answer-preview.yaml)
+- 解答プレビューに縦に長い本文を表示している。
+
+When:
+
+- 解答の本文へフォーカスし、PageDown を押す。
+
+Then:
+
+- 本文の下方へ読み取り位置が移り、プレビューは開いたままである。
+
+<a id="card-list-09"></a>
+
+### CARD-LIST-09 解答のコードをキーボードで横にスクロールできる
+
+カテゴリ: `read`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`card-answer-preview`](./fixture/card-answer-preview.yaml)
+- 解答プレビューに横に長いコードを表示している。
+
+When:
+
+- コードへフォーカスし、右矢印キーを押す。
+
+Then:
+
+- コードの右方へ読み取り位置が移り、プレビューは開いたままである。
+
+<a id="card-list-10"></a>
+
+### CARD-LIST-10 解答の数式をキーボードで横にスクロールできる
+
+カテゴリ: `read`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`card-answer-preview`](./fixture/card-answer-preview.yaml)
+- 解答プレビューに横に長い数式を表示している。
+
+When:
+
+- 数式へフォーカスし、右矢印キーを押す。
+
+Then:
+
+- 数式の右方へ読み取り位置が移り、プレビューは開いたままである。
 
 <a id="card-list-05"></a>
 

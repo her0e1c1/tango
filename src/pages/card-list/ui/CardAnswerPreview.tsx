@@ -30,6 +30,10 @@ export const CardAnswerPreview: React.FC<CardAnswerPreviewProps> = ({
     if (dialog === null) return;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+    // Rendered code and formulas need explicit keyboard targets across browsers.
+    for (const scroller of dialog.querySelectorAll<HTMLElement>("pre:has(code), .katex-display")) {
+      scroller.tabIndex = 0;
+    }
     dialog.showModal();
     titleRef.current?.focus();
 
@@ -55,7 +59,7 @@ export const CardAnswerPreview: React.FC<CardAnswerPreviewProps> = ({
       )
         return false;
       if (element.matches(focusableElementSelector)) return true;
-      // Browsers also tab to overflowing math without an explicit tabindex. Keep those native stops.
+      // Keep native tab stops on other overflowing descendants without an explicit tabindex.
       const style = getComputedStyle(element);
       return (
         (element.scrollWidth > element.clientWidth && /^(auto|scroll)$/u.test(style.overflowX)) ||
