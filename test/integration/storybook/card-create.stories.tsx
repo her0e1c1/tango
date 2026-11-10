@@ -47,7 +47,7 @@ export const Create: Story = {
       // When: Exercise `userEvent.click` with the prepared inputs.
       await userEvent.click(canvas.getByRole("button", { name: "View Hello" }));
       // Then: Verify the expected result in the assertions below.
-      await expect(await canvas.findByRole("button", { name: "Close card" })).toHaveTextContent("Hola");
+      await expect(await canvas.findByRole("dialog", { name: "Hello" })).toHaveTextContent("Hola");
     });
   },
 };

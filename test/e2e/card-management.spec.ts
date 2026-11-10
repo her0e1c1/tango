@@ -623,7 +623,7 @@ test.describe("card", () => {
       await page.getByRole("button", { name: `View ${changedFront}` }).click();
     });
     await test.step("Then: The changed back text survives and identity and learning fields are preserved", async () => {
-      await expect(page.getByRole("button", { name: "Close card" })).toContainText(changedBack);
+      await expect(page.getByRole("dialog", { name: changedFront, exact: true })).toContainText(changedBack);
 
       const after = await requireDocument("card", card.id);
       const { frontText: _front, backText: _back, updatedAt: _updatedAt, ...preservedFields } = before.fields;

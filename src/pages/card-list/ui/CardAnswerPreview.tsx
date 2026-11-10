@@ -65,7 +65,7 @@ export const CardAnswerPreview: React.FC<CardAnswerPreviewProps> = ({
     const first = focusable[0];
     const last = focusable.at(-1);
     if (first === undefined || last === undefined) return;
-    if (event.shiftKey && (document.activeElement === first || document.activeElement === titleRef.current)) {
+    if (event.shiftKey && document.activeElement === first) {
       event.preventDefault();
       last.focus();
     } else if (!event.shiftKey && document.activeElement === last) {
@@ -89,7 +89,8 @@ export const CardAnswerPreview: React.FC<CardAnswerPreviewProps> = ({
         <h2
           ref={titleRef}
           id={titleId}
-          tabIndex={-1}
+          // biome-ignore lint/a11y/noNoninteractiveTabindex: Long Card titles need keyboard scrolling as well as initial focus.
+          tabIndex={0}
           className="max-h-32 min-w-0 overflow-auto overscroll-contain break-words text-title font-bold"
         >
           {title}

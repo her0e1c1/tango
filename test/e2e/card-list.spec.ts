@@ -53,9 +53,11 @@ test("CARD-LIST-02 opens the selected Card answer with keyboard focus inside the
     await page.keyboard.press("Tab");
     await expect(preview.getByRole("button", { name: "Close card" })).toBeFocused();
     await page.keyboard.press("Shift+Tab");
+    await expect(preview.getByRole("heading", { name: card.frontText, exact: true })).toBeFocused();
+    await page.keyboard.press("Shift+Tab");
     await expect(preview.getByRole("region", { name: "Answer", exact: true })).toBeFocused();
     await page.keyboard.press("Tab");
-    await expect(preview.getByRole("button", { name: "Close card" })).toBeFocused();
+    await expect(preview.getByRole("heading", { name: card.frontText, exact: true })).toBeFocused();
     await page.keyboard.press("s");
     await page.keyboard.press("t");
     await expect(preview).toBeVisible();

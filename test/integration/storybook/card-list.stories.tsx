@@ -145,7 +145,7 @@ export const ViewAndClose: Story = {
 };
 
 const snapshotCards = cards.map((card, index) =>
-  index === 0 ? { ...card, backText: "Original answer\n".repeat(90) } : card
+  index === 0 ? { ...card, backText: "Original answer\n\n".repeat(90) } : card
 );
 const previewState = () => ({
   cards: getCards(),
@@ -242,20 +242,24 @@ export const PreviewWithNotifications: Story = {
       // When: A persistent warning arrives through the existing notification boundary.
       showToast({ messageKey: "toast.saveFailure", tone: "warning" });
       // Then: The notification has one visible live region inside the modal and does not take focus.
-      const notice = await within(preview).findByRole("status", { name: "Notifications" });
+      const notice = await within(preview).findByRole("status", { name: appI18n.t("toast.notifications") });
       await expect(notice).toHaveTextContent(appI18n.t("toast.saveFailure"));
       await expect(within(preview).getByText(appI18n.t("toast.saveFailure"), { exact: true })).toBeVisible();
-      await expect(canvas.getAllByRole("status", { name: "Notifications", hidden: true })).toHaveLength(1);
+      await expect(
+        canvas.getAllByRole("status", { name: appI18n.t("toast.notifications"), hidden: true })
+      ).toHaveLength(1);
       await expect(canvas.queryByRole("button", { name: "Dismiss notification" })).not.toBeInTheDocument();
       await expect(title).toHaveFocus();
       // When: The user closes the preview without dismissing the warning.
       await userEvent.click(within(preview).getByRole("button", { name: "Close card" }));
       // Then: The same notification returns to the Page and the exact opener regains focus.
-      await expect(await canvas.findByRole("status", { name: "Notifications" })).toHaveTextContent(
+      await expect(await canvas.findByRole("status", { name: appI18n.t("toast.notifications") })).toHaveTextContent(
         appI18n.t("toast.saveFailure")
       );
       await expect(canvas.getByText(appI18n.t("toast.saveFailure"), { exact: true })).toBeVisible();
-      await expect(canvas.getAllByRole("status", { name: "Notifications", hidden: true })).toHaveLength(1);
+      await expect(
+        canvas.getAllByRole("status", { name: appI18n.t("toast.notifications"), hidden: true })
+      ).toHaveLength(1);
       await expect(canvas.getByRole("button", { name: "Dismiss notification" })).toBeVisible();
       await waitFor(() => expect(opener).toHaveFocus());
     });
