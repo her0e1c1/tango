@@ -134,7 +134,8 @@ test("CARD-LIST-06 reads and selects rich answers without dismissing the preview
   });
   const { scrollBefore } = await test.step("When: Return, follow the note marker, and return again", async () => {
     await reader.getByRole("link", { name: "Back to reference 1", exact: true }).click();
-    await reader.getByRole("link", { name: "1", exact: true }).click();
+    await reader.locator("a[data-footnote-ref]").click();
+    await expect(reader.getByText("Footnote answer.", { exact: false })).toBeInViewport();
     await reader.getByRole("link", { name: "Back to reference 1", exact: true }).click();
     await reader.focus();
     const scrollBefore = await reader.evaluate((element) => element.scrollTop);
