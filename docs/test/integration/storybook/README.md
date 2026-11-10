@@ -102,6 +102,7 @@
 | STORYBOOK-CARD-LIST-22 | render | 正常系 | [操作不可の Card にメニューを開かない](./card-list.md#storybook-card-list-22) |
 | STORYBOOK-CARD-LIST-23 | interaction | 正常系 | [開いた時点の解答を開き直すまで保持する](./card-list.md#storybook-card-list-23) |
 | STORYBOOK-CARD-LIST-24 | interaction | 正常系 | [起点の Card が消えた後は並び順へ戻る](./card-list.md#storybook-card-list-24) |
+| STORYBOOK-CARD-LIST-25 | interaction | 正常系 | [解答プレビュー中も通知を確認できる](./card-list.md#storybook-card-list-25) |
 | STORYBOOK-DECK-FILTER-01 | interaction | 正常系 | [閲覧タグをまとめて解除する](./card-list.md#storybook-deck-filter-01) |
 | STORYBOOK-DECK-FILTER-02 | interaction | 正常系 | [折りたたまれたタグを表示する](./card-list.md#storybook-deck-filter-02) |
 | STORYBOOK-DECK-FILTER-03 | interaction | 正常系 | [タグ選択を一覧へ反映する](./card-list.md#storybook-deck-filter-03) |

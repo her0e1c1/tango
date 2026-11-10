@@ -1,5 +1,6 @@
 import cx from "classnames";
 import * as React from "react";
+import { createPortal } from "react-dom";
 import { AiOutlineClose } from "react-icons/ai";
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
@@ -84,7 +85,12 @@ export const ToastViewport = <T extends HTMLElement = HTMLElement>({
   const { t } = useTranslation();
   const toast = useStore(toastStore, (state) => state.current);
   const message = toast === undefined ? "" : t(toast.messageKey, toast.messageParams ?? {});
-  const modalActive = useStore(toastStore, (state) => state.modalFocusTargets.length > 0);
+  const modalTargets = useStore(toastStore, (state) => state.modalFocusTargets);
+  const modalActive = modalTargets.length > 0;
+  // A native modal makes outside live regions inert and paints above ordinary z-index layers.
+  const nativeModal = modalTargets.findLast(
+    ({ element }) => element instanceof HTMLDialogElement && element.isConnected && element.open
+  )?.element;
   const visualTargetRef = React.useRef<HTMLDivElement>(null);
   useAutoDismiss(toast);
 
@@ -98,7 +104,7 @@ export const ToastViewport = <T extends HTMLElement = HTMLElement>({
     const visualTarget = visualTargetRef.current;
     if (toast === undefined || visualTarget === null) return;
     return registerToastVisualTarget(toast.id, visualTarget);
-  }, [toast]);
+  }, [toast, nativeModal]);
 
   const renderAnnouncement = (activeToast: ToastState) => (
     <span key={activeToast.id}>{`${t(tonePresentation[activeToast.tone].labelKey)}: ${message}`}</span>
@@ -125,7 +131,7 @@ export const ToastViewport = <T extends HTMLElement = HTMLElement>({
       </div>
     );
 
-  return (
+  const viewport = (
     <>
       <div
         role="status"
@@ -147,4 +153,5 @@ export const ToastViewport = <T extends HTMLElement = HTMLElement>({
       {visualViewport}
     </>
   );
+  return nativeModal === undefined ? viewport : createPortal(viewport, nativeModal);
 };

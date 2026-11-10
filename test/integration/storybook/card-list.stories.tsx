@@ -6,6 +6,7 @@ import { replaceRemoteCards } from "@/test/utils/entityFixtures";
 import { getDecks } from "@/entities/deck";
 import { getPreferences } from "@/entities/preference";
 import { getStudySession } from "@/entities/study-session";
+import { showToast } from "@/shared/ui/toast";
 import { routeMeta, state, deck, cards, now } from "./support";
 
 function page(selectedTags: string[] = [], tagAndFilter = false, values = cards) {
@@ -226,6 +227,37 @@ export const RemovedPreviewOpener: Story = {
       await expect(canvas.queryByRole("dialog")).not.toBeInTheDocument();
       await waitFor(() => expect(canvas.getByRole("combobox", { name: "Sort order" })).toHaveFocus());
       await expect(canvas.getByRole("heading", { name: "No cards yet" })).toBeVisible();
+    });
+  },
+};
+
+export const PreviewWithNotifications: Story = {
+  play: async ({ canvas, userEvent, step }) => {
+    await step("STORYBOOK-CARD-LIST-25 Keep the existing notification inside the native preview", async () => {
+      // Given: The real Page owns an open answer and the one application Toast viewport.
+      const opener = await canvas.findByRole("button", { name: "View Hello" });
+      await userEvent.click(opener);
+      const preview = canvas.getByRole("dialog", { name: "Hello" });
+      const title = within(preview).getByRole("heading", { name: "Hello" });
+      // When: A persistent warning arrives through the existing notification boundary.
+      showToast({ messageKey: "toast.saveFailure", tone: "warning" });
+      // Then: The notification has one visible live region inside the modal and does not take focus.
+      const notice = await within(preview).findByRole("status", { name: "Notifications" });
+      await expect(notice).toHaveTextContent(appI18n.t("toast.saveFailure"));
+      await expect(within(preview).getByText(appI18n.t("toast.saveFailure"), { exact: true })).toBeVisible();
+      await expect(canvas.getAllByRole("status", { name: "Notifications", hidden: true })).toHaveLength(1);
+      await expect(canvas.queryByRole("button", { name: "Dismiss notification" })).not.toBeInTheDocument();
+      await expect(title).toHaveFocus();
+      // When: The user closes the preview without dismissing the warning.
+      await userEvent.click(within(preview).getByRole("button", { name: "Close card" }));
+      // Then: The same notification returns to the Page and the exact opener regains focus.
+      await expect(await canvas.findByRole("status", { name: "Notifications" })).toHaveTextContent(
+        appI18n.t("toast.saveFailure")
+      );
+      await expect(canvas.getByText(appI18n.t("toast.saveFailure"), { exact: true })).toBeVisible();
+      await expect(canvas.getAllByRole("status", { name: "Notifications", hidden: true })).toHaveLength(1);
+      await expect(canvas.getByRole("button", { name: "Dismiss notification" })).toBeVisible();
+      await waitFor(() => expect(opener).toHaveFocus());
     });
   },
 };

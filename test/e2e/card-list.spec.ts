@@ -46,7 +46,9 @@ test("CARD-LIST-02 opens the selected Card answer with keyboard focus inside the
     const preview = page.getByRole("dialog", { name: card.frontText, exact: true });
     await expect(preview).toContainText(card.backText);
     await expect(preview.getByRole("heading", { name: card.frontText, exact: true })).toBeFocused();
-    await page.getByRole("combobox", { name: "Sort order" }).evaluate((element) => element.focus());
+    await page
+      .getByRole("combobox", { name: "Sort order", includeHidden: true })
+      .evaluate((element) => element.focus());
     await expect(preview.getByRole("heading", { name: card.frontText, exact: true })).toBeFocused();
     await page.keyboard.press("Tab");
     await expect(preview.getByRole("button", { name: "Close card" })).toBeFocused();
@@ -71,11 +73,11 @@ test("CARD-LIST-03 closes the answer and returns focus without changing saved da
       const deckBefore = await requireDocument("deck", deck.id);
 
       await page.goto(`/deck/${deck.id}`);
+      const sortBefore = await page.getByRole("combobox", { name: "Sort order" }).inputValue();
+      const preferencesBefore = await page.evaluate(() => localStorage.getItem("tango-config"));
       await page.getByRole("button", { name: `View ${card.frontText}` }).click();
       const preview = page.getByRole("dialog", { name: card.frontText, exact: true });
       await expect(preview).toContainText(card.backText);
-      const sortBefore = await page.getByRole("combobox", { name: "Sort order" }).inputValue();
-      const preferencesBefore = await page.evaluate(() => localStorage.getItem("tango-config"));
       return { card, before, deckBefore, sortBefore, preferencesBefore, preview };
     });
   await test.step("When: Close the answer with Escape", async () => {
@@ -128,15 +130,17 @@ test("CARD-LIST-06 reads and selects rich answers without dismissing the preview
     await expect(reader.getByText("Footnote answer.", { exact: false })).toBeInViewport();
     await expect(preview).toBeVisible();
   });
-  await test.step("When: Return, follow the note marker, and return again", async () => {
+  const { scrollBefore } = await test.step("When: Return, follow the note marker, and return again", async () => {
     await reader.getByRole("link", { name: "Back to reference 1", exact: true }).click();
     await reader.getByRole("link", { name: "1", exact: true }).click();
     await reader.getByRole("link", { name: "Back to reference 1", exact: true }).click();
     await reader.focus();
+    const scrollBefore = await reader.evaluate((element) => element.scrollTop);
     await page.keyboard.press("PageDown");
+    return { scrollBefore };
   });
   await test.step("Then: The answer scrolls vertically and remains open", async () => {
-    await expect.poll(() => reader.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
+    await expect.poll(() => reader.evaluate((element) => element.scrollTop)).toBeGreaterThan(scrollBefore);
     await expect(preview).toBeVisible();
   });
   await test.step("When: Read horizontally overflowing code and math with the keyboard", async () => {
