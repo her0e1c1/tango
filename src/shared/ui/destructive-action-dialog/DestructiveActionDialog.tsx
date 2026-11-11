@@ -116,7 +116,7 @@ export const DestructiveActionDialog: React.FC<DestructiveActionDialogProps> = (
         aria-labelledby={titleId}
         aria-describedby={describedBy}
         aria-busy={props.pending || undefined}
-        className="w-full max-w-reading rounded-surface border border-border bg-surface-elevated p-4 text-ink shadow-elevated sm:p-6"
+        className="my-auto w-full max-w-reading rounded-surface border border-border bg-surface-elevated p-4 text-ink shadow-elevated sm:p-6"
       >
         <h2 id={titleId} className="text-title font-bold">
           {props.title}

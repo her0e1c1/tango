@@ -8,7 +8,8 @@ Deck の作成・編集・削除と、重複しない再試行を確認する。
 
 | ID | カテゴリ | 区分 | テストケース |
 | --- | --- | --- | --- |
-| DECK-MANAGEMENT-03 | read | 正常系 | [Deck の削除を取り消せる](#deck-management-03) |
+| DECK-MANAGEMENT-03 | read | 正常系 | [短い画面でも Deck の削除確認を読み、取り消せる](#deck-management-03) |
+| DECK-MANAGEMENT-11 | read | 正常系 | [通常高さでも長い名前の Deck の削除確認を読み、取り消せる](#deck-management-11) |
 | DECK-MANAGEMENT-08 | read | 正常系 | [未保存の Deck 編集内容を維持して編集を続けられる](#deck-management-08) |
 | DECK-MANAGEMENT-10 | read | 正常系 | [未保存の Deck 編集内容を破棄して一覧へ戻れる](#deck-management-10) |
 | DECK-MANAGEMENT-05 | write | 正常系 | [ログイン中に空の Deck を作成して再読み込み後も確認できる](#deck-management-05) |
@@ -21,7 +22,7 @@ Deck の作成・編集・削除と、重複しない再試行を確認する。
 
 <a id="deck-management-03"></a>
 
-### DECK-MANAGEMENT-03 Deck の削除を取り消せる
+### DECK-MANAGEMENT-03 短い画面でも Deck の削除確認を読み、取り消せる
 
 カテゴリ: `read`
 
@@ -30,18 +31,48 @@ Deck の作成・編集・削除と、重複しない再試行を確認する。
 Given:
 
 - Fixture: [`study-session-middle`](./fixture/study-session-middle.yaml)
-- 所有する Deck の操作メニューから削除ダイアログを開いている。
-- ダイアログに対象 Deck、関連 Card と学習 session への影響、削除を取り消せない旨が表示されている。
+- 所有する Deck に Card と途中から再開できる学習 session がある。1枚へ回答済みで、回答履歴・学習状態が保存され、未回答の Card が残っている。
+- Deck の名前を、`"START "`、`"Long deletion target name "` の12回繰り返し、`"END"` の順に連結した321文字へ変更済みである。
+- 画面の幅は360px、高さは360pxで、Deck 一覧の操作メニューから削除確認を開いている。
+- 初期フォーカスは Cancel にある。
 
 When:
 
-- Cancel を選択する。
+- 通常のスクロールで確認の先頭へ戻り、見出し、名前の先頭から末尾、関連 Card・学習 session への影響と取り消せない旨を読む。
+- 名前欄の内部スクロールと Tab / Shift+Tab で名前欄・Cancel・Delete を辿り、Cancel を選択する。
 
 Then:
 
-- 削除ダイアログが閉じる。
-- フォーカスが対象 Deck の操作メニューボタンに戻る。
-- 対象 Deck と Card を引き続き利用でき、学習 session も同じ位置から再開できる。
+- 見出しを読め、名前の先頭と末尾、説明、Cancel / Delete まで到達できる。全内容の同時表示は要求しない。
+- 削除確認が閉じ、フォーカスが対象 Deck の操作メニューボタンへ戻る。
+- 読取・フォーカス移動・Cancel により Deck、Card とその学習状態、学習 session・回答が変わらず、同じ位置から再開できる。
+
+<a id="deck-management-11"></a>
+
+### DECK-MANAGEMENT-11 通常高さでも長い名前の Deck の削除確認を読み、取り消せる
+
+カテゴリ: `read`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`study-session-middle`](./fixture/study-session-middle.yaml)
+- 所有する Deck に Card と途中から再開できる学習 session がある。1枚へ回答済みで、回答履歴・学習状態が保存され、未回答の Card が残っている。
+- Deck の名前を、`"START "`、`"Long deletion target name "` の12回繰り返し、`"END"` の順に連結した321文字へ変更済みである。
+- 画面の幅は360px、高さは640pxで、Deck 一覧の操作メニューから削除確認を開いている。
+- 初期フォーカスは Cancel にある。
+
+When:
+
+- 通常のスクロールで確認の先頭へ戻り、見出し、名前の先頭から末尾、関連 Card・学習 session への影響と取り消せない旨を読む。
+- 名前欄の内部スクロールと Tab / Shift+Tab で名前欄・Cancel・Delete を辿り、Cancel を選択する。
+
+Then:
+
+- 見出しを読め、名前の先頭と末尾、説明、Cancel / Delete まで到達できる。全内容の同時表示は要求しない。
+- 削除確認が閉じ、フォーカスが対象 Deck の操作メニューボタンへ戻る。
+- 読取・フォーカス移動・Cancel により Deck、Card とその学習状態、学習 session・回答が変わらず、同じ位置から再開できる。
 
 <a id="deck-management-08"></a>
 

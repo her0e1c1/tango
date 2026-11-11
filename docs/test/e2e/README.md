@@ -138,7 +138,8 @@
 | DECK-LIST-11 | read | 正常系 | [条件の変更と画面復帰で一覧の復習件数を更新する](./deck-list.md#deck-list-11) |
 | DECK-LIST-12 | read | 正常系 | [空の Deck 一覧でも追加メニューを利用できる](./deck-list.md#deck-list-12) |
 | DECK-LIST-13 | write | 正常系 | [Deck 一覧の Continue から既存の学習を再開できる](./deck-list.md#deck-list-13) |
-| DECK-MANAGEMENT-03 | read | 正常系 | [Deck の削除を取り消せる](./deck-management.md#deck-management-03) |
+| DECK-MANAGEMENT-03 | read | 正常系 | [短い画面でも Deck の削除確認を読み、取り消せる](./deck-management.md#deck-management-03) |
+| DECK-MANAGEMENT-11 | read | 正常系 | [通常高さでも長い名前の Deck の削除確認を読み、取り消せる](./deck-management.md#deck-management-11) |
 | DECK-MANAGEMENT-08 | read | 正常系 | [未保存の Deck 編集内容を維持して編集を続けられる](./deck-management.md#deck-management-08) |
 | DECK-MANAGEMENT-10 | read | 正常系 | [未保存の Deck 編集内容を破棄して一覧へ戻れる](./deck-management.md#deck-management-10) |
 | DECK-MANAGEMENT-05 | write | 正常系 | [ログイン中に空の Deck を作成して再読み込み後も確認できる](./deck-management.md#deck-management-05) |
