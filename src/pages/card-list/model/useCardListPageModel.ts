@@ -54,7 +54,7 @@ export function useCardListPageModel(deck: Deck) {
     shownCard: state.shownCard,
     sortOrder: state.sortOrder,
   });
-  useCardListShortcuts(controls.dialogOpen);
+  useCardListShortcuts(controls.dialogOpen || state.shownCard != null);
 
   const goToCardCreate = () => void navigate(routes.cardCreate.to(deck.id));
   const clearFilters = () => clearDeckFilters(filterUpdate);

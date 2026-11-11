@@ -1,3 +1,4 @@
+import "@/test/mockNativeDialog";
 import "@/test/mockFirestorePersistence";
 import type { Preferences } from "@/entities/preference";
 
@@ -201,14 +202,14 @@ describe("NAVIGATION-02 CARD-LIST-05 CARD-LIST-01 CARD-LIST-ACTIONS-01 CARD-MANA
     // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByRole("button", { name: "View Front one" }));
     // Then: Verify the expected result in the assertions below.
-    expect(screen.getByLabelText("Close card")).toHaveTextContent("Back one");
+    expect(screen.getByRole("dialog", { name: "Front one" })).toHaveTextContent("Back one");
 
     // When: Exercise `userEvent.click` with the prepared inputs.
     await userEvent.click(screen.getByRole("button", { name: "Open next deck" }));
 
     // Then: Verify the expected result in the assertions below.
     expect(await screen.findByRole("button", { name: "View Front two" })).toBeVisible();
-    expect(screen.queryByLabelText("Close card")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Close card" })).not.toBeInTheDocument();
   });
 
   it("navigates with both recovery actions when the deck is unavailable", async () => {

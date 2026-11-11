@@ -37,9 +37,14 @@
 | CARD-FILTER-09 | write | 正常系 | [OR 条件でいずれかの選択タグを持つ Card に絞り込める](./card-filter.md#card-filter-09) |
 | CARD-FILTER-12 | write | 正常系 | [タグ未選択なら AND / OR にかかわらず全件表示する](./card-filter.md#card-filter-12) |
 | CARD-LIST-01 | read | 正常系 | [Card 一覧に学習情報を表示できる](./card-list.md#card-list-01) |
-| CARD-LIST-02 | read | 正常系 | [Card の裏面オーバーレイを開ける](./card-list.md#card-list-02) |
-| CARD-LIST-03 | read | 正常系 | [Card の裏面オーバーレイを閉じられる](./card-list.md#card-list-03) |
+| CARD-LIST-02 | read | 正常系 | [Card の解答プレビューを開ける](./card-list.md#card-list-02) |
+| CARD-LIST-03 | read | 正常系 | [Card の解答プレビューを閉じて一覧へ戻れる](./card-list.md#card-list-03) |
 | CARD-LIST-04 | read | 正常系 | [Card 未登録の一覧から Card の追加へ進める](./card-list.md#card-list-04) |
+| CARD-LIST-06 | read | 正常系 | [解答の文章を選択できる](./card-list.md#card-list-06) |
+| CARD-LIST-07 | read | 正常系 | [解答のリンクと脚注をたどれる](./card-list.md#card-list-07) |
+| CARD-LIST-08 | read | 正常系 | [解答の本文をキーボードで縦にスクロールできる](./card-list.md#card-list-08) |
+| CARD-LIST-09 | read | 正常系 | [解答のコードをキーボードで横にスクロールできる](./card-list.md#card-list-09) |
+| CARD-LIST-10 | read | 正常系 | [解答の数式をキーボードで横にスクロールできる](./card-list.md#card-list-10) |
 | CARD-LIST-05 | read | 異常系 | [存在しない Deck から復帰できる](./card-list.md#card-list-05) |
 | CARD-LIST-ACTIONS-02 | read | 正常系 | [Card を追加が新しい順に表示できる](./card-list-actions.md#card-list-actions-02) |
 | CARD-LIST-ACTIONS-03 | read | 正常系 | [Card の表示順を標準へ戻せる](./card-list-actions.md#card-list-actions-03) |

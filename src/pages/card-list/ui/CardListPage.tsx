@@ -63,15 +63,9 @@ const CardListContainer: React.FC<{ deck: Deck }> = ({ deck }) => {
           }}
           {...(model.answer != null
             ? {
-                overlay: {
-                  content: (
-                    <div>
-                      <h2 className="px-study-inline pt-section-gap text-title font-bold text-ink">
-                        {model.answer.frontText}
-                      </h2>
-                      <BackText {...model.answer} />
-                    </div>
-                  ),
+                preview: {
+                  title: model.answer.frontText,
+                  content: <BackText {...model.answer} />,
                   onClose: model.closeAnswer,
                 },
               }

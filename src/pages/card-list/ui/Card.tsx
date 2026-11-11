@@ -65,8 +65,11 @@ export const Card: React.FC<CardProps> = (props) => {
           disabled={disabled}
           aria-label={t("cardList.card.view", { cardText: props.card.frontText })}
           className="absolute inset-0 z-10 rounded-control text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:cursor-not-allowed"
-          onClick={() => {
-            if (!disabled) props.goToView?.(id);
+          onClick={(event) => {
+            if (disabled) return;
+            // Pointer activation does not focus buttons in every browser; preserve this exact opener.
+            event.currentTarget.focus({ preventScroll: true });
+            props.goToView?.(id);
           }}
         />
         <span className="w-full truncate px-1 text-body font-semibold text-ink">{props.card.frontText}</span>

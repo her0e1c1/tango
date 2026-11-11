@@ -30,6 +30,9 @@ Card 一覧画面を入口とした `play` で、対象 Deck の一覧、閲覧�
 | STORYBOOK-CARD-LIST-20 | render | 正常系 | [処理中の Card を操作させない](#storybook-card-list-20) |
 | STORYBOOK-CARD-LIST-21 | interaction | 正常系 | [選んだ Card の削除を開始する](#storybook-card-list-21) |
 | STORYBOOK-CARD-LIST-22 | render | 正常系 | [操作不可の Card にメニューを開かない](#storybook-card-list-22) |
+| STORYBOOK-CARD-LIST-23 | interaction | 正常系 | [開いた時点の解答を開き直すまで保持する](#storybook-card-list-23) |
+| STORYBOOK-CARD-LIST-24 | interaction | 正常系 | [起点の Card が消えた後は並び順へ戻る](#storybook-card-list-24) |
+| STORYBOOK-CARD-LIST-25 | interaction | 正常系 | [解答プレビュー中も通知を確認できる](#storybook-card-list-25) |
 | STORYBOOK-DECK-FILTER-01 | interaction | 正常系 | [閲覧タグをまとめて解除する](#storybook-deck-filter-01) |
 | STORYBOOK-DECK-FILTER-02 | interaction | 正常系 | [折りたたまれたタグを表示する](#storybook-deck-filter-02) |
 | STORYBOOK-DECK-FILTER-03 | interaction | 正常系 | [タグ選択を一覧へ反映する](#storybook-deck-filter-03) |
@@ -140,11 +143,12 @@ Given:
 
 When:
 
-- 片方の Card の閲覧を選ぶ。
+- Enter・Space・ポインターで対象 Card の閲覧を選ぶ。
 
 Then:
 
-- 選んだ Card の表面が表示され、もう片方の内容と取り違えない。
+- 選んだ Card の名前付きプレビューに表面と解答を表示し、もう片方の内容と取り違えない。
+- プレビュー内へフォーカスが移り、背景操作と画面移動のショートカットは利用できない。
 
 <a id="storybook-card-list-06"></a>
 
@@ -184,7 +188,8 @@ When:
 
 Then:
 
-- 拡大表示が閉じ、一覧を再び操作できる。
+- 拡大表示が閉じ、接続済みで操作可能な元の表示ボタンへフォーカスが戻る。
+- 一覧を再び操作できる。
 
 <a id="storybook-card-list-08"></a>
 
@@ -486,6 +491,70 @@ When:
 Then:
 
 - 操作メニューが表示されず、Card の内容も変わらない。
+
+<a id="storybook-card-list-23"></a>
+
+### STORYBOOK-CARD-LIST-23 開いた時点の解答を開き直すまで保持する
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- Card 一覧から長い解答を開き、本文を途中までスクロールしている。対象 Deck には学習中のセッションがある。
+
+When:
+
+- 同じ Card の本文とタグの更新を受け取り、プレビューを閉じて同じ Card を開き直す。
+
+Then:
+
+- 閲覧中は開いた時点の本文とタグによる表示、読み取り位置とフォーカスを維持する。
+- 一覧の更新後も同じ起点へ戻り、開き直すと新しい本文とタグによる表示になる。
+- プレビューの開閉は Card・Deck・セッション・設定を変更しない。
+
+<a id="storybook-card-list-24"></a>
+
+### STORYBOOK-CARD-LIST-24 起点の Card が消えた後は並び順へ戻る
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- Card 一覧から解答プレビューを開いている。
+
+When:
+
+- 更新により起点の Card を含む一覧の全 Card がなくなり、残っている解答プレビューを閉じる。
+
+Then:
+
+- プレビューが閉じ、別の Card や画面外へ移らず、並び順操作へフォーカスが移る。
+- 一覧は Card 未作成の案内を表示する。
+
+<a id="storybook-card-list-25"></a>
+
+### STORYBOOK-CARD-LIST-25 解答プレビュー中も通知を確認できる
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- Card 一覧から解答プレビューを開いている。
+
+When:
+
+- 自動では消えない警告通知を受け取り、通知を消さずに解答プレビューを閉じる。
+
+Then:
+
+- 表示中のプレビュー内で同じ通知の表示と読み上げ領域を一つだけ利用できる。通知はフォーカスを奪わず、背景の通知を消す操作は利用できない。
+- プレビューを閉じても通知を失わず、通常の通知表示と通知を消す操作へ戻る。フォーカスは元の Card の表示操作へ戻る。
 
 <a id="storybook-deck-filter-01"></a>
 

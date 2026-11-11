@@ -13,7 +13,8 @@ const longUnbrokenTag =
 const longUnbrokenCards = fixture.cards.long.map((card, index) =>
   index === 0 ? { ...card, tags: [longUnbrokenTag] } : card
 );
-const cardViewOverlay = (dark: boolean) => ({
+const cardViewPreview = (dark: boolean) => ({
+  title: "Code answer",
   content: <BackText text={fixture.code.default} category="python" code dark={dark} />,
   onClose: fn(),
 });
@@ -35,19 +36,19 @@ const RemovableSelectedTagsExample: React.FC<{
 };
 
 const ClosableCardViewExample: React.FC<React.ComponentProps<typeof CardList>> = (props) => {
-  const { overlay: initialOverlay, ...rest } = props;
-  const [overlay, setOverlay] = React.useState(initialOverlay);
+  const { preview: initialPreview, ...rest } = props;
+  const [preview, setPreview] = React.useState(initialPreview);
 
   return (
     <CardList
       {...rest}
-      {...(overlay !== undefined
+      {...(preview !== undefined
         ? {
-            overlay: {
-              ...overlay,
+            preview: {
+              ...preview,
               onClose: () => {
-                overlay.onClose?.();
-                setOverlay(undefined);
+                preview.onClose?.();
+                setPreview(undefined);
               },
             },
           }
@@ -202,25 +203,25 @@ export const Long: Story = {
 };
 
 export const CardView: Story = {
-  args: { overlay: cardViewOverlay(false) },
+  args: { preview: cardViewPreview(false) },
 };
 
 export const DarkCardView: Story = {
-  args: { overlay: cardViewOverlay(true) },
+  args: { preview: cardViewPreview(true) },
   globals: { theme: "dark" },
 };
 
 export const CardViewInteraction: Story = {
-  args: { overlay: cardViewOverlay(false) },
+  args: { preview: cardViewPreview(false) },
   render: (args) => <ClosableCardViewExample {...args} />,
   play: async ({ args, canvas, userEvent, step }) => {
     // Given: Use the rendered story, its args, parameters, and any setup below.
-    await step("STORYBOOK-CARD-LIST-07 Close card overlay", async () => {
+    await step("STORYBOOK-CARD-LIST-07 Close card preview", async () => {
       // Given: Use the rendered story, its args, parameters, and any setup below.
       // When: Exercise `userEvent.click` with the prepared inputs.
       await userEvent.click(canvas.getByRole("button", { name: "Close card" }));
       // Then: Verify the expected result in the assertions below.
-      await expect(args.overlay?.onClose).toHaveBeenCalledOnce();
+      await expect(args.preview?.onClose).toHaveBeenCalledOnce();
       await expect(canvas.queryByRole("button", { name: "Close card" })).not.toBeInTheDocument();
     });
   },

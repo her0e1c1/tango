@@ -1,8 +1,12 @@
 import type { StoryObj } from "@storybook/react-vite";
 import { expect, fireEvent, mocked, screen, waitFor, within } from "storybook/test";
 import { appI18n } from "@/app/i18n/instance";
-import { calculateFsrsState, deleteCard } from "@/entities/card";
+import { calculateFsrsState, deleteCard, getCards } from "@/entities/card";
 import { replaceRemoteCards } from "@/test/utils/entityFixtures";
+import { getDecks } from "@/entities/deck";
+import { getPreferences } from "@/entities/preference";
+import { getStudySession } from "@/entities/study-session";
+import { showToast } from "@/shared/ui/toast";
 import { routeMeta, state, deck, cards, now } from "./support";
 
 function page(selectedTags: string[] = [], tagAndFilter = false, values = cards) {
@@ -102,28 +106,162 @@ export const FutureCards: Story = {
 };
 export const ViewAndClose: Story = {
   play: async ({ canvas, userEvent, step }) => {
-    // Given: Use the rendered story, its args, parameters, and any setup below.
-    await step("STORYBOOK-CARD-LIST-05 Open the selected card without mixing its content", async () => {
-      // Given: Use the rendered story, its args, parameters, and any setup below.
-      // When: Exercise `userEvent.click` with the prepared inputs.
-      await userEvent.click(await canvas.findByRole("button", { name: "View Second" }));
-      const overlay = canvas.getByRole("button", { name: "Close card" });
-      // Then: Verify the expected result in the assertions below.
-      await expect(within(overlay).getByRole("heading", { name: "Second" })).toBeVisible();
-      await expect(overlay).toHaveTextContent("Second answer");
-      await expect(within(overlay).queryByText("Hello")).not.toBeInTheDocument();
+    const opener = await canvas.findByRole("button", { name: "View Second" });
+    await step("STORYBOOK-CARD-LIST-05 Open the selected answer and isolate the background", async () => {
+      // Given: The real Card List Page contains two distinct answers.
+      opener.focus();
+      // When: Activate the chosen Card from the keyboard.
+      await userEvent.keyboard("{Enter}");
+      // Then: The selected answer owns focus and the background cannot take it.
+      const preview = canvas.getByRole("dialog", { name: "Second" });
+      const title = within(preview).getByRole("heading", { name: "Second" });
+      await expect(title).toHaveFocus();
+      await expect(preview).toHaveTextContent("Second answer");
+      await expect(within(preview).queryByText("Hola")).not.toBeInTheDocument();
+      canvas.getByRole("combobox", { name: "Sort order", hidden: true }).focus();
+      await expect(title).toHaveFocus();
+      // When: Try Page shortcuts while the answer remains open.
+      await userEvent.keyboard("st");
+      // Then: The Card List Page and preview remain active.
+      await expect(preview).toBeVisible();
+      await expect(canvas.getByRole("heading", { name: "Cards", hidden: true })).toBeInTheDocument();
     });
-    await step("STORYBOOK-CARD-LIST-07 Close the enlarged card and operate the list again", async () => {
-      // Given: Use the rendered story, its args, parameters, and any setup below.
-      // When: Exercise `userEvent.click` with the prepared inputs.
-      await userEvent.click(canvas.getByRole("button", { name: "Close card" }));
-      // Then: Verify the expected result in the assertions below.
-      await expect(canvas.queryByRole("button", { name: "Close card" })).not.toBeInTheDocument();
-      await expect(canvas.getByRole("button", { name: "View Hello" })).toBeEnabled();
-      // When: Exercise `userEvent.click` with the prepared inputs.
-      await userEvent.click(canvas.getByRole("button", { name: "View Hello" }));
-      // Then: Verify the expected result in the assertions below.
-      await expect(canvas.getByRole("button", { name: "Close card" })).toHaveTextContent("Hola");
+    await step("STORYBOOK-CARD-LIST-07 Close the answer and restore the exact opener", async () => {
+      // Given: The selected answer is open and the original row is still connected.
+      const preview = canvas.getByRole("dialog", { name: "Second" });
+      // When: Choose the independent Close action.
+      await userEvent.click(within(preview).getByRole("button", { name: "Close card" }));
+      // Then: The preview closes and the same opener regains focus.
+      await expect(canvas.queryByRole("dialog")).not.toBeInTheDocument();
+      await waitFor(() => expect(opener).toHaveFocus());
+      // When: Open another answer with Space.
+      const next = canvas.getByRole("button", { name: "View Hello" });
+      next.focus();
+      await userEvent.keyboard(" ");
+      // Then: The next answer is available through its own named dialog.
+      await expect(canvas.getByRole("dialog", { name: "Hello" })).toHaveTextContent("Hola");
+    });
+  },
+};
+
+const snapshotCards = cards.map((card, index) =>
+  index === 0 ? { ...card, backText: "Original answer\n\n".repeat(90) } : card
+);
+const previewState = () => ({
+  cards: getCards(),
+  decks: getDecks(),
+  preferences: getPreferences(),
+  session: getStudySession(deck.id),
+});
+
+export const OpeningSnapshot: Story = {
+  parameters: {
+    page: {
+      ...page([], false, snapshotCards),
+      sessionsByDeckId: {
+        [deck.id]: {
+          sessionId: "preview-session",
+          cardOrderIds: cards.map((card) => card.id),
+          currentIndex: 0,
+          lastStudiedAt: now,
+          startedAt: now,
+        },
+      },
+    },
+  },
+  play: async ({ canvas, userEvent, step }) => {
+    await step("STORYBOOK-CARD-LIST-23 Keep the opening answer and reading position until it is reopened", async () => {
+      // Given: A long answer is open at a nonzero reading position.
+      const before = JSON.stringify(previewState());
+      await userEvent.click(await canvas.findByRole("button", { name: "View Hello" }));
+      const preview = canvas.getByRole("dialog", { name: "Hello" });
+      const reader = within(preview).getByRole("region", { name: "Answer" });
+      reader.focus();
+      reader.scrollTop = 200;
+      await expect(reader.scrollTop).toBe(200);
+      await expect(JSON.stringify(previewState())).toBe(before);
+      // When: The existing Entity boundary supplies updated content and tags for the same Card.
+      replaceRemoteCards(
+        getCards().map((card) =>
+          card.id === cards[0]?.id
+            ? { ...card, frontText: "Updated Hello", backText: "const updated = true;", tags: ["typescript"] }
+            : card
+        )
+      );
+      // Then: The row updates, while the open answer, renderer, reading position and focus remain intact.
+      await waitFor(() =>
+        expect(canvas.getByRole("button", { name: "View Updated Hello", hidden: true })).toBeInTheDocument()
+      );
+      await expect(preview).toHaveTextContent("Original answer");
+      await expect(within(preview).queryByRole("code")).not.toBeInTheDocument();
+      await expect(reader.scrollTop).toBe(200);
+      await expect(reader).toHaveFocus();
+      const afterUpdate = JSON.stringify(previewState());
+      // When: Close and reopen the same Card.
+      await userEvent.click(within(preview).getByRole("button", { name: "Close card" }));
+      const updated = canvas.getByRole("button", { name: "View Updated Hello" });
+      await waitFor(() => expect(updated).toHaveFocus());
+      await userEvent.click(updated);
+      // Then: Reopening uses the updated body and tag-selected code renderer without changing Entity data.
+      const reopened = canvas.getByRole("dialog", { name: "Updated Hello" });
+      await expect(within(reopened).getByRole("code")).toHaveTextContent("const updated = true;");
+      await expect(JSON.stringify(previewState())).toBe(afterUpdate);
+    });
+  },
+};
+
+export const RemovedPreviewOpener: Story = {
+  play: async ({ canvas, userEvent, step }) => {
+    await step("STORYBOOK-CARD-LIST-24 Return to Sort when the original Card disappears", async () => {
+      // Given: A preview is open from a connected Card row.
+      await userEvent.click(await canvas.findByRole("button", { name: "View Hello" }));
+      const preview = canvas.getByRole("dialog", { name: "Hello" });
+      // When: A subscription update removes every Card, then the user closes the retained answer.
+      replaceRemoteCards([]);
+      await waitFor(() =>
+        expect(canvas.queryByRole("button", { name: "View Hello", hidden: true })).not.toBeInTheDocument()
+      );
+      await expect(preview).toHaveTextContent("Hola");
+      await userEvent.click(within(preview).getByRole("button", { name: "Close card" }));
+      // Then: Focus moves to the existing Sort control rather than another Card or document body.
+      await expect(canvas.queryByRole("dialog")).not.toBeInTheDocument();
+      await waitFor(() => expect(canvas.getByRole("combobox", { name: "Sort order" })).toHaveFocus());
+      await expect(canvas.getByRole("heading", { name: "No cards yet" })).toBeVisible();
+    });
+  },
+};
+
+export const PreviewWithNotifications: Story = {
+  play: async ({ canvas, userEvent, step }) => {
+    await step("STORYBOOK-CARD-LIST-25 Keep the existing notification inside the native preview", async () => {
+      // Given: The real Page owns an open answer and the one application Toast viewport.
+      const opener = await canvas.findByRole("button", { name: "View Hello" });
+      await userEvent.click(opener);
+      const preview = canvas.getByRole("dialog", { name: "Hello" });
+      const title = within(preview).getByRole("heading", { name: "Hello" });
+      // When: A persistent warning arrives through the existing notification boundary.
+      showToast({ messageKey: "toast.saveFailure", tone: "warning" });
+      // Then: The notification has one visible live region inside the modal and does not take focus.
+      const notice = await within(preview).findByRole("status", { name: appI18n.t("toast.notifications") });
+      await expect(notice).toHaveTextContent(appI18n.t("toast.saveFailure"));
+      await expect(within(preview).getByText(appI18n.t("toast.saveFailure"), { exact: true })).toBeVisible();
+      await expect(
+        canvas.getAllByRole("status", { name: appI18n.t("toast.notifications"), hidden: true })
+      ).toHaveLength(1);
+      await expect(canvas.queryByRole("button", { name: "Dismiss notification" })).not.toBeInTheDocument();
+      await expect(title).toHaveFocus();
+      // When: The user closes the preview without dismissing the warning.
+      await userEvent.click(within(preview).getByRole("button", { name: "Close card" }));
+      // Then: The same notification returns to the Page and the exact opener regains focus.
+      await expect(await canvas.findByRole("status", { name: appI18n.t("toast.notifications") })).toHaveTextContent(
+        appI18n.t("toast.saveFailure")
+      );
+      await expect(canvas.getByText(appI18n.t("toast.saveFailure"), { exact: true })).toBeVisible();
+      await expect(
+        canvas.getAllByRole("status", { name: appI18n.t("toast.notifications"), hidden: true })
+      ).toHaveLength(1);
+      await expect(canvas.getByRole("button", { name: "Dismiss notification" })).toBeVisible();
+      await waitFor(() => expect(opener).toHaveFocus());
     });
   },
 };

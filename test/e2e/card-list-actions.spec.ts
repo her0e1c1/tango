@@ -47,7 +47,7 @@ test("CARD-LIST-ACTIONS-02 CARD-LIST-ACTIONS-07 sorts newest first with stable t
     await page.getByRole("button", { name: `View ${oldest.frontText}` }).click();
   });
   await test.step("Then: The selected answer is shown", async () => {
-    await expect(page.getByRole("button", { name: "Close card" })).toContainText(oldest.backText);
+    await expect(page.getByRole("dialog", { name: oldest.frontText, exact: true })).toContainText(oldest.backText);
   });
   await test.step("When: Close the card answer", async () => {
     await page.getByRole("button", { name: "Close card" }).click();
