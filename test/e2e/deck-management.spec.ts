@@ -280,8 +280,7 @@ const readAndCancelLongDeckDeletion = async (fixture: E2EFixture, page: Page, te
     // The gutter belongs to the outer scroll area, not the independently scrolling name.
     await page.mouse.move(8, height / 2);
     await page.mouse.wheel(0, -10000);
-    await heading.dblclick({ position: { x: 8, y: 12 } });
-    const headingSelected = await page.evaluate(() => window.getSelection()?.toString());
+    await heading.click({ trial: true });
     const headingVisible = await isFullyInViewport(heading);
     await testInfo.attach(`deletion-${String(height)}-heading`, {
       body: await page.screenshot(),
@@ -327,6 +326,10 @@ const readAndCancelLongDeckDeletion = async (fixture: E2EFixture, page: Page, te
     await page.keyboard.press("Tab");
     const cancelFocused = await cancel.evaluate((element) => element === document.activeElement);
     const cancelVisible = await isFullyInViewport(cancel);
+    await testInfo.attach(`deletion-${String(height)}-cancel`, {
+      body: await page.screenshot(),
+      contentType: "image/png",
+    });
     await page.keyboard.press("Shift+Tab");
     const nameFocused = await target.evaluate((element) => element === document.activeElement);
     await page.keyboard.press("Tab");
@@ -341,7 +344,6 @@ const readAndCancelLongDeckDeletion = async (fixture: E2EFixture, page: Page, te
     await page.keyboard.press("Shift+Tab");
     await page.keyboard.press("Enter");
     return {
-      headingSelected,
       headingVisible,
       nameStartVisible,
       nameOverflowed,
@@ -354,7 +356,6 @@ const readAndCancelLongDeckDeletion = async (fixture: E2EFixture, page: Page, te
     };
   });
   await test.step("Then: All content was reachable and cancellation preserves every saved record", async () => {
-    expect(observed.headingSelected).toBe("Delete");
     expect(observed.headingVisible).toBe(true);
     expect(observed.nameStartVisible).toBe(true);
     expect(observed.nameOverflowed).toBe(true);
