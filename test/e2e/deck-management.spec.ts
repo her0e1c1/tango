@@ -240,6 +240,8 @@ const isFullyInViewport = (locator: Locator) =>
   });
 
 const readAndCancelLongDeckDeletion = async (fixture: E2EFixture, page: Page, testInfo: TestInfo, height: number) => {
+  // Hide only Firebase's fixed diagnostic banner in captures; it is absent from the production page.
+  const screenshot = () => page.screenshot({ style: ".firebase-emulator-warning { visibility: hidden !important; }" });
   const { deck, name, trigger, dialog, before, session } =
     await test.step("Given: A saved long-name deck, cards and a resumable session", async () => {
       const deck = fixture.deck();
@@ -283,7 +285,7 @@ const readAndCancelLongDeckDeletion = async (fixture: E2EFixture, page: Page, te
     await heading.click({ trial: true });
     const headingVisible = await isFullyInViewport(heading);
     await testInfo.attach(`deletion-${String(height)}-heading`, {
-      body: await page.screenshot(),
+      body: await screenshot(),
       contentType: "image/png",
     });
 
@@ -292,7 +294,7 @@ const readAndCancelLongDeckDeletion = async (fixture: E2EFixture, page: Page, te
     await expect.poll(() => target.evaluate((element) => element.scrollTop)).toBe(0);
     const nameStartVisible = await isFullyInViewport(target);
     await testInfo.attach(`deletion-${String(height)}-name-start`, {
-      body: await page.screenshot(),
+      body: await screenshot(),
       contentType: "image/png",
     });
     await target.press("End");
@@ -301,7 +303,7 @@ const readAndCancelLongDeckDeletion = async (fixture: E2EFixture, page: Page, te
       .toBe(true);
     const nameOverflowed = await target.evaluate((element) => element.scrollHeight > element.clientHeight);
     await testInfo.attach(`deletion-${String(height)}-name-end`, {
-      body: await page.screenshot(),
+      body: await screenshot(),
       contentType: "image/png",
     });
 
@@ -316,7 +318,7 @@ const readAndCancelLongDeckDeletion = async (fixture: E2EFixture, page: Page, te
       await paragraph.click({ trial: true });
       const visible = await isFullyInViewport(paragraph);
       await testInfo.attach(`deletion-${String(height)}-description-${String(index)}`, {
-        body: await page.screenshot(),
+        body: await screenshot(),
         contentType: "image/png",
       });
       descriptionsVisible.push(visible);
@@ -327,7 +329,7 @@ const readAndCancelLongDeckDeletion = async (fixture: E2EFixture, page: Page, te
     const cancelFocused = await cancel.evaluate((element) => element === document.activeElement);
     const cancelVisible = await isFullyInViewport(cancel);
     await testInfo.attach(`deletion-${String(height)}-cancel`, {
-      body: await page.screenshot(),
+      body: await screenshot(),
       contentType: "image/png",
     });
     await page.keyboard.press("Shift+Tab");
@@ -337,7 +339,7 @@ const readAndCancelLongDeckDeletion = async (fixture: E2EFixture, page: Page, te
     const confirmFocused = await confirm.evaluate((element) => element === document.activeElement);
     const confirmVisible = await isFullyInViewport(confirm);
     await testInfo.attach(`deletion-${String(height)}-actions`, {
-      body: await page.screenshot(),
+      body: await screenshot(),
       contentType: "image/png",
     });
     // Only Cancel is activated. Delete receives focus but must never be submitted.
