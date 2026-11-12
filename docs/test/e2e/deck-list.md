@@ -21,6 +21,8 @@ Deck 一覧の表示・並び順、復習と新規の件数、追加・管理画
 | DECK-LIST-11 | read | 正常系 | [条件の変更と画面復帰で一覧の復習件数を更新する](#deck-list-11) |
 | DECK-LIST-12 | read | 正常系 | [空の Deck 一覧でも追加メニューを利用できる](#deck-list-12) |
 | DECK-LIST-13 | write | 正常系 | [Deck 一覧の Continue から既存の学習を再開できる](#deck-list-13) |
+| DECK-LIST-14 | write | 正常系 | [Continue の保存待ち中は同じ Deck・別 Deck の再開を重ねない](#deck-list-14) |
+| DECK-LIST-15 | write | 異常系 | [Continue の保存失敗後に再開を再試行できる](#deck-list-15) |
 
 <a id="deck-list-01"></a>
 
@@ -318,3 +320,55 @@ Then:
 
 - 既存の学習を再開する。
 - 一覧表示と再開によって、Deck・Card の内容や学習結果・現在位置を変更しない。
+
+<a id="deck-list-14"></a>
+
+### DECK-LIST-14 Continue の保存待ち中は同じ Deck・別 Deck の再開を重ねない
+
+カテゴリ: `write`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`multi-study-sessions`](./fixture/multi-study-sessions.yaml)
+- 通常アカウントの複数の Deck に再開可能な学習があり、Deck 一覧を開いている。
+- 最初に選んだ Continue の保存結果がすぐには返らない。
+
+When:
+
+- 一つの Deck の Continue を選択し、待機中に同じ Deck と別 Deck の Continue を続けて操作する。
+- 保存が成功するまで待つ。
+
+Then:
+
+- 待機中はすべての Continue が操作不可となり、選んだ Deck だけに読み上げ可能な再開中の案内を英語・日本語で表示する。
+- 選んだ Deck の閲覧・管理操作も待機中は操作不可となる。別 Deck の閲覧・管理や、一覧から離れる操作は利用できる。
+- 後からの Continue は予約されず、最初に選んだ Deck の学習だけを元の出題順と位置から再開する。
+- 再開操作で回答を追加せず、Deck・Card の内容、学習の出題順と現在位置を変更しない。
+- 待機中に一覧を離れて戻っても、処理が終わるまでは Continue を重ねず、古い操作で自動遷移しない。
+
+<a id="deck-list-15"></a>
+
+### DECK-LIST-15 Continue の保存失敗後に再開を再試行できる
+
+カテゴリ: `write`
+
+区分: 異常系
+
+Given:
+
+- Fixture: [`multi-study-sessions`](./fixture/multi-study-sessions.yaml)
+- 通常アカウントの複数の Deck に再開可能な学習があり、Deck 一覧を開いている。
+- Continue の保存が遅れて失敗し、その後の明示的な再試行では成功できる。
+
+When:
+
+- 一つの Deck の Continue を選択し、待機中に同じ Deck と別 Deck の Continue を続けて操作する。
+- 失敗の案内後に、別 Deck の Continue を明示的に選択する。
+
+Then:
+
+- 待機中はすべての Continue が操作不可となり、失敗が通知されると再び操作できる。
+- 失敗時は一覧に留まり、待機中の再操作による別の通知や予約済みの再開を行わない。
+- 再試行で選んだ Deck の学習を元の出題順と位置から再開し、以前の Deck の学習も保持する。

@@ -1,3 +1,4 @@
+import { useAuth } from "@/entities/auth";
 import { useCards, classifyFsrsState } from "@/entities/card";
 import { compareActiveDecks } from "./compareActiveDecks";
 import { groupDecksByStudyStatus } from "./groupDecksByStudyStatus";
@@ -100,7 +101,8 @@ export const useDeckListState = () => {
   const decks = useDecks();
   const sessionsByDeckId = useStudySessions();
   const preferences = usePreferences();
-  const { bootstrapStatus } = useStore(deckListStore);
+  const { uid } = useAuth();
+  const { bootstrapStatus, pendingContinue } = useStore(deckListStore);
 
   const sections = useDeadlineQuery(buildDeckListSections, [
     { decks, cards, sessionsByDeckId, enabled: preferences.study.useCardInterval },
@@ -116,6 +118,7 @@ export const useDeckListState = () => {
 
   return {
     ...sections,
+    continuingDeckId: pendingContinue?.uid === uid ? pendingContinue.deckId : undefined,
     rawCount,
     visibleCount,
     emptyReason,

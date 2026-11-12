@@ -1,5 +1,7 @@
 import "@/test/mockFirestorePersistence";
 vi.mock("@/entities/auth/@x/study-session", () => ({ getAuthUid: () => mocks.uid }));
+import * as studySessionApi from "@/entities/study-session";
+import { getI18n } from "react-i18next";
 import { setStudySessionIndex } from "@/entities/study-session";
 import type { Preferences } from "@/entities/preference";
 
@@ -26,7 +28,7 @@ const mocks = vi.hoisted(() => ({
   uid: "user-id",
 }));
 
-vi.mock("@/entities/auth", () => ({ getAuthUid: () => mocks.uid }));
+vi.mock("@/entities/auth", () => ({ getAuthUid: () => mocks.uid, useAuth: () => ({ uid: mocks.uid }) }));
 vi.mock("@/entities/deck", async (importOriginal) => {
   const original = await importOriginal<typeof import("@/entities/deck")>();
   mocks.deleteDeck.mockImplementation(original.deleteDeck);
@@ -273,6 +275,162 @@ describe("DECK-LIST-02 NAVIGATION-02 DECK-LIST-01 DECK-MANAGEMENT-02 DECK-MANAGE
       expect(router.state.location.pathname).toBe("/");
     }
   );
+
+  it.each([
+    ["en", "Continue Active deck", "Continue Fresh deck", "Resuming study…"],
+    ["ja", "Active deckの学習を続ける", "Fresh deckの学習を続ける", "学習を再開しています…"],
+  ])(
+    "DECK-LIST-14 accepts only the first Continue while saving (%s)",
+    async (language, firstName, otherName, message) => {
+      // Given: Two resumable Decks and a delayed first save through the Page's Entity boundary.
+      await getI18n().changeLanguage(language);
+      startStudy(freshDeck.id, [freshCard], mocks.preferences.study, mocks.uid);
+      const otherSession = getStudySession(freshDeck.id);
+      const write = Promise.withResolvers<void>();
+      const originalTouch = studySessionApi.touchStudySession;
+      vi.spyOn(studySessionApi, "touchStudySession")
+        .mockImplementationOnce(async (id) => {
+          await write.promise;
+          await originalTouch(id);
+        })
+        .mockRejectedValue(new Error("An additional Continue was accepted"));
+      renderPage();
+      const first = screen.getByRole("button", { name: firstName });
+      const other = screen.getByRole("button", { name: otherName });
+
+      // When: Repeat the same and another Deck's activation before React can paint the pending state.
+      await actAsync(async () => {
+        fireEvent.click(first);
+        fireEvent.click(first);
+        fireEvent.click(other);
+      });
+
+      // Then: Only the original operation is pending, with accessible feedback and no rejected-repeat toast.
+      expect(first).toBeDisabled();
+      expect(other).toBeDisabled();
+      expect(first).toHaveAttribute("aria-busy", "true");
+      expect(first).toHaveAccessibleDescription(message);
+      expect(screen.getByText(message)).toHaveAttribute("role", "status");
+      expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+      expect(screen.queryByRole("heading", { name: "Study destination" })).not.toBeInTheDocument();
+
+      // When: The accepted save succeeds.
+      await actAsync(async () => write.resolve());
+
+      // Then: Only the first Deck is resumed, and the other session is untouched.
+      expect(await screen.findByRole("heading", { name: "Study destination" })).toBeVisible();
+      expect(getStudySession(freshDeck.id)).toEqual(otherSession);
+      expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    }
+  );
+
+  it("DECK-LIST-15 releases Continue after rejection and accepts an explicit retry", async () => {
+    // Given: Two resumable Decks and a delayed failing Continue.
+    startStudy(freshDeck.id, [freshCard], mocks.preferences.study, mocks.uid);
+    const firstSession = getStudySession(activeDeck.id);
+    const write = Promise.withResolvers<void>();
+    const originalTouch = studySessionApi.touchStudySession;
+    const touch = vi.spyOn(studySessionApi, "touchStudySession").mockReturnValueOnce(write.promise);
+    const router = createMemoryRouter([
+      { path: "/", element: <DeckListPage /> },
+      { path: "/deck/:id/study", element: <h1>Study destination</h1> },
+    ]);
+    render(
+      <>
+        <RouterProvider router={router} />
+        <ToastViewport />
+      </>
+    );
+
+    // When: Continue is activated repeatedly while its first save waits.
+    await actAsync(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Continue Active deck" }));
+      fireEvent.click(screen.getByRole("button", { name: "Continue Active deck" }));
+      fireEvent.click(screen.getByRole("button", { name: "Continue Fresh deck" }));
+    });
+    await actAsync(async () => write.reject(new Error("Save rejected")));
+
+    // Then: Rejection leaves the list usable and does not start the later Deck automatically.
+    expect(router.state.location.pathname).toBe("/");
+    expect(screen.getAllByRole("alert")).toHaveLength(1);
+    expect(screen.getByRole("button", { name: "Continue Active deck" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Continue Fresh deck" })).toBeEnabled();
+    expect(screen.queryByText("Resuming study…")).not.toBeInTheDocument();
+    expect(getStudySession(activeDeck.id)).toEqual(firstSession);
+
+    // When: The user explicitly retries with the other Deck after recovery.
+    touch.mockImplementation(originalTouch);
+    await userEvent.click(screen.getByRole("button", { name: "Continue Fresh deck" }));
+
+    // Then: The newly selected Deck opens without changing the original session.
+    await waitFor(() => expect(router.state.location.pathname).toBe(`/deck/${freshDeck.id}/study`));
+    expect(getStudySession(activeDeck.id)).toEqual(firstSession);
+  });
+
+  it("DECK-LIST-14 keeps pending acceptance across a list revisit without stale navigation", async () => {
+    // Given: A delayed Continue and a separate Deck that remains available for browsing.
+    startStudy(freshDeck.id, [freshCard], mocks.preferences.study, mocks.uid);
+    const write = Promise.withResolvers<void>();
+    vi.spyOn(studySessionApi, "touchStudySession").mockReturnValueOnce(write.promise);
+    const router = createMemoryRouter([
+      { path: "/", element: <DeckListPage /> },
+      { path: "/deck/:id", element: <Link to="/">Back to decks</Link> },
+      { path: "/deck/:id/study", element: <h1>Study destination</h1> },
+    ]);
+    render(<RouterProvider router={router} />);
+
+    // When: Leave through another Deck and return before the accepted Continue settles.
+    await userEvent.click(screen.getByRole("button", { name: "Continue Active deck" }));
+    expect(screen.getByRole("button", { name: "Open cards in Active deck" })).toBeDisabled();
+    await userEvent.click(screen.getByRole("button", { name: "Open cards in Fresh deck" }));
+    await userEvent.click(screen.getByRole("link", { name: "Back to decks" }));
+
+    // Then: Reentry does not accept another Continue or hide the pending feedback.
+    expect(screen.getByRole("button", { name: "Continue Active deck" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Continue Fresh deck" })).toBeDisabled();
+    expect(screen.getByRole("status")).toHaveTextContent("Resuming study…");
+
+    // When: The original Page's operation finishes after reentry.
+    await actAsync(async () => write.resolve());
+
+    // Then: The new visit remains on the list and allows an explicit Continue.
+    expect(router.state.location.pathname).toBe("/");
+    expect(screen.getByRole("button", { name: "Continue Active deck" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Continue Fresh deck" })).toBeEnabled();
+  });
+
+  it("DECK-LIST-14 STUDY-SESSION-21 isolates a new account's pending Continue from an old result", async () => {
+    // Given: The original account has a pending Continue and the next account will also wait.
+    const oldWrite = Promise.withResolvers<void>();
+    const newWrite = Promise.withResolvers<void>();
+    vi.spyOn(studySessionApi, "touchStudySession")
+      .mockReturnValueOnce(oldWrite.promise)
+      .mockReturnValueOnce(newWrite.promise);
+    const view = renderPage();
+    await userEvent.click(screen.getByRole("button", { name: "Continue Active deck" }));
+
+    // When: Switch accounts and start a new Continue before the old result arrives.
+    view.unmount();
+    mocks.uid = "other-user";
+    clearStudySessions();
+    await createDeck(mocks.uid, freshDeck);
+    await createCard(mocks.uid, freshCard);
+    startStudy(freshDeck.id, [freshCard], mocks.preferences.study, mocks.uid);
+    renderPage();
+    await userEvent.click(screen.getByRole("button", { name: "Continue Fresh deck" }));
+    await actAsync(async () => oldWrite.reject(new Error("Old account save rejected")));
+
+    // Then: The old account's failure neither notifies nor unlocks the current pending operation.
+    expect(screen.getByRole("button", { name: "Continue Fresh deck" })).toBeDisabled();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Study destination" })).not.toBeInTheDocument();
+
+    // When: The current account's accepted Continue completes.
+    await actAsync(async () => newWrite.resolve());
+
+    // Then: Its own result can navigate normally.
+    expect(await screen.findByRole("heading", { name: "Study destination" })).toBeVisible();
+  });
 
   it("downloads a visible Deck", async () => {
     // Given: Use this case's inputs and any shared test setup.

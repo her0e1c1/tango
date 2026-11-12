@@ -24,6 +24,7 @@ import { useDeckListState } from "./queries/useDeckListState";
 export function useDeckListPageModel() {
   const navigate = useNavigate();
   const deckListState = useDeckListState();
+  const { studying, other, reviewNow, totals } = deckListState;
   const cards = useCards();
   const decks = useDecks();
   const { loadSample } = usePreferences();
@@ -51,15 +52,11 @@ export function useDeckListPageModel() {
   const empty = getDeckListEmptyState(deckListState.emptyReason, () => void bootstrapSampleDeck());
 
   return {
-    sections: {
-      studying: deckListState.studying,
-      other: deckListState.other,
-      reviewNow: deckListState.reviewNow,
-      totals: deckListState.totals,
-    },
+    sections: { studying, other, reviewNow, totals },
     rawCount: deckListState.rawCount,
     visibleCount: deckListState.visibleCount,
     empty,
+    continuingDeckId: deckListState.continuingDeckId,
     deletionTarget,
     deletionPending: deletion.pending,
     requestDeletion,
