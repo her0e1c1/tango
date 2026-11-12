@@ -1,5 +1,12 @@
 import type { Page, Route } from "@playwright/test";
-import { expect, failNextFirestoreWrite, listDocuments, requireDocument, test } from "./utils/fixtures";
+import {
+  allowExpectedFirestoreWriteFailure,
+  expect,
+  failNextFirestoreWrite,
+  listDocuments,
+  requireDocument,
+  test,
+} from "./utils/fixtures";
 import { readSession } from "./utils/study-helpers";
 
 test("DECK-LIST-01 DECK-LIST-04 DECK-LIST-05 navigates from the Deck list to its Card list", async ({
@@ -292,7 +299,11 @@ test("DECK-LIST-14 accepts only the first Continue during a delayed save", async
   }
 });
 
-test("DECK-LIST-15 permits explicit Continue retry after a delayed rejection", async ({ fixture, page }) => {
+test("DECK-LIST-15 permits explicit Continue retry after a delayed rejection", async ({
+  fixture,
+  page,
+  browserErrors,
+}) => {
   const { first, other, session, otherSession, fault, write } =
     await test.step("Given: Two resumable Decks and a delayed failing save", async () => {
       await fixture.apply(page);
@@ -303,6 +314,7 @@ test("DECK-LIST-15 permits explicit Continue retry after a delayed rejection", a
       const otherSession = fixture.session("deck-b");
       await expect(page.getByRole("button", { name: `Continue ${first.name}`, exact: true })).toBeEnabled();
       const fault = await failNextFirestoreWrite(page, { collection: "studySession", id: session.sessionId });
+      allowExpectedFirestoreWriteFailure(browserErrors);
       const write = await holdContinueWrite(page, session.sessionId);
       return { first, other, session, otherSession, fault, write };
     });

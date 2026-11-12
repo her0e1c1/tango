@@ -170,16 +170,14 @@ export const DeckListCard: React.FC<DeckListCardProps> = (props) => {
         onClick={withId(active ? props.onClickContinue : props.onClickStudy)}
         aria-busy={continuing}
         aria-describedby={continuing ? pendingId : undefined}
-        disabled={pending || (active && props.continuingDeckId !== undefined)}
+        disabled={controlsDisabled || (active && props.continuingDeckId !== undefined)}
       >
         {active && <AiFillCaretRight aria-hidden="true" />}
         {t(`deckList.${studyAction}`)}
       </button>
-      {continuing && (
-        <p id={pendingId} role="status" className="text-caption text-ink-muted">
-          {t("deckList.continuing")}
-        </p>
-      )}
+      <p id={pendingId} role="status" className={cx("text-caption text-ink-muted", { "sr-only": !continuing })}>
+        {continuing ? t("deckList.continuing") : ""}
+      </p>
     </article>
   );
 };
