@@ -84,6 +84,7 @@
 | CARD-MANAGEMENT-25 | write | 異常系 | [Card 作成画面の離脱後に保存を拒否されても戻らない](./card-management.md#card-management-25) |
 | CARD-MANAGEMENT-04 | write | 異常系 | [Card の編集失敗後に再試行できる](./card-management.md#card-management-04) |
 | CARD-MANAGEMENT-08 | write | 異常系 | [Card の削除失敗後に再試行できる](./card-management.md#card-management-08) |
+| CARD-MANAGEMENT-28 | batch | 異常系 | [認証確認中の Card 保存失敗を元のアカウントへの復帰後に通知する](./card-management.md#card-management-28) |
 | CARD-TAG-MANAGEMENT-02 | read | 正常系 | [未保存のタグ変更を破棄する](./card-tag-management.md#card-tag-management-02) |
 | CARD-TAG-MANAGEMENT-07 | read | 正常系 | [タグ入力中の Enter は Card を送信せず下書きを保つ](./card-tag-management.md#card-tag-management-07) |
 | CARD-TAG-MANAGEMENT-09 | read | 正常系 | [入力直後の候補クリックで対象タグだけを解除する](./card-tag-management.md#card-tag-management-09) |

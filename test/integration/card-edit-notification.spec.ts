@@ -247,4 +247,85 @@ describe("CARD-MANAGEMENT-20 CARD-MANAGEMENT-26 CARD-MANAGEMENT-27 Card edit not
     // Then: Neither a stale success nor a stale failure replaces the current notification.
     expect(showToast).not.toHaveBeenCalled();
   });
+
+  it.each([false, true])(
+    "CARD-MANAGEMENT-28 retains a rejected save until its owner returns (repeat auth: %s)",
+    async (repeatAuth) => {
+      // Given: A Card save is pending when the same owner's sign-out check begins.
+      const write = Promise.withResolvers<void>();
+      vi.mocked(editCard).mockReturnValueOnce(write.promise);
+      const saved = submit({ cardId: card.id, values });
+      replaceAuthSession({ status: "initializing" });
+
+      // When: The write fails before sign-out is refused, possibly across another auth check.
+      write.reject(new Error("write rejected"));
+      await flushCompletions();
+      if (repeatAuth) {
+        replaceAuthSession(owner);
+        replaceAuthSession({ status: "initializing" });
+        await flushCompletions();
+      }
+
+      // Then: The result is not announced while the owner's identity is unresolved.
+      expect(showToast).not.toHaveBeenCalled();
+
+      // When: The refused sign-out restores the original owner.
+      replaceAuthSession(owner);
+      await expect(saved).resolves.toBe(false);
+
+      // Then: The failed edit is reported once, rather than permanently discarded.
+      expect(showToast).toHaveBeenCalledExactlyOnceWith({ messageKey: "toast.saveFailure", tone: "error" });
+      replaceAuthSession(owner);
+      expect(showToast).toHaveBeenCalledTimes(1);
+    }
+  );
+
+  it.each(["Deck removal", "owner change"])(
+    "CARD-MANAGEMENT-28 discards a retained failure after %s",
+    async (cancellation) => {
+      // Given: The save has failed while its original owner's auth check remains unresolved.
+      const write = Promise.withResolvers<void>();
+      vi.mocked(editCard).mockReturnValueOnce(write.promise);
+      const saved = submit({ cardId: card.id, values });
+      replaceAuthSession({ status: "initializing" });
+      write.reject(new Error("write rejected"));
+      await flushCompletions();
+
+      // When: The Deck disappears or another owner becomes active before notification.
+      if (cancellation === "Deck removal") setRemoteDecks([]);
+      else replaceAuthSession({ ...owner, uid: "another-owner" });
+      await expect(saved).resolves.toBe(false);
+      setRemoteDecks([deck]);
+      replaceAuthSession(owner);
+      await flushCompletions();
+
+      // Then: Restoring the old context cannot revive the discarded failure.
+      expect(showToast).not.toHaveBeenCalled();
+    }
+  );
+
+  it("CARD-MANAGEMENT-28 suppresses a retained failure when a newer edit succeeds", async () => {
+    // Given: A failed edit is waiting for its original owner to return.
+    const write = Promise.withResolvers<void>();
+    vi.mocked(editCard).mockReturnValueOnce(write.promise);
+    const saved = submit({ cardId: card.id, values });
+    replaceAuthSession({ status: "initializing" });
+    write.reject(new Error("write rejected"));
+    await flushCompletions();
+
+    // When: The restored owner immediately saves a newer edit before the old result resumes.
+    replaceAuthSession(owner);
+    const newer = { ...values, frontText: "Newer successful edit" };
+    const newSave = submit({ cardId: card.id, values: newer });
+    applyCardChanges([{ ...card, ...newer }]);
+    await expect(saved).resolves.toBe(false);
+    await expect(newSave).resolves.toBe(true);
+
+    // Then: Only the newer successful edit is announced.
+    expect(showToast).toHaveBeenCalledExactlyOnceWith({
+      messageKey: "cardForm.toast.updated",
+      messageParams: { name: newer.frontText },
+      tone: "success",
+    });
+  });
 });

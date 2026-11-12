@@ -42,12 +42,16 @@ export async function submit({ cardId, values }: SubmitCardEditInput): Promise<b
     try {
       await editCard(uid, input);
     } catch {
-      if (!signal.aborted && getAuthUid() === uid) showToast({ messageKey: "toast.saveFailure", tone: "error" });
+      await notifyCardResult(uid, cardId, completion, { messageKey: "toast.saveFailure", tone: "error" });
       return false;
     }
 
     if (signal.aborted || !(await waitForCardContent(uid, cardId, input, signal))) return false;
-    return notifySavedCard(uid, cardId, input.frontText, completion);
+    return notifyCardResult(uid, cardId, completion, {
+      messageKey: "cardForm.toast.updated",
+      messageParams: { name: input.frontText },
+      tone: "success",
+    });
   }
 
   try {
@@ -60,11 +64,11 @@ export async function submit({ cardId, values }: SubmitCardEditInput): Promise<b
   }
 }
 
-async function notifySavedCard(
+async function notifyCardResult(
   uid: string,
   cardId: CardId,
-  name: string,
-  completion: AbortController
+  completion: AbortController,
+  toast: Parameters<typeof showToast>[0]
 ): Promise<boolean> {
   const { signal } = completion;
   // A second auth check may start before the previous decision's continuation resumes.
@@ -72,7 +76,7 @@ async function notifySavedCard(
     if (!(await waitForOwner(uid, signal))) return false;
   }
   if (signal.aborted || pendingEdits.get(cardId) !== completion) return false;
-  showToast({ messageKey: "cardForm.toast.updated", messageParams: { name }, tone: "success" });
+  showToast(toast);
   return true;
 }
 
