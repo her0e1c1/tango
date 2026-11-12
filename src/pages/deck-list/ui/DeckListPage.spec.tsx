@@ -388,7 +388,7 @@ describe("DECK-LIST-02 NAVIGATION-02 DECK-LIST-01 DECK-MANAGEMENT-02 DECK-MANAGE
     // Then: Reentry does not accept another Continue or hide the pending feedback.
     expect(screen.getByRole("button", { name: "Continue Active deck" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Continue Fresh deck" })).toBeDisabled();
-    expect(screen.getByRole("status")).toHaveTextContent("Resuming study…");
+    expect(screen.getByText("Resuming study…")).toHaveAttribute("role", "status");
 
     // When: The original Page's operation finishes after reentry.
     await actAsync(async () => write.resolve());
