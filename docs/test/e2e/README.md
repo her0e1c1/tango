@@ -76,6 +76,8 @@
 | CARD-MANAGEMENT-19 | write | 正常系 | [Card の編集保存中は重ねて操作できない](./card-management.md#card-management-19) |
 | CARD-MANAGEMENT-20 | write | 正常系 | [Card 編集画面の離脱後に保存が完了しても現在の画面を維持する](./card-management.md#card-management-20) |
 | CARD-MANAGEMENT-02 | write | 正常系 | [Card を削除できる](./card-management.md#card-management-02) |
+| CARD-MANAGEMENT-26 | batch | 正常系 | [ログアウトを中止して元のアカウントへ戻っても Card の保存成功を通知する](./card-management.md#card-management-26) |
+| CARD-MANAGEMENT-27 | batch | 正常系 | [保存待ち中に所属 Deck を削除した Card の古い成功を通知しない](./card-management.md#card-management-27) |
 | CARD-MANAGEMENT-10 | read | 異常系 | [Card の未表示の面にある入力エラーを修正できる](./card-management.md#card-management-10) |
 | CARD-MANAGEMENT-07 | write | 異常系 | [Card の作成拒否後に重複なく再試行できる](./card-management.md#card-management-07) |
 | CARD-MANAGEMENT-14 | write | 異常系 | [Card 作成失敗後も離脱確認と入力を保持して再試行できる](./card-management.md#card-management-14) |

@@ -39,8 +39,10 @@ vi.mock("@hookform/resolvers/zod", async (importOriginal) => {
   };
 });
 
-vi.mock("@/entities/auth", () => ({
+vi.mock("@/entities/auth", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/entities/auth")>()),
   getAuthUid: () => mocks.authUid,
+  getAuthSession: () => ({ status: "authenticated", uid: mocks.authUid, isAnonymous: false, displayName: null }),
 }));
 vi.mock("@/entities/preference", () => ({
   usePreferences: () => mocks.preferences,
