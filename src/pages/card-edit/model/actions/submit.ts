@@ -1,5 +1,5 @@
 import { authSessionStore, getAuthSession, getAuthUid } from "@/entities/auth";
-import { editCard, getCards, waitForCardContent, type CardContentInput, type CardId } from "@/entities/card";
+import { editCard, findCardById, waitForCardContent, type CardContentInput, type CardId } from "@/entities/card";
 import { deckStore } from "@/entities/deck";
 import { showToast } from "@/shared/ui/toast";
 
@@ -32,7 +32,7 @@ export async function submit({ cardId, values }: SubmitCardEditInput): Promise<b
   });
   // Deck removal must end this operation even if no later Card snapshot arrives.
   const stopDeck = deckStore.subscribe(() => {
-    if (!getCards().some((card) => card.id === cardId && card.uid === uid)) completion.abort();
+    if (findCardById(cardId)?.uid !== uid) completion.abort();
   });
   const cancelled = Promise.withResolvers<boolean>();
   const cancel = () => cancelled.resolve(false);
