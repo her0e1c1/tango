@@ -23,6 +23,7 @@ export interface DeckListCardActions {
   onClickEdit?: (id: DeckId) => void;
   onClickDelete?: (id: DeckId) => void;
   isPending?: (id: DeckId) => boolean;
+  continuingDeckId?: DeckId | undefined;
 }
 
 interface DeckListCardMenuState {
@@ -66,18 +67,30 @@ const DeckReviewStatus: React.FC<{
   );
 };
 
+function getStudyProgressWidth(session: StudySession) {
+  const ratio = session.cardOrderIds.length === 0 ? 0 : session.currentIndex / session.cardOrderIds.length;
+  return `${String(ratio * 100)}%`;
+}
+
+function getStudyAction(active: boolean, review: DeckListCardProps["review"]) {
+  if (active) return "continue";
+  if (review?.due) return "review";
+  if (review?.new) return "studyNew";
+  return "study";
+}
+
 export const DeckListCard: React.FC<DeckListCardProps> = (props) => {
   const { t } = useTranslation();
   const { deck, studySession, review } = props;
   const active = studySession != null;
-  let studyAction = "study" as "continue" | "review" | "studyNew" | "study";
-  if (active) studyAction = "continue";
-  else if (review?.due) studyAction = "review";
-  else if (review?.new) studyAction = "studyNew";
+  const studyAction = getStudyAction(active, review);
   const pending = props.isPending?.(deck.id) ?? false;
+  const continuing = props.continuingDeckId === deck.id;
+  const controlsDisabled = pending || continuing;
   const withId = (action?: (id: DeckId) => void) => () => action?.(deck.id);
   const statusId = React.useId();
   const progressId = React.useId();
+  const pendingId = React.useId();
 
   return (
     <article
@@ -97,7 +110,7 @@ export const DeckListCard: React.FC<DeckListCardProps> = (props) => {
             aria-describedby={active ? `${statusId} ${progressId}` : statusId}
             className="block min-h-touch w-full min-w-0 break-words rounded-control text-left text-body font-semibold text-ink hover:text-accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
             onClick={withId(props.onClickName)}
-            disabled={pending}
+            disabled={controlsDisabled}
           >
             {deck.name}
           </button>
@@ -108,7 +121,7 @@ export const DeckListCard: React.FC<DeckListCardProps> = (props) => {
         <DeckActionsMenu
           deckName={deck.name}
           open={props.openMenuDeckId === deck.id}
-          disabled={pending}
+          disabled={controlsDisabled}
           onToggle={withId(props.onToggleMenu)}
           onClose={() => props.onCloseMenu?.()}
           onView={withId(props.onClickView)}
@@ -130,9 +143,7 @@ export const DeckListCard: React.FC<DeckListCardProps> = (props) => {
           <div aria-hidden="true" className="h-1 overflow-hidden rounded-full bg-surface-muted">
             <div
               className="h-full rounded-full bg-accent-primary"
-              style={{
-                width: `${String(studySession.cardOrderIds.length === 0 ? 0 : (studySession.currentIndex / studySession.cardOrderIds.length) * 100)}%`,
-              }}
+              style={{ width: getStudyProgressWidth(studySession) }}
             />
           </div>
         </div>
@@ -157,11 +168,16 @@ export const DeckListCard: React.FC<DeckListCardProps> = (props) => {
           active ? "bg-accent-primary text-ink-inverse" : "bg-surface-muted text-accent-primary"
         )}
         onClick={withId(active ? props.onClickContinue : props.onClickStudy)}
-        disabled={pending}
+        aria-busy={continuing}
+        aria-describedby={continuing ? pendingId : undefined}
+        disabled={controlsDisabled || (active && props.continuingDeckId !== undefined)}
       >
         {active && <AiFillCaretRight aria-hidden="true" />}
         {t(`deckList.${studyAction}`)}
       </button>
+      <p id={pendingId} role="status" className={cx("text-caption text-ink-muted", { "sr-only": !continuing })}>
+        {continuing ? t("deckList.continuing") : ""}
+      </p>
     </article>
   );
 };

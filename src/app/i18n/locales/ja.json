@@ -195,6 +195,7 @@
     "cardCount_other": "{{count}}枚",
     "openCards": "{{deckName}}のカード一覧を開く",
     "remote": "リモートデッキ",
+    "continuing": "学習を再開しています…",
     "continueDeck": "{{deckName}}の学習を続ける",
     "studyDeck": "{{deckName}}を学習",
     "continue": "続ける",

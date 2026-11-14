@@ -195,6 +195,7 @@
     "cardCount_other": "{{count}} cards",
     "openCards": "Open cards in {{deckName}}",
     "remote": "Remote deck",
+    "continuing": "Resuming study…",
     "continueDeck": "Continue {{deckName}}",
     "studyDeck": "Study {{deckName}}",
     "continue": "Continue",

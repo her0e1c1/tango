@@ -254,4 +254,52 @@ describe("DECK-LIST-02 NAVIGATION-08 DeckListCard [STUDY-SESSION-03] DECK-LIST-0
     expect(screen.getByRole("button", { name: "Study Other deck" })).not.toBeDisabled();
     expect(screen.getByRole("button", { name: "Open actions for Other deck" })).not.toBeDisabled();
   });
+
+  it("DECK-LIST-14 keeps selected Study disabled when its session disappears during Continue", () => {
+    // Given: A selected Deck whose Continue is pending.
+    const onClickStudy = vi.fn();
+    const props = { deck, cardCount: 2, continuingDeckId: deck.id, onClickStudy };
+    const { rerender } = render(
+      <DeckListCard
+        {...props}
+        studySession={{
+          sessionId: "session",
+          remote: { uid: "uid", startedAt: 0 },
+          deckId: deck.id,
+          cardOrderIds: ["card"],
+          currentIndex: 0,
+          lastStudiedAt: 0,
+        }}
+      />
+    );
+    // When: The subscription removes the session before Continue settles.
+    rerender(<DeckListCard {...props} />);
+    fireEvent.click(screen.getByRole("button", { name: "Study Deck name" }));
+    // Then: Study remains unavailable and cannot open another operation.
+    expect(screen.getByRole("button", { name: "Study Deck name" })).toBeDisabled();
+    expect(onClickStudy).not.toHaveBeenCalled();
+    // When: Continue settles.
+    rerender(<DeckListCard {...props} continuingDeckId={undefined} />);
+    fireEvent.click(screen.getByRole("button", { name: "Study Deck name" }));
+    // Then: Explicit Study becomes available again.
+    expect(onClickStudy).toHaveBeenCalledExactlyOnceWith(deck.id);
+  });
+
+  it("DECK-LIST-14 updates the existing live region when Continue starts and settles", () => {
+    // Given: A mounted card with an empty status region.
+    const { rerender } = render(<DeckListCard deck={deck} cardCount={2} />);
+    const status = screen.getByRole("status");
+    expect(status).toBeEmptyDOMElement();
+    // When: Continue starts.
+    rerender(<DeckListCard deck={deck} cardCount={2} continuingDeckId={deck.id} />);
+    // Then: The existing live region announces pending feedback.
+    expect(screen.getByRole("status")).toBe(status);
+    expect(status).toHaveTextContent("Resuming study…");
+    expect(status).toBeVisible();
+    // When: Continue settles.
+    rerender(<DeckListCard deck={deck} cardCount={2} />);
+    // Then: The same region remains ready for subsequent feedback.
+    expect(screen.getByRole("status")).toBe(status);
+    expect(status).toBeEmptyDOMElement();
+  });
 });

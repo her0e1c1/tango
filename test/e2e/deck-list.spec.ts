@@ -1,4 +1,12 @@
-import { expect, listDocuments, requireDocument, test } from "./utils/fixtures";
+import type { Page, Route } from "@playwright/test";
+import {
+  allowExpectedFirestoreWriteFailure,
+  expect,
+  failNextFirestoreWrite,
+  listDocuments,
+  requireDocument,
+  test,
+} from "./utils/fixtures";
 import { readSession } from "./utils/study-helpers";
 
 test("DECK-LIST-01 DECK-LIST-04 DECK-LIST-05 navigates from the Deck list to its Card list", async ({
@@ -217,4 +225,137 @@ test("DECK-LIST-13 continues the existing session without changing learning data
       savedCards
     );
   });
+});
+
+// Delay only this operation's outgoing write; the SDK still owns completion and failure handling.
+async function holdContinueWrite(page: Page, sessionId: string) {
+  const arrived = Promise.withResolvers<void>();
+  const released = Promise.withResolvers<void>();
+  let held = false;
+  const pattern = "**/google.firestore.v1.Firestore/Write/channel**";
+  const handler = async (route: Route) => {
+    const body = decodeURIComponent((route.request().postData() ?? "").replaceAll("+", "%20"));
+    if (!held && body.includes(`/documents/studySession/${sessionId}`)) {
+      held = true;
+      arrived.resolve();
+      await released.promise;
+    }
+    await route.fallback();
+  };
+  await page.route(pattern, handler);
+  return {
+    arrived: arrived.promise,
+    release: () => released.resolve(),
+    dispose: () => page.unroute(pattern, handler),
+  };
+}
+
+test("DECK-LIST-14 accepts only the first Continue during a delayed save", async ({ fixture, page }) => {
+  const { first, other, session, otherSession, write } =
+    await test.step("Given: Two resumable Decks and a delayed save", async () => {
+      await fixture.apply(page);
+      await page.goto("/");
+      const first = fixture.deck("deck-a");
+      const other = fixture.deck("deck-b");
+      const session = fixture.session("deck-a");
+      const otherSession = fixture.session("deck-b");
+      await expect(page.getByRole("button", { name: `Continue ${first.name}`, exact: true })).toBeEnabled();
+      const write = await holdContinueWrite(page, session.sessionId);
+      return { first, other, session, otherSession, write };
+    });
+  try {
+    await test.step("When: Start Continue using the keyboard and repeat both Deck activations while it waits", async () => {
+      const continueFirst = page.getByRole("button", { name: `Continue ${first.name}`, exact: true });
+      await continueFirst.press("Enter");
+      await write.arrived;
+      await continueFirst.dispatchEvent("click");
+      await page.getByRole("button", { name: `Continue ${other.name}`, exact: true }).dispatchEvent("click");
+    });
+    await test.step("Then: All Continue buttons are disabled while only the selected Deck shows pending feedback", async () => {
+      const continueFirst = page.getByRole("button", { name: `Continue ${first.name}`, exact: true });
+      await expect(continueFirst).toBeDisabled();
+      await expect(continueFirst).toHaveAttribute("aria-busy", "true");
+      await expect(continueFirst).toHaveAccessibleDescription("Resuming study…");
+      await expect(page.getByRole("button", { name: `Continue ${other.name}`, exact: true })).toBeDisabled();
+      await expect(page.getByRole("button", { name: `Open cards in ${first.name}`, exact: true })).toBeDisabled();
+      await expect(page.getByRole("button", { name: `Open cards in ${other.name}`, exact: true })).toBeEnabled();
+      await expect(page.getByRole("button", { name: "Add", exact: true })).toBeEnabled();
+      await expect(page.getByRole("alert")).toHaveCount(0);
+      await expect(page).toHaveURL("/");
+    });
+    await test.step("When: The original save succeeds", async () => {
+      write.release();
+    });
+    await test.step("Then: Only the originally selected Deck resumes at its saved position", async () => {
+      await expect(page).toHaveURL(`/deck/${first.id}/study`);
+      await expect(page.getByText(fixture.card("card-a-1").frontText, { exact: true })).toBeVisible();
+      await expect(page.getByRole("slider", { name: "Study progress" })).toHaveValue(String(session.currentIndex));
+      expect(await readSession(fixture.user().uid, other.id)).toEqual(otherSession);
+      await expect(page.getByRole("alert")).toHaveCount(0);
+    });
+  } finally {
+    write.release();
+    await write.dispose();
+  }
+});
+
+test("DECK-LIST-15 permits explicit Continue retry after a delayed rejection", async ({
+  fixture,
+  page,
+  browserErrors,
+}) => {
+  const { first, other, session, otherSession, fault, write } =
+    await test.step("Given: Two resumable Decks and a delayed failing save", async () => {
+      await fixture.apply(page);
+      await page.goto("/");
+      const first = fixture.deck("deck-a");
+      const other = fixture.deck("deck-b");
+      const session = fixture.session("deck-a");
+      const otherSession = fixture.session("deck-b");
+      await expect(page.getByRole("button", { name: `Continue ${first.name}`, exact: true })).toBeEnabled();
+      const fault = await failNextFirestoreWrite(page, { collection: "studySession", id: session.sessionId });
+      allowExpectedFirestoreWriteFailure(browserErrors);
+      const write = await holdContinueWrite(page, session.sessionId);
+      return { first, other, session, otherSession, fault, write };
+    });
+  try {
+    await test.step("When: Repeat Continue while the first operation waits and then rejects", async () => {
+      const continueFirst = page.getByRole("button", { name: `Continue ${first.name}`, exact: true });
+      await continueFirst.click();
+      await write.arrived;
+      await continueFirst.dispatchEvent("click");
+      await page.getByRole("button", { name: `Continue ${other.name}`, exact: true }).dispatchEvent("click");
+    });
+    await test.step("Then: Continue stays disabled until the pending operation settles", async () => {
+      await expect(page.getByRole("button", { name: `Continue ${first.name}`, exact: true })).toBeDisabled();
+      await expect(page.getByRole("button", { name: `Continue ${other.name}`, exact: true })).toBeDisabled();
+    });
+    await test.step("When: The delayed rejection arrives", async () => {
+      write.release();
+      await fault.waitForFailure();
+      await fault.dispose();
+    });
+    await test.step("Then: Failure leaves the list usable without starting either queued activation", async () => {
+      await expect(page).toHaveURL("/");
+      await expect(page.getByRole("alert")).toHaveCount(1);
+      await expect(page.getByRole("button", { name: `Continue ${first.name}`, exact: true })).toBeEnabled();
+      await expect(page.getByRole("button", { name: `Continue ${other.name}`, exact: true })).toBeEnabled();
+      await expect(page.getByText("Resuming study…", { exact: true })).toHaveCount(0);
+      expect(await readSession(fixture.user().uid, first.id)).toEqual(session);
+      expect(await readSession(fixture.user().uid, other.id)).toEqual(otherSession);
+    });
+    await test.step("When: Explicitly Continue the other Deck after recovery", async () => {
+      await page.getByRole("button", { name: `Continue ${other.name}`, exact: true }).click();
+    });
+    await test.step("Then: The newly selected session resumes while the original session remains intact", async () => {
+      await expect(page).toHaveURL(`/deck/${other.id}/study`);
+      await expect(page.getByText(fixture.card("card-b-2").frontText, { exact: true })).toBeVisible();
+      await expect(page.getByRole("slider", { name: "Study progress" })).toHaveValue(String(otherSession.currentIndex));
+      expect(await readSession(fixture.user().uid, first.id)).toEqual(session);
+    });
+  } finally {
+    write.release();
+    await write.dispose();
+    await fault.dispose();
+  }
 });
