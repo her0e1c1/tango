@@ -19,6 +19,7 @@ import {
   subscribeStudyHistory,
 } from "@/entities/study-session";
 import { subscribeStudyAnswerHistory, writeStudyAnswer } from "@/entities/study-answer";
+import { useRouterLocationSource } from "@/shared/router";
 import { ToastViewport } from "@/shared/ui/toast";
 import { APP_STORY_UID, type AppStoryParameters, prepareAppStory } from "@/storybook/appStory";
 import { createCard as cardFixture, createDeck as deckFixture } from "@/test/factories";
@@ -203,6 +204,7 @@ export function prepareWith(setup: () => void | (() => void)) {
 
 function Routes({ path }: { path: string }) {
   const [router] = useState(() => createMemoryRouter(appRoutes, { initialEntries: [path] }));
+  useRouterLocationSource(router);
   const { darkMode } = usePreferences().appearance;
   useEffect(() => {
     document.documentElement.classList.toggle("dark", darkMode);

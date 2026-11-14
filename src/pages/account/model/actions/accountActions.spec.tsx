@@ -15,7 +15,10 @@ const mocks = vi.hoisted(() => ({
   action: vi.fn<() => Promise<unknown>>(),
 }));
 
-vi.mock("@/entities/auth", () => ({
+vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
+
+vi.mock("@/entities/auth", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/entities/auth")>()),
   signInWithGoogle: mocks.action,
   signOutCurrentUser: mocks.action,
 }));

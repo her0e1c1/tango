@@ -13,6 +13,7 @@ const control = vi.hoisted(() => ({
   before: undefined as ((user: User | null) => Promise<void>) | undefined,
   abort: undefined as (() => void) | undefined,
   network: true,
+  networkStop: undefined as Promise<void> | undefined,
   pendingChanges: [] as { collection: string; uid: string }[],
   cacheRead: Promise.resolve() as Promise<void>,
   subscribed: "",
@@ -42,6 +43,10 @@ vi.mock("firebase/auth", () => ({
 }));
 vi.mock("firebase/firestore", () => ({
   disableNetwork: () => {
+    if (control.networkStop)
+      return control.networkStop.then(() => {
+        control.network = false;
+      });
     control.network = false;
     return Promise.resolve();
   },
@@ -101,6 +106,7 @@ describe("Authentication and sync lifecycle [ACCOUNT-01 ACCOUNT-03 ACCOUNT-04 PE
     // Given: Establish the shared setup used by the following cases.
     control.auth.currentUser = null;
     control.network = false;
+    control.networkStop = undefined;
     control.pendingChanges = [];
     control.cacheRead = Promise.resolve();
     control.ready = Promise.resolve();
@@ -232,6 +238,52 @@ describe("Authentication and sync lifecycle [ACCOUNT-01 ACCOUNT-03 ACCOUNT-04 PE
       expect(control.stops).toEqual([]);
     }
   );
+  it("ACCOUNT-17 restores the owner when stopping Firestore networking refuses sign-out", async () => {
+    // Given: A synchronized owner has an active subscription and a deferred network-stop request.
+    await publish(user("account", false, "Account Owner"));
+    const networkStop = Promise.withResolvers<void>();
+    control.networkStop = networkStop.promise;
+    const failure = new Error("network stop failed");
+
+    // When: The real blocking callback starts sign-out, then Firestore refuses to stop networking.
+    const authChange = control.before?.(null);
+    await vi.waitFor(() => expect(getAuthSession().status).toBe("initializing"));
+    networkStop.reject(failure);
+
+    // Then: Firebase receives the refusal while the original owner remains available to the UI.
+    await expect(authChange).rejects.toBe(failure);
+    expect(getAuthSession()).toEqual({
+      status: "authenticated",
+      uid: "account",
+      isAnonymous: false,
+      displayName: "Account Owner",
+    });
+    expect(control.auth.currentUser?.uid).toBe("account");
+    expect(control.subscribed).toBe("account");
+    expect(control.stops).toEqual([]);
+    expect(control.network).toBe(true);
+  });
+  it.each(["new owner", "cleanup"])("ACCOUNT-17 ignores an old network-stop refusal after %s", async (transition) => {
+    // Given: The previous owner's sign-out is waiting for Firestore networking to stop.
+    await publish(user("account", false));
+    const networkStop = Promise.withResolvers<void>();
+    control.networkStop = networkStop.promise;
+    const authChange = control.before?.(null);
+    await vi.waitFor(() => expect(getAuthSession().status).toBe("initializing"));
+
+    // When: A newer lifecycle takes ownership before the old preparation fails.
+    if (transition === "new owner") await publish(user("new", false));
+    else stop();
+    const currentSession = getAuthSession();
+    const currentSubscription = control.subscribed;
+    const failure = new Error("late network stop failure");
+    networkStop.reject(failure);
+
+    // Then: The refusal cannot restore the previous owner or alter the newer subscription.
+    await expect(authChange).rejects.toBe(failure);
+    expect(getAuthSession()).toEqual(currentSession);
+    expect(control.subscribed).toBe(currentSubscription);
+  });
   it("stops networking and old subscriptions before switching identity", async () => {
     // Given: Use this case's inputs and any shared test setup.
     await publish(user("account", false));

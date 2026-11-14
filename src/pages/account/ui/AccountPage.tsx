@@ -16,6 +16,7 @@ export const AccountPage: React.FC = () => {
         uid={auth.uid}
         signInPending={pageState.signIn.pending}
         signOutPending={pageState.signOut.pending}
+        signOutFailed={pageState.signOut.failed ?? false}
         onSignIn={signIn}
         onSignOut={signOut}
       />
