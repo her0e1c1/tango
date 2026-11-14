@@ -74,25 +74,47 @@ const useAutoDismiss = (toast: ToastState | undefined) => {
   }, [toast]);
 };
 
+const ToastItem = ({ toast, modalActive }: { toast: ToastState; modalActive: boolean }) => {
+  const { t } = useTranslation();
+  const visualTargetRef = React.useRef<HTMLDivElement>(null);
+  React.useLayoutEffect(() => {
+    const visualTarget = visualTargetRef.current;
+    if (visualTarget === null) return;
+    return registerToastVisualTarget(toast.id, visualTarget);
+  }, [toast]);
+  return (
+    <div ref={visualTargetRef}>
+      <Toast
+        message={t(toast.messageKey, toast.messageParams ?? {})}
+        visualContent={toast.visualContent}
+        tone={toast.tone}
+        dismissible={toast.dismissible && !modalActive}
+        onDismiss={() => dismissToast(toast.id)}
+      />
+    </div>
+  );
+};
+
 interface ToastViewportProps<T extends HTMLElement> {
   focusFallbackRef?: React.RefObject<T | null>;
 }
 
-/** Renders the one application-wide Toast without coupling callers to the active route. */
+/** Renders bounded application-wide results independently of the active route. */
 export const ToastViewport = <T extends HTMLElement = HTMLElement>({
   focusFallbackRef,
 }: ToastViewportProps<T> = {}) => {
   const { t } = useTranslation();
-  const toast = useStore(toastStore, (state) => state.current);
-  const message = toast === undefined ? "" : t(toast.messageKey, toast.messageParams ?? {});
+  const current = useStore(toastStore, (state) => state.current);
+  const supplementary = useStore(toastStore, (state) => state.supplementary);
+  useAutoDismiss(current);
+  useAutoDismiss(supplementary);
+  const toasts = [current, supplementary].filter((toast) => toast !== undefined);
   const modalTargets = useStore(toastStore, (state) => state.modalFocusTargets);
   const modalActive = modalTargets.length > 0;
   // A native modal makes outside live regions inert and paints above ordinary z-index layers.
   const nativeModal = modalTargets.findLast(
     ({ element }) => element instanceof HTMLDialogElement && element.isConnected && element.open
   )?.element;
-  const visualTargetRef = React.useRef<HTMLDivElement>(null);
-  useAutoDismiss(toast);
 
   React.useLayoutEffect(() => {
     const focusFallbackTarget = focusFallbackRef?.current;
@@ -100,36 +122,11 @@ export const ToastViewport = <T extends HTMLElement = HTMLElement>({
     return registerToastFocusFallbackTarget(focusFallbackTarget);
   }, [focusFallbackRef]);
 
-  React.useLayoutEffect(() => {
-    const visualTarget = visualTargetRef.current;
-    if (toast === undefined || visualTarget === null) return;
-    return registerToastVisualTarget(toast.id, visualTarget);
-  }, [toast, nativeModal]);
-
-  const renderAnnouncement = (activeToast: ToastState) => (
-    <span key={activeToast.id}>{`${t(tonePresentation[activeToast.tone].labelKey)}: ${message}`}</span>
+  const renderAnnouncement = (toast: ToastState) => (
+    <span
+      key={toast.id}
+    >{`${t(tonePresentation[toast.tone].labelKey)}: ${t(toast.messageKey, toast.messageParams ?? {})}`}</span>
   );
-
-  const renderToast = (activeToast: ToastState) => (
-    <Toast
-      key={activeToast.id}
-      message={message}
-      visualContent={activeToast.visualContent}
-      tone={activeToast.tone}
-      dismissible={activeToast.dismissible && !modalActive}
-      onDismiss={() => dismissToast(activeToast.id)}
-    />
-  );
-
-  const visualViewport =
-    toast === undefined ? null : (
-      <div
-        ref={visualTargetRef}
-        className="pointer-events-none fixed inset-x-0 bottom-36 z-[70] flex justify-center px-shell-gutter"
-      >
-        {renderToast(toast)}
-      </div>
-    );
 
   const viewport = (
     <>
@@ -140,17 +137,23 @@ export const ToastViewport = <T extends HTMLElement = HTMLElement>({
         aria-atomic="true"
         className="sr-only"
       >
-        {toast !== undefined && toast.tone !== "error" ? renderAnnouncement(toast) : null}
+        {toasts.filter((toast) => toast.tone !== "error").map(renderAnnouncement)}
       </div>
       <div
-        role={toast?.tone === "error" ? "alert" : undefined}
+        role={toasts.some((toast) => toast.tone === "error") ? "alert" : undefined}
         aria-live="assertive"
         aria-atomic="true"
         className="sr-only"
       >
-        {toast?.tone === "error" ? renderAnnouncement(toast) : null}
+        {toasts.filter((toast) => toast.tone === "error").map(renderAnnouncement)}
       </div>
-      {visualViewport}
+      {toasts.length === 0 ? null : (
+        <div className="pointer-events-none fixed inset-x-0 bottom-36 z-[70] flex flex-col items-center gap-2 px-shell-gutter">
+          {toasts.map((toast) => (
+            <ToastItem key={toast.id} toast={toast} modalActive={modalActive} />
+          ))}
+        </div>
+      )}
     </>
   );
   return nativeModal === undefined ? viewport : createPortal(viewport, nativeModal);

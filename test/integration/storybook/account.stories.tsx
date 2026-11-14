@@ -2,7 +2,11 @@ import type { StoryObj } from "@storybook/react-vite";
 import type { User } from "firebase/auth";
 import { expect, mocked, waitFor } from "storybook/test";
 import { replaceAuthSession, signInWithGoogle, signOutCurrentUser } from "@/entities/auth";
-import { routeMeta, state, prepareWith } from "./support";
+import { editCard } from "@/entities/card";
+import { submit } from "@/pages/card-edit/model/actions/submit";
+import { replaceRemoteCards } from "@/test/utils/entityFixtures";
+import { APP_STORY_UID } from "@/storybook/appStory";
+import { routeMeta, state, prepareWith, cards } from "./support";
 
 // Given: Story args and parameters define the render scenarios below.
 // When: Storybook renders each exported variant and runs its play when present.
@@ -112,3 +116,62 @@ export const Japanese: Story = {
     });
   },
 };
+
+function concurrentCardResult(leave: boolean, failSave: boolean): Story {
+  return {
+    beforeEach: prepareWith(() =>
+      replaceAuthSession({ status: "authenticated", uid: APP_STORY_UID, displayName: "Owner", isAnonymous: false })
+    ),
+    play: async ({ canvas, userEvent, step }) => {
+      await step("STORYBOOK-ACCOUNT-15 Preserve both Card save and refused sign-out results", async () => {
+        // Given: The real Card action is saving while Account is available; only external I/O is deferred.
+        const card = cards[0]!;
+        const values = { frontText: "Saved content", backText: card.backText, tags: card.tags };
+        const write = Promise.withResolvers<void>();
+        const logout = Promise.withResolvers<void>();
+        mocked(editCard).mockImplementationOnce(() => write.promise);
+        mocked(signOutCurrentUser).mockImplementationOnce(async () => {
+          await logout.promise;
+          replaceAuthSession({ status: "authenticated", uid: APP_STORY_UID, displayName: "Owner", isAnonymous: false });
+          throw new Error("Sign-out refused");
+        });
+        const saved = submit({ cardId: card.id, values });
+        try {
+          // When: Signing out fails after the Card result is ready, on Account or after leaving for Home.
+          await userEvent.click(await canvas.findByRole("button", { name: "Sign out" }));
+          if (leave) await userEvent.keyboard("t");
+          replaceAuthSession({ status: "initializing" });
+          if (failSave) write.reject(new Error("Save refused"));
+          else {
+            replaceRemoteCards(cards.map((item) => (item.id === card.id ? { ...item, ...values } : item)));
+            write.resolve();
+          }
+          await Promise.resolve();
+          logout.resolve();
+          await saved;
+          // Then: Neither result replaces the other, and the route stays where the user left it.
+          await expect(
+            await canvas.findByRole("heading", { level: 1, name: leave ? "Decks" : "Account" })
+          ).toBeVisible();
+          const failure =
+            "Unable to sign out. If changes are pending, reconnect and let them sync before trying again.";
+          await expect(await canvas.findByText(failure, { exact: true })).toBeVisible();
+          await expect(
+            await canvas.findByText(failSave ? "Unable to save changes. Try again." : "Updated card “Saved content”.", {
+              exact: true,
+            })
+          ).toBeVisible();
+          await expect(canvas.getAllByRole("button", { name: "Dismiss notification" })).toHaveLength(leave ? 2 : 1);
+        } finally {
+          write.resolve();
+          logout.resolve();
+          await saved;
+        }
+      });
+    },
+  };
+}
+export const CardSuccessWithInlineSignOutFailure = concurrentCardResult(false, false);
+export const CardFailureWithInlineSignOutFailure = concurrentCardResult(false, true);
+export const CardSuccessWithLateSignOutFailure = concurrentCardResult(true, false);
+export const CardFailureWithLateSignOutFailure = concurrentCardResult(true, true);

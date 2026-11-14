@@ -8,6 +8,7 @@ import "@testing-library/jest-dom/vitest";
 
 import { replaceAuthSession } from "@/entities/auth";
 import { updatePreferences } from "@/entities/preference";
+import { useRouterLocationSource } from "@/shared/router";
 import { ToastViewport } from "@/shared/ui/toast";
 import { dismissToast } from "@/test/utils/toast";
 import { actAsync } from "@/test/act";
@@ -31,12 +32,16 @@ const renderPage = () => {
     { initialEntries: ["/account"] }
   );
 
-  return render(
-    <>
-      <RouterProvider router={router} />
-      <ToastViewport />
-    </>
-  );
+  function RoutedPage() {
+    useRouterLocationSource(router);
+    return (
+      <>
+        <RouterProvider router={router} />
+        <ToastViewport />
+      </>
+    );
+  }
+  return render(<RoutedPage />);
 };
 
 describe("ACCOUNT-01 ACCOUNT-02 ACCOUNT-03 SETTINGS-04 AccountPage", () => {

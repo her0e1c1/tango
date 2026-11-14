@@ -9,7 +9,7 @@ import { replaceAuthSession } from "@/entities/auth";
 import { appI18n } from "@/app/i18n/instance";
 
 import { ToastViewport } from "@/shared/ui/toast";
-import { routes } from "@/shared/router";
+import { routes, useRouterLocationSource } from "@/shared/router";
 import { APP_STORY_UID, type AppStoryParameters, prepareAppStory } from "@/storybook/appStory";
 import type { CardId } from "@/entities/card";
 import type { Deck, DeckId } from "@/entities/deck";
@@ -109,6 +109,7 @@ const pageStoryState = {
 
 const AppRoutes = ({ path }: { path: string }) => {
   const [router] = useState(() => createMemoryRouter(appRoutes, { initialEntries: [path] }));
+  useRouterLocationSource(router);
   useEffect(() => () => router.dispose(), [router]);
   return (
     <>
