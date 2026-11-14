@@ -76,12 +76,15 @@
 | CARD-MANAGEMENT-19 | write | 正常系 | [Card の編集保存中は重ねて操作できない](./card-management.md#card-management-19) |
 | CARD-MANAGEMENT-20 | write | 正常系 | [Card 編集画面の離脱後に保存が完了しても現在の画面を維持する](./card-management.md#card-management-20) |
 | CARD-MANAGEMENT-02 | write | 正常系 | [Card を削除できる](./card-management.md#card-management-02) |
+| CARD-MANAGEMENT-26 | batch | 正常系 | [ログアウトを中止して元のアカウントへ戻っても Card の保存成功を通知する](./card-management.md#card-management-26) |
+| CARD-MANAGEMENT-27 | batch | 正常系 | [保存待ち中に所属 Deck を削除した Card の古い成功を通知しない](./card-management.md#card-management-27) |
 | CARD-MANAGEMENT-10 | read | 異常系 | [Card の未表示の面にある入力エラーを修正できる](./card-management.md#card-management-10) |
 | CARD-MANAGEMENT-07 | write | 異常系 | [Card の作成拒否後に重複なく再試行できる](./card-management.md#card-management-07) |
 | CARD-MANAGEMENT-14 | write | 異常系 | [Card 作成失敗後も離脱確認と入力を保持して再試行できる](./card-management.md#card-management-14) |
 | CARD-MANAGEMENT-25 | write | 異常系 | [Card 作成画面の離脱後に保存を拒否されても戻らない](./card-management.md#card-management-25) |
 | CARD-MANAGEMENT-04 | write | 異常系 | [Card の編集失敗後に再試行できる](./card-management.md#card-management-04) |
 | CARD-MANAGEMENT-08 | write | 異常系 | [Card の削除失敗後に再試行できる](./card-management.md#card-management-08) |
+| CARD-MANAGEMENT-28 | batch | 異常系 | [認証確認中の Card 保存失敗を元のアカウントへの復帰後に通知する](./card-management.md#card-management-28) |
 | CARD-TAG-MANAGEMENT-02 | read | 正常系 | [未保存のタグ変更を破棄する](./card-tag-management.md#card-tag-management-02) |
 | CARD-TAG-MANAGEMENT-07 | read | 正常系 | [タグ入力中の Enter は Card を送信せず下書きを保つ](./card-tag-management.md#card-tag-management-07) |
 | CARD-TAG-MANAGEMENT-09 | read | 正常系 | [入力直後の候補クリックで対象タグだけを解除する](./card-tag-management.md#card-tag-management-09) |

@@ -10,7 +10,7 @@ export {
   mustFindDeckById,
 } from "./model/rules";
 export { deckFormSchema } from "./model/schema";
-export { clearRemoteDecks, getDecks } from "./model/store";
+export { deckStore, clearRemoteDecks, getDecks } from "./model/store";
 export type {
   CardFilter,
   Deck,

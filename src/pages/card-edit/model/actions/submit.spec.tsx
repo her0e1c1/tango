@@ -11,8 +11,10 @@ import { createCard } from "@/test/factories";
 import { submit } from "./submit";
 
 const session = vi.hoisted(() => ({ uid: "opening-user" as string | undefined }));
-vi.mock("@/entities/auth", () => ({
+vi.mock("@/entities/auth", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/entities/auth")>()),
   getAuthUid: () => session.uid ?? "",
+  getAuthSession: () => ({ status: "authenticated", uid: session.uid ?? "", isAnonymous: false, displayName: null }),
 }));
 vi.mock("@/entities/card", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/entities/card")>()),

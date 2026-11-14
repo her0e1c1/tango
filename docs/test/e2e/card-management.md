@@ -27,12 +27,15 @@ Card の作成・編集・削除、未保存入力の扱い、失敗後の再試
 | CARD-MANAGEMENT-19 | write | 正常系 | [Card の編集保存中は重ねて操作できない](#card-management-19) |
 | CARD-MANAGEMENT-20 | write | 正常系 | [Card 編集画面の離脱後に保存が完了しても現在の画面を維持する](#card-management-20) |
 | CARD-MANAGEMENT-02 | write | 正常系 | [Card を削除できる](#card-management-02) |
+| CARD-MANAGEMENT-26 | batch | 正常系 | [ログアウトを中止して元のアカウントへ戻っても Card の保存成功を通知する](#card-management-26) |
+| CARD-MANAGEMENT-27 | batch | 正常系 | [保存待ち中に所属 Deck を削除した Card の古い成功を通知しない](#card-management-27) |
 | CARD-MANAGEMENT-10 | read | 異常系 | [Card の未表示の面にある入力エラーを修正できる](#card-management-10) |
 | CARD-MANAGEMENT-07 | write | 異常系 | [Card の作成拒否後に重複なく再試行できる](#card-management-07) |
 | CARD-MANAGEMENT-14 | write | 異常系 | [Card 作成失敗後も離脱確認と入力を保持して再試行できる](#card-management-14) |
 | CARD-MANAGEMENT-25 | write | 異常系 | [Card 作成画面の離脱後に保存を拒否されても戻らない](#card-management-25) |
 | CARD-MANAGEMENT-04 | write | 異常系 | [Card の編集失敗後に再試行できる](#card-management-04) |
 | CARD-MANAGEMENT-08 | write | 異常系 | [Card の削除失敗後に再試行できる](#card-management-08) |
+| CARD-MANAGEMENT-28 | batch | 異常系 | [認証確認中の Card 保存失敗を元のアカウントへの復帰後に通知する](#card-management-28) |
 
 <a id="card-management-03"></a>
 
@@ -477,6 +480,78 @@ When:
 Then:
 
 - 削除成功を通知し、一覧の Card 件数は0になる。再読み込み後も削除した Card を閲覧・学習できない。
+
+<a id="card-management-26"></a>
+
+### CARD-MANAGEMENT-26 [TODO] ログアウトを中止して元のアカウントへ戻っても Card の保存成功を通知する
+
+カテゴリ: `batch`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
+- ログイン中のアカウントが所有する Card を編集して保存を始め、Account 画面へ移動している。
+- 未同期の変更が残っており、ログアウトは中止される。
+
+When:
+
+- ログアウトを試み、同じアカウントでの利用へ戻る。Card の保存は認証確認中または復帰後に成功する。
+
+Then:
+
+- 認証を確認している間は Card の保存成功を通知せず、元のアカウントでの利用に戻って保存成功を確認できたら一度だけ通知する。
+- 保存完了とログアウト中止の順序が入れ替わっても、成功通知を失わず重複させない。
+- 以前の編集画面へ戻らず、現在の画面を維持する。
+
+<a id="card-management-27"></a>
+
+### CARD-MANAGEMENT-27 [TODO] 保存待ち中に所属 Deck を削除した Card の古い成功を通知しない
+
+カテゴリ: `batch`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
+- ログイン中のアカウントが所有する Card を編集して保存を始め、別画面へ移動している。
+- Card の保存成功はまだ通知されていない。
+
+When:
+
+- 保存待ち中に、その Card が属する Deck を削除する。
+
+Then:
+
+- 削除した Deck の Card については、古い編集保存の成功を後から通知せず、現在の画面から移動しない。
+- 以前の保存結果を待ち続けず、別の Deck や Card の操作を妨げない。保存そのものを取り消したとは扱わない。
+- 単に画面を移動した場合や一覧のフィルターで Card が見えなくなった場合はこの終了条件に含めず、保存成功を通知する。
+
+<a id="card-management-28"></a>
+
+### CARD-MANAGEMENT-28 [TODO] 認証確認中の Card 保存失敗を元のアカウントへの復帰後に通知する
+
+カテゴリ: `batch`
+
+区分: 異常系
+
+Given:
+
+- Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
+- ログイン中のアカウントが所有する Card の編集保存を始めている。
+- ログアウトを試み、アカウントを確認している。未同期の変更が残っており、ログアウトは中止される。
+
+When:
+
+- 認証確認中に Card の保存が失敗し、元のアカウントでの利用へ戻る。復帰前にもう一度認証確認が始まる場合もある。
+
+Then:
+
+- 認証確認中は保存失敗を通知せず、元のアカウントへ復帰したら一度だけ通知する。保存成功として扱わず、現在の画面を維持する。
+- 復帰前に所属 Deck が削除された場合、別アカウントへ切り替わった場合、同じ Card を新しく保存し直した場合は、古い保存失敗を通知しない。
+- その後に元のアカウントや Deck へ戻っても、破棄した結果を再通知しない。
 
 <a id="card-management-10"></a>
 
