@@ -1,3 +1,3 @@
 export { useNavigationGuard } from "./navigationGuard";
 export { routes } from "./routes";
-export { getCurrentPathname, useRouterLocationSource } from "./location";
+export { getCurrentPathname, useRouterLocationSource, subscribeRouterLocationChange } from "./location";

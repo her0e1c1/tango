@@ -118,6 +118,7 @@ export const Japanese: Story = {
 };
 
 function concurrentCardResult(leave: boolean, failSave: boolean): Story {
+  const cardMessage = failSave ? "Unable to save changes. Try again." : "Updated card “Saved content”.";
   return {
     beforeEach: prepareWith(() =>
       replaceAuthSession({ status: "authenticated", uid: APP_STORY_UID, displayName: "Owner", isAnonymous: false })
@@ -157,11 +158,25 @@ function concurrentCardResult(leave: boolean, failSave: boolean): Story {
             "Unable to sign out. If changes are pending, reconnect and let them sync before trying again.";
           await expect(await canvas.findByText(failure, { exact: true })).toBeVisible();
           await expect(
-            await canvas.findByText(failSave ? "Unable to save changes. Try again." : "Updated card “Saved content”.", {
+            await canvas.findByText(cardMessage, {
               exact: true,
             })
           ).toBeVisible();
           await expect(canvas.getAllByRole("button", { name: "Dismiss notification" })).toHaveLength(leave ? 2 : 1);
+          await expect(
+            canvas.getByRole("button", {
+              name: "Dismiss notification",
+              description: cardMessage,
+            })
+          ).toBeVisible();
+          if (leave)
+            await expect(
+              canvas.getByRole("button", { name: "Dismiss notification", description: failure })
+            ).toBeVisible();
+          await expect(canvas.getByRole("status", { name: "Toast notifications" })).toHaveAttribute(
+            "aria-atomic",
+            "false"
+          );
         } finally {
           write.resolve();
           logout.resolve();
@@ -175,3 +190,40 @@ export const CardSuccessWithInlineSignOutFailure = concurrentCardResult(false, f
 export const CardFailureWithInlineSignOutFailure = concurrentCardResult(false, true);
 export const CardSuccessWithLateSignOutFailure = concurrentCardResult(true, false);
 export const CardFailureWithLateSignOutFailure = concurrentCardResult(true, true);
+
+export const InlineFailureVisitBoundary: Story = {
+  beforeEach: linked,
+  play: async ({ canvas, userEvent, step }) => {
+    await step("STORYBOOK-ACCOUNT-15 Clear inline failure when its Account visit ends", async () => {
+      // Given: A refused sign-out is displayed inline on Account.
+      mocked(signOutCurrentUser).mockRejectedValueOnce(new Error("Refused"));
+      await userEvent.click(await canvas.findByRole("button", { name: "Sign out" }));
+      await expect(await canvas.findByRole("alert")).toHaveTextContent("Unable to sign out.");
+      // When: Leave Account and return on a new visit.
+      await userEvent.keyboard("t");
+      await expect(await canvas.findByRole("heading", { name: "Decks" })).toBeVisible();
+      await userEvent.click(canvas.getByRole("button", { name: "Open account" }));
+      // Then: The previous visit's failure does not reappear.
+      await expect(await canvas.findByRole("heading", { name: "Account" })).toBeVisible();
+      await expect(canvas.queryByRole("alert")).not.toBeInTheDocument();
+    });
+  },
+};
+export const InlineFailureIdentityBoundary: Story = {
+  beforeEach: linked,
+  play: async ({ canvas, userEvent, step }) => {
+    await step("STORYBOOK-ACCOUNT-15 Clear inline failure across an identity boundary", async () => {
+      // Given: A refused sign-out is displayed for the original owner.
+      mocked(signOutCurrentUser).mockRejectedValueOnce(new Error("Refused"));
+      await userEvent.click(await canvas.findByRole("button", { name: "Sign out" }));
+      await expect(await canvas.findByRole("alert")).toHaveTextContent("Unable to sign out.");
+      // When: Another identity becomes active, then the original owner returns.
+      account(false);
+      await expect(await canvas.findByRole("button", { name: "Sign in with Google" })).toBeVisible();
+      account(true);
+      // Then: Neither identity retains the old inline error.
+      await expect(await canvas.findByRole("button", { name: "Sign out" })).toBeVisible();
+      await expect(canvas.queryByRole("alert")).not.toBeInTheDocument();
+    });
+  },
+};

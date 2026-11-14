@@ -121,4 +121,76 @@ describe("CARD-MANAGEMENT-26 CARD-MANAGEMENT-28 ACCOUNT-03 composed Card and Acc
       }
     );
   });
+
+  it.each(["navigation", "different owner", "anonymous owner", "temporary auth check"])(
+    "scopes an inline failure across %s",
+    async (boundary) => {
+      // Given: Account displays the current owner's refused sign-out inline.
+      vi.mocked(signOutCurrentUser).mockRejectedValueOnce(new Error("Refused"));
+      const router = createMemoryRouter(
+        [
+          { path: "/account", element: <AccountPage /> },
+          { path: "/", element: <h1>Home</h1> },
+        ],
+        { initialEntries: ["/account"] }
+      );
+      render(<App router={router} />);
+      fireEvent.click(screen.getByRole("button", { name: "Sign out" }));
+      expect(await screen.findByRole("alert")).toHaveTextContent("Unable to sign out.");
+
+      // When: The visit or identity changes, or only a reversible auth check hides the page.
+      await act(async () => {
+        if (boundary === "navigation") {
+          await router.navigate("/");
+          await router.navigate(-1);
+        } else if (boundary === "temporary auth check") replaceAuthSession({ status: "initializing" });
+        else replaceAuthSession({ ...owner, uid: "replacement", isAnonymous: boundary === "anonymous owner" });
+      });
+      await act(async () => {
+        replaceAuthSession(owner);
+      });
+
+      // Then: A real boundary permanently clears the old inline result; temporary auth hiding preserves it.
+      expect(screen.queryAllByRole("alert")).toHaveLength(boundary === "temporary auth check" ? 1 : 0);
+      router.dispose();
+    }
+  );
+
+  it.each(["Home", "another owner"])("does not persist a late failure after moving to %s", async (destination) => {
+    // Given: Sign-out is waiting on Account.
+    const request = Promise.withResolvers<void>();
+    vi.mocked(signOutCurrentUser).mockReturnValueOnce(request.promise);
+    const router = createMemoryRouter(
+      [
+        { path: "/account", element: <AccountPage /> },
+        { path: "/", element: <h1>Home</h1> },
+      ],
+      { initialEntries: ["/account"] }
+    );
+    render(<App router={router} />);
+    fireEvent.click(screen.getByRole("button", { name: "Sign out" }));
+
+    // When: The request fails after leaving the visit or switching identity.
+    await act(async () => {
+      if (destination === "Home") await router.navigate("/");
+      else replaceAuthSession({ ...owner, uid: "replacement" });
+      request.reject(new Error("Refused"));
+    });
+
+    // Then: Home gets its existing transient result, but another owner gets no stale failure.
+    expect(screen.queryAllByRole("button", { name: "Dismiss notification" })).toHaveLength(
+      destination === "Home" ? 1 : 0
+    );
+
+    // When: Dismiss the result and revisit the original Account/owner.
+    await act(async () => {
+      dismissToast();
+      replaceAuthSession(owner);
+      await router.navigate("/account");
+    });
+
+    // Then: The old operation does not create an indefinite inline error on the new visit.
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    router.dispose();
+  });
 });

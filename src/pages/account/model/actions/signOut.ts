@@ -1,27 +1,56 @@
 import { matchPath } from "react-router-dom";
 
-import { signOutCurrentUser } from "@/entities/auth";
-import { getCurrentPathname, routes } from "@/shared/router";
+import { authSessionStore, getAuthUid, signOutCurrentUser } from "@/entities/auth";
+import { getCurrentPathname, routes, subscribeRouterLocationChange } from "@/shared/router";
 import { showToast } from "@/shared/ui/toast";
 
 import { accountPageStore as store } from "../store";
 
+let stopFailureTracking: (() => void) | undefined;
+
 export async function signOut(): Promise<void> {
-  // Acquire the synchronous store state before awaiting so duplicate actions cannot outrun React rendering.
   if (store.getState().signOut.pending) return;
-  // Change only this operation so an auth transition can expose the opposite action without sharing its lock.
+  stopFailureTracking?.();
   store.setState({ signOut: { pending: true } });
+  const uid = getAuthUid();
+  const scope = {
+    sameVisit: matchPath(routes.account.path, getCurrentPathname() ?? "") !== null,
+    sameIdentity: true,
+  };
+  const clearInline = () => {
+    const hadInlineFailure = store.getState().signOut.failed === true;
+    store.setState((state) => ({ signOut: { ...state.signOut, failed: false } }));
+    if (hadInlineFailure) stopTracking();
+  };
+  const stopRoute = subscribeRouterLocationChange(() => {
+    scope.sameVisit = false;
+    clearInline();
+  });
+  const stopAuth = authSessionStore.subscribe((session) => {
+    // A refused auth change temporarily hides Account but still belongs to this owner and visit.
+    if (session.status === "initializing" || (session.status === "authenticated" && session.uid === uid)) return;
+    scope.sameIdentity = false;
+    clearInline();
+  });
+  const stopTracking = () => {
+    stopRoute();
+    stopAuth();
+    if (stopFailureTracking === stopTracking) stopFailureTracking = undefined;
+  };
+  stopFailureTracking = stopTracking;
   try {
     await signOutCurrentUser();
-    // Auth transitions can temporarily unmount the Account route, but a completed user action still owns its result.
     showToast({ messageKey: "account.toast.signOutSuccess", tone: "success", supplementary: true });
   } catch {
-    store.setState({ signOut: { pending: true, failed: true } });
-    // Route presence, not component mount state, distinguishes an auth check from leaving Account.
-    if (matchPath(routes.account.path, getCurrentPathname() ?? "") === null) {
+    // Do not resurrect an old owner's failure, or persist a Home notification on a later Account visit.
+    if (!scope.sameIdentity) return;
+    if (scope.sameVisit) {
+      store.setState({ signOut: { pending: true, failed: true } });
+    } else {
       showToast({ messageKey: "account.toast.signOutFailure", tone: "error", supplementary: true });
     }
   } finally {
+    if (store.getState().signOut.failed !== true) stopTracking();
     store.setState((state) => ({ signOut: { ...state.signOut, pending: false } }));
   }
 }

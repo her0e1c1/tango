@@ -32,6 +32,7 @@ const tonePresentation: Record<ToastTone, { className: string; labelKey: `toast.
 const Toast = (props: ToastProps) => {
   const { t } = useTranslation();
   const presentation = tonePresentation[props.tone];
+  const messageId = React.useId();
 
   return (
     <div
@@ -43,10 +44,14 @@ const Toast = (props: ToastProps) => {
     >
       <span className="sr-only">{t(presentation.labelKey)}: </span>
       {props.visualContent === undefined ? (
-        <span className="line-clamp-3 min-w-0 break-words">{props.message}</span>
+        <span id={messageId} className="line-clamp-3 min-w-0 break-words">
+          {props.message}
+        </span>
       ) : (
         <>
-          <span className="sr-only">{props.message}</span>
+          <span id={messageId} className="sr-only">
+            {props.message}
+          </span>
           <span aria-hidden="true" className="inline-flex shrink-0 items-center justify-center">
             {props.visualContent}
           </span>
@@ -56,6 +61,7 @@ const Toast = (props: ToastProps) => {
         <button
           type="button"
           aria-label={t("toast.dismissNotification")}
+          aria-describedby={messageId}
           className="inline-flex min-h-touch min-w-touch shrink-0 items-center justify-center rounded-control focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
           onClick={props.onDismiss}
         >
@@ -134,7 +140,7 @@ export const ToastViewport = <T extends HTMLElement = HTMLElement>({
         role="status"
         aria-label={t("toast.notifications")}
         aria-live="polite"
-        aria-atomic="true"
+        aria-atomic="false"
         className="sr-only"
       >
         {toasts.filter((toast) => toast.tone !== "error").map(renderAnnouncement)}
@@ -142,7 +148,7 @@ export const ToastViewport = <T extends HTMLElement = HTMLElement>({
       <div
         role={toasts.some((toast) => toast.tone === "error") ? "alert" : undefined}
         aria-live="assertive"
-        aria-atomic="true"
+        aria-atomic="false"
         className="sr-only"
       >
         {toasts.filter((toast) => toast.tone === "error").map(renderAnnouncement)}
