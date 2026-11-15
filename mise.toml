@@ -149,6 +149,11 @@ docker compose run --rm --remove-orphans --env CI --env PLAYWRIGHT_MAIN_TRACE --
 """,
 ]
 
+[tasks.report]
+description = "Open the latest Playwright HTML report"
+interactive = true
+run = "npx playwright show-report playwright-report --host 127.0.0.1"
+
 [tasks."e2e:ui"]
 description = "Run the existing E2E environment in Playwright UI mode"
 interactive = true
