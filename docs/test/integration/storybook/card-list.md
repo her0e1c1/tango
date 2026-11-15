@@ -48,6 +48,31 @@ Card 一覧画面を入口とした `play` で、対象 Deck の一覧、閲覧�
 | STORYBOOK-DECK-FILTER-13 | render | 正常系 | [大量の選択タグをスクロールして確認する](#storybook-deck-filter-13) |
 | STORYBOOK-DECK-FILTER-14 | render | 正常系 | [長い候補タグ名を確認できる](#storybook-deck-filter-14) |
 | STORYBOOK-DECK-FILTER-15 | interaction | 正常系 | [言語が変わってもタグの展開を保つ](#storybook-deck-filter-15) |
+| STORYBOOK-CARD-LIST-26 | interaction | 正常系 | [Card を追加が新しい順に表示できる](#storybook-card-list-26) |
+| STORYBOOK-CARD-LIST-27 | interaction | 正常系 | [Card の表示順を標準へ戻せる](#storybook-card-list-27) |
+| STORYBOOK-CARD-LIST-28 | interaction | 正常系 | [並び替え後も選択した Card のプレビューと行操作を利用できる](#storybook-card-list-28) |
+| STORYBOOK-CARD-LIST-29 | interaction | 正常系 | [別 Card の変更後も行のフォーカスとメニューを維持できる](#storybook-card-list-29) |
+| STORYBOOK-CARD-LIST-30 | interaction | 正常系 | [フィルター保存中も並び替えでき、禁止中の操作は実行できない](#storybook-card-list-30) |
+| STORYBOOK-CARD-LIST-31 | interaction | 正常系 | [画面を離れるか Deck を変更すると並び順が標準に戻る](#storybook-card-list-31) |
+| STORYBOOK-CARD-LIST-32 | interaction | 正常系 | [フィルター保存中に変更しても最後の選択を維持できる](#storybook-card-list-32) |
+| STORYBOOK-CARD-LIST-33 | interaction | 正常系 | [言語やフィルターを変更しても並び順を保持できる](#storybook-card-list-33) |
+| STORYBOOK-CARD-LIST-34 | interaction | 異常系 | [フィルター保存失敗後も選択を維持して次の変更を保存できる](#storybook-card-list-34) |
+| STORYBOOK-CARD-LIST-35 | interaction | 正常系 | [Card の解答プレビューを開ける](#storybook-card-list-35) |
+| STORYBOOK-CARD-LIST-36 | interaction | 正常系 | [Card の解答プレビューを閉じて一覧へ戻れる](#storybook-card-list-36) |
+| STORYBOOK-CARD-LIST-37 | interaction | 正常系 | [解答の文章を選択できる](#storybook-card-list-37) |
+| STORYBOOK-CARD-LIST-38 | interaction | 正常系 | [解答のリンクと脚注をたどれる](#storybook-card-list-38) |
+| STORYBOOK-CARD-LIST-39 | interaction | 正常系 | [解答の本文をキーボードで縦にスクロールできる](#storybook-card-list-39) |
+| STORYBOOK-CARD-LIST-40 | interaction | 正常系 | [解答のコードをキーボードで横にスクロールできる](#storybook-card-list-40) |
+| STORYBOOK-CARD-LIST-41 | interaction | 正常系 | [解答の数式をキーボードで横にスクロールできる](#storybook-card-list-41) |
+| STORYBOOK-CARD-LIST-42 | render | 正常系 | [Card 一覧に学習情報を表示できる](#storybook-card-list-42) |
+| STORYBOOK-CARD-LIST-43 | interaction | 異常系 | [存在しない Deck から復帰できる](#storybook-card-list-43) |
+| STORYBOOK-CARD-LIST-44 | interaction | 正常系 | [Card の削除を取り消せる](#storybook-card-list-44) |
+| STORYBOOK-CARD-LIST-45 | interaction | 正常系 | [削除成功の応答後に一覧を更新する](#storybook-card-list-45) |
+| STORYBOOK-CARD-LIST-46 | interaction | 異常系 | [削除失敗の応答後に同じ Card を再試行する](#storybook-card-list-46) |
+| STORYBOOK-CARD-LIST-47 | interaction | 異常系 | [読めない Card の件数と結果の回復を表示する](#storybook-card-list-47) |
+| STORYBOOK-CARD-LIST-48 | interaction | 正常系 | [Card 一覧からキーボードで画面を移る](#storybook-card-list-48) |
+| STORYBOOK-CARD-LIST-49 | interaction | 正常系 | [フィルター不一致の0件から条件を確認して変更する](#storybook-card-list-49) |
+| STORYBOOK-CARD-LIST-50 | render | 正常系 | [同じ Deck のタグだけを重複なく候補にする](#storybook-card-list-50) |
 
 <a id="storybook-card-list-01"></a>
 
@@ -855,3 +880,520 @@ When:
 Then:
 
 - 操作名が日本語へ変わり、展開状態とタグ名と選択内容は保たれる。
+
+<a id="storybook-card-list-26"></a>
+
+### STORYBOOK-CARD-LIST-26 [TODO] Card を追加が新しい順に表示できる
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- ログイン中のアカウントが所有する Deck に追加日時が異なる Card と、追加日時が同じ Card が存在する。絞り込みなしと、一部の Card に一致する閲覧タグを選択した状態を独立した入力例とする。
+- Card 一覧は標準の順序で表示され、既存の学習セッションがある。
+
+When:
+
+- キーボードで並び順の「追加が新しい順」を選択する。
+
+Then:
+
+- 追加日時が新しい Card から表示され、同じ追加日時では標準の相対順序を維持する。編集日時は順序に影響しない。
+- 件数とタグ候補、フィルターに一致する Card は変わらない。
+- Card・Deck の内容や既存の学習の出題順・現在位置は変わらない。
+- 新しく始める学習の対象や出題順にも影響しない。
+
+<a id="storybook-card-list-27"></a>
+
+### STORYBOOK-CARD-LIST-27 [TODO] Card の表示順を標準へ戻せる
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- ログイン中のアカウントが所有する Deck の Card 一覧で「追加が新しい順」を選択している。絞り込みなしと、一部の Card に一致する閲覧タグを選択した状態を独立した入力例とし、確認中は Card を追加・更新・削除しない。
+- 対象 Deck に既存の学習セッションがある。
+
+When:
+
+- キーボードで並び順の「標準」を選択する。
+
+Then:
+
+- その時点の標準の順序へ戻り、件数・Card と Deck の内容・学習の出題順と現在位置は変わらない。
+
+<a id="storybook-card-list-28"></a>
+
+### STORYBOOK-CARD-LIST-28 [TODO] 並び替え後も選択した Card のプレビューと行操作を利用できる
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- ログイン中のアカウントが所有する Deck の Card 一覧を「追加が新しい順」で表示している。
+
+When:
+
+- 対象 Card の解答プレビューを開閉するか、行操作を選択する。
+
+Then:
+
+- プレビューと行操作は選択した Card を対象とし、プレビュー開閉後も並び順を保つ。
+
+<a id="storybook-card-list-29"></a>
+
+### STORYBOOK-CARD-LIST-29 [TODO] 別 Card の変更後も行のフォーカスとメニューを維持できる
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- ログイン中のアカウントが所有する Deck の Card 一覧を「追加が新しい順」で表示している。
+- 操作可能な行にフォーカスがあるか、対象 Card のメニューを開いている。
+
+When:
+
+- 別 Card が追加・更新・削除されるか、メニュー対象の Card が削除される。
+
+Then:
+
+- 別 Card の変更では、残る行のフォーカスとメニューを保つ。対象 Card が削除された場合はメニューを閉じる。
+
+<a id="storybook-card-list-30"></a>
+
+### STORYBOOK-CARD-LIST-30 [TODO] フィルター保存中も並び替えでき、禁止中の操作は実行できない
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- ログイン中のアカウントが所有する Deck の Card 一覧を開いている。
+- フィルター自動保存中、Card の変更中、またはダイアログ表示中である。
+
+When:
+
+- 並び順や、その状態で禁止されている行の操作を選択しようとする。
+
+Then:
+
+- フィルター自動保存中も並び順を選択できる。
+- Card の変更中やダイアログ表示中に禁止されている操作は引き続き実行できない。
+
+<a id="storybook-card-list-31"></a>
+
+### STORYBOOK-CARD-LIST-31 [TODO] 画面を離れるか Deck を変更すると並び順が標準に戻る
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- ログイン中のアカウントが所有する Deck の Card 一覧で「追加が新しい順」を選択している。
+
+When:
+
+- 一覧画面から離れて戻るか、表示する Deck を変更する。
+
+Then:
+
+- 並び順は標準に戻る。
+
+<a id="storybook-card-list-32"></a>
+
+### STORYBOOK-CARD-LIST-32 [TODO] フィルター保存中に変更しても最後の選択を維持できる
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- 対象 Deck の Card 一覧でタグフィルターの保存応答を保留している。
+
+When:
+
+- 保存中に条件を続けて変更し、別画面へ移動して戻る。
+
+Then:
+
+- 保存中も変更でき、最後の選択が以前の条件に戻らない。
+
+<a id="storybook-card-list-33"></a>
+
+### STORYBOOK-CARD-LIST-33 [TODO] 言語やフィルターを変更しても並び順を保持できる
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- ログイン中のアカウントが所有する Deck の Card 一覧で「追加が新しい順」を選択している。
+
+When:
+
+- 言語またはフィルターを変更し、フィルターでは結果0件となる条件も選択する。
+
+Then:
+
+- 言語・フィルター変更後や結果0件でも、選択した並び順を保持する。
+
+<a id="storybook-card-list-34"></a>
+
+### STORYBOOK-CARD-LIST-34 [TODO] フィルター保存失敗後も選択を維持して次の変更を保存できる
+
+カテゴリ: `interaction`
+
+区分: 異常系
+
+Given:
+
+- 対象 Deck の Card 一覧を開いており、タグフィルター保存先は失敗、成功の順に応答する。
+
+When:
+
+- 条件を変更し、保存失敗後に再度変更して、保存後に再表示する。
+
+Then:
+
+- 保存失敗を通知し、選択を維持する。次の保存に成功すると選択中の全条件を再表示できる。
+
+<a id="storybook-card-list-35"></a>
+
+### STORYBOOK-CARD-LIST-35 [TODO] Card の解答プレビューを開ける
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- ログイン中のアカウントが所有する Deck に、両面の本文を持つ Card がある。
+
+When:
+
+- Card 一覧の対象 Card へキーボードで移動し、表示を選ぶ。
+
+Then:
+
+- 対象 Card の名前付き解答プレビューを表示し、フォーカスがプレビュー内へ移る。
+- タイトル・閉じる操作・本文へキーボードで移動でき、Tab と Shift+Tab はプレビュー内を循環する。長いタイトルもキーボードでスクロールできる。
+- 本文を読む間は背景の一覧・フィルター・並び順・画面移動の操作へ移らない。
+
+<a id="storybook-card-list-36"></a>
+
+### STORYBOOK-CARD-LIST-36 [TODO] Card の解答プレビューを閉じて一覧へ戻れる
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- ログイン中のアカウントが所有する Deck の Card 一覧で、解答プレビューを開いている。
+
+When:
+
+- 本文とは独立した「カードを閉じる」操作、または Escape でプレビューを閉じる。
+
+Then:
+
+- プレビューが閉じ、接続済みで操作可能な起点へフォーカスが戻る。起点がなくなっている場合は、別の Card へ移さず一覧の並び順操作へ戻る。
+- 一覧の絞り込みと並び順、Card の内容と学習結果は変わらず、一覧を再び操作できる。
+
+<a id="storybook-card-list-37"></a>
+
+### STORYBOOK-CARD-LIST-37 [TODO] 解答の文章を選択できる
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- ログイン中のアカウントが所有する Card の解答プレビューに、選択できる文章を表示している。
+
+When:
+
+- ポインターをドラッグして解答の文章を選択する。
+
+Then:
+
+- 文章が選択され、プレビューは開いたままである。
+
+<a id="storybook-card-list-38"></a>
+
+### STORYBOOK-CARD-LIST-38 [TODO] 解答のリンクと脚注をたどれる
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- 解答プレビューに脚注へのリンクと注番号、脚注から本文へ戻るリンクがある。
+
+When:
+
+- 解答のリンクと注番号から脚注へ移動し、それぞれ本文へ戻る。
+
+Then:
+
+- 脚注と元の注番号が表示範囲へ移り、プレビューは開いたままである。
+
+<a id="storybook-card-list-39"></a>
+
+### STORYBOOK-CARD-LIST-39 [TODO] 解答の本文をキーボードで縦にスクロールできる
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- 解答プレビューに縦に長い本文を表示している。
+
+When:
+
+- 解答の本文へフォーカスし、PageDown を押す。
+
+Then:
+
+- 本文の下方へ読み取り位置が移り、プレビューは開いたままである。
+
+<a id="storybook-card-list-40"></a>
+
+### STORYBOOK-CARD-LIST-40 [TODO] 解答のコードをキーボードで横にスクロールできる
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- 解答プレビューに横に長いコードを表示している。
+
+When:
+
+- コードへフォーカスし、右矢印キーを押す。
+
+Then:
+
+- コードの右方へ読み取り位置が移り、プレビューは開いたままである。
+
+<a id="storybook-card-list-41"></a>
+
+### STORYBOOK-CARD-LIST-41 [TODO] 解答の数式をキーボードで横にスクロールできる
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- 解答プレビューに横に長い数式を表示している。
+
+When:
+
+- 数式へフォーカスし、右矢印キーを押す。
+
+Then:
+
+- 数式の右方へ読み取り位置が移り、プレビューは開いたままである。
+
+<a id="storybook-card-list-42"></a>
+
+### STORYBOOK-CARD-LIST-42 [TODO] Card 一覧に学習情報を表示できる
+
+カテゴリ: `render`
+
+区分: 正常系
+
+Given:
+
+- ログイン中のアカウントが所有する Deck に、タグ付きの Card がある。
+
+When:
+
+- 対象 Deck の Card 一覧を開く。
+
+Then:
+
+- 対象 Card の表面の本文とタグを表示する。
+
+<a id="storybook-card-list-43"></a>
+
+### STORYBOOK-CARD-LIST-43 [TODO] 存在しない Deck から復帰できる
+
+カテゴリ: `interaction`
+
+区分: 異常系
+
+Given:
+
+- 開こうとしている URL の Deck は存在しない。
+
+When:
+
+- 存在しない Deck の Card 一覧を直接開き、Deck が利用できない旨の画面からホームへ戻る操作を選ぶ。
+
+Then:
+
+- Deck 一覧が表示される。
+
+<a id="storybook-card-list-44"></a>
+
+### STORYBOOK-CARD-LIST-44 [TODO] Card の削除を取り消せる
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- ログイン中のアカウントが所有する Card の操作メニューボタンから削除ダイアログを開いている。
+- 対象 Card と削除を取り消せない旨が表示されている。
+
+When:
+
+- Cancel を選択する。
+
+Then:
+
+- ダイアログが閉じ、対象 Card の操作メニューボタンにフォーカスが戻る。
+- 対象 Card の内容と学習状態を維持する。
+
+<a id="storybook-card-list-45"></a>
+
+### STORYBOOK-CARD-LIST-45 [TODO] 削除成功の応答後に一覧を更新する
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- 対象 Deck に Card が1件あり、削除先は成功応答と対象 Card がなくなった結果を返す。
+
+When:
+
+- 一覧で対象 Card の削除を確定する。
+
+Then:
+
+- 削除成功を通知し、ダイアログを閉じ、Card 件数0の案内を表示する。
+- 削除した Card を代わりの Card と取り違えず、他の Deck の内容と学習状態は変わらない。
+
+<a id="storybook-card-list-46"></a>
+
+### STORYBOOK-CARD-LIST-46 [TODO] 削除失敗の応答後に同じ Card を再試行する
+
+カテゴリ: `interaction`
+
+区分: 異常系
+
+Given:
+
+- 対象 Card の削除先は拒否、成功の順に応答する。拒否時には対象 Card が利用できる結果を返す。
+
+When:
+
+- 削除し、失敗後にダイアログを開き直して再試行する。
+
+Then:
+
+- 失敗を通知して対象 Card を操作可能に戻し、再試行成功後にダイアログを閉じて一覧から対象 Card を除く。
+
+<a id="storybook-card-list-47"></a>
+
+### STORYBOOK-CARD-LIST-47 [TODO] 読めない Card の件数と結果の回復を表示する
+
+カテゴリ: `interaction`
+
+区分: 異常系
+
+Given:
+
+- 同じ Deck の2枚のうち1枚、または2枚とも読み込めない結果を受け取っている。正常な Card と Deck は利用できる。
+
+When:
+
+- Card 一覧を開き、読めなかった Card が有効になった結果を順に受け取る。
+
+Then:
+
+- 正常な Card だけを表示し、全件が読めない場合も Deck と一覧の操作を利用できる。
+- 読めない件数と保存データを変更していない警告を表示する。結果の回復で同じ本文の Card を再表示して件数を減らし、全件が正常になると警告を消す。
+- 未評価として補完した Card を表示せず、画面の復旧操作だけで保存値を変更しない。
+
+<a id="storybook-card-list-48"></a>
+
+### STORYBOOK-CARD-LIST-48 [TODO] Card 一覧からキーボードで画面を移る
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- Card 一覧画面を開いており、入力欄やダイアログを操作していない。
+
+When:
+
+- t を押して Deck 一覧へ移り、Card 一覧へ戻って s を押す。
+
+Then:
+
+- t は Deck 一覧、s は Settings へそれぞれ一度だけ遷移し、Deck・Card の内容と学習状態は変わらない。
+
+<a id="storybook-card-list-49"></a>
+
+### STORYBOOK-CARD-LIST-49 [TODO] フィルター不一致の0件から条件を確認して変更する
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- 対象 Deck には Card があり、両方を持つ Card がない二つのタグを AND 条件で選択している。保存先は変更に成功する。
+
+When:
+
+- Card 一覧のフィルターを開いて条件を確認し、一つのタグを解除する。
+
+Then:
+
+- 変更前は0件とフィルター不一致を表示し、Card 未登録や全件表示へ切り替えない。
+- 選択タグと AND 条件を確認でき、解除後は残る条件に一致する Card を表示する。
+
+<a id="storybook-card-list-50"></a>
+
+### STORYBOOK-CARD-LIST-50 [TODO] 同じ Deck のタグだけを重複なく候補にする
+
+カテゴリ: `render`
+
+区分: 正常系
+
+Given:
+
+- 同じ Deck の複数 Card がタグを共有し、別 Deck の Card は固有のタグを持つ。
+
+When:
+
+- 対象 Deck の Card 一覧のタグ候補を開く。
+
+Then:
+
+- 同じ Deck のタグは一度ずつ表示し、別 Deck のタグと固定カテゴリを候補へ追加しない。

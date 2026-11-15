@@ -14,6 +14,8 @@ Deck 作成画面を入口とした `play` で、新しい Deck の入力、利�
 | STORYBOOK-DECK-CREATE-02 | interaction | 異常系 | [作成に失敗しても入力を保持する](#storybook-deck-create-02) |
 | STORYBOOK-DECK-CREATE-03 | interaction | 異常系 | [空欄と空白のみの名前に現在の言語でエラーを表示する](#storybook-deck-create-03) |
 | STORYBOOK-DECK-CREATE-04 | interaction | 異常系 | [表示中の名前エラーを言語変更に追従させる](#storybook-deck-create-04) |
+| STORYBOOK-DECK-CREATE-05 | interaction | 正常系 | [各認証状態で空の Deck の作成結果を表示する](#storybook-deck-create-05) |
+| STORYBOOK-DECK-CREATE-06 | interaction | 異常系 | [作成結果を待ってから失敗を通知する](#storybook-deck-create-06) |
 
 <a id="storybook-deck-form-01"></a>
 
@@ -137,3 +139,44 @@ Then:
 
 - 表示中のエラーと入力欄の説明が、日本語では `デッキ名は必須です。`、英語では `Deck name is required.` に切り替わる。
 - 同じ名前入力欄、エラーとの関連付け、フォーカス、名前と表示形式の入力が保持され、保存先への操作は開始されない。
+
+<a id="storybook-deck-create-05"></a>
+
+### STORYBOOK-DECK-CREATE-05 [TODO] 各認証状態で空の Deck の作成結果を表示する
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- 通常アカウントと匿名利用を独立した条件とし、対象 Deck は存在しない。保存先は成功を返し、新しい Deck が利用可能な状態になる。
+
+When:
+
+- 作成画面で名前と表示形式を入力して保存し、一覧と作成した Deck の編集画面を開く。
+
+Then:
+
+- 保存先の選択肢と改行変換の操作・説明は表示しない。作成成功を通知し、空の Deck を一覧に一つ表示する。
+- 編集画面に入力した名前と表示形式を表示する。
+
+<a id="storybook-deck-create-06"></a>
+
+### STORYBOOK-DECK-CREATE-06 [TODO] 作成結果を待ってから失敗を通知する
+
+カテゴリ: `interaction`
+
+区分: 異常系
+
+Given:
+
+- 通常アカウントで有効な名前と表示形式を入力している。保存先は一時的な追加後に拒否を返し、拒否後は対象 Deck を利用できない状態になる。
+
+When:
+
+- 作成を選び、保留されている結果が失敗するまで待つ。
+
+Then:
+
+- 保留中は成功扱いにせず、失敗時は入力を保持して失敗を通知する。拒否された Deck を利用可能な一覧へ残さず、利用者の操作なしに繰り返し作成しない。

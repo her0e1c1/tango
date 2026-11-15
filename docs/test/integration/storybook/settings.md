@@ -19,6 +19,11 @@
 | STORYBOOK-SETTINGS-09 | interaction | 正常系 | [最大カード数0を全件として説明する](#storybook-settings-09) |
 | STORYBOOK-SETTINGS-10 | interaction | 正常系 | [再生間隔の境界値を説明する](#storybook-settings-10) |
 | STORYBOOK-SETTINGS-11 | interaction | 正常系 | [ショートカットでホームへ戻る](#storybook-settings-11) |
+| STORYBOOK-SETTINGS-12 | interaction | 正常系 | [詳細設定をキーボードで開閉する](#storybook-settings-12) |
+| STORYBOOK-SETTINGS-13 | interaction | 正常系 | [配色だけを変更して他の設定を保つ](#storybook-settings-13) |
+| STORYBOOK-SETTINGS-14 | interaction | 正常系 | [Language の選択を画面とページの言語へ反映する](#storybook-settings-14) |
+| STORYBOOK-SETTINGS-15 | interaction | 正常系 | [学習条件の変更を次の開始へ渡す](#storybook-settings-15) |
+| STORYBOOK-SETTINGS-16 | interaction | 正常系 | [間隔スライダーの両端をキーボードで選んでも他の設定を保つ](#storybook-settings-16) |
 
 <a id="storybook-settings-01"></a>
 
@@ -239,3 +244,108 @@ When:
 Then:
 
 - Deck 一覧画面へ遷移し、Decks の見出しが表示される。
+
+<a id="storybook-settings-12"></a>
+
+### STORYBOOK-SETTINGS-12 [TODO] 詳細設定をキーボードで開閉する
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- 詳細設定が閉じている Settings 画面を、狭い・広い画面と明暗両テーマで表示する。commit 情報がある・ない場合を独立した表示例とする。
+
+When:
+
+- Tab と Shift+Tab で間隔スライダーと詳細設定見出しを往復し、Enter・Space で開閉する。開いた状態で commit リンクがある場合は Tab で進んで戻る。
+
+Then:
+
+- 見出しの四辺にフォーカス枠を表示し、余分な停止位置を作らない。開閉後も見出し名とバージョン・commit 表示を維持する。
+- commit 情報がある場合は完全な commit を指すリンク、ない場合は unknown を表示してリンクは作らない。設定・認証・Deck・Card・学習位置を変えない。
+
+<a id="storybook-settings-13"></a>
+
+### STORYBOOK-SETTINGS-13 [TODO] 配色だけを変更して他の設定を保つ
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- Settings の Maximum cards は0、再生間隔は3秒である。
+
+When:
+
+- Dark mode を現在と異なる状態へ切り替える。
+
+Then:
+
+- チェック状態とアプリの配色が切り替わり、Maximum cards は0、間隔は3秒を維持し、他の設定を変えない。
+
+<a id="storybook-settings-14"></a>
+
+### STORYBOOK-SETTINGS-14 [TODO] Language の選択を画面とページの言語へ反映する
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- 英語の Settings を表示している。日本語を選択する場合と、ブラウザーが ja-JP の環境で System を選択する場合を独立した入力例とする。
+
+When:
+
+- Language を指定した値へ切り替え、Deck 一覧も開く。
+
+Then:
+
+- 選んだ値を表示し、見出し・言語入力の読み上げ名・ページの言語が日本語へ変わる。Deck 一覧の見出しと作成操作も日本語になる。
+
+<a id="storybook-settings-15"></a>
+
+### STORYBOOK-SETTINGS-15 [TODO] 学習条件の変更を次の開始へ渡す
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- Settings で Maximum cards と Respect review schedule を変更できる。
+
+When:
+
+- 正の上限・1・0と、復習予定尊重の有効・無効を独立した設定例として変更し、対象 Deck の学習開始画面へ進む。
+
+Then:
+
+- Settings の選択と、学習開始で使用する条件が一致する。0は全件を意味し、タグ条件・復習条件を無効にしない。
+- この操作だけでは進行中の学習の Card・順序・現在位置を変更しない。
+
+<a id="storybook-settings-16"></a>
+
+### STORYBOOK-SETTINGS-16 [TODO] 間隔スライダーの両端をキーボードで選んでも他の設定を保つ
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- 認証済みユーザーで、自動再生の間隔は初期設定から変更していない。
+- 「自動再生で開始」と「再生操作を表示」が有効・無効の場合を独立した状態例とし、他の設定の選択を確認できる。
+
+When:
+
+- Settings を開き、間隔スライダーを Home で0へ変更してから、End で正の上限へ戻す。
+
+Then:
+
+- 間隔の既定値は60、スライダーの範囲は0〜60であり、Home で0、End で60を選択できる。
+- 0では英語・日本語とも自動送りがないことと再生・一時停止・進捗スライダーが非表示になる説明を表示・読み上げ、正の値へ戻すと秒数表示に戻る。
+- 間隔以外の設定と「自動再生で開始」「再生操作を表示」の選択を維持する。

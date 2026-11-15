@@ -16,6 +16,9 @@ Deck 編集画面を入口とした `play` で、既存 Deck の表示・編集�
 | STORYBOOK-DECK-EDIT-03 | interaction | 異常系 | [保存失敗後も編集値を保持する](#storybook-deck-edit-03) |
 | STORYBOOK-DECK-EDIT-04 | interaction | 異常系 | [空欄と空白のみの名前に現在の言語でエラーを表示する](#storybook-deck-edit-04) |
 | STORYBOOK-DECK-EDIT-05 | interaction | 異常系 | [表示中の名前エラーを言語変更に追従させる](#storybook-deck-edit-05) |
+| STORYBOOK-DECK-EDIT-06 | interaction | 正常系 | [通知が変わっても未保存の Deck 編集を続ける](#storybook-deck-edit-06) |
+| STORYBOOK-DECK-EDIT-07 | interaction | 正常系 | [編集を続けた後の再離脱で変更を破棄する](#storybook-deck-edit-07) |
+| STORYBOOK-DECK-EDIT-08 | interaction | 正常系 | [表示形式と名前の変更を反映し非編集の内容を保つ](#storybook-deck-edit-08) |
 
 <a id="storybook-deck-form-04"></a>
 
@@ -178,3 +181,65 @@ Then:
 
 - 表示中のエラーと入力欄の説明が、日本語では `デッキ名は必須です。`、英語では `Deck name is required.` に切り替わる。
 - 同じ名前入力欄、エラーとの関連付け、フォーカス、名前と表示形式の入力が保持され、保存先への操作は開始されない。
+
+<a id="storybook-deck-edit-06"></a>
+
+### STORYBOOK-DECK-EDIT-06 [TODO] 通知が変わっても未保存の Deck 編集を続ける
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- Deck 編集画面で名前を未保存の値へ変更し、通知が表示されている。
+
+When:
+
+- Header から一覧へ離れる操作を試み、通知の消去・置き換え中に Keep editing を選ぶ。
+
+Then:
+
+- 確認操作は通知に覆われず、通知の変化で Keep editing のフォーカスを失わない。
+- 離脱を取り消し、同じ編集画面と変更中の名前を維持する。
+
+<a id="storybook-deck-edit-07"></a>
+
+### STORYBOOK-DECK-EDIT-07 [TODO] 編集を続けた後の再離脱で変更を破棄する
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- Deck の名前を未保存の値へ変更し、一度 Header から離脱を試みて Keep editing で編集を続けている。
+
+When:
+
+- 再び Header から一覧への離脱を試み、Discard changes を選ぶ。
+
+Then:
+
+- 一覧へ一度だけ遷移し、対象 Deck の名前は変更前の値で表示される。
+
+<a id="storybook-deck-edit-08"></a>
+
+### STORYBOOK-DECK-EDIT-08 [TODO] 表示形式と名前の変更を反映し非編集の内容を保つ
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- Deck は旧改行変換値と Card 本文を持ち、編集画面で名前と表示形式を変更できる。保存先は成功を返す。
+
+When:
+
+- 名前と表示形式を変更して保存し、編集画面を開き直す。
+
+Then:
+
+- 成功を通知し、変更した名前と表示形式を表示する。改行変換の操作・説明と空の詳細設定欄は表示しない。
+- 旧改行変換値と Card 本文を変更しない。

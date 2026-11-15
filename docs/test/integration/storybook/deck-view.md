@@ -34,6 +34,28 @@ Deck 閲覧画面を入口とした `play` で、閲覧条件に一致する Car
 | STORYBOOK-DECK-VIEW-01 | interaction | 正常系 | [閲覧条件に一致する Card を順番に読む](#storybook-deck-view-01) |
 | STORYBOOK-DECK-VIEW-02 | render | 正常系 | [Card がない場合に戻る操作を表示する](#storybook-deck-view-02) |
 | STORYBOOK-DECK-VIEW-03 | render | 正常系 | [閲覧条件による0件を未作成と区別する](#storybook-deck-view-03) |
+| STORYBOOK-DECK-VIEW-04 | interaction | 正常系 | [閲覧条件を学習条件と Deck ごとに分離する](#storybook-deck-view-04) |
+| STORYBOOK-DECK-VIEW-05 | interaction | 正常系 | [タグと一致条件による同じ閲覧対象を確認する](#storybook-deck-view-05) |
+| STORYBOOK-DECK-VIEW-06 | interaction | 正常系 | [Card 未登録の Deck 閲覧から Deck 一覧へ戻れる](#storybook-deck-view-06) |
+| STORYBOOK-DECK-VIEW-07 | interaction | 正常系 | [フィルター解除の応答後に一覧と閲覧を全件へ戻す](#storybook-deck-view-07) |
+| STORYBOOK-DECK-VIEW-08 | interaction | 異常系 | [全 Card を読めない Deck から警告を維持して戻る](#storybook-deck-view-08) |
+| STORYBOOK-DECK-VIEW-09 | interaction | 正常系 | [閲覧を先頭の表面から開始し端を越えると一覧へ戻る](#storybook-deck-view-09) |
+| STORYBOOK-DECK-VIEW-10 | interaction | 正常系 | [学習の条件に制限されず全 Card を標準順で閲覧する](#storybook-deck-view-10) |
+| STORYBOOK-DECK-VIEW-11 | interaction | 異常系 | [利用できない Deck の閲覧を終了する](#storybook-deck-view-11) |
+| STORYBOOK-DECK-VIEW-12 | interaction | 正常系 | [一枚の長い解答をタッチで読み左右の端から退出する](#storybook-deck-view-12) |
+| STORYBOOK-DECK-VIEW-13 | interaction | 正常系 | [閲覧の再生を明示的に開始して停止と再開を操作する](#storybook-deck-view-13) |
+| STORYBOOK-DECK-VIEW-14 | interaction | 正常系 | [進捗スライダーの標準操作で閲覧位置を選ぶ](#storybook-deck-view-14) |
+| STORYBOOK-DECK-VIEW-15 | interaction | 正常系 | [閲覧の解答に含まれるリンクと入力部品を操作する](#storybook-deck-view-15) |
+| STORYBOOK-DECK-VIEW-16 | interaction | 正常系 | [閲覧の上下キーと上下ドラッグを無効にする](#storybook-deck-view-16) |
+| STORYBOOK-DECK-VIEW-17 | interaction | 正常系 | [閲覧ヘルプを閉じて起動元へ戻る](#storybook-deck-view-17) |
+| STORYBOOK-DECK-VIEW-18 | interaction | 正常系 | [現在の閲覧 Card を編集リンクで開く](#storybook-deck-view-18) |
+| STORYBOOK-DECK-VIEW-19 | interaction | 正常系 | [間隔0の閲覧では再生を開始しない](#storybook-deck-view-19) |
+| STORYBOOK-DECK-VIEW-20 | interaction | 正常系 | [ヘルプの表示中は閲覧の自動送りを止める](#storybook-deck-view-20) |
+| STORYBOOK-DECK-VIEW-21 | interaction | 正常系 | [閲覧モードを保ってボタンまたは自動送りで次へ進む](#storybook-deck-view-21) |
+| STORYBOOK-DECK-VIEW-22 | interaction | 正常系 | [閲覧の表示設定を学習と共有する](#storybook-deck-view-22) |
+| STORYBOOK-DECK-VIEW-23 | interaction | 正常系 | [閲覧モードで長い表面を読み Card 移動を防ぐ](#storybook-deck-view-23) |
+| STORYBOOK-DECK-VIEW-24 | interaction | 正常系 | [閲覧モードを終了して通常の表裏操作へ戻る](#storybook-deck-view-24) |
+| STORYBOOK-DECK-VIEW-25 | interaction | 正常系 | [閲覧のショートカットとフォーカス対象の標準操作を分ける](#storybook-deck-view-25) |
 
 <a id="storybook-card-player-01"></a>
 
@@ -554,3 +576,461 @@ When:
 Then:
 
 - 閲覧対象がないことを表示し、Card 未作成の状態と区別できる。
+
+<a id="storybook-deck-view-04"></a>
+
+### STORYBOOK-DECK-VIEW-04 [TODO] 閲覧条件を学習条件と Deck ごとに分離する
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- 対象 Deck と別 Deck にタグ付き・タグなしの Card があり、Deck ごとに異なる学習条件がある。対象 Deck の閲覧フィルターは未設定と一部の Card に一致する設定を独立した状態例とし、別 Deck では異なる条件を選択している。
+- 対象 Deck の復習期限・学習用タグ・上限・シャッフルでは一部の Card が対象外である。
+
+When:
+
+- 対象 Deck の Card 一覧から Deck 閲覧を開き、別 Deck の一覧と閲覧を経て元の一覧へ戻る。
+
+Then:
+
+- 両画面は対象 Deck の閲覧条件に一致する同じ Card と件数を表示し、学習条件や別 Deck のフィルターで制限しない。
+- 元の Deck の選択タグと AND / OR 条件を保ち、表示・遷移だけでは Card・Deck・学習状態・設定を変更しない。
+
+<a id="storybook-deck-view-05"></a>
+
+### STORYBOOK-DECK-VIEW-05 [TODO] タグと一致条件による同じ閲覧対象を確認する
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- 対象 Deck に A だけ、B だけ、A と B、タグなしの Card があり、別 Deck にもタグ付き Card がある。
+- フィルター保存先は成功し、同じ Deck の選択条件を返す。単一タグ、AND、OR、タグ未選択を独立した入力例とする。
+
+When:
+
+- Card 一覧でタグと条件を選択し、同じ Deck の閲覧画面を開く。
+
+Then:
+
+- 単一の A は A を持つ Card、A と B の AND は両方を持つ Card、OR はいずれかを持つ Card を一度ずつ表示する。
+- タグ未選択なら AND / OR のどちらでもタグなしを含む全 Card を表示する。両画面の件数と対象は一致する。
+- 他の Deck の条件、Card 本文、学習条件・学習の順序や位置を変更しない。
+
+<a id="storybook-deck-view-06"></a>
+
+### STORYBOOK-DECK-VIEW-06 [TODO] Card 未登録の Deck 閲覧から Deck 一覧へ戻れる
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- Card 未登録・フィルター未設定の Deck を閲覧できる。
+
+When:
+
+- View を開き一覧へ戻る操作を選ぶ。
+
+Then:
+
+- Card がない旨と戻る操作を表示し、Card 操作を表示しない。Deck 一覧へ戻り、保存内容と学習結果は変わらない。
+
+<a id="storybook-deck-view-07"></a>
+
+### STORYBOOK-DECK-VIEW-07 [TODO] フィルター解除の応答後に一覧と閲覧を全件へ戻す
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- 対象 Deck の Card 一覧でタグと AND 条件を選択し、別の学習用タグ条件がある。フィルター保存先は成功と解除後の条件を返す。
+
+When:
+
+- フィルター欄の Clear でタグを解除し、同じ Deck の閲覧画面を開く。
+
+Then:
+
+- タグ未選択・OR 条件となり、両画面で全 Card を表示する。学習用タグ条件は変わらない。
+- 重複するフィルター解除ボタンは表示しない。
+
+<a id="storybook-deck-view-08"></a>
+
+### STORYBOOK-DECK-VIEW-08 [TODO] 全 Card を読めない Deck から警告を維持して戻る
+
+カテゴリ: `interaction`
+
+区分: 異常系
+
+Given:
+
+- 対象 Deck の2枚の Card が読み込めない結果を受け取っており、Deck と認証・設定は利用できる。
+
+When:
+
+- 対象 Deck の閲覧リンクを開き、元の Deck の Card 一覧へ戻る。
+
+Then:
+
+- Card がない旨、読み込めない2件と保存データを変更していない警告を表示する。
+- 一覧へ戻っても警告を維持し、復旧操作だけで保存内容を変更しない。
+
+<a id="storybook-deck-view-09"></a>
+
+### STORYBOOK-DECK-VIEW-09 [TODO] 閲覧を先頭の表面から開始し端を越えると一覧へ戻る
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- 複数 Card と途中の学習がある Deck を閲覧できる。匿名・通常アカウントを独立した状態例とし、学習側の操作割当・裏面維持・自動再生開始は有効である。
+
+When:
+
+- Deck 一覧の対象 Deck の View を開き、表裏の左右ドラッグ・左右キー・前後ボタンで移動する。途中で退出・再入場し、先頭の前と末尾の次へ進む。
+
+Then:
+
+- 閲覧は先頭 Card の表面・停止状態から始まり、位置／総数と表面の本文を読み上げられる。移動先は表面で、ドラッグ後に誤反転しない。
+- 両端を越えると Deck 一覧に戻る。上下ボタンは無効で評価せず、再生操作を利用できる。再入場時も先頭表面・停止状態へ戻る。
+- Deck・Card・学習結果・現在の学習位置と、明示的に操作していない設定を変えない。
+
+<a id="storybook-deck-view-10"></a>
+
+### STORYBOOK-DECK-VIEW-10 [TODO] 学習の条件に制限されず全 Card を標準順で閲覧する
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- 同じ Deck に学習用タグの一致・不一致、期限到達・未来期限・未学習の Card があり、閲覧フィルターは未選択である。学習の枚数上限とシャッフル・間隔反復が有効である。
+
+When:
+
+- 対象 Deck の View を開き全 Card の表裏を順に閲覧する。
+
+Then:
+
+- 全 Card を絞り込みなしの一覧と同じ標準順で表示し、総数にも全 Card を含む。末尾の次は Deck 一覧へ戻る。
+- 学習条件・復習予定・進行中の学習を変更せず、新しい学習を開始しない。
+
+<a id="storybook-deck-view-11"></a>
+
+### STORYBOOK-DECK-VIEW-11 [TODO] 利用できない Deck の閲覧を終了する
+
+カテゴリ: `interaction`
+
+区分: 異常系
+
+Given:
+
+- 指定した閲覧 URL に対応する Deck が存在しない。
+
+When:
+
+- その URL を開き一覧へ戻る操作を選ぶ。
+
+Then:
+
+- Deck が利用できない旨と戻る操作を表示し、Card 操作を表示しない。Deck 一覧へ戻り、他の Deck の内容や学習結果を変えない。
+
+<a id="storybook-deck-view-12"></a>
+
+### STORYBOOK-DECK-VIEW-12 [TODO] 一枚の長い解答をタッチで読み左右の端から退出する
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- 狭い画面で表示領域より長い裏面を持つ Card 一枚の Deck を閲覧する。
+
+When:
+
+- 表面をタッチで開き、ホイールと縦方向のタッチで裏面をスクロールする。左 swipe で退出し、再入場後は表面から右 swipe で退出する。
+
+Then:
+
+- 1件中1件の位置と裏面の末尾を確認できる。縦操作は移動・誤反転を起こさず、左右のどちらの端を越えても Deck 一覧へ戻る。
+- 学習結果・学習位置・設定を変えない。
+
+<a id="storybook-deck-view-13"></a>
+
+### STORYBOOK-DECK-VIEW-13 [TODO] 閲覧の再生を明示的に開始して停止と再開を操作する
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- 複数 Card の Deck を閲覧でき、自動再生開始が有効、再生間隔は正の値である。匿名・通常アカウントを独立した状態例とする。
+
+When:
+
+- View を開いて待ち、再生ボタンまたは Space で再生・停止・再開を行う。手動移動後も待ち、末尾の自動送りと退出後の再入場を行う。
+
+Then:
+
+- 明示的な開始前と再入場直後は停止し、再生中は設定間隔後に次の表面へ進む。手動移動後も新たに設定間隔を待つ。
+- 末尾の自動送りで Deck 一覧へ戻る。Card・学習結果・再開位置と設定を変えない。
+
+<a id="storybook-deck-view-14"></a>
+
+### STORYBOOK-DECK-VIEW-14 [TODO] 進捗スライダーの標準操作で閲覧位置を選ぶ
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- 複数 Card の Deck を閲覧し、再生操作を表示している。
+
+When:
+
+- 進捗スライダーをポインター・キーボードで前後へ動かし、Card を反転して左右キーで移動してから退出・再入場する。
+
+Then:
+
+- 選んだ位置と本文が一致する。移動先は表面で、再入場時は先頭表面に戻る。
+- スライダーにフォーカス中は標準キー操作を優先し、Card 移動を二重に実行しない。Card・学習状態・設定を変えない。
+
+<a id="storybook-deck-view-15"></a>
+
+### STORYBOOK-DECK-VIEW-15 [TODO] 閲覧の解答に含まれるリンクと入力部品を操作する
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- Deck の閲覧画面でリンクや入力部品を含む裏面を持つ Card を表示する。
+
+When:
+
+- 本文クリックで表裏を切り替え、裏面のリンク・入力部品を操作する。
+
+Then:
+
+- 本文クリックは表裏を切り替える。裏面は本文に集中でき、ツールバー・詳細・操作パネルを隠す。
+- リンクや入力部品では誤反転せず、リンクの移動や部品の入力を利用できる。学習状態と設定を変えない。
+
+<a id="storybook-deck-view-16"></a>
+
+### STORYBOOK-DECK-VIEW-16 [TODO] 閲覧の上下キーと上下ドラッグを無効にする
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- Deck 閲覧画面を表示し、学習の方向操作割当は有効である。
+
+When:
+
+- 上下キー、上下ドラッグを表裏で操作する。
+
+Then:
+
+- Card の位置と表裏を変更せず、評価しない。Card・学習状態・設定を変えない。
+
+<a id="storybook-deck-view-17"></a>
+
+### STORYBOOK-DECK-VIEW-17 [TODO] 閲覧ヘルプを閉じて起動元へ戻る
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- Deck 閲覧画面で Help の起動ボタンを表示している。
+
+When:
+
+- Help を開き説明を確認し、背景のショートカットを入力してから閉じる。
+
+Then:
+
+- 左右は前後移動、上下は無効として説明し、反転・再生・表示切替・退出の操作を案内する。
+- 表示中は背景のショートカットを実行せず、閉じると元の Card を維持して起動ボタンへフォーカスを戻す。Card・学習状態・設定を変えない。
+
+<a id="storybook-deck-view-18"></a>
+
+### STORYBOOK-DECK-VIEW-18 [TODO] 現在の閲覧 Card を編集リンクで開く
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- 編集リンクは既定で表示されている。英語・日本語と狭い画面を独立した表示例とする。
+
+When:
+
+- 表面の鉛筆リンクをキーボードで開き、保存せず閲覧へ戻って裏面も表示する。
+
+Then:
+
+- アイコンのみのリンクが現在の Card の編集画面を開く。読み上げ名を現在の言語で提供し、狭い画面で操作が重ならない。
+- 裏面では編集リンクを隠す。保存しないため Card・学習状態を変えない。
+
+<a id="storybook-deck-view-19"></a>
+
+### STORYBOOK-DECK-VIEW-19 [TODO] 間隔0の閲覧では再生を開始しない
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- 再生間隔0の Deck を閲覧できる。匿名・通常アカウントを独立した状態例とする。
+
+When:
+
+- View を開いて待ち、Help の再生操作説明を確認する。
+
+Then:
+
+- 再生操作と進捗スライダーを表示せず、自動送りしない。Help は利用できない理由を表示する。Card・学習状態・設定を変えない。
+
+<a id="storybook-deck-view-20"></a>
+
+### STORYBOOK-DECK-VIEW-20 [TODO] ヘルプの表示中は閲覧の自動送りを止める
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- 正の間隔で Deck を自動再生中である。匿名・通常アカウントを独立した状態例とする。
+
+When:
+
+- Help を開いて間隔を超えて待ち、Help を閉じる。
+
+Then:
+
+- Help 中は同じ Card を維持し、閉じた後は再生選択を保って設定間隔後に次の Card へ進む。学習状態と設定を変えない。
+
+<a id="storybook-deck-view-21"></a>
+
+### STORYBOOK-DECK-VIEW-21 [TODO] 閲覧モードを保ってボタンまたは自動送りで次へ進む
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- 複数 Card の閲覧で view mode が有効、再生間隔が正の値である。
+
+When:
+
+- 次の Card ボタンと、再生ボタンで開始する自動送りを独立した操作例として実行する。
+
+Then:
+
+- 次の Card へ進んでも view mode を維持し、学習状態を変更しない。
+
+<a id="storybook-deck-view-22"></a>
+
+### STORYBOOK-DECK-VIEW-22 [TODO] 閲覧の表示設定を学習と共有する
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- Card の詳細・Help・方向ボタン・再生操作・閲覧の編集リンクを表示しており、同じ Deck に途中の学習がある。外部処理は利用可能な学習状態を返す。
+
+When:
+
+- View の操作一覧で編集リンクと他の表示設定を切り替え、同じ Deck の学習へ移動する。
+
+Then:
+
+- 編集リンクの切替では編集画面へ移動せず、非表示後も操作一覧から戻せる。編集リンクは閲覧だけに適用し、他の表示設定は学習にも反映される。
+- 明示的に変更した表示設定以外と、Card・学習位置は変えない。
+
+<a id="storybook-deck-view-23"></a>
+
+### STORYBOOK-DECK-VIEW-23 [TODO] 閲覧モードで長い表面を読み Card 移動を防ぐ
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- Deck 閲覧画面に長い表面の Card を表示している。
+
+When:
+
+- view mode を有効にし、ホイール・タッチ・方向キーでスクロールし、左右・上下にドラッグする。
+
+Then:
+
+- 本文の先頭と末尾を読める。スワイプと方向キーは Card 移動や画面退出を起こさず、view mode を維持する。学習データは変わらない。
+
+<a id="storybook-deck-view-24"></a>
+
+### STORYBOOK-DECK-VIEW-24 [TODO] 閲覧モードを終了して通常の表裏操作へ戻る
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- Deck 閲覧画面で view mode が有効である。
+
+When:
+
+- タップと Enter を独立した操作例として view mode を終了し、その後に反転・裏面スクロール・タップ・左右移動を操作する。
+
+Then:
+
+- 終了操作だけでは表面を反転せず、終了後は通常の表裏切替・裏面スクロール・左右移動を利用できる。学習データは変わらない。
+
+<a id="storybook-deck-view-25"></a>
+
+### STORYBOOK-DECK-VIEW-25 [TODO] 閲覧のショートカットとフォーカス対象の標準操作を分ける
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- 匿名アカウントの Deck 閲覧画面で再生操作を表示し、裏面にはスクロール領域がある。
+
+When:
+
+- 本文、入力欄、ボタン、裏面のスクロール領域をそれぞれフォーカスし、Enter・Space・b を入力する。
+
+Then:
+
+- 本文では Enter は反転、Space は再生切替、b は方向ボタンの表示切替として動く。
+- 入力欄とボタンの標準操作を妨げず、裏面のスクロール領域の Space はスクロールを優先する。明示的に切り替えた表示設定以外と学習データは変えない。

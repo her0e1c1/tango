@@ -17,6 +17,18 @@
 | STORYBOOK-STUDY-HISTORY-07 | interaction | 正常系 | [最近のセッションをすべて展開する](#storybook-study-history-07) |
 | STORYBOOK-STUDY-HISTORY-08 | render | 正常系 | [30日分の集計グラフを表示する](#storybook-study-history-08) |
 | STORYBOOK-STUDY-HISTORY-09 | render | 正常系 | [90日分のグラフに集約単位を示す](#storybook-study-history-09) |
+| STORYBOOK-STUDY-HISTORY-10 | interaction | 正常系 | [Deck 選択と URL を履歴移動で一致させる](#storybook-study-history-10) |
+| STORYBOOK-STUDY-HISTORY-11 | interaction | 正常系 | [記録がなくても期間と日別表を連動させる](#storybook-study-history-11) |
+| STORYBOOK-STUDY-HISTORY-12 | render | 正常系 | [cache の記録を全履歴と区別して案内する](#storybook-study-history-12) |
+| STORYBOOK-STUDY-HISTORY-13 | interaction | 正常系 | [暦日の両端を含めて期間と Deck を表示する](#storybook-study-history-13) |
+| STORYBOOK-STUDY-HISTORY-14 | interaction | 正常系 | [条件切替後に古い取得結果を表示しない](#storybook-study-history-14) |
+| STORYBOOK-STUDY-HISTORY-15 | interaction | 正常系 | [日付変更で相対期間だけを更新する](#storybook-study-history-15) |
+| STORYBOOK-STUDY-HISTORY-16 | interaction | 正常系 | [開始と完了の記録を30日分の表示へ反映する](#storybook-study-history-16) |
+| STORYBOOK-STUDY-HISTORY-17 | render | 正常系 | [中止と削除済み Deck の記録を完了数へ加えない](#storybook-study-history-17) |
+| STORYBOOK-STUDY-HISTORY-18 | interaction | 異常系 | [取得失敗では部分集計を表示せず再試行する](#storybook-study-history-18) |
+| STORYBOOK-STUDY-HISTORY-19 | interaction | 異常系 | [無効な日付を適用しても現在の期間を変えない](#storybook-study-history-19) |
+| STORYBOOK-STUDY-HISTORY-20 | interaction | 異常系 | [無効な URL 期間を選び直して復帰する](#storybook-study-history-20) |
+| STORYBOOK-STUDY-HISTORY-21 | render | 異常系 | [存在しない Deck 指定を全 Deck に読み替えない](#storybook-study-history-21) |
 
 <a id="storybook-study-history-01"></a>
 
@@ -197,3 +209,248 @@ When:
 Then:
 
 - 集約されたグラフに集約単位が表示され、1日分の値と誤認しない。
+
+<a id="storybook-study-history-10"></a>
+
+### STORYBOOK-STUDY-HISTORY-10 [TODO] Deck 選択と URL を履歴移動で一致させる
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- 学習履歴画面に自分の Deck があり、記録は0件である。
+
+When:
+
+- Deck を選択してすべての Deck へ戻し、router の戻る・進むを行う。
+
+Then:
+
+- URL と選択が一致し、0件のサマリー・グラフ・表と記録なしの案内を表示する。
+
+<a id="storybook-study-history-11"></a>
+
+### STORYBOOK-STUDY-HISTORY-11 [TODO] 記録がなくても期間と日別表を連動させる
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- 学習履歴画面に自分の Deck があり、記録は0件である。
+
+When:
+
+- 7日・90日を選び、日別表を開いて古い日付へ進む。
+
+Then:
+
+- 合計・グラフ・最近の学習・日別表は同じ Deck と期間で0件を表示する。7日は日ごと、90日は7日ごとのグラフとし、日別表は30日ずつ確認できる。
+- 選んだ期間を URL の days に反映する。
+
+<a id="storybook-study-history-12"></a>
+
+### STORYBOOK-STUDY-HISTORY-12 [TODO] cache の記録を全履歴と区別して案内する
+
+カテゴリ: `render`
+
+区分: 正常系
+
+Given:
+
+- 学習履歴画面の取得境界から cache の記録が届く。通常アカウントの通信断と匿名の未同期記録のそれぞれで確認する。
+
+When:
+
+- 学習記録を表示する。
+
+Then:
+
+- 読み込み済みの記録を表示し、クラウドの全履歴とは断定しない。匿名ではこのブラウザーの未同期データである旨を表示する。
+
+<a id="storybook-study-history-13"></a>
+
+### STORYBOOK-STUDY-HISTORY-13 [TODO] 暦日の両端を含めて期間と Deck を表示する
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- 学習履歴画面の取得境界から期間内外の開始・完了記録が届く。1日・月またぎ・年またぎ・夏時間切替を含み、開始が範囲外でも完了は範囲内となる記録がある。
+- America/Santiago の2026年9月6日は記録なし、7日正午は1開始・1完了である。
+
+When:
+
+- 開始日と終了日を適用して Deck を変更し、router の戻る・進むで期間を復元する。9月6日〜7日と5日〜6日も確認する。
+
+Then:
+
+- 合計・グラフ・最近の学習・日別表は Deck と期間に一致し、URL の days または start / end に反映する。Deck 変更で期間を変えない。
+- 端末の暦日で両端を含め、範囲外の開始・完了は除外し、範囲内の完了は開始日が範囲外でも数える。
+- 9月6日〜7日では7日の1開始・1完了を含む。5日〜6日では両日だけを表示して7日0時以降を含まない。
+
+<a id="storybook-study-history-14"></a>
+
+### STORYBOOK-STUDY-HISTORY-14 [TODO] 条件切替後に古い取得結果を表示しない
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- 学習履歴画面で以前の Deck・アカウント・期間の取得結果がまだ届いていない。各条件を独立して確認する。
+
+When:
+
+- 対象条件を切り替えた後に以前の条件の結果が届く。
+
+Then:
+
+- 切替直後にも遅れて届いた時にも、以前の条件の集計・グラフ・最近の学習・日別表を混ぜない。
+
+<a id="storybook-study-history-15"></a>
+
+### STORYBOOK-STUDY-HISTORY-15 [TODO] 日付変更で相対期間だけを更新する
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- 学習履歴画面で今日基準の期間と開始日・終了日を指定した期間のそれぞれを表示する。
+
+When:
+
+- 画面を開いたまま端末の日付が変わる。
+
+Then:
+
+- 相対期間と入力可能な最終日を更新する。指定期間では両端の日付と表示済みの結果を維持する。
+
+<a id="storybook-study-history-16"></a>
+
+### STORYBOOK-STUDY-HISTORY-16 [TODO] 開始と完了の記録を30日分の表示へ反映する
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- 学習履歴画面の取得境界から、今日開始して完了した1件の記録と、それ以外の日の0件が届く。
+
+When:
+
+- 学習履歴画面を表示し、日別表を開く。
+
+Then:
+
+- 今日の開始・完了はそれぞれ1件で、期間合計・グラフ・日別表が一致する。記録なしの日も含む30日分と延べ数の説明を表示する。
+- 日別表を閉じた状態でも最近の学習に完了した1件を表示する。
+
+<a id="storybook-study-history-17"></a>
+
+### STORYBOOK-STUDY-HISTORY-17 [TODO] 中止と削除済み Deck の記録を完了数へ加えない
+
+カテゴリ: `render`
+
+区分: 正常系
+
+Given:
+
+- 学習履歴画面の取得境界から、未完了を明示的に中止した記録と、削除済み Deck の記録が届く。
+
+When:
+
+- 対象期間の学習記録を表示する。
+
+Then:
+
+- 中止だけでは完了数を増やさない。削除済み Deck は集計と最近の学習から除外する。
+
+<a id="storybook-study-history-18"></a>
+
+### STORYBOOK-STUDY-HISTORY-18 [TODO] 取得失敗では部分集計を表示せず再試行する
+
+カテゴリ: `interaction`
+
+区分: 異常系
+
+Given:
+
+- 学習履歴画面で集計に必要な結果の一部が失敗を返す。期間プリセットと開始日・終了日の指定をそれぞれ確認し、再試行は成功を返す。
+
+When:
+
+- 失敗を確認して再試行する。
+
+Then:
+
+- 一部成功した値を0件や全体集計として表示しない。失敗を案内し、再試行では選んだ期間を保持して最新の全体集計を表示する。
+
+<a id="storybook-study-history-19"></a>
+
+### STORYBOOK-STUDY-HISTORY-19 [TODO] 無効な日付を適用しても現在の期間を変えない
+
+カテゴリ: `interaction`
+
+区分: 異常系
+
+Given:
+
+- 学習履歴画面に有効な期間の結果が表示されている。
+
+When:
+
+- 未入力・存在しない日付・終了日が開始日前・未来の終了日をそれぞれ入力して適用する。
+
+Then:
+
+- 入力エラーを示し、適用中の期間とその結果を維持する。
+
+<a id="storybook-study-history-20"></a>
+
+### STORYBOOK-STUDY-HISTORY-20 [TODO] 無効な URL 期間を選び直して復帰する
+
+カテゴリ: `interaction`
+
+区分: 異常系
+
+Given:
+
+- 学習履歴画面を無効な期間を指定した URL で開く。
+
+When:
+
+- エラーを確認して、有効な期間を選び直す。
+
+Then:
+
+- 無効な期間を別期間へ読み替えずエラーを示す。有効な期間を選び直すとその結果を表示できる。
+
+<a id="storybook-study-history-21"></a>
+
+### STORYBOOK-STUDY-HISTORY-21 [TODO] 存在しない Deck 指定を全 Deck に読み替えない
+
+カテゴリ: `render`
+
+区分: 異常系
+
+Given:
+
+- 学習履歴画面の URL に、自分の表示対象に存在しない Deck が指定され、Deck の読み込みは完了している。
+
+When:
+
+- その URL の学習記録を表示する。
+
+Then:
+
+- Deck を表示できない旨とすべての Deck へ戻る操作を示す。URL の Deck 指定を保ち、別 Deck・全 Deck の結果へ自動で切り替えない。
