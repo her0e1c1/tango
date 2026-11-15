@@ -122,27 +122,6 @@ connect to a real Firebase project or external identity provider.
 mise run e2e
 ```
 
-To run Playwright directly in an already prepared E2E environment, first generate the sample fixture in this checkout
-(requires Docker):
-
-```bash
-mise run //sample:build
-```
-
-This creates the Git-ignored `sample/build/output.json` imported when the E2E tests are loaded.
-For local browser execution, install Chromium with `npx playwright install chromium`.
-Then generate the standard HTML report:
-
-```bash
-mise run e2e:test
-npx playwright show-report playwright-report --host 127.0.0.1
-```
-
-`e2e:test` runs `npx playwright test --reporter=html` and writes `playwright-report/index.html`.
-It requires the running app and emulators to be reachable using the existing E2E hostnames, plus Chromium
-or `PW_TEST_CONNECT_WS_ENDPOINT`. For unattended runs, use `PLAYWRIGHT_HTML_OPEN=never mise run e2e:test`
-to suppress automatic report opening after failures.
-
 `npm run e2e:ui` only opens Playwright's UI and does not start the required app and emulators. Use the
 compose-backed `mise run e2e` task for the acceptance suite. Failed local runs retain screenshots under
 `test-results/`. PR CI writes an HTML report and captures a trace on the first retry. Trusted `main` CI records
