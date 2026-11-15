@@ -122,7 +122,16 @@ connect to a real Firebase project or external identity provider.
 mise run e2e
 ```
 
-To run Playwright directly in an already prepared E2E environment and generate the standard HTML report:
+To run Playwright directly in an already prepared E2E environment, first generate the sample fixture in this checkout
+(requires Docker):
+
+```bash
+mise run //sample:build
+```
+
+This creates the Git-ignored `sample/build/output.json` imported when the E2E tests are loaded.
+For local browser execution, install Chromium with `npx playwright install chromium`.
+Then generate the standard HTML report:
 
 ```bash
 mise run e2e:test
