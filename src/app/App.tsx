@@ -8,6 +8,7 @@ import React from "react";
 import { RouterProvider } from "react-router-dom";
 
 import { usePreferences } from "@/entities/preference";
+import { useRouterLocationSource } from "@/shared/router";
 import { ToastViewport } from "@/shared/ui/toast";
 
 import { AuthProvider } from "./auth";
@@ -22,6 +23,7 @@ interface AppProps {
  * Reads display settings and installs the application routes.
  */
 const AppShell: React.FC<AppProps> = ({ router }) => {
+  useRouterLocationSource(router);
   const { darkMode } = usePreferences().appearance;
   const focusFallbackRef = React.useRef<HTMLElement>(null);
 

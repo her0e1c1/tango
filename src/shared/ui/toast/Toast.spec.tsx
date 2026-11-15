@@ -8,6 +8,7 @@ import { actAsync } from "@/test/act";
 
 import { ToastViewport } from "./Toast";
 import { dismissToast, showToast, type ShowToastInput } from "./model";
+import { useToastModalFocusTarget } from "./useToastModalFocusTarget";
 
 const displayToast = (input: ShowToastInput) => {
   let id = 0;
@@ -103,7 +104,7 @@ describe("Toast [ACCOUNT-05] [STUDY-ACTIONS-01] [ACCOUNT-02] [DECK-IMPORT-04] [D
     // Then: Verify the expected result in the assertions below.
     expect(toast).toHaveTextContent(`${label}: Signed in.`);
     expect(toast).toHaveAttribute("aria-live", live);
-    expect(toast).toHaveAttribute("aria-atomic", "true");
+    expect(toast).toHaveAttribute("aria-atomic", "false");
   });
 
   it("translates the visible message and accessible presentation in place when the language changes", async () => {
@@ -416,5 +417,199 @@ describe("Toast [ACCOUNT-05] [STUDY-ACTIONS-01] [ACCOUNT-02] [DECK-IMPORT-04] [D
     act(() => vi.advanceTimersByTime(500));
     // Then: Verify the expected result in the assertions below.
     expect(screen.queryByText("Signed in.")).not.toBeInTheDocument();
+  });
+  it.each([false, true])(
+    "keeps both error results visible regardless of completion order (%s)",
+    (supplementaryFirst) => {
+      // Given: Two independent operations can fail in either order.
+      render(<ToastViewport />);
+      const results: ShowToastInput[] = [
+        { messageKey: "toast.saveFailure", tone: "error" },
+        { messageKey: "account.toast.signOutFailure", tone: "error", supplementary: true },
+      ];
+      // When: Both operations complete.
+      for (const result of supplementaryFirst ? results.toReversed() : results) displayToast(result);
+      // Then: Neither visible result nor its assertive announcement replaces the other.
+      expect(screen.getAllByRole("button", { name: "Dismiss notification" })).toHaveLength(2);
+      expect(screen.getByRole("alert")).toHaveTextContent("Unable to save changes. Try again.");
+      expect(screen.getByRole("alert")).toHaveTextContent(
+        "Unable to sign out. If changes are pending, reconnect and let them sync before trying again."
+      );
+      expect(screen.getByText("Unable to save changes. Try again.")).toBeVisible();
+      expect(
+        screen.getByText("Unable to sign out. If changes are pending, reconnect and let them sync before trying again.")
+      ).toBeVisible();
+    }
+  );
+
+  it("replaces only the supplementary result and preserves the primary expiration", () => {
+    // Given: A primary result has already used half its display duration.
+    vi.useFakeTimers();
+    render(<ToastViewport />);
+    displayToast({ messageKey: "toast.saveFailure", tone: "error", durationMs: 1000 });
+    act(() => vi.advanceTimersByTime(500));
+    const oldId = displayToast({ messageKey: "account.toast.signOutFailure", tone: "error", supplementary: true });
+    // When: A retry completes successfully in the supplementary slot.
+    displayToast({ messageKey: "account.toast.signOutSuccess", tone: "success", supplementary: true });
+    act(() => dismissToast(oldId));
+    // Then: The prior failure is replaced but the primary remains unchanged.
+    expect(
+      screen.queryByText("Unable to sign out. If changes are pending, reconnect and let them sync before trying again.")
+    ).not.toBeInTheDocument();
+    expect(screen.getByText("Signed out.")).toBeVisible();
+    expect(screen.getByText("Unable to save changes. Try again.")).toBeVisible();
+    // When: The original primary duration expires.
+    act(() => vi.advanceTimersByTime(500));
+    // Then: Only the primary disappears; the supplementary keeps its own lifetime.
+    expect(screen.queryByText("Unable to save changes. Try again.")).not.toBeInTheDocument();
+    expect(screen.getByText("Signed out.")).toBeVisible();
+    // When: The supplementary duration expires.
+    act(() => vi.advanceTimersByTime(3500));
+    // Then: No notification remains.
+    expect(screen.queryByRole("button")).not.toBeInTheDocument();
+  });
+
+  it.each([false, true])("dismisses only the selected result and restores its focus (%s)", (supplementary) => {
+    // Given: Each result was triggered from the same connected control.
+    render(
+      <>
+        <button type="button">Trigger</button>
+        <ToastViewport />
+      </>
+    );
+    const trigger = screen.getByRole("button", { name: "Trigger" });
+    trigger.focus();
+    displayToast({ messageKey: "toast.saveFailure", tone: "error" });
+    displayToast({ messageKey: "account.toast.signOutFailure", tone: "error", supplementary: true });
+    const buttons = screen.getAllByRole("button", { name: "Dismiss notification" });
+    const selected = buttons[supplementary ? 1 : 0]!;
+    // When: The focused result is dismissed.
+    selected.focus();
+    fireEvent.click(selected);
+    // Then: Only its message disappears and focus returns to its trigger.
+    expect(trigger).toHaveFocus();
+    expect(
+      screen.getByText(
+        supplementary
+          ? "Unable to save changes. Try again."
+          : "Unable to sign out. If changes are pending, reconnect and let them sync before trying again."
+      )
+    ).toBeVisible();
+    expect(screen.getAllByRole("button", { name: "Dismiss notification" })).toHaveLength(1);
+    // When: Application cleanup dismisses all results.
+    act(() => dismissToast());
+    // Then: Both slots are empty.
+    expect(screen.queryByRole("button", { name: "Dismiss notification" })).not.toBeInTheDocument();
+  });
+  it("keeps both results inside an active dialog without restarting their timers", () => {
+    // Given: Two results precede a dialog opening.
+    vi.useFakeTimers();
+    const Modal = () => {
+      const dialogRef = React.useRef<HTMLDialogElement>(null);
+      const fallbackRef = React.useRef<HTMLButtonElement>(null);
+      useToastModalFocusTarget(dialogRef, fallbackRef);
+      return (
+        <dialog open ref={dialogRef}>
+          <button ref={fallbackRef} type="button">
+            Dialog action
+          </button>
+        </dialog>
+      );
+    };
+    const { rerender } = render(
+      <>
+        <ToastViewport />
+      </>
+    );
+    displayToast({ messageKey: "toast.saveFailure", tone: "error", durationMs: 1000 });
+    displayToast({ messageKey: "account.toast.signOutSuccess", supplementary: true, durationMs: 2000 });
+    act(() => vi.advanceTimersByTime(500));
+    // When: A dialog becomes the active interaction boundary.
+    rerender(
+      <>
+        <ToastViewport />
+        <Modal />
+      </>
+    );
+    const dialog = screen.getByRole("dialog");
+    // Then: Both messages are inside it with no dismiss controls.
+    expect(within(dialog).getByText("Unable to save changes. Try again.")).toBeVisible();
+    expect(within(dialog).getByText("Signed out.")).toBeVisible();
+    expect(screen.queryByRole("button", { name: "Dismiss notification" })).not.toBeInTheDocument();
+    // When: Each original duration elapses across the portal move.
+    act(() => vi.advanceTimersByTime(500));
+    // Then: The primary expires on time and focus stays in the active dialog.
+    expect(screen.queryByText("Unable to save changes. Try again.")).not.toBeInTheDocument();
+    expect(within(dialog).getByText("Signed out.")).toBeVisible();
+    expect(screen.getByRole("button", { name: "Dialog action" })).toHaveFocus();
+    // When: The supplementary duration elapses.
+    act(() => vi.advanceTimersByTime(1000));
+    // Then: The supplementary also expires on its original schedule.
+    expect(screen.queryByText("Signed out.")).not.toBeInTheDocument();
+  });
+  it.each([
+    ["success", "status", "Success"],
+    ["error", "alert", "Error"],
+  ] as const)("keeps unchanged %s announcements stable when the other result changes", (tone, role, label) => {
+    // Given: One result already occupies the live region.
+    render(<ToastViewport />);
+    displayToast({ messageKey: "account.toast.signInSuccess", tone, durationMs: null });
+    const region = screen.getByRole(role);
+    const unchanged = within(region).getByText(`${label}: Signed in.`);
+    // When: An independent result is added to the same region.
+    displayToast({ messageKey: "account.toast.signOutSuccess", tone, supplementary: true, durationMs: null });
+    // Then: The region requests non-atomic updates and preserves the unchanged result node.
+    expect(region).toHaveAttribute("aria-atomic", "false");
+    expect(within(region).getByText(`${label}: Signed in.`)).toBe(unchanged);
+    const previous = within(region).getByText(`${label}: Signed out.`);
+    // When: Only the supplementary result is replaced.
+    const replacementId = displayToast({
+      messageKey: "toast.saveFailure",
+      tone,
+      supplementary: true,
+      durationMs: null,
+    });
+    // Then: Only the changed announcement node is replaced.
+    expect(previous).not.toBeInTheDocument();
+    expect(within(region).getByText(`${label}: Signed in.`)).toBe(unchanged);
+    expect(within(region).getByText(`${label}: Unable to save changes. Try again.`)).toBeInTheDocument();
+    // When: The supplementary result is dismissed.
+    act(() => dismissToast(replacementId));
+    // Then: The unchanged result and live region remain intact.
+    expect(screen.getByRole(role)).toBe(region);
+    expect(within(region).getByText(`${label}: Signed in.`)).toBe(unchanged);
+    expect(region).toHaveTextContent(new RegExp(`^${label}: Signed in\\.$`));
+  });
+
+  it.each([false, true])("describes each dismiss button with its own result (visual content: %s)", (visual) => {
+    // Given: Both notification slots contain independently dismissible results.
+    render(<ToastViewport />);
+    displayToast({
+      messageKey: "account.toast.signInSuccess",
+      tone: "success",
+      visualContent: visual ? <span>✓</span> : undefined,
+    });
+    displayToast({ messageKey: "toast.saveFailure", tone: "error", supplementary: true });
+    // When: The dismiss controls are examined through their accessible descriptions.
+    const successDismiss = screen.getByRole("button", { name: "Dismiss notification", description: "Signed in." });
+    const errorDismiss = screen.getByRole("button", {
+      name: "Dismiss notification",
+      description: "Unable to save changes. Try again.",
+    });
+    // Then: Each points to a distinct message, including text alternatives for visual content.
+    expect(successDismiss).toHaveAccessibleDescription("Signed in.");
+    expect(errorDismiss).toHaveAccessibleDescription("Unable to save changes. Try again.");
+    expect(successDismiss.getAttribute("aria-describedby")).not.toBe(errorDismiss.getAttribute("aria-describedby"));
+    // When: The primary result is replaced.
+    displayToast({ messageKey: "account.toast.signOutSuccess", tone: "success" });
+    // Then: Its replacement has the new description while the other result remains identifiable.
+    expect(
+      screen.getByRole("button", { name: "Dismiss notification", description: "Signed out." })
+    ).toBeInTheDocument();
+    expect(errorDismiss).toHaveAccessibleDescription("Unable to save changes. Try again.");
+    // When: The identified supplementary result is dismissed.
+    fireEvent.click(errorDismiss);
+    // Then: The primary result is still described and available.
+    expect(screen.getByRole("button", { name: "Dismiss notification" })).toHaveAccessibleDescription("Signed out.");
   });
 });

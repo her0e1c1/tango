@@ -13,7 +13,12 @@ const mocks = vi.hoisted(() => ({
   signOutCurrentUser: vi.fn<() => Promise<void>>(),
 }));
 
-vi.mock("@/entities/auth", () => ({ signOutCurrentUser: mocks.signOutCurrentUser }));
+vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
+
+vi.mock("@/entities/auth", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/entities/auth")>()),
+  signOutCurrentUser: mocks.signOutCurrentUser,
+}));
 
 describe("ACCOUNT-03 signOut", () => {
   beforeEach(() => {

@@ -44,17 +44,21 @@ async function prepareAuthChange(state: AuthLifecycle, nextUser: User | null) {
   await initialNetworkStopped;
   const previous = auth.currentUser;
   if (previous?.uid === nextUser?.uid) return;
-  if (previous && !previous.isAnonymous) {
-    // Close editing before checking both this run's writes and writes restored from the SDK cache.
-    replaceAuthSession({ status: "initializing" });
-    try {
+  const generation = state.generation;
+  try {
+    if (previous && !previous.isAnonymous) {
+      // Close editing before checking both this run's writes and writes restored from the SDK cache.
+      replaceAuthSession({ status: "initializing" });
       if (await hasPendingChanges(previous.uid)) throw new Error("Sync changes before signing out");
-    } catch (error) {
-      replaceAuthSession(authSessionFromUser(previous));
-      throw error;
     }
+    await disableNetwork(db);
+  } catch (error) {
+    // A refused preparation keeps its subscriptions; only the still-current owner may regain editing.
+    if (previous && !previous.isAnonymous && isCurrent(state, generation) && auth.currentUser?.uid === previous.uid) {
+      replaceAuthSession(authSessionFromUser(previous));
+    }
+    throw error;
   }
-  await disableNetwork(db);
   state.generation += 1;
   stopSubscriptions(state);
   replaceAuthSession({ status: "initializing" });

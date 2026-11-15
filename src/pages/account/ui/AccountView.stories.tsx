@@ -149,3 +149,7 @@ export const DarkPending: Story = {
   argTypes: { isLoggedIn: { control: "boolean" } },
   globals: { theme: "dark", viewport: { value: "iphone5", isRotated: false } },
 };
+
+export const SignOutFailed: Story = {
+  args: { ...SignedIn.args, signOutFailed: true },
+};

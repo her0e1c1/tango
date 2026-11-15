@@ -2,7 +2,7 @@ import { createStore } from "zustand/vanilla";
 
 export interface AccountPageState {
   signIn: { pending: boolean };
-  signOut: { pending: boolean };
+  signOut: { pending: boolean; failed?: boolean };
 }
 
 // Keep each operation locked across Page remounts until its own completion.

@@ -16,6 +16,8 @@ export interface ShowToastInput extends ToastMessage {
   tone?: ToastTone;
   durationMs?: number | null;
   dismissible?: boolean;
+  /** Keeps an independent result visible without replacing the primary notification. */
+  supplementary?: boolean;
 }
 
 export interface ToastState {
@@ -31,9 +33,10 @@ export interface ToastState {
 
 interface ToastStoreState {
   current: ToastState | undefined;
+  supplementary: ToastState | undefined;
   focusFallbackTargets: readonly ToastFocusFallbackTarget[];
   modalFocusTargets: readonly ToastModalFocusTarget[];
-  visualTarget: ToastVisualTarget | undefined;
+  visualTargets: readonly ToastVisualTarget[];
 }
 
 interface ToastFocusFallbackTarget {
@@ -63,9 +66,10 @@ let nextModalFocusTargetId = 0;
 
 export const toastStore = createStore<ToastStoreState>()(() => ({
   current: undefined,
+  supplementary: undefined,
   focusFallbackTargets: [],
   modalFocusTargets: [],
-  visualTarget: undefined,
+  visualTargets: [],
 }));
 
 export const registerToastFocusFallbackTarget = (element: HTMLElement): (() => void) => {
@@ -98,16 +102,17 @@ export const registerToastModalFocusTarget = (element: HTMLElement, fallbackElem
 };
 
 export const registerToastVisualTarget = (toastId: ToastId, element: HTMLElement): (() => void) => {
-  if (toastStore.getState().current?.id !== toastId) return () => undefined;
-  toastStore.setState({ visualTarget: { toastId, element } });
+  const { current, supplementary } = toastStore.getState();
+  if (current?.id !== toastId && supplementary?.id !== toastId) return () => undefined;
+  toastStore.setState((state) => ({
+    visualTargets: [...state.visualTargets.filter((target) => target.toastId !== toastId), { toastId, element }],
+  }));
 
   // Portal moves and replacements can clean up after a newer visual target has registered.
   return () => {
-    toastStore.setState((state) =>
-      state.visualTarget?.toastId === toastId && state.visualTarget.element === element
-        ? { visualTarget: undefined }
-        : state
-    );
+    toastStore.setState((state) => ({
+      visualTargets: state.visualTargets.filter((target) => target.toastId !== toastId || target.element !== element),
+    }));
   };
 };
 
@@ -121,7 +126,7 @@ const getFocusedElement = (): HTMLElement | undefined => {
 
 const restoreToastFocus = (toast: ToastState): void => {
   const focusedElement = getFocusedElement();
-  const { focusFallbackTargets, modalFocusTargets, visualTarget } = toastStore.getState();
+  const { focusFallbackTargets, modalFocusTargets, visualTargets } = toastStore.getState();
   const activeModal = modalFocusTargets.findLast(
     (target) => target.element.isConnected && target.fallbackElement.isConnected
   );
@@ -130,7 +135,8 @@ const restoreToastFocus = (toast: ToastState): void => {
     return;
   }
   if (focusedElement === undefined) return;
-  if (visualTarget?.toastId !== toast.id || !visualTarget.element.contains(focusedElement)) return;
+  const visualTarget = visualTargets.find((target) => target.toastId === toast.id);
+  if (visualTarget === undefined || !visualTarget.element.contains(focusedElement)) return;
   if (toast.returnFocusTarget?.isConnected) {
     toast.returnFocusTarget.focus();
     return;
@@ -147,14 +153,15 @@ const restoreToastFocus = (toast: ToastState): void => {
 };
 
 export const showToast = (input: ShowToastInput): ToastId => {
-  const { current } = toastStore.getState();
-  if (current !== undefined) restoreToastFocus(current);
+  const slot = input.supplementary ? "supplementary" : "current";
+  const previous = toastStore.getState()[slot];
+  if (previous !== undefined) restoreToastFocus(previous);
   const tone = input.tone ?? "neutral";
   nextToastId += 1;
   const id = nextToastId;
 
-  toastStore.setState({
-    current: {
+  toastStore.setState((state) => ({
+    [slot]: {
       id,
       // Resolve copy in the viewport so pending work and visible Toasts follow the active language.
       messageKey: input.messageKey,
@@ -165,18 +172,22 @@ export const showToast = (input: ShowToastInput): ToastId => {
       dismissible: input.dismissible ?? true,
       returnFocusTarget: getFocusedElement(),
     },
-    visualTarget: undefined,
-  });
+    visualTargets: state.visualTargets.filter((target) => target.toastId !== previous?.id),
+  }));
 
   return id;
 };
 
 export const dismissToast = (id?: ToastId): void => {
-  const { current } = toastStore.getState();
-  if (current === undefined || (id !== undefined && current.id !== id)) return;
-  restoreToastFocus(current);
-  // Focus restoration may synchronously publish another Toast; never clear that newer notification.
-  toastStore.setState((state) =>
-    state.current?.id === current.id ? { current: undefined, visualTarget: undefined } : state
-  );
+  const { current, supplementary } = toastStore.getState();
+  for (const toast of [current, supplementary]) {
+    if (toast === undefined || (id !== undefined && toast.id !== id)) continue;
+    restoreToastFocus(toast);
+    // Focus restoration may synchronously publish another Toast; never clear that newer notification.
+    toastStore.setState((state) => ({
+      current: state.current?.id === toast.id ? undefined : state.current,
+      supplementary: state.supplementary?.id === toast.id ? undefined : state.supplementary,
+      visualTargets: state.visualTargets.filter((target) => target.toastId !== toast.id),
+    }));
+  }
 };

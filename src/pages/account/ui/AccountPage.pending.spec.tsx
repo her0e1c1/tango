@@ -8,6 +8,7 @@ import "@testing-library/jest-dom/vitest";
 
 import { replaceAuthSession } from "@/entities/auth";
 import { updatePreferences } from "@/entities/preference";
+import { useRouterLocationSource } from "@/shared/router";
 import { ToastViewport } from "@/shared/ui/toast";
 import { dismissToast } from "@/test/utils/toast";
 import { actAsync } from "@/test/act";
@@ -63,12 +64,16 @@ describe("ACCOUNT-01 ACCOUNT-02 ACCOUNT-03 AccountPage pending lifetime", () => 
           ],
           { initialEntries: ["/account"] }
         );
-        render(
-          <>
-            <RouterProvider router={router} />
-            <ToastViewport />
-          </>
-        );
+        function RoutedPage() {
+          useRouterLocationSource(router);
+          return (
+            <>
+              <RouterProvider router={router} />
+              <ToastViewport />
+            </>
+          );
+        }
+        render(<RoutedPage />);
 
         // When: Exercise `userEvent.click` with the prepared inputs.
         await userEvent.click(screen.getByRole("button", { name: button }));

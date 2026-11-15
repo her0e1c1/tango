@@ -10,6 +10,7 @@ interface AccountViewProps {
   uid: string;
   signInPending: boolean;
   signOutPending: boolean;
+  signOutFailed?: boolean;
   onSignIn: () => void;
   onSignOut: () => void;
 }
@@ -20,6 +21,7 @@ export const AccountView: React.FC<AccountViewProps> = ({
   uid,
   signInPending,
   signOutPending,
+  signOutFailed = false,
   onSignIn,
   onSignOut,
 }) => {
@@ -56,6 +58,11 @@ export const AccountView: React.FC<AccountViewProps> = ({
             </Button>
           )}
         </div>
+        {signOutFailed ? (
+          <p role="alert" className="px-4 py-3 text-body text-danger">
+            {t("account.toast.signOutFailure")}
+          </p>
+        ) : null}
         <dl className="divide-y divide-border">
           <div className="flex min-h-touch items-start justify-between gap-4 px-4 py-3">
             <dt className="shrink-0 text-body font-medium text-ink">{t("account.profile.status")}</dt>

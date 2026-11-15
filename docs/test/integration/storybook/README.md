@@ -272,6 +272,7 @@
 | STORYBOOK-ACCOUNT-12 | interaction | 異常系 | [画面離脱後に届く失敗も通知する](./account.md#storybook-account-12) |
 | STORYBOOK-ACCOUNT-13 | interaction | 正常系 | [日本語で認証成功を通知する](./account.md#storybook-account-13) |
 | STORYBOOK-ACCOUNT-14 | interaction | 正常系 / 異常系 | [画面へ戻っても認証待機を保つ](./account.md#storybook-account-14) |
+| STORYBOOK-ACCOUNT-15 | interaction | 異常系 | [Card 保存結果とログアウト失敗を両方確認する](./account.md#storybook-account-15) |
 
 ## ページ未検出画面
 
