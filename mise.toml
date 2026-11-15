@@ -149,7 +149,11 @@ docker compose run --rm --remove-orphans --env CI --env PLAYWRIGHT_MAIN_TRACE --
 """,
 ]
 
-[tasks.report]
+[tasks."e2e:trace"]
+description = "Run E2E tests with traces for every test"
+run = [{ task = "e2e:test", args = ["--trace=on"] }]
+
+[tasks."e2e:report"]
 description = "Open the latest Playwright HTML report"
 interactive = true
 run = "npx playwright show-report playwright-report --host 127.0.0.1"
