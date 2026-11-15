@@ -4,7 +4,7 @@
 
 デックごとの学習の続きを参照でき、削除・所有者変更・取得完了によって他のデックや利用者のセッションを混同しないことを確認する。保存した変更を取得するまでの再開対象、および学習の取得中・取得成功・取得失敗で変わる待機状態も確認する。カードの選定規則、FSRS、Firestore への実際の保存、認証に伴う購読の開始・停止は対象外とする。
 
-関連 E2E: [STUDY-SESSION-01](../../e2e/study-session.md#study-session-01)、[STUDY-ACTIONS-04](../../e2e/study-actions.md#study-actions-04)、[ACCOUNT-04](../../e2e/account.md#account-04)
+関連仕様: [PLAYWRIGHT-STUDY-SESSION-START-04](../../integration/playwright/study-session-start.md#playwright-study-session-start-04)、[PLAYWRIGHT-STUDY-SESSION-24](../../integration/playwright/study-session.md#playwright-study-session-24)、[ACCOUNT-04](../../e2e/account.md#account-04)
 
 共通の検証前提は [AGENTS.md](./AGENTS.md) を参照する。
 

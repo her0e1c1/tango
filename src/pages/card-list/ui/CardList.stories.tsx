@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import * as React from "react";
-import { expect, fn } from "storybook/test";
+import { fn } from "storybook/test";
 import { BackText } from "@/entities/card";
 import { withPageLayout } from "@/storybook/PageLayoutDecorator";
 import * as fixture from "@/storybook/fixture";
@@ -57,9 +57,6 @@ const ClosableCardViewExample: React.FC<React.ComponentProps<typeof CardList>> =
   );
 };
 
-// Given: Story args and parameters define the render scenarios below.
-// When: Storybook renders each exported variant and runs its play when present.
-// Then: Assertions are in the relevant plays; rendering alone adds no behavioral checks.
 const meta = {
   title: "Pages/Card List/CardList",
   component: CardList,
@@ -84,17 +81,6 @@ export const Default: Story = {};
 
 export const AddCard: Story = {
   args: { onAddCard: fn() },
-  play: async ({ args, canvas, userEvent, step }) => {
-    // Given: Use the rendered story, its args, parameters, and any setup below.
-    await step("STORYBOOK-CARD-LIST-01 Request card creation", async () => {
-      // Given: Use the rendered story, its args, parameters, and any setup below.
-      // When: Exercise `userEvent.click` with the prepared inputs.
-      await userEvent.click(canvas.getByRole("button", { name: "Actions" }));
-      await userEvent.click(canvas.getByRole("menuitem", { name: "Add card" }));
-      // Then: Verify the expected result in the assertions below.
-      await expect(args.onAddCard).toHaveBeenCalledOnce();
-    });
-  },
 };
 
 export const Empty: Story = {
@@ -105,17 +91,6 @@ export const Empty: Story = {
       onAddCard: fn(),
     },
     filter: { selectedTags: [] },
-  },
-  play: async ({ canvas, step }) => {
-    // Given: Use the rendered story, its args, parameters, and any setup below.
-    await step("STORYBOOK-CARD-LIST-02 Empty card collection", async () => {
-      // Given: Use the rendered story, its args, parameters, and any setup below.
-      // When: Storybook renders this scenario with its configured args and parameters.
-      // Then: Verify the expected result in the assertions below.
-      await expect(canvas.getByText("0 cards")).toBeVisible();
-      await expect(canvas.getByRole("heading", { name: "No cards yet" })).toBeVisible();
-      await expect(canvas.getByRole("button", { name: "Add card" })).toBeVisible();
-    });
   },
 };
 
@@ -128,16 +103,6 @@ export const FilterZero: Story = {
     },
     filter: { selectedTags: ["react"] },
   },
-  play: async ({ canvas, step }) => {
-    // Given: Use the rendered story, its args, parameters, and any setup below.
-    await step("STORYBOOK-CARD-LIST-03 Empty filtered result", async () => {
-      // Given: Use the rendered story, its args, parameters, and any setup below.
-      // When: Storybook renders this scenario with its configured args and parameters.
-      // Then: Verify the expected result in the assertions below.
-      await expect(canvas.getByRole("heading", { name: "No cards match the active filters" })).toBeVisible();
-      await expect(canvas.getByRole("button", { name: "Clear filters" })).toBeVisible();
-    });
-  },
 };
 
 export const IntervalZero: Story = {
@@ -148,51 +113,15 @@ export const IntervalZero: Story = {
     },
     filter: { selectedTags: [] },
   },
-  play: async ({ canvas, step }) => {
-    // Given: Use the rendered story, its args, parameters, and any setup below.
-    await step("STORYBOOK-CARD-LIST-04 No cards due", async () => {
-      // Given: Use the rendered story, its args, parameters, and any setup below.
-      // When: Storybook renders this scenario with its configured args and parameters.
-      // Then: Verify the expected result in the assertions below.
-      await expect(canvas.getByRole("heading", { name: "No cards due for review" })).toBeVisible();
-      await expect(canvas.queryByRole("button", { name: "Clear filters" })).not.toBeInTheDocument();
-    });
-  },
 };
 
 export const ViewCard: Story = {
   args: { onShowCard: fn() },
-  play: async ({ args, canvas, userEvent, step }) => {
-    // Given: Use the rendered story, its args, parameters, and any setup below.
-    await step("STORYBOOK-CARD-LIST-05 View selected card", async () => {
-      // Given: Use the rendered story, its args, parameters, and any setup below.
-      const [viewButton] = canvas.getAllByRole("button", { name: /^View / });
-      const [firstCard] = fixture.cards.default;
-      if (viewButton == null || firstCard == null) throw new Error("ViewCard requires at least one Card");
-
-      // When: Exercise `userEvent.click` with the prepared inputs.
-      await userEvent.click(viewButton);
-
-      // Then: Verify the expected result in the assertions below.
-      await expect(args.onShowCard).toHaveBeenCalledWith(firstCard.id);
-    });
-  },
 };
 
 export const RemovableSelectedTags: Story = {
   args: { onRemoveTag: fn() },
   render: (args) => <RemovableSelectedTagsExample onRemoveTag={args.onRemoveTag} />,
-  play: async ({ args, canvas, userEvent, step }) => {
-    // Given: Use the rendered story, its args, parameters, and any setup below.
-    await step("STORYBOOK-CARD-LIST-06 Remove selected tag", async () => {
-      // Given: Use the rendered story, its args, parameters, and any setup below.
-      // When: Exercise `userEvent.click` with the prepared inputs.
-      await userEvent.click(canvas.getByRole("button", { name: "Remove TypeScript filter" }));
-      // Then: Verify the expected result in the assertions below.
-      await expect(args.onRemoveTag).toHaveBeenCalledWith("TypeScript");
-      await expect(canvas.queryByRole("button", { name: "Remove TypeScript filter" })).not.toBeInTheDocument();
-    });
-  },
 };
 
 export const Long: Story = {
@@ -214,17 +143,6 @@ export const DarkCardView: Story = {
 export const CardViewInteraction: Story = {
   args: { preview: cardViewPreview(false) },
   render: (args) => <ClosableCardViewExample {...args} />,
-  play: async ({ args, canvas, userEvent, step }) => {
-    // Given: Use the rendered story, its args, parameters, and any setup below.
-    await step("STORYBOOK-CARD-LIST-07 Close card preview", async () => {
-      // Given: Use the rendered story, its args, parameters, and any setup below.
-      // When: Exercise `userEvent.click` with the prepared inputs.
-      await userEvent.click(canvas.getByRole("button", { name: "Close card" }));
-      // Then: Verify the expected result in the assertions below.
-      await expect(args.preview?.onClose).toHaveBeenCalledOnce();
-      await expect(canvas.queryByRole("button", { name: "Close card" })).not.toBeInTheDocument();
-    });
-  },
 };
 
 export const Dark: Story = { globals: { theme: "dark" } };
@@ -244,16 +162,6 @@ export const IphoneXLong: Story = {
 
 export const NewestAdded: Story = {
   args: { sortOrder: "newest" },
-  play: async ({ args, canvas, userEvent, step }) => {
-    // Given: Use the rendered story, its args, parameters, and any setup below.
-    await step("STORYBOOK-CARD-LIST-08 Change sort order", async () => {
-      // Given: Use the rendered story, its args, parameters, and any setup below.
-      // When: Exercise `userEvent.selectOptions` with the prepared inputs.
-      await userEvent.selectOptions(canvas.getByRole("combobox", { name: "Sort order" }), "standard");
-      // Then: Verify the expected result in the assertions below.
-      await expect(args.onSortOrderChange).toHaveBeenCalledWith("standard");
-    });
-  },
 };
 
 export const FilterSaving: Story = { args: { disabled: true, sortOrder: "newest" } };
@@ -261,91 +169,26 @@ export const CardSaving: Story = { args: { disabled: true, sortDisabled: true } 
 
 export const UnconfirmedEmpty: Story = {
   args: { cards: [], filter: { selectedTags: [] } },
-  play: async ({ canvas, step }) => {
-    // Given: Use the rendered story, its args, parameters, and any setup below.
-    await step("STORYBOOK-CARD-LIST-10 Avoid claiming an unknown empty reason", async () => {
-      // Given: Use the rendered story, its args, parameters, and any setup below.
-      // When: Storybook renders this scenario with its configured args and parameters.
-      // Then: Verify the expected result in the assertions below.
-      await expect(canvas.getByRole("heading", { name: "Cards" })).toBeVisible();
-      for (const text of ["0 cards", "Filters", "No filters"])
-        await expect(canvas.getByText(text, { exact: true })).toBeVisible();
-      await expect(canvas.queryByText("No cards yet")).not.toBeInTheDocument();
-      await expect(canvas.queryByRole("button", { name: "tango" })).not.toBeInTheDocument();
-    });
-  },
 };
 
 export const LongSelectedTag: Story = {
   args: { filter: { selectedTags: [`tag-${"unbroken".repeat(30)}`] } },
-  play: async ({ canvas, step }) => {
-    // Given: Use the rendered story, its args, parameters, and any setup below.
-    await step("STORYBOOK-CARD-LIST-11 Preserve the complete selected tag", async () => {
-      // Given: Use the rendered story, its args, parameters, and any setup below.
-      // When: Evaluate `"unbroken".repeat` as part of the following checks.
-      // Then: Verify the expected result in the assertions below.
-      await expect(canvas.getByText(`tag-${"unbroken".repeat(30)}`, { exact: true })).toBeVisible();
-    });
-  },
 };
 
 export const EmptyAddRequest: Story = {
   args: Empty.args ?? {},
-  play: async ({ args, canvas, userEvent, step }) => {
-    // Given: Use the rendered story, its args, parameters, and any setup below.
-    await step("STORYBOOK-CARD-LIST-17 Request a card from the empty state", async () => {
-      // Given: Use the rendered story, its args, parameters, and any setup below.
-      // When: Exercise `userEvent.click` with the prepared inputs.
-      await userEvent.click(canvas.getByRole("button", { name: "Add card" }));
-      // Then: Verify the expected result in the assertions below.
-      await expect(args.empty?.onAddCard).toHaveBeenCalledOnce();
-    });
-  },
 };
 
 export const EmptyClearRequest: Story = {
   args: FilterZero.args ?? {},
-  play: async ({ args, canvas, userEvent, step }) => {
-    // Given: Use the rendered story, its args, parameters, and any setup below.
-    await step("STORYBOOK-CARD-LIST-18 Request clearing an empty result filter", async () => {
-      // Given: Use the rendered story, its args, parameters, and any setup below.
-      // When: Exercise `userEvent.click` with the prepared inputs.
-      await userEvent.click(canvas.getByRole("button", { name: "Clear filters" }));
-      // Then: Verify the expected result in the assertions below.
-      await expect(args.empty?.onClearFilters).toHaveBeenCalledOnce();
-    });
-  },
 };
 
 export const EditTarget: Story = {
   args: { cards: [{ id: "card", frontText: "Front", tags: ["one", "two"] }], card: { goToEdit: fn() } },
-  play: async ({ args, canvas, userEvent, step }) => {
-    // Given: Use the rendered story, its args, parameters, and any setup below.
-    await step("STORYBOOK-CARD-LIST-19 Edit the identified row", async () => {
-      // Given: Use the rendered story, its args, parameters, and any setup below.
-      await expect(canvas.getByText("one", { exact: true })).toBeVisible();
-      await expect(canvas.getByText("two", { exact: true })).toBeVisible();
-      // When: Exercise `userEvent.click` with the prepared inputs.
-      await userEvent.click(canvas.getByRole("button", { name: "Open actions for Front" }));
-      await userEvent.click(canvas.getByRole("menuitem", { name: "Edit" }));
-      // Then: Verify the expected result in the assertions below.
-      await expect(args.card?.goToEdit).toHaveBeenCalledWith("card");
-    });
-  },
 };
 
 export const PendingRow: Story = {
   args: { cards: [{ id: "card", frontText: "Front", tags: [] }], card: { disabled: true } },
-  play: async ({ canvas, step }) => {
-    // Given: Use the rendered story, its args, parameters, and any setup below.
-    await step("STORYBOOK-CARD-LIST-20 Disable both operations in a pending row", async () => {
-      // Given: Use the rendered story, its args, parameters, and any setup below.
-      // When: Storybook renders this scenario with its configured args and parameters.
-      // Then: Verify the expected result in the assertions below.
-      await expect(canvas.getByRole("button", { name: "View Front" })).toBeDisabled();
-      await expect(canvas.getByRole("button", { name: "Open actions for Front" })).toBeDisabled();
-    });
-  },
 };
 
 const KeyboardTagList = (args: React.ComponentProps<typeof CardList>) => {
@@ -365,44 +208,6 @@ const KeyboardTagList = (args: React.ComponentProps<typeof CardList>) => {
 export const KeyboardTagRemoval: Story = {
   args: { onRemoveTag: fn() },
   render: (args) => <KeyboardTagList {...args} />,
-  play: async ({ args, canvas, userEvent, step }) => {
-    // Given: Use the rendered story, its args, parameters, and any setup below.
-    await step("STORYBOOK-CARD-LIST-14 Tab without removing selected tags", async () => {
-      // Given: Use the rendered story, its args, parameters, and any setup below.
-      canvas.getByRole("button", { name: "Remove one filter" }).focus();
-      // When: Exercise `userEvent.tab` with the prepared inputs.
-      await userEvent.tab();
-      // Then: Verify the expected result in the assertions below.
-      await expect(canvas.getByRole("button", { name: "Remove two filter" })).toHaveFocus();
-      // When: Exercise `userEvent.tab` with the prepared inputs.
-      await userEvent.tab({ shift: true });
-      // Then: Verify the expected result in the assertions below.
-      await expect(canvas.getByRole("button", { name: "Remove one filter" })).toHaveFocus();
-      await expect(args.onRemoveTag).not.toHaveBeenCalled();
-    });
-    await step("STORYBOOK-CARD-LIST-12 Move focus to the remaining tag", async () => {
-      // Given: Use the rendered story, its args, parameters, and any setup below.
-      // When: Exercise `userEvent.keyboard` with the prepared inputs.
-      await userEvent.keyboard("{Enter}");
-      // Then: Verify the expected result in the assertions below.
-      await expect(args.onRemoveTag).toHaveBeenLastCalledWith("one");
-      await expect(canvas.getByRole("button", { name: "Remove two filter" })).toHaveFocus();
-      // When: Exercise `userEvent.tab` with the prepared inputs.
-      await userEvent.tab();
-      // Then: Verify the expected result in the assertions below.
-      await expect(canvas.getAllByRole("button", { name: /^View / })[0]).toHaveFocus();
-    });
-    await step("STORYBOOK-CARD-LIST-13 Return focus to filters after removing the final tag", async () => {
-      // Given: Use the rendered story, its args, parameters, and any setup below.
-      canvas.getByRole("button", { name: "Remove two filter" }).focus();
-      // When: Exercise `userEvent.keyboard` with the prepared inputs.
-      await userEvent.keyboard(" ");
-      // Then: Verify the expected result in the assertions below.
-      await expect(args.onRemoveTag).toHaveBeenLastCalledWith("two");
-      await expect(canvas.queryByRole("button", { name: /Remove .* filter/ })).not.toBeInTheDocument();
-      await expect(canvas.getByText("No filters").closest("summary")).toHaveFocus();
-    });
-  },
 };
 
 const changingCards = [
@@ -435,64 +240,15 @@ function ChangingRowsExample(args: React.ComponentProps<typeof CardList>) {
 }
 export const RemovedMenu: Story = {
   render: (args) => <ChangingRowsExample {...args} />,
-  play: async ({ canvas, userEvent, step }) => {
-    // Given: Use the rendered story, its args, parameters, and any setup below.
-    await step("STORYBOOK-CARD-LIST-15 Close a removed row menu without reopening it", async () => {
-      // Given: Use the rendered story, its args, parameters, and any setup below.
-      // When: Exercise `userEvent.click` with the prepared inputs.
-      await userEvent.click(canvas.getByRole("button", { name: "Open actions for Front" }));
-      await userEvent.click(canvas.getByRole("button", { name: "Open actions for Other" }));
-      // Then: Verify the expected result in the assertions below.
-      await expect(canvas.queryByRole("menu", { name: "Actions for Front" })).not.toBeInTheDocument();
-      await expect(canvas.getAllByRole("menu")).toHaveLength(1);
-      // When: Exercise `userEvent.click` with the prepared inputs.
-      await userEvent.click(canvas.getByRole("button", { name: "Toggle Other" }));
-      // Then: Verify the expected result in the assertions below.
-      await expect(canvas.queryByRole("menu")).not.toBeInTheDocument();
-      // When: Exercise `userEvent.click` with the prepared inputs.
-      await userEvent.click(canvas.getByRole("button", { name: "Toggle Other" }));
-      // Then: Verify the expected result in the assertions below.
-      await expect(canvas.getByRole("button", { name: "Open actions for Other" })).toBeVisible();
-      await expect(canvas.queryByRole("menu")).not.toBeInTheDocument();
-    });
-  },
 };
-function reorderedRowStory(edit: boolean): Story {
+function reorderedRowStory(): Story {
   return {
     args: { onShowCard: fn(), card: { goToEdit: fn() } },
     render: (args) => <ChangingRowsExample {...args} />,
-    play: async ({ args, canvas, userEvent, step }) => {
-      // Given: Use the rendered story, its args, parameters, and any setup below.
-      await step("STORYBOOK-CARD-LIST-16 Preserve the focused card across row updates", async () => {
-        // Given: Use the rendered story, its args, parameters, and any setup below.
-        // When: Exercise `userEvent.click` with the prepared inputs.
-        if (edit) await userEvent.click(canvas.getByRole("button", { name: "Open actions for Front" }));
-        const target = edit
-          ? canvas.getByRole("menuitem", { name: "Edit" })
-          : canvas.getByRole("button", { name: "View Front" });
-        target.focus();
-        // External data updates must not take focus from the surviving row.
-        canvas.getByRole("button", { name: "Reverse rows" }).click();
-        // Then: Verify the expected result in the assertions below.
-        await expect(target).toHaveFocus();
-        // When: Exercise `canvas.getByRole("button", { name: "Toggle Other" }).click` with the prepared inputs.
-        canvas.getByRole("button", { name: "Toggle Other" }).click();
-        // Then: Verify the expected result in the assertions below.
-        await expect(target).toHaveFocus();
-        // When: Exercise `canvas.getByRole("button", { name: "Toggle Other" }).click` with the prepared inputs.
-        canvas.getByRole("button", { name: "Toggle Other" }).click();
-        // Then: Verify the expected result in the assertions below.
-        await expect(target).toHaveFocus();
-        // When: Exercise `userEvent.keyboard` with the prepared inputs.
-        await userEvent.keyboard("{Enter}");
-        // Then: Verify the expected result in the assertions below.
-        await expect(edit ? args.card?.goToEdit : args.onShowCard).toHaveBeenCalledWith(fixture.card.default.id);
-      });
-    },
   };
 }
-export const ReorderedView = reorderedRowStory(false);
-export const ReorderedEdit = reorderedRowStory(true);
+export const ReorderedView = reorderedRowStory();
+export const ReorderedEdit = reorderedRowStory();
 
 export const Tablet: Story = {
   ...Long,
@@ -501,14 +257,7 @@ export const Tablet: Story = {
 
 export const Desktop: Story = {
   ...Long,
-  play: async ({ canvas, userEvent }) => {
-    // Given: Use the rendered story, its args, parameters, and any setup below.
-    const [trigger] = canvas.getAllByRole("button", { name: /^Open actions for / });
-    if (!trigger) throw new Error("A card menu is required");
-    // When: Exercise `userEvent.click` with the prepared inputs.
-    await userEvent.click(trigger);
-    // Then: This play prepares a visual state; it declares no behavioral assertions.
-  },
+
   globals: { theme: "light", viewport: { value: "desktop1280", isRotated: false } },
 };
 

@@ -63,7 +63,7 @@ Deck 一覧画面を入口とした Playwright テストで、一覧の表示、
 
 <a id="playwright-deck-list-01"></a>
 
-### PLAYWRIGHT-DECK-LIST-01 [TODO] Deck 作成画面を開く
+### PLAYWRIGHT-DECK-LIST-01 Deck 作成画面を開く
 
 カテゴリ: `interaction`
 
@@ -83,7 +83,7 @@ Then:
 
 <a id="playwright-deck-list-02"></a>
 
-### PLAYWRIGHT-DECK-LIST-02 [TODO] Deck インポート画面を開く
+### PLAYWRIGHT-DECK-LIST-02 Deck インポート画面を開く
 
 カテゴリ: `interaction`
 
@@ -103,7 +103,7 @@ Then:
 
 <a id="playwright-deck-list-03"></a>
 
-### PLAYWRIGHT-DECK-LIST-03 [TODO] 固定文言だけを日本語にする
+### PLAYWRIGHT-DECK-LIST-03 固定文言だけを日本語にする
 
 カテゴリ: `render`
 
@@ -123,7 +123,7 @@ Then:
 
 <a id="playwright-deck-list-04"></a>
 
-### PLAYWRIGHT-DECK-LIST-04 [TODO] 選んだ Deck を閲覧する
+### PLAYWRIGHT-DECK-LIST-04 選んだ Deck を閲覧する
 
 カテゴリ: `interaction`
 
@@ -143,7 +143,7 @@ Then:
 
 <a id="playwright-deck-list-05"></a>
 
-### PLAYWRIGHT-DECK-LIST-05 [TODO] 空の一覧にも追加導線を表示する
+### PLAYWRIGHT-DECK-LIST-05 空の一覧にも追加導線を表示する
 
 カテゴリ: `render`
 
@@ -163,7 +163,7 @@ Then:
 
 <a id="playwright-deck-list-06"></a>
 
-### PLAYWRIGHT-DECK-LIST-06 [TODO] 復習対象・新規件数と説明を表示する
+### PLAYWRIGHT-DECK-LIST-06 復習対象・新規件数と説明を表示する
 
 カテゴリ: `render`
 
@@ -171,19 +171,20 @@ Then:
 
 Given:
 
-- 復習対象が2件、新規が3件の Deck がある。
+- 復習対象2件・新規3件の Deck と新規1件の別 Deck がある。合計復習5件・新規5件の複数 Deck も独立した入力例とする。
 
 When:
 
-- Deck 一覧画面を開く。
+- 一覧の件数を確認し、About counts を開く。
 
 Then:
 
-- 復習対象2件と新規3件を区別し、それぞれの意味を確認できる。
+- Deck ごとの復習対象と新規件数、読み込み済みの全 Deck の合計を表示する。
+- 件数が端末内のデータと保存済みフィルターを基にした値であると説明する。
 
 <a id="playwright-deck-list-07"></a>
 
-### PLAYWRIGHT-DECK-LIST-07 [TODO] ダウンロード操作後にメニューを閉じる
+### PLAYWRIGHT-DECK-LIST-07 ダウンロード操作後にメニューを閉じる
 
 カテゴリ: `interaction`
 
@@ -199,11 +200,11 @@ When:
 
 Then:
 
-- 選んだ Deck のダウンロード処理が開始され、メニューが閉じる。ファイル内容の保証はこの画面の範囲に含めない。
+- 選んだ Deck のダウンロード処理が開始され、メニューが閉じる。
 
 <a id="playwright-deck-list-08"></a>
 
-### PLAYWRIGHT-DECK-LIST-08 [TODO] 学習履歴画面を開く
+### PLAYWRIGHT-DECK-LIST-08 学習履歴画面を開く
 
 カテゴリ: `interaction`
 
@@ -223,7 +224,7 @@ Then:
 
 <a id="playwright-deck-list-09"></a>
 
-### PLAYWRIGHT-DECK-LIST-09 [TODO] 学習中と未開始を一つの一覧に表示する
+### PLAYWRIGHT-DECK-LIST-09 学習中と未開始を一つの一覧に表示する
 
 カテゴリ: `render`
 
@@ -243,7 +244,7 @@ Then:
 
 <a id="playwright-deck-list-10"></a>
 
-### PLAYWRIGHT-DECK-LIST-10 [TODO] 複数のメニューを同時に開かない
+### PLAYWRIGHT-DECK-LIST-10 複数のメニューを同時に開かない
 
 カテゴリ: `interaction`
 
@@ -263,7 +264,7 @@ Then:
 
 <a id="playwright-deck-list-11"></a>
 
-### PLAYWRIGHT-DECK-LIST-11 [TODO] 追加メニューをキーボードで開閉する
+### PLAYWRIGHT-DECK-LIST-11 追加メニューをキーボードで開閉する
 
 カテゴリ: `interaction`
 
@@ -283,7 +284,7 @@ Then:
 
 <a id="playwright-deck-list-12"></a>
 
-### PLAYWRIGHT-DECK-LIST-12 [TODO] 作成操作後に追加メニューを残さない
+### PLAYWRIGHT-DECK-LIST-12 作成操作後に追加メニューを残さない
 
 カテゴリ: `interaction`
 
@@ -303,7 +304,7 @@ Then:
 
 <a id="playwright-deck-list-13"></a>
 
-### PLAYWRIGHT-DECK-LIST-13 [TODO] 確認中に空の一覧と断定しない
+### PLAYWRIGHT-DECK-LIST-13 確認中に空の一覧と断定しない
 
 カテゴリ: `render`
 
@@ -311,7 +312,7 @@ Then:
 
 Given:
 
-- 最初の Deck 取得がまだ完了していない。
+- Sample Deck の初期追加が必要な空の store で、追加先の応答が保留されている。
 
 When:
 
@@ -319,11 +320,11 @@ When:
 
 Then:
 
-- 取得待ちが示され、Deck が存在しないという空状態の案内は表示されない。
+- Checking for sample deck… を表示し、No decks yet と断定しない。
 
 <a id="playwright-deck-list-14"></a>
 
-### PLAYWRIGHT-DECK-LIST-14 [TODO] 初期データ取得失敗から復旧操作を選ぶ
+### PLAYWRIGHT-DECK-LIST-14 初期データ取得失敗から復旧操作を選ぶ
 
 カテゴリ: `interaction`
 
@@ -331,19 +332,20 @@ Then:
 
 Given:
 
-- 最初の Deck 取得に失敗し、復旧方法の案内がある。
+- Sample Deck の初期追加に失敗し、再試行・作成・インポートの案内がある。各操作は独立した入力例とする。
 
 When:
 
-- 案内された再試行操作を選び、取得が成功する。
+- Retry、Create deck、Import decks のいずれかを選ぶ。
 
 Then:
 
-- 失敗表示が解消され、取得した Deck を一覧で操作できる。
+- Retry の成功後は失敗表示が解消され、Sample Deck の学習開始画面を操作できる。
+- 作成とインポートでは、それぞれ選んだ画面が開く。
 
 <a id="playwright-deck-list-15"></a>
 
-### PLAYWRIGHT-DECK-LIST-15 [TODO] 復習対象0件の理由を区別する
+### PLAYWRIGHT-DECK-LIST-15 復習対象0件の理由を区別する
 
 カテゴリ: `interaction`
 
@@ -351,20 +353,20 @@ Then:
 
 Given:
 
-- 未評価の Card だけがある Deck と、次の復習期限を待つ Deck がある。
+- 間隔反復が有効で、Card を保持していない Deck、保存したフィルターに一致する Card がない Deck、次の復習期限を待つ Deck を独立した条件とする。未評価5件だけを持つ Deck もある。
 
 When:
 
-- 各 Deck の件数と学習操作を確認し、復習期限を待つ Deck の説明を開く。
+- 対象がない理由を開き、件数と学習操作を確認する。
 
 Then:
 
-- 未評価の Card がある Deck には復習0件と新規件数、新規学習の操作が表示される。
-- 復習期限を待つ Deck には対象がない案内と次の復習期限が表示される。
+- 対象がない理由を No cards held on this device、No cards match saved filters、Next review の日時で区別し、説明を開く前は隠す。対象0件でも Study は利用できる。
+- 未評価 Card には復習0件と新規5件、新規学習の操作を表示する。次の期限を待つ Deck に新規学習の操作を出さない。
 
 <a id="playwright-deck-list-16"></a>
 
-### PLAYWRIGHT-DECK-LIST-16 [TODO] 復習と新規学習を区別して開始する
+### PLAYWRIGHT-DECK-LIST-16 復習と新規学習を区別して開始する
 
 カテゴリ: `interaction`
 
@@ -372,19 +374,19 @@ Then:
 
 Given:
 
-- 復習対象と新規 Card の両方がある Deck と、新規 Card だけがある Deck を表示している。
+- 復習2件と新規3件の Deck、新規1件の別 Deck、復習1件と新規2件の Deck、新規2件の Deck を独立した入力例とする。
 
 When:
 
-- それぞれ独立した操作例として、復習対象のある Deck の復習操作と、新規 Card だけの Deck の新規学習操作を選ぶ。
+- 復習がある場合は Review、それ以外は Study new cards の主操作を選ぶ。
 
 Then:
 
-- 選んだ Deck の学習開始画面が表示され、別の Deck が対象にならない。
+- 選んだ Deck の学習開始画面が表示され、開始件数は入力例の順に5件・1件・3件・2件になる。別の Deck の内容を表示せず、閲覧画面を開かない。
 
 <a id="playwright-deck-list-17"></a>
 
-### PLAYWRIGHT-DECK-LIST-17 [TODO] 学習位置を表示する
+### PLAYWRIGHT-DECK-LIST-17 学習位置を表示する
 
 カテゴリ: `render`
 
@@ -392,7 +394,7 @@ Then:
 
 Given:
 
-- 中断したセッションで全5件のうち3件目まで進んでいる。
+- 中断した学習は保持 Card 5件・順序5件・位置3件目、保持8件・順序3件・位置2件目、保持2件・順序2件・位置2件目を独立した条件とする。最後の条件では学習日時が不明である。
 
 When:
 
@@ -400,11 +402,12 @@ When:
 
 Then:
 
-- その Deck の学習位置が他の Deck と取り違えられずに表示される。
+- 保持件数と Studying · Card の位置を区別し、Deck 名の操作の読み上げ説明にも両方を含める。Continue を表示する。
+- progressbar、表示形式、Last studied・Last review の日時を表示せず、不明な日時を作らない。別 Deck を学習中と表示しない。
 
 <a id="playwright-deck-list-18"></a>
 
-### PLAYWRIGHT-DECK-LIST-18 [TODO] 学習操作で閲覧画面を開かない
+### PLAYWRIGHT-DECK-LIST-18 学習操作で閲覧画面を開かない
 
 カテゴリ: `interaction`
 
@@ -412,19 +415,19 @@ Then:
 
 Given:
 
-- Deck の行と学習操作が同時に表示されている。
+- Deck の行と主学習操作が同時に表示されている。通常学習は保持24件・最大10件、復習操作は復習2件と新規3件、新規学習操作は新規1件を独立した条件とする。
 
 When:
 
-- その行の学習操作を選ぶ。
+- その行の Study、Review、Study new cards の主操作を選ぶ。
 
 Then:
 
-- 対象 Deck の学習開始画面が表示され、行の閲覧画面へ二重に遷移しない。
+- 対象 Deck の学習開始画面だけが表示され、通常学習は10件、復習は5件、新規学習は1件を開始できる。行の Card 一覧や閲覧画面へ二重に遷移しない。
 
 <a id="playwright-deck-list-19"></a>
 
-### PLAYWRIGHT-DECK-LIST-19 [TODO] 各操作を選んだ Deck に適用する
+### PLAYWRIGHT-DECK-LIST-19 各操作を選んだ Deck に適用する
 
 カテゴリ: `interaction`
 
@@ -432,19 +435,20 @@ Then:
 
 Given:
 
-- 名前と内容の異なる二つの Deck がある。
+- 名前・本文・表示形式の異なる二つの Deck があり、片方には中断中の学習がある。
 
 When:
 
-- 片方の閲覧・編集・学習を、独立した操作例として選ぶ。
+- Card 一覧、View、Continue、Restart、Download、Edit、Delete と、未開始 Deck の Study を独立した操作例として選ぶ。
 
 Then:
 
-- いずれも選んだ Deck の名前と内容を持つ画面が表示される。
+- 各表示・保存先に選んだ Deck の識別子と内容を渡し、他の Deck と取り違えない。
+- Continue は中断した Card、Restart と Study は学習開始画面、Delete は対象名の確認と削除後の一覧を表示する。学習開始の確定前に新しい学習を作らない。
 
 <a id="playwright-deck-list-20"></a>
 
-### PLAYWRIGHT-DECK-LIST-20 [TODO] ローカル Deck にリモート表示を付けない
+### PLAYWRIGHT-DECK-LIST-20 ローカル Deck にリモート表示を付けない
 
 カテゴリ: `render`
 
@@ -464,7 +468,7 @@ Then:
 
 <a id="playwright-deck-list-21"></a>
 
-### PLAYWRIGHT-DECK-LIST-21 [TODO] 処理中の Deck だけを操作不可にする
+### PLAYWRIGHT-DECK-LIST-21 処理中の Deck だけを操作不可にする
 
 カテゴリ: `render`
 
@@ -484,7 +488,7 @@ Then:
 
 <a id="playwright-deck-list-22"></a>
 
-### PLAYWRIGHT-DECK-LIST-22 [TODO] 未開始なら再開し直す操作を表示しない
+### PLAYWRIGHT-DECK-LIST-22 未開始なら再開し直す操作を表示しない
 
 カテゴリ: `render`
 
@@ -504,7 +508,7 @@ Then:
 
 <a id="playwright-deck-list-23"></a>
 
-### PLAYWRIGHT-DECK-LIST-23 [TODO] メニューを矢印キーで移動する
+### PLAYWRIGHT-DECK-LIST-23 メニューを矢印キーで移動する
 
 カテゴリ: `interaction`
 
@@ -512,19 +516,20 @@ Then:
 
 Given:
 
-- Deck の操作メニューを開き、先頭項目にフォーカスしている。
+- 中断中と未開始の Deck を独立した条件として、操作メニューの先頭にフォーカスしている。
 
 When:
 
-- 上下の矢印キーを押す。
+- 上下の矢印キーで移動し、Escape で閉じる。
 
 Then:
 
-- メニュー内の有効な項目にフォーカスが移り、移動だけでは操作を実行しない。
+- View の次は中断中なら Restart、未開始なら Download になる。上矢印で View に戻る。移動だけでは画面遷移しない。
+- Escape はメニューを閉じ、同じ Deck のトリガーへフォーカスを戻す。
 
 <a id="playwright-deck-list-24"></a>
 
-### PLAYWRIGHT-DECK-LIST-24 [TODO] メニュー内のフォーカス移動で操作を失わない
+### PLAYWRIGHT-DECK-LIST-24 メニュー内のフォーカス移動で操作を失わない
 
 カテゴリ: `interaction`
 
@@ -532,19 +537,19 @@ Then:
 
 Given:
 
-- Deck の操作メニューが開いている。
+- Deck の操作メニューが開き、View にフォーカスしている。Download・Edit・Delete は独立した入力例とする。
 
 When:
 
-- メニュー内の別項目へフォーカスを移し、その項目を選ぶ。
+- 一時的に項目のフォーカスを外してから別の項目へ移し、Enter で選ぶ。矢印キーで Edit へ移動して選ぶ条件もある。
 
 Then:
 
-- 移動中にメニューが閉じず、選んだ操作を実行できる。
+- 項目間の移動中にメニューが閉じず、選んだ Deck のダウンロード・編集・削除確認を実行できる。
 
 <a id="playwright-deck-list-25"></a>
 
-### PLAYWRIGHT-DECK-LIST-25 [TODO] メニューの外へ移ったフォーカスを奪わない
+### PLAYWRIGHT-DECK-LIST-25 メニューの外へ移ったフォーカスを奪わない
 
 カテゴリ: `interaction`
 
@@ -564,7 +569,7 @@ Then:
 
 <a id="playwright-deck-list-26"></a>
 
-### PLAYWRIGHT-DECK-LIST-26 [TODO] 操作が再び有効になってもメニューを開かない
+### PLAYWRIGHT-DECK-LIST-26 操作が再び有効になってもメニューを開かない
 
 カテゴリ: `interaction`
 
@@ -584,7 +589,7 @@ Then:
 
 <a id="playwright-app-layout-01"></a>
 
-### PLAYWRIGHT-APP-LAYOUT-01 [TODO] 固定ヘッダーと本文を重ねずにスクロールする
+### PLAYWRIGHT-APP-LAYOUT-01 固定ヘッダーと本文を重ねずにスクロールする
 
 カテゴリ: `interaction`
 
@@ -604,7 +609,7 @@ Then:
 
 <a id="playwright-app-layout-02"></a>
 
-### PLAYWRIGHT-APP-LAYOUT-02 [TODO] 初期表示でヘッダーと本文を重ねない
+### PLAYWRIGHT-APP-LAYOUT-02 初期表示でヘッダーと本文を重ねない
 
 カテゴリ: `render`
 
@@ -624,7 +629,7 @@ Then:
 
 <a id="playwright-deck-list-27"></a>
 
-### PLAYWRIGHT-DECK-LIST-27 [TODO] 識別子を取り違えず名前から Card 一覧へ進む
+### PLAYWRIGHT-DECK-LIST-27 識別子を取り違えず名前から Card 一覧へ進む
 
 カテゴリ: `interaction`
 
@@ -1091,7 +1096,7 @@ Then:
 
 <a id="playwright-deck-list-49"></a>
 
-### PLAYWRIGHT-DECK-LIST-49 [TODO] 一覧のショートカットで設定とインポートへ進む
+### PLAYWRIGHT-DECK-LIST-49 一覧のショートカットで設定とインポートへ進む
 
 カテゴリ: `interaction`
 

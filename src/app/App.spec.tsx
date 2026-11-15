@@ -48,7 +48,7 @@ const renderApp = (path = "/") => {
   return { router, view: render(<App router={router} />) };
 };
 
-describe("App [ACCOUNT-02] [STUDY-SESSION-10]", () => {
+describe("App [ACCOUNT-02] [PLAYWRIGHT-STUDY-HISTORY-10]", () => {
   beforeEach(() => {
     // Given: Establish the shared setup used by the following cases.
     dismissToast();

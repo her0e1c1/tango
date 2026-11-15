@@ -51,7 +51,7 @@ Card 編集画面を入口とした Playwright テストで、既存 Card の両
 
 <a id="playwright-card-form-01"></a>
 
-### PLAYWRIGHT-CARD-FORM-01 [TODO] タブを切り替えても表面の入力を保持する
+### PLAYWRIGHT-CARD-FORM-01 タブを切り替えても表面の入力を保持する
 
 カテゴリ: `interaction`
 
@@ -71,7 +71,7 @@ Then:
 
 <a id="playwright-card-form-02"></a>
 
-### PLAYWRIGHT-CARD-FORM-02 [TODO] 編集する Card のタグを選ぶ
+### PLAYWRIGHT-CARD-FORM-02 編集する Card のタグを選ぶ
 
 カテゴリ: `interaction`
 
@@ -91,7 +91,7 @@ Then:
 
 <a id="playwright-card-form-03"></a>
 
-### PLAYWRIGHT-CARD-FORM-03 [TODO] 日本語の入力エラーを関連付ける
+### PLAYWRIGHT-CARD-FORM-03 日本語の入力エラーを関連付ける
 
 カテゴリ: `interaction`
 
@@ -107,11 +107,11 @@ When:
 
 Then:
 
-- 表面の必須エラーが表示され、入力の説明に「表面のテキストは必須です。」が関連付けられる。
+- 表面の必須エラーが表示され、入力の説明に「表面のテキストは必須です。」が関連付けられる。文書の言語も ja になる。
 
 <a id="playwright-card-form-04"></a>
 
-### PLAYWRIGHT-CARD-FORM-04 [TODO] 解答プレビューを開く
+### PLAYWRIGHT-CARD-FORM-04 解答プレビューを開く
 
 カテゴリ: `interaction`
 
@@ -131,7 +131,7 @@ Then:
 
 <a id="playwright-card-form-06"></a>
 
-### PLAYWRIGHT-CARD-FORM-06 [TODO] 拡大編集後も両面の下書きを保つ
+### PLAYWRIGHT-CARD-FORM-06 拡大編集後も両面の下書きを保つ
 
 カテゴリ: `interaction`
 
@@ -151,7 +151,7 @@ Then:
 
 <a id="playwright-card-form-07"></a>
 
-### PLAYWRIGHT-CARD-FORM-07 [TODO] 独自タグの選択と要約を保って保存する
+### PLAYWRIGHT-CARD-FORM-07 独自タグの選択と要約を保って保存する
 
 カテゴリ: `interaction`
 
@@ -167,11 +167,12 @@ When:
 
 Then:
 
-- 開き直しても選択が残り、要約で language、custom、math を確認できる。保存後も対象 Card に3タグが表示される。
+- 開き直しても選択が残り、Escape で閉じるとタグ編集の操作にフォーカスを戻す。要約では language、custom と残り1件を表示し、読み上げ説明で3タグを確認できる。
+- 保存境界には両面と選択順のタグが渡り、保存後も対象 Card に3タグが表示される。
 
 <a id="playwright-card-form-08"></a>
 
-### PLAYWRIGHT-CARD-FORM-08 [TODO] キーボードで編集面を切り替える
+### PLAYWRIGHT-CARD-FORM-08 キーボードで編集面を切り替える
 
 カテゴリ: `interaction`
 
@@ -191,7 +192,7 @@ Then:
 
 <a id="playwright-card-form-09"></a>
 
-### PLAYWRIGHT-CARD-FORM-09 [TODO] 裏面エラーのある入力欄を開く
+### PLAYWRIGHT-CARD-FORM-09 裏面エラーのある入力欄を開く
 
 カテゴリ: `interaction`
 
@@ -211,7 +212,7 @@ Then:
 
 <a id="playwright-card-form-10"></a>
 
-### PLAYWRIGHT-CARD-FORM-10 [TODO] 未知のエラーを安全な翻訳文で表示する
+### PLAYWRIGHT-CARD-FORM-10 未知のエラーを安全な翻訳文で表示する
 
 カテゴリ: `interaction`
 
@@ -219,7 +220,7 @@ Then:
 
 Given:
 
-- Card 編集画面の入力に未知のエラーがあり、英語で拡大編集を開いている。
+- 実際の Card 編集 model・action・編集部品を結合し、React Hook Form の公開 API で未知の入力エラーを準備する。英語で拡大編集を開いている。
 
 When:
 
@@ -231,7 +232,7 @@ Then:
 
 <a id="playwright-card-form-11"></a>
 
-### PLAYWRIGHT-CARD-FORM-11 [TODO] 言語変更後も下書きとタグを保つ
+### PLAYWRIGHT-CARD-FORM-11 言語変更後も下書きとタグを保つ
 
 カテゴリ: `interaction`
 
@@ -251,7 +252,7 @@ Then:
 
 <a id="playwright-card-form-12"></a>
 
-### PLAYWRIGHT-CARD-FORM-12 [TODO] 不完全な下書きを保存せずプレビューする
+### PLAYWRIGHT-CARD-FORM-12 不完全な下書きを保存せずプレビューする
 
 カテゴリ: `interaction`
 
@@ -271,7 +272,7 @@ Then:
 
 <a id="playwright-card-form-13"></a>
 
-### PLAYWRIGHT-CARD-FORM-13 [TODO] 拡大編集の変更を数式プレビューへ反映する
+### PLAYWRIGHT-CARD-FORM-13 拡大編集の変更を数式プレビューへ反映する
 
 カテゴリ: `interaction`
 
@@ -291,7 +292,7 @@ Then:
 
 <a id="playwright-card-form-14"></a>
 
-### PLAYWRIGHT-CARD-FORM-14 [TODO] 表示条件に応じてコードを表示する
+### PLAYWRIGHT-CARD-FORM-14 表示条件に応じてコードを表示する
 
 カテゴリ: `interaction`
 
@@ -299,7 +300,7 @@ Then:
 
 Given:
 
-- Card 編集画面の裏面は const answer = 42; である。Deck python・タグなし、Deck math・タグ custom/typescript/python、Deck math・タグ md を独立した入力例とする。
+- Card 編集画面の裏面は const answer = 42; である。Deck python・タグなし、Deck math・タグ custom/typescript/python、Deck math・タグ md を独立した入力例とする。typescript は初期テーマが light の場合と dark の場合を確認する。
 
 When:
 
@@ -311,7 +312,7 @@ Then:
 
 <a id="playwright-card-form-15"></a>
 
-### PLAYWRIGHT-CARD-FORM-15 [TODO] タグ変更をプレビューへ反映する
+### PLAYWRIGHT-CARD-FORM-15 タグ変更をプレビューへ反映する
 
 カテゴリ: `interaction`
 
@@ -331,7 +332,7 @@ Then:
 
 <a id="playwright-card-form-16"></a>
 
-### PLAYWRIGHT-CARD-FORM-16 [TODO] 言語が変わってもプレビューを開いておく
+### PLAYWRIGHT-CARD-FORM-16 言語が変わってもプレビューを開いておく
 
 カテゴリ: `interaction`
 
@@ -339,7 +340,7 @@ Then:
 
 Given:
 
-- Card 編集画面で英語の解答プレビューを開いている。
+- Card 編集画面で英語の解答プレビューを開いている。通常幅とモバイル幅を独立した表示例とする。
 
 When:
 
@@ -351,7 +352,7 @@ Then:
 
 <a id="playwright-card-form-20"></a>
 
-### PLAYWRIGHT-CARD-FORM-20 [TODO] 保存中は編集と離脱を無効にする
+### PLAYWRIGHT-CARD-FORM-20 保存中は編集と離脱を無効にする
 
 カテゴリ: `interaction`
 
@@ -371,7 +372,7 @@ Then:
 
 <a id="playwright-card-form-21"></a>
 
-### PLAYWRIGHT-CARD-FORM-21 [TODO] 外部更新で編集中の下書きを上書きしない
+### PLAYWRIGHT-CARD-FORM-21 外部更新で編集中の下書きを上書きしない
 
 カテゴリ: `interaction`
 
@@ -391,7 +392,7 @@ Then:
 
 <a id="playwright-card-form-22"></a>
 
-### PLAYWRIGHT-CARD-FORM-22 [TODO] 両面が不正なら表面から修正する
+### PLAYWRIGHT-CARD-FORM-22 両面が不正なら表面から修正する
 
 カテゴリ: `interaction`
 
@@ -411,7 +412,7 @@ Then:
 
 <a id="playwright-card-form-23"></a>
 
-### PLAYWRIGHT-CARD-FORM-23 [TODO] 保存失敗後に同じ下書きを再送信する
+### PLAYWRIGHT-CARD-FORM-23 保存失敗後に同じ下書きを再送信する
 
 カテゴリ: `interaction`
 
@@ -431,7 +432,7 @@ Then:
 
 <a id="playwright-card-form-24"></a>
 
-### PLAYWRIGHT-CARD-FORM-24 [TODO] 確認なしのタグ編集を下書きへ即時反映する
+### PLAYWRIGHT-CARD-FORM-24 確認なしのタグ編集を下書きへ即時反映する
 
 カテゴリ: `interaction`
 
@@ -451,7 +452,7 @@ Then:
 
 <a id="playwright-card-form-25"></a>
 
-### PLAYWRIGHT-CARD-FORM-25 [TODO] 空白や重複したタグ名で保存しない
+### PLAYWRIGHT-CARD-FORM-25 空白や重複したタグ名で保存しない
 
 カテゴリ: `interaction`
 
@@ -459,11 +460,12 @@ Then:
 
 Given:
 
-- Card 編集画面で本文と二つのタグを表示し、新しいタグ行を追加している。
+- Card 編集画面で本文と二つのタグを表示し、新しいタグ行を追加する場合と、最初の既存タグを変更する場合を独立した入力例とする。
 
 When:
 
-- 空白だけの名前、前後空白を除くと既存と同名になる名前、前後に空白のある有効な名前の順に入力し、各状態でタグ編集を閉じて保存を試みる。
+- 新規タグには空白だけの名前、custom、前後空白付きの custom を順に入力し、各状態でタグ編集を閉じて保存を試みる。修正後の有効な値は new と前後空白付きの new tag を独立した入力例とする。
+- 既存の shared と kept の最初のタグを、空白だけ、kept、前後空白付きの kept に変更する。各例で拒否を確認した後に corrected へ修正して保存する。
 
 Then:
 
@@ -471,7 +473,7 @@ Then:
 
 <a id="playwright-card-edit-01"></a>
 
-### PLAYWRIGHT-CARD-EDIT-01 [TODO] 長い解答プレビューへキーボードで移動する
+### PLAYWRIGHT-CARD-EDIT-01 長い解答プレビューへキーボードで移動する
 
 カテゴリ: `interaction`
 
@@ -491,7 +493,7 @@ Then:
 
 <a id="playwright-card-edit-02"></a>
 
-### PLAYWRIGHT-CARD-EDIT-02 [TODO] プレビューを閉じた拡大編集内でフォーカスを循環させる
+### PLAYWRIGHT-CARD-EDIT-02 プレビューを閉じた拡大編集内でフォーカスを循環させる
 
 カテゴリ: `interaction`
 
@@ -499,19 +501,20 @@ Then:
 
 Given:
 
-- Card 編集画面で裏面の拡大入力を開き、解答プレビューは閉じている。
+- Card 編集画面を幅1,280または横向きの幅812で表示し、裏面の拡大入力を開いている。解答プレビューは閉じている。
 
 When:
 
-- 解答プレビューの表示ボタンから Tab を押し、続けて Shift+Tab を押す。
+- 解答プレビューの表示ボタンから Tab を押し、続けて Shift+Tab を押す。その後 Done で拡大編集を閉じる。
 
 Then:
 
 - Tab で拡大入力の完了ボタンへ移り、Shift+Tab でプレビューの表示ボタンへ戻る。非表示の領域やダイアログの外へフォーカスが移らない。
+- Done で閉じると通常入力に戻り、Expand Back へフォーカスを戻す。
 
 <a id="playwright-card-edit-03"></a>
 
-### PLAYWRIGHT-CARD-EDIT-03 [TODO] 未保存の Card 編集内容を離脱前に確認できる
+### PLAYWRIGHT-CARD-EDIT-03 未保存の Card 編集内容を離脱前に確認できる
 
 カテゴリ: `interaction`
 
@@ -534,7 +537,7 @@ Then:
 
 <a id="playwright-card-edit-04"></a>
 
-### PLAYWRIGHT-CARD-EDIT-04 [TODO] 編集中の未保存の解答と表示形式をプレビューできる
+### PLAYWRIGHT-CARD-EDIT-04 編集中の未保存の解答と表示形式をプレビューできる
 
 カテゴリ: `interaction`
 
@@ -569,6 +572,7 @@ Then:
 Given:
 
 - ログイン中のアカウントが所有する Card を編集しており、所属 Deck のタグ候補と編集中の独自タグがある。他の Card にタグがない場合も確認する。
+- 候補の所属を確認する例では、現在の Deck に chapter-1 があり、別 Deck にだけ python がある。作成した Card を実際の一覧から編集し直す場合も確認する。
 
 When:
 
@@ -584,7 +588,7 @@ Then:
 
 <a id="playwright-card-edit-06"></a>
 
-### PLAYWRIGHT-CARD-EDIT-06 [TODO] タグ入力中の Enter は Card を送信せず下書きを保つ
+### PLAYWRIGHT-CARD-EDIT-06 タグ入力中の Enter は Card を送信せず下書きを保つ
 
 カテゴリ: `interaction`
 
@@ -605,7 +609,7 @@ Then:
 
 <a id="playwright-card-edit-07"></a>
 
-### PLAYWRIGHT-CARD-EDIT-07 [TODO] 入力直後の候補クリックで対象タグだけを解除する
+### PLAYWRIGHT-CARD-EDIT-07 入力直後の候補クリックで対象タグだけを解除する
 
 カテゴリ: `interaction`
 
@@ -626,7 +630,7 @@ Then:
 
 <a id="playwright-card-edit-08"></a>
 
-### PLAYWRIGHT-CARD-EDIT-08 [TODO] タグ名の前後空白だけを除いて選択順に保存する
+### PLAYWRIGHT-CARD-EDIT-08 タグ名の前後空白だけを除いて選択順に保存する
 
 カテゴリ: `interaction`
 
@@ -801,7 +805,7 @@ Then:
 
 <a id="playwright-card-edit-16"></a>
 
-### PLAYWRIGHT-CARD-EDIT-16 [TODO] Card の未表示の面にある入力エラーを修正できる
+### PLAYWRIGHT-CARD-EDIT-16 Card の未表示の面にある入力エラーを修正できる
 
 カテゴリ: `interaction`
 
@@ -825,7 +829,7 @@ Then:
 
 <a id="playwright-card-edit-17"></a>
 
-### PLAYWRIGHT-CARD-EDIT-17 [TODO] 未保存のタグ変更を破棄する
+### PLAYWRIGHT-CARD-EDIT-17 未保存のタグ変更を破棄する
 
 カテゴリ: `interaction`
 
@@ -845,7 +849,7 @@ Then:
 
 <a id="playwright-card-edit-18"></a>
 
-### PLAYWRIGHT-CARD-EDIT-18 [TODO] System の言語変更後も検証エラーと未保存の入力を保つ
+### PLAYWRIGHT-CARD-EDIT-18 System の言語変更後も検証エラーと未保存の入力を保つ
 
 カテゴリ: `interaction`
 
@@ -866,7 +870,7 @@ Then:
 
 <a id="playwright-card-edit-19"></a>
 
-### PLAYWRIGHT-CARD-EDIT-19 [TODO] 読めない Card の編集リンクから警告を維持して戻る
+### PLAYWRIGHT-CARD-EDIT-19 読めない Card の編集リンクから警告を維持して戻る
 
 カテゴリ: `interaction`
 
@@ -878,9 +882,9 @@ Given:
 
 When:
 
-- 読み込めない Card の編集リンクを開き、復旧操作で元の Deck の一覧へ戻る。
+- 読み込めない Card の編集リンクを開き、復旧操作で Deck 一覧へ戻る。
 
 Then:
 
 - 対象 Card が利用できない旨、読み込めない件数、保存データを変更していない警告を表示する。
-- 編集フォームを代わりの Card で表示せず、一覧へ戻っても警告を維持する。
+- 編集フォームを代わりの Card で表示せず、Deck 一覧へ戻っても警告を維持する。

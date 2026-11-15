@@ -46,7 +46,7 @@ const PreferencesFormHarness: React.FC = () => {
   );
 };
 
-describe("SETTINGS-01 SETTINGS-02 SETTINGS-04 settings page model", () => {
+describe("SETTINGS-01 PLAYWRIGHT-SETTINGS-09 PLAYWRIGHT-SETTINGS-15 PLAYWRIGHT-STUDY-SESSION-START-04 SETTINGS-04 settings page model", () => {
   beforeEach(() => {
     // Given: Establish the shared setup used by the following cases.
     updatePreferences(preferences);

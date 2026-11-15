@@ -13,7 +13,7 @@
 
 <a id="playwright-not-found-01"></a>
 
-### PLAYWRIGHT-NOT-FOUND-01 [TODO] 未知の URL を案内する
+### PLAYWRIGHT-NOT-FOUND-01 未知の URL を案内する
 
 カテゴリ: `render`
 
@@ -33,7 +33,7 @@ Then:
 
 <a id="playwright-not-found-02"></a>
 
-### PLAYWRIGHT-NOT-FOUND-02 [TODO] 見つからない画面からホームへ戻る
+### PLAYWRIGHT-NOT-FOUND-02 見つからない画面からホームへ戻る
 
 カテゴリ: `interaction`
 

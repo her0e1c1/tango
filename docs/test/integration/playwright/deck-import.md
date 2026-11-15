@@ -40,7 +40,7 @@ Deck インポート画面を入口とした Playwright テストで、CSV と�
 
 <a id="playwright-import-01"></a>
 
-### PLAYWRIGHT-IMPORT-01 [TODO] 初期画面に保存先選択を表示しない
+### PLAYWRIGHT-IMPORT-01 初期画面に保存先選択を表示しない
 
 カテゴリ: `render`
 
@@ -60,7 +60,7 @@ Then:
 
 <a id="playwright-import-02"></a>
 
-### PLAYWRIGHT-IMPORT-02 [TODO] CSV を読み込んでプレビューする
+### PLAYWRIGHT-IMPORT-02 CSV を読み込んでプレビューする
 
 カテゴリ: `interaction`
 
@@ -80,7 +80,7 @@ Then:
 
 <a id="playwright-import-03"></a>
 
-### PLAYWRIGHT-IMPORT-03 [TODO] 日本語の診断と無効な確定操作を表示する
+### PLAYWRIGHT-IMPORT-03 日本語の診断と無効な確定操作を表示する
 
 カテゴリ: `interaction`
 
@@ -100,7 +100,7 @@ Then:
 
 <a id="playwright-import-04"></a>
 
-### PLAYWRIGHT-IMPORT-04 [TODO] プレビュー失敗を安全な日本語にする
+### PLAYWRIGHT-IMPORT-04 プレビュー失敗を安全な日本語にする
 
 カテゴリ: `interaction`
 
@@ -120,7 +120,7 @@ Then:
 
 <a id="playwright-import-05"></a>
 
-### PLAYWRIGHT-IMPORT-05 [TODO] 診断を翻訳してユーザー入力を保持する
+### PLAYWRIGHT-IMPORT-05 診断を翻訳してユーザー入力を保持する
 
 カテゴリ: `interaction`
 
@@ -140,7 +140,7 @@ Then:
 
 <a id="playwright-import-06"></a>
 
-### PLAYWRIGHT-IMPORT-06 [TODO] CSV 形式の説明を開く
+### PLAYWRIGHT-IMPORT-06 CSV 形式の説明を開く
 
 カテゴリ: `interaction`
 
@@ -160,7 +160,7 @@ Then:
 
 <a id="playwright-import-07"></a>
 
-### PLAYWRIGHT-IMPORT-07 [TODO] インポート処理中の選択を無効にする
+### PLAYWRIGHT-IMPORT-07 インポート処理中の選択を無効にする
 
 カテゴリ: `render`
 
@@ -180,7 +180,7 @@ Then:
 
 <a id="playwright-import-08"></a>
 
-### PLAYWRIGHT-IMPORT-08 [TODO] 選んだサンプルを試す
+### PLAYWRIGHT-IMPORT-08 選んだサンプルを試す
 
 カテゴリ: `interaction`
 
@@ -188,19 +188,20 @@ Then:
 
 Given:
 
-- Deck インポート画面に Basic、Math、Markdown、Sample deck がある。各サンプルを独立した入力例とする。
+- Basic（basic-sample.csv、apple-001）、Math（math-sample.csv、circle-area）、Markdown（markdown-sample.csv、markdown-source）、Sample deck（deck-sample.csv、test/binarysearch/test_bisect_left.py）を独立した入力例とする。
 
 When:
 
-- サンプルを選び、Try this example を選ぶ。
+- サンプルを選び、Try this example から Tab で Download CSV へ移動して Enter で出力する。その後 Try this example を選ぶ。
 
 Then:
 
-- 選んだサンプルが押下状態になり、そのサンプルの内容がプレビューに表示される。Download CSV はキーボードで選べる。
+- 選んだサンプルが押下状態になり、対応するファイル名とキーを含む CSV を出力する。
+- 実際の CSV 解析後に選んだサンプルのキーと有効な追加操作をプレビューへ表示する。確定前に Deck や Card を追加しない。
 
 <a id="playwright-import-09"></a>
 
-### PLAYWRIGHT-IMPORT-09 [TODO] プレビュー後もファイルを選び直す
+### PLAYWRIGHT-IMPORT-09 プレビュー後もファイルを選び直す
 
 カテゴリ: `interaction`
 
@@ -208,19 +209,19 @@ Then:
 
 Given:
 
-- Deck インポート画面で deck.csv のプレビューを表示している。
+- deck.csv の表面 front・裏面 back・キー key-1 をプレビューしている。置き換え先は different.csv の表面 different・裏面 answer・キー key-2 である。
 
 When:
 
-- 異なる内容の CSV を選び直す。
+- 異なる内容の different.csv を選び直す。
 
 Then:
 
-- 新しいファイルの内容がプレビューへ反映され、以前の内容と混ざらない。
+- different.csv、裏面 answer、キー key-2 がプレビューへ反映され、以前の key-1 は表示しない。
 
 <a id="playwright-import-10"></a>
 
-### PLAYWRIGHT-IMPORT-10 [TODO] 内容確認とインポート確定を区別する
+### PLAYWRIGHT-IMPORT-10 内容確認とインポート確定を区別する
 
 カテゴリ: `interaction`
 
@@ -240,7 +241,7 @@ Then:
 
 <a id="playwright-import-11"></a>
 
-### PLAYWRIGHT-IMPORT-11 [TODO] 不正な行があれば確定を止める
+### PLAYWRIGHT-IMPORT-11 不正な行があれば確定を止める
 
 カテゴリ: `interaction`
 
@@ -260,7 +261,7 @@ Then:
 
 <a id="playwright-import-12"></a>
 
-### PLAYWRIGHT-IMPORT-12 [TODO] 準備失敗後もファイルを選び直す
+### PLAYWRIGHT-IMPORT-12 準備失敗後もファイルを選び直す
 
 カテゴリ: `interaction`
 
@@ -321,7 +322,7 @@ Then:
 
 <a id="playwright-deck-import-03"></a>
 
-### PLAYWRIGHT-DECK-IMPORT-03 [TODO] 4種類の例の全内容を CSV で出力する
+### PLAYWRIGHT-DECK-IMPORT-03 4種類の例の全内容を CSV で出力する
 
 カテゴリ: `interaction`
 
@@ -433,13 +434,16 @@ Then:
 Given:
 
 - 不正な UTF-8 の CSV を、同じ名前・パスのまま修正できる。
+- 追加済みの Deck・Card はなく、previous.csv には有効な4列2件がある。有効なプレビューから invalid.csv の不正な UTF-8 へ選び直す条件も確認する。
 
 When:
 
+- 有効2件をプレビューし、選び直しから不正な UTF-8 を選択して、失敗画面を離れ一覧からインポートへ戻る。
 - 同じファイルを繰り返し選んで文字コードエラーを確認し、有効な UTF-8、uniqueKey が空の内容、有効な内容の順に修正して選び直す。
 
 Then:
 
+- 有効な入力には2件を追加する操作を表示する。不正な UTF-8 への選び直しで以前のプレビューと追加操作がなくなり、離脱・再入場後も Deck・Card を追加していない。
 - 選び直すたびにエラー・プレビュー・追加可否を更新し、ファイル名を維持する。読み取り中は再選択できず、終わるとキーボードで再選択できる。
 - 不正な UTF-8 では英語・日本語で UTF-8 での再保存と再選択を案内し、プレビューや以前の選択へ戻らない。確定前に Deck・Card を追加しない。
 
@@ -529,7 +533,7 @@ Then:
 
 <a id="playwright-deck-import-13"></a>
 
-### PLAYWRIGHT-DECK-IMPORT-13 [TODO] 不正な必須列の CSV 全体を追加不可にする
+### PLAYWRIGHT-DECK-IMPORT-13 不正な必須列の CSV 全体を追加不可にする
 
 カテゴリ: `interaction`
 

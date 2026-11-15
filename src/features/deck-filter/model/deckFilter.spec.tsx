@@ -74,7 +74,7 @@ const DeckFilterHarness: React.FC<{ deck: Deck; tags?: string[]; scope?: DeckFil
   );
 };
 
-describe("CARD-LIST-ACTIONS-01 STUDY-SESSION-08 CARD-LIST-ACTIONS-05 CARD-LIST-ACTIONS-06 DeckFilterForm with individual draft and save actions", () => {
+describe("CARD-LIST-ACTIONS-01 STUDY-SESSION-08 PLAYWRIGHT-CARD-LIST-32 PLAYWRIGHT-CARD-LIST-34 DeckFilterForm with individual draft and save actions", () => {
   beforeEach(() => {
     // Given: Establish the shared setup used by the following cases.
     dismissToast();
@@ -245,7 +245,7 @@ describe("CARD-LIST-ACTIONS-01 STUDY-SESSION-08 CARD-LIST-ACTIONS-05 CARD-LIST-A
   });
 });
 
-describe("CARD-FILTER-01 CARD-FILTER-05 browsing drafts", () => {
+describe("PLAYWRIGHT-DECK-VIEW-04 PLAYWRIGHT-DECK-VIEW-05 browsing drafts", () => {
   beforeEach(() => {
     // Given: Establish the shared setup used by the following cases.
     dismissToast();

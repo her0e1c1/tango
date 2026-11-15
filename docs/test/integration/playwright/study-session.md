@@ -2,7 +2,7 @@
 
 ## 目的
 
-学習画面を入口とした Playwright テストで、セッション内の表示、回答・スキップ・再生・位置変更・完了とヘルプを確認する。検証境界と実行前提は [AGENTS.md](./AGENTS.md) に従う。
+学習画面を入口とした Playwright テストで、セッション内の表示、回答・スキップ・再生・位置変更・完了とヘルプを確認する。操作部品が公開された境界へ渡す要求も独立した契約として確認する。検証境界と実行前提は [AGENTS.md](./AGENTS.md) に従う。
 
 ## テストケース
 
@@ -59,10 +59,17 @@
 | PLAYWRIGHT-STUDY-SESSION-39 | interaction | 異常系 | [学習不在を案内し後から届く学習を表示する](#playwright-study-session-39) |
 | PLAYWRIGHT-STUDY-SESSION-40 | interaction | 正常系 | [修飾付き右方向入力を無視し通常の右方向入力で一度進む](#playwright-study-session-40) |
 | PLAYWRIGHT-STUDY-SESSION-41 | interaction | 異常系 | [アカウント変更後に以前の Card へ回答しない](#playwright-study-session-41) |
+| PLAYWRIGHT-STUDY-CONTROLS-11 | interaction | 正常系 | [Controller で再生を一度だけ要求する](#playwright-study-controls-11) |
+| PLAYWRIGHT-STUDY-CONTROLS-12 | interaction | 正常系 | [Controller の Enter で再生を一度だけ要求する](#playwright-study-controls-12) |
+| PLAYWRIGHT-STUDY-CONTROLS-13 | interaction | 正常系 | [Controller から数値の表示位置を渡す](#playwright-study-controls-13) |
+| PLAYWRIGHT-STUDY-CONTROLS-14 | interaction | 正常系 | [方向部品から Enter の操作を一度だけ要求する](#playwright-study-controls-14) |
+| PLAYWRIGHT-STUDY-CONTROLS-15 | interaction | 正常系 | [方向部品の無効な操作を Tab から除く](#playwright-study-controls-15) |
+| PLAYWRIGHT-STUDY-CONTROLS-16 | interaction | 正常系 | [保存操作部品から Skip を一度だけ要求する](#playwright-study-controls-16) |
+| PLAYWRIGHT-STUDY-SESSION-42 | interaction | 正常系 | [Good の右方向通知を表示して自動で消す](#playwright-study-session-42) |
 
 <a id="playwright-study-controls-01"></a>
 
-### PLAYWRIGHT-STUDY-CONTROLS-01 [TODO] 再生を開始して一時停止表示にする
+### PLAYWRIGHT-STUDY-CONTROLS-01 再生を開始して一時停止表示にする
 
 カテゴリ: `interaction`
 
@@ -82,7 +89,7 @@ Then:
 
 <a id="playwright-study-controls-02"></a>
 
-### PLAYWRIGHT-STUDY-CONTROLS-02 [TODO] Card を評価せずスキップする
+### PLAYWRIGHT-STUDY-CONTROLS-02 Card を評価せずスキップする
 
 カテゴリ: `interaction`
 
@@ -102,7 +109,7 @@ Then:
 
 <a id="playwright-study-controls-03"></a>
 
-### PLAYWRIGHT-STUDY-CONTROLS-03 [TODO] Enter で再生を開始する
+### PLAYWRIGHT-STUDY-CONTROLS-03 Enter で再生を開始する
 
 カテゴリ: `interaction`
 
@@ -122,7 +129,7 @@ Then:
 
 <a id="playwright-study-controls-04"></a>
 
-### PLAYWRIGHT-STUDY-CONTROLS-04 [TODO] スライダーで表示位置を変える
+### PLAYWRIGHT-STUDY-CONTROLS-04 スライダーで表示位置を変える
 
 カテゴリ: `interaction`
 
@@ -142,7 +149,7 @@ Then:
 
 <a id="playwright-study-controls-05"></a>
 
-### PLAYWRIGHT-STUDY-CONTROLS-05 [TODO] 無効な方向操作を Tab 移動から除く
+### PLAYWRIGHT-STUDY-CONTROLS-05 無効な方向操作を Tab 移動から除く
 
 カテゴリ: `interaction`
 
@@ -162,7 +169,7 @@ Then:
 
 <a id="playwright-study-controls-06"></a>
 
-### PLAYWRIGHT-STUDY-CONTROLS-06 [TODO] Enter で有効な方向操作を実行する
+### PLAYWRIGHT-STUDY-CONTROLS-06 Enter で有効な方向操作を実行する
 
 カテゴリ: `interaction`
 
@@ -182,7 +189,7 @@ Then:
 
 <a id="playwright-study-controls-07"></a>
 
-### PLAYWRIGHT-STUDY-CONTROLS-07 [TODO] 学習ヘルプをモーダルとして開く
+### PLAYWRIGHT-STUDY-CONTROLS-07 学習ヘルプをモーダルとして開く
 
 カテゴリ: `interaction`
 
@@ -202,7 +209,7 @@ Then:
 
 <a id="playwright-study-controls-08"></a>
 
-### PLAYWRIGHT-STUDY-CONTROLS-08 [TODO] ヘルプ内にフォーカスを保ち Escape で戻る
+### PLAYWRIGHT-STUDY-CONTROLS-08 ヘルプ内にフォーカスを保ち Escape で戻る
 
 カテゴリ: `interaction`
 
@@ -222,7 +229,7 @@ Then:
 
 <a id="playwright-study-controls-09"></a>
 
-### PLAYWRIGHT-STUDY-CONTROLS-09 [TODO] ヘルプ表示中は背景の通知を操作させない
+### PLAYWRIGHT-STUDY-CONTROLS-09 ヘルプ表示中は背景の通知を操作させない
 
 カテゴリ: `interaction`
 
@@ -242,7 +249,7 @@ Then:
 
 <a id="playwright-study-controls-10"></a>
 
-### PLAYWRIGHT-STUDY-CONTROLS-10 [TODO] ヘルプを閉じて通知の操作を戻す
+### PLAYWRIGHT-STUDY-CONTROLS-10 ヘルプを閉じて通知の操作を戻す
 
 カテゴリ: `interaction`
 
@@ -262,7 +269,7 @@ Then:
 
 <a id="playwright-study-session-01"></a>
 
-### PLAYWRIGHT-STUDY-SESSION-01 [TODO] 解答を確認して評価すると次へ進む
+### PLAYWRIGHT-STUDY-SESSION-01 解答を確認して評価すると次へ進む
 
 カテゴリ: `interaction`
 
@@ -282,7 +289,7 @@ Then:
 
 <a id="playwright-study-session-02"></a>
 
-### PLAYWRIGHT-STUDY-SESSION-02 [TODO] 最後の Card を終えると完了を表示する
+### PLAYWRIGHT-STUDY-SESSION-02 最後の Card を終えると完了を表示する
 
 カテゴリ: `interaction`
 
@@ -303,7 +310,7 @@ Then:
 
 <a id="playwright-study-session-03"></a>
 
-### PLAYWRIGHT-STUDY-SESSION-03 [TODO] 回答処理の失敗を成功と扱わない
+### PLAYWRIGHT-STUDY-SESSION-03 回答処理の失敗を成功と扱わない
 
 カテゴリ: `interaction`
 
@@ -323,7 +330,7 @@ Then:
 
 <a id="playwright-study-session-04"></a>
 
-### PLAYWRIGHT-STUDY-SESSION-04 [TODO] 方向ボタンの名前が言語と現在の操作に追従する
+### PLAYWRIGHT-STUDY-SESSION-04 方向ボタンの名前が言語と現在の操作に追従する
 
 カテゴリ: `interaction`
 
@@ -346,7 +353,7 @@ Then:
 
 <a id="playwright-study-session-05"></a>
 
-### PLAYWRIGHT-STUDY-SESSION-05 [TODO] 主ボタンの上ドラッグで一つ先の表面へ進む
+### PLAYWRIGHT-STUDY-SESSION-05 主ボタンの上ドラッグで一つ先の表面へ進む
 
 カテゴリ: `interaction`
 
@@ -366,7 +373,7 @@ Then:
 
 <a id="playwright-study-session-06"></a>
 
-### PLAYWRIGHT-STUDY-SESSION-06 [TODO] 主ボタン以外のドラッグでは進まない
+### PLAYWRIGHT-STUDY-SESSION-06 主ボタン以外のドラッグでは進まない
 
 カテゴリ: `interaction`
 
@@ -386,7 +393,7 @@ Then:
 
 <a id="playwright-study-session-07"></a>
 
-### PLAYWRIGHT-STUDY-SESSION-07 [TODO] Help の説明を割り当てとボタン表示に合わせる
+### PLAYWRIGHT-STUDY-SESSION-07 Help の説明を割り当てとボタン表示に合わせる
 
 カテゴリ: `interaction`
 
@@ -407,7 +414,7 @@ Then:
 
 <a id="playwright-study-session-08"></a>
 
-### PLAYWRIGHT-STUDY-SESSION-08 [TODO] 閲覧モードで本文を読む操作を学習操作から分離する
+### PLAYWRIGHT-STUDY-SESSION-08 閲覧モードで本文を読む操作を学習操作から分離する
 
 カテゴリ: `interaction`
 
@@ -428,7 +435,7 @@ Then:
 
 <a id="playwright-study-session-09"></a>
 
-### PLAYWRIGHT-STUDY-SESSION-09 [TODO] Space と b の長押しでは一度だけ切り替える
+### PLAYWRIGHT-STUDY-SESSION-09 Space と b の長押しでは一度だけ切り替える
 
 カテゴリ: `interaction`
 
@@ -470,7 +477,7 @@ Then:
 
 <a id="playwright-study-session-11"></a>
 
-### PLAYWRIGHT-STUDY-SESSION-11 [TODO] 閲覧モードのピンチ拡大では学習が進まない
+### PLAYWRIGHT-STUDY-SESSION-11 閲覧モードのピンチ拡大では学習が進まない
 
 カテゴリ: `interaction`
 
@@ -490,7 +497,7 @@ Then:
 
 <a id="playwright-study-session-12"></a>
 
-### PLAYWRIGHT-STUDY-SESSION-12 [TODO] Help ボタンの表示を切り替える
+### PLAYWRIGHT-STUDY-SESSION-12 Help ボタンの表示を切り替える
 
 カテゴリ: `interaction`
 
@@ -510,7 +517,7 @@ Then:
 
 <a id="playwright-study-session-13"></a>
 
-### PLAYWRIGHT-STUDY-SESSION-13 [TODO] 閲覧モードを終了する入力で Card を裏返さない
+### PLAYWRIGHT-STUDY-SESSION-13 閲覧モードを終了する入力で Card を裏返さない
 
 カテゴリ: `interaction`
 
@@ -530,7 +537,7 @@ Then:
 
 <a id="playwright-study-session-14"></a>
 
-### PLAYWRIGHT-STUDY-SESSION-14 [TODO] 閲覧モードでも評価と自動再生の移動を利用する
+### PLAYWRIGHT-STUDY-SESSION-14 閲覧モードでも評価と自動再生の移動を利用する
 
 カテゴリ: `interaction`
 
@@ -551,7 +558,7 @@ Then:
 
 <a id="playwright-study-session-15"></a>
 
-### PLAYWRIGHT-STUDY-SESSION-15 [TODO] 閲覧モードとボタン表示を閲覧画面と共有する
+### PLAYWRIGHT-STUDY-SESSION-15 閲覧モードとボタン表示を閲覧画面と共有する
 
 カテゴリ: `interaction`
 
@@ -571,7 +578,7 @@ Then:
 
 <a id="playwright-study-session-16"></a>
 
-### PLAYWRIGHT-STUDY-SESSION-16 [TODO] 短い横向き画面でも本文と各操作へ到達する
+### PLAYWRIGHT-STUDY-SESSION-16 短い横向き画面でも本文と各操作へ到達する
 
 カテゴリ: `interaction`
 
@@ -591,7 +598,7 @@ Then:
 
 <a id="playwright-study-session-17"></a>
 
-### PLAYWRIGHT-STUDY-SESSION-17 [TODO] 方向ボタンの名前と Help を現在の操作に一致させる
+### PLAYWRIGHT-STUDY-SESSION-17 方向ボタンの名前と Help を現在の操作に一致させる
 
 カテゴリ: `interaction`
 
@@ -603,7 +610,7 @@ Given:
 
 When:
 
-- 読み上げ名、キャプション、Help の説明を確認し、言語と割り当てを変更する。
+- 英語・日本語と既定・変更後の割り当ての各状態で、読み上げ名、キャプション、Help の説明を確認する。
 
 Then:
 
@@ -612,7 +619,7 @@ Then:
 
 <a id="playwright-study-session-18"></a>
 
-### PLAYWRIGHT-STUDY-SESSION-18 [TODO] 方向キーを押し続けても次の Card を評価しない
+### PLAYWRIGHT-STUDY-SESSION-18 方向キーを押し続けても次の Card を評価しない
 
 カテゴリ: `interaction`
 
@@ -632,7 +639,7 @@ Then:
 
 <a id="playwright-study-session-19"></a>
 
-### PLAYWRIGHT-STUDY-SESSION-19 [TODO] 修飾付き入力を学習ショートカットと扱わない
+### PLAYWRIGHT-STUDY-SESSION-19 修飾付き入力を学習ショートカットと扱わない
 
 カテゴリ: `interaction`
 
@@ -673,7 +680,7 @@ Then:
 
 <a id="playwright-study-session-21"></a>
 
-### PLAYWRIGHT-STUDY-SESSION-21 [TODO] 裏面の表示・文字選択・タップを区別する
+### PLAYWRIGHT-STUDY-SESSION-21 裏面の表示・文字選択・タップを区別する
 
 カテゴリ: `interaction`
 
@@ -694,7 +701,7 @@ Then:
 
 <a id="playwright-study-session-22"></a>
 
-### PLAYWRIGHT-STUDY-SESSION-22 [TODO] 狭い裏面でも操作領域上から本文を読める
+### PLAYWRIGHT-STUDY-SESSION-22 狭い裏面でも操作領域上から本文を読める
 
 カテゴリ: `interaction`
 
@@ -715,7 +722,7 @@ Then:
 
 <a id="playwright-study-session-23"></a>
 
-### PLAYWRIGHT-STUDY-SESSION-23 [TODO] 裏面の左右領域で割り当てた操作だけを実行する
+### PLAYWRIGHT-STUDY-SESSION-23 裏面の左右領域で割り当てた操作だけを実行する
 
 カテゴリ: `interaction`
 
@@ -735,7 +742,7 @@ Then:
 
 <a id="playwright-study-session-24"></a>
 
-### PLAYWRIGHT-STUDY-SESSION-24 [TODO] スライダーの後方入力で前の Card へ戻らない
+### PLAYWRIGHT-STUDY-SESSION-24 スライダーの後方入力で前の Card へ戻らない
 
 カテゴリ: `interaction`
 
@@ -982,7 +989,7 @@ Then:
 
 <a id="playwright-study-session-36"></a>
 
-### PLAYWRIGHT-STUDY-SESSION-36 [TODO] 間隔を戻して同じ学習の再生を利用する
+### PLAYWRIGHT-STUDY-SESSION-36 間隔を戻して同じ学習の再生を利用する
 
 カテゴリ: `interaction`
 
@@ -1003,7 +1010,7 @@ Then:
 
 <a id="playwright-study-session-37"></a>
 
-### PLAYWRIGHT-STUDY-SESSION-37 [TODO] 狭い画面で復旧警告と正常な Card を操作する
+### PLAYWRIGHT-STUDY-SESSION-37 狭い画面で復旧警告と正常な Card を操作する
 
 カテゴリ: `interaction`
 
@@ -1103,3 +1110,145 @@ When:
 Then:
 
 - 以前のアカウントの Card に回答できず、回答の保存を要求しない。
+
+<a id="playwright-study-controls-11"></a>
+
+### PLAYWRIGHT-STUDY-CONTROLS-11 Controller で再生を一度だけ要求する
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- 停止中の Controller を表示している。
+
+When:
+
+- Play をクリックする。
+
+Then:
+
+- 再生の切替を一度だけ要求し、Pause は押下状態になる。
+
+<a id="playwright-study-controls-12"></a>
+
+### PLAYWRIGHT-STUDY-CONTROLS-12 Controller の Enter で再生を一度だけ要求する
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- 停止中の Controller の Play にフォーカスしている。
+
+When:
+
+- Enter を押す。
+
+Then:
+
+- 再生の切替を一度だけ要求する。
+
+<a id="playwright-study-controls-13"></a>
+
+### PLAYWRIGHT-STUDY-CONTROLS-13 Controller から数値の表示位置を渡す
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- Controller の進捗スライダーは5枚の先頭を指している。
+
+When:
+
+- スライダーの値を3へ変更する。
+
+Then:
+
+- 位置変更の要求は文字列ではなく数値3を渡す。
+
+<a id="playwright-study-controls-14"></a>
+
+### PLAYWRIGHT-STUDY-CONTROLS-14 方向部品から Enter の操作を一度だけ要求する
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- SwipeButtonList の有効な左方向にフォーカスしている。
+
+When:
+
+- Enter を押す。
+
+Then:
+
+- 左方向の操作を一度だけ要求する。
+
+<a id="playwright-study-controls-15"></a>
+
+### PLAYWRIGHT-STUDY-CONTROLS-15 方向部品の無効な操作を Tab から除く
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- SwipeButtonList の左方向だけは無効で、方向列の前にボタンがある。
+
+When:
+
+- 無効な左方向へのクリックを試み、前のボタンから Tab を押す。
+
+Then:
+
+- 左方向の操作を要求せず、次の有効な上方向へフォーカスが移る。
+
+<a id="playwright-study-controls-16"></a>
+
+### PLAYWRIGHT-STUDY-CONTROLS-16 保存操作部品から Skip を一度だけ要求する
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- StudySaveControls は保存待機中ではない。
+
+When:
+
+- Skip をクリックする。
+
+Then:
+
+- Skip の操作を一度だけ要求する。
+
+<a id="playwright-study-session-42"></a>
+
+### PLAYWRIGHT-STUDY-SESSION-42 Good の右方向通知を表示して自動で消す
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- 通常アカウントの学習画面で2枚の Card の先頭を表示し、右方向は Good、スワイプ通知は ON、自動再生は OFF である。保存先は成功を返す。
+
+When:
+
+- 右方向の Good ボタンで評価し、その後2秒を経過する。
+
+Then:
+
+- 評価後は次の Card を表示し、Good の回答を一度だけ保存境界へ渡し、現在の Card の実際の記憶状態の復習回数は1になる。
+- 通知は Swiped right と読み上げられ、表示中の方向アイコンは cardSwipeRight を示す。閉じる操作は表示しない。
+- 2秒以内に通知と方向アイコンが消える。

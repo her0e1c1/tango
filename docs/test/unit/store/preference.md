@@ -4,7 +4,7 @@
 
 設定の初期利用、部分変更、操作による切り替え、再起動後の復元、および既存設定を失わない補完・互換復元を確認する。画面への描画、ブラウザーの Storage 実装、保存 JSON の内部構造は判定対象にしない。
 
-関連 E2E: [STUDY-CONTROLS-09](../../e2e/study-controls.md#study-controls-09)、[SETTINGS-06](../../e2e/settings.md#settings-06)、[NAVIGATION-14](../../e2e/navigation.md#navigation-14)
+関連仕様: [PLAYWRIGHT-STUDY-SESSION-15](../../integration/playwright/study-session.md#playwright-study-session-15)、[SETTINGS-06](../../e2e/settings.md#settings-06)、[PLAYWRIGHT-DECK-VIEW-22](../../integration/playwright/deck-view.md#playwright-deck-view-22)
 
 共通の検証前提は [AGENTS.md](./AGENTS.md) を参照する。
 

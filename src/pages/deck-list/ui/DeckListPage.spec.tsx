@@ -57,7 +57,7 @@ const StudyDestination = () => {
   );
 };
 
-describe("DECK-LIST-02 NAVIGATION-02 DECK-LIST-01 DECK-MANAGEMENT-02 DECK-MANAGEMENT-03 DECK-MANAGEMENT-04 DECK-TRANSFER-01 NAVIGATION-08 STUDY-SESSION-03 DeckListPage DECK-LIST-05 DECK-LIST-09 DECK-LIST-13", () => {
+describe("PLAYWRIGHT-DECK-LIST-06 PLAYWRIGHT-DECK-LIST-28 PLAYWRIGHT-DECK-LIST-49 PLAYWRIGHT-CARD-LIST-48 PLAYWRIGHT-DECK-LIST-27 DECK-MANAGEMENT-02 PLAYWRIGHT-DECK-LIST-40 DECK-MANAGEMENT-04 PLAYWRIGHT-DECK-LIST-44 PLAYWRIGHT-DECK-VIEW-09 STUDY-SESSION-03 DeckListPage PLAYWRIGHT-DECK-LIST-01 PLAYWRIGHT-DECK-LIST-02 PLAYWRIGHT-DECK-LIST-12 PLAYWRIGHT-DECK-LIST-16 PLAYWRIGHT-DECK-LIST-18 PLAYWRIGHT-DECK-LIST-50 DECK-LIST-13", () => {
   const activeDeck = createLocalDeck({ id: "active-deck", name: "Active deck" });
   const freshDeck = createLocalDeck({ id: "fresh-deck", name: "Fresh deck" });
   const activeCard = createLocalCard({
@@ -254,7 +254,7 @@ describe("DECK-LIST-02 NAVIGATION-02 DECK-LIST-01 DECK-MANAGEMENT-02 DECK-MANAGE
   });
 
   it.each(["identity change", "unmount"])(
-    "[STUDY-SESSION-21] cancels Continue navigation after a queued %s",
+    "[PLAYWRIGHT-DECK-LIST-46] cancels Continue navigation after a queued %s",
     async (change) => {
       // Given: Prepare `router`, `view` and any shared test state below.
       const router = createMemoryRouter([
@@ -280,7 +280,7 @@ describe("DECK-LIST-02 NAVIGATION-02 DECK-LIST-01 DECK-MANAGEMENT-02 DECK-MANAGE
     ["en", "Continue Active deck", "Continue Fresh deck", "Resuming study…"],
     ["ja", "Active deckの学習を続ける", "Fresh deckの学習を続ける", "学習を再開しています…"],
   ])(
-    "DECK-LIST-14 accepts only the first Continue while saving (%s)",
+    "PLAYWRIGHT-DECK-LIST-38 accepts only the first Continue while saving (%s)",
     async (language, firstName, otherName, message) => {
       // Given: Two resumable Decks and a delayed first save through the Page's Entity boundary.
       await getI18n().changeLanguage(language);
@@ -324,7 +324,7 @@ describe("DECK-LIST-02 NAVIGATION-02 DECK-LIST-01 DECK-MANAGEMENT-02 DECK-MANAGE
     }
   );
 
-  it("DECK-LIST-15 releases Continue after rejection and accepts an explicit retry", async () => {
+  it("PLAYWRIGHT-DECK-LIST-39 releases Continue after rejection and accepts an explicit retry", async () => {
     // Given: Two resumable Decks and a delayed failing Continue.
     startStudy(freshDeck.id, [freshCard], mocks.preferences.study, mocks.uid);
     const firstSession = getStudySession(activeDeck.id);
@@ -367,7 +367,7 @@ describe("DECK-LIST-02 NAVIGATION-02 DECK-LIST-01 DECK-MANAGEMENT-02 DECK-MANAGE
     expect(getStudySession(activeDeck.id)).toEqual(firstSession);
   });
 
-  it("DECK-LIST-14 keeps pending acceptance across a list revisit without stale navigation", async () => {
+  it("PLAYWRIGHT-DECK-LIST-38 keeps pending acceptance across a list revisit without stale navigation", async () => {
     // Given: A delayed Continue and a separate Deck that remains available for browsing.
     startStudy(freshDeck.id, [freshCard], mocks.preferences.study, mocks.uid);
     const write = Promise.withResolvers<void>();
@@ -399,7 +399,7 @@ describe("DECK-LIST-02 NAVIGATION-02 DECK-LIST-01 DECK-MANAGEMENT-02 DECK-MANAGE
     expect(screen.getByRole("button", { name: "Continue Fresh deck" })).toBeEnabled();
   });
 
-  it("DECK-LIST-14 STUDY-SESSION-21 isolates a new account's pending Continue from an old result", async () => {
+  it("PLAYWRIGHT-DECK-LIST-38 PLAYWRIGHT-DECK-LIST-46 isolates a new account's pending Continue from an old result", async () => {
     // Given: The original account has a pending Continue and the next account will also wait.
     const oldWrite = Promise.withResolvers<void>();
     const newWrite = Promise.withResolvers<void>();

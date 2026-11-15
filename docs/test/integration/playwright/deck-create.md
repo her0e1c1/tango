@@ -19,7 +19,7 @@ Deck 作成画面を入口とした Playwright テストで、新しい Deck の
 
 <a id="playwright-deck-form-01"></a>
 
-### PLAYWRIGHT-DECK-FORM-01 [TODO] 名前とカテゴリを入力する
+### PLAYWRIGHT-DECK-FORM-01 名前とカテゴリを入力する
 
 カテゴリ: `interaction`
 
@@ -39,7 +39,7 @@ Then:
 
 <a id="playwright-deck-form-02"></a>
 
-### PLAYWRIGHT-DECK-FORM-02 [TODO] 効果のない改行変換設定を表示しない
+### PLAYWRIGHT-DECK-FORM-02 効果のない改行変換設定を表示しない
 
 カテゴリ: `render`
 
@@ -60,7 +60,7 @@ Then:
 
 <a id="playwright-deck-create-01"></a>
 
-### PLAYWRIGHT-DECK-CREATE-01 [TODO] 作成の成功後に新しい Deck を確認する
+### PLAYWRIGHT-DECK-CREATE-01 作成の成功後に新しい Deck を確認する
 
 カテゴリ: `interaction`
 
@@ -76,11 +76,11 @@ When:
 
 Then:
 
-- 新しい Deck 名が一覧に表示され、その Deck を選べる。サーバーへの実保存はこの結果だけで保証しない。
+- 新しい Deck 名が一覧に表示され、その Deck を選べる。
 
 <a id="playwright-deck-create-02"></a>
 
-### PLAYWRIGHT-DECK-CREATE-02 [TODO] 作成に失敗しても入力を保持する
+### PLAYWRIGHT-DECK-CREATE-02 作成に失敗しても入力を保持する
 
 カテゴリ: `interaction`
 
@@ -100,7 +100,7 @@ Then:
 
 <a id="playwright-deck-create-03"></a>
 
-### PLAYWRIGHT-DECK-CREATE-03 [TODO] 空欄と空白のみの名前に現在の言語でエラーを表示する
+### PLAYWRIGHT-DECK-CREATE-03 空欄と空白のみの名前に現在の言語でエラーを表示する
 
 カテゴリ: `interaction`
 
@@ -121,7 +121,7 @@ Then:
 
 <a id="playwright-deck-create-04"></a>
 
-### PLAYWRIGHT-DECK-CREATE-04 [TODO] 表示中の名前エラーを言語変更に追従させる
+### PLAYWRIGHT-DECK-CREATE-04 表示中の名前エラーを言語変更に追従させる
 
 カテゴリ: `interaction`
 

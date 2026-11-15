@@ -2,57 +2,16 @@
 
 ## 目的
 
-設定の自動保存、再読み込み後の保持、学習と表示への反映を確認する。読み込めない設定は既定値で復旧する。
+表示設定を保存して再読み込み後も利用でき、破損した設定や旧形式の設定から復元できることを確認する。
 
 ## テストケース
 
 | ID | カテゴリ | 区分 | テストケース |
 | --- | --- | --- | --- |
-| SETTINGS-07 | read | 正常系 | [詳細設定をキーボードで開閉できる](#settings-07) |
 | SETTINGS-13 | read | 正常系 | [旧既定の方向操作だけを現在の4評価へ移行できる](#settings-13) |
-| SETTINGS-14 | read | 正常系 | [言語変更後も CSV の選択とプレビューを保持する](#settings-14) |
 | SETTINGS-01 | write | 正常系 | [Dark mode を自動保存して再読み込み後も反映できる](#settings-01) |
-| SETTINGS-02 | write | 正常系 | [Maximum cards 設定を学習開始画面に反映できる](#settings-02) |
-| SETTINGS-03 | batch | 正常系 | [Respect review schedule を次の学習 session に反映できる](#settings-03) |
 | SETTINGS-04 | write | 正常系 | [日本語設定を自動保存して再読み込み後も反映できる](#settings-04) |
-| SETTINGS-05 | write | 正常系 | [System 設定でブラウザーの言語を再読み込み後も反映できる](#settings-05) |
-| SETTINGS-10 | write | 正常系 | [間隔0の説明と設定を再読み込み後も保持する](#settings-10) |
-| SETTINGS-11 | batch | 正常系 | [間隔0から正の値へ戻して同じ学習 session の再生操作を利用できる](#settings-11) |
-| SETTINGS-12 | write | 正常系 | [Maximum cards を変更しても進行中の学習を同じ位置から再開できる](#settings-12) |
-| SETTINGS-16 | write | 正常系 | [自動再生の間隔を0から正の値へ戻すと秒数表示へ戻る](#settings-16) |
-| SETTINGS-17 | batch | 正常系 | [間隔0では自動送りと再生操作を無効にして手動で学習できる](#settings-17) |
 | SETTINGS-06 | read | 異常系 | [無効な保存済み設定から現在の既定値へ復旧できる](#settings-06) |
-| SETTINGS-15 | read | 異常系 | [言語変更後も CSV エラーの再試行内容と通知期限を保持する](#settings-15) |
-| SETTINGS-08 | write | 異常系 | [Card の検証エラーが言語変更に追随し入力を保持する](#settings-08) |
-| SETTINGS-09 | write | 異常系 | [CSV の検証結果が再読み込みなしで言語変更に追随する](#settings-09) |
-
-<a id="settings-07"></a>
-
-### SETTINGS-07 詳細設定をキーボードで開閉できる
-
-カテゴリ: `read`
-
-区分: 正常系
-
-関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 詳細設定のキーボード開閉・フォーカス・バージョンと commit 表示（[PLAYWRIGHT-SETTINGS-12](../integration/playwright/settings.md#playwright-settings-12)）。置換実装後の E2E 目的: 実ブラウザー reload 後の詳細設定の閉状態と設定・認証・学習位置の保持。
-
-Given:
-
-- Fixture: [`empty`](./fixture/empty.yaml)
-- 認証済みユーザーが Deck 一覧から Settings を開き、詳細設定は閉じている。狭い画面では Menu 内の Open settings、広い画面ではヘッダーの Open settings を使う。
-- 画面幅の大小と明暗両テーマで確認する。
-
-When:
-
-- Tab と Shift+Tab で自動再生の間隔スライダーと詳細設定の見出しを往復する。
-- Enter と Space で詳細設定を開閉する。コミット情報がある場合は Tab でコミットリンクへ進み、Shift+Tab で見出しへ戻る。
-- 開いた状態でページを再読み込みする。
-
-Then:
-
-- Enter／Space で開閉でき、見出しの四辺にフォーカス枠を表示する。Tab 移動に余分な停止位置はなく、枠も移動先に移る。
-- 見出しの名前、開いたときのバージョン・コミット表示が維持される。コミット情報がある場合はコミットを指すリンク、ない場合は `unknown` を表示し、リンクは存在しない。
-- 設定、認証状態、Deck・Card の内容と学習の再開位置が操作前後で変わらず、再読み込み後は詳細設定が閉じている。
 
 <a id="settings-13"></a>
 
@@ -61,8 +20,6 @@ Then:
 カテゴリ: `read`
 
 区分: 正常系
-
-関連仕様: E2E維持。E2E の目的: browser storage からの旧方向割当の移行・独自割当保持と reload。
 
 Given:
 
@@ -79,30 +36,6 @@ Then:
 - 旧既定の方向操作が残っている場合は、現在の4評価（左＝again、下＝hard、右＝good、上＝easy）へまとめて切り替わる。
 - 読み込める他の設定と、利用者が独自に変更した方向の割り当ては維持される。
 
-<a id="settings-14"></a>
-
-### SETTINGS-14 [TODO] 言語変更後も CSV の選択とプレビューを保持する
-
-カテゴリ: `read`
-
-区分: 正常系
-
-関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: System 言語の変更後も CSV 選択と preview を保持し import を開始しない（[PLAYWRIGHT-DECK-IMPORT-15](../integration/playwright/deck-import.md#playwright-deck-import-15)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
-
-Given:
-
-- Fixture: [`empty`](./fixture/empty.yaml)
-- Language を System に設定し、ブラウザーの言語が英語の状態で CSV import 画面を開いている。
-- 有効な CSV のプレビューが表示され、取り込みを開始していない。
-
-When:
-
-- 画面を開いたままブラウザーの言語を日本語へ変更する。
-
-Then:
-
-- ファイルの選択とプレビューを保持し、取り込みは始まらない。
-
 <a id="settings-01"></a>
 
 ### SETTINGS-01 Dark mode を自動保存して再読み込み後も反映できる
@@ -110,8 +43,6 @@ Then:
 カテゴリ: `write`
 
 区分: 正常系
-
-関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: Dark mode の即時配色反映と他の設定の保持（[PLAYWRIGHT-SETTINGS-13](../integration/playwright/settings.md#playwright-settings-13)）。置換実装後の E2E 目的: 実 browser storage への自動保存と reload 後の配色・他設定の保持。
 
 Given:
 
@@ -128,60 +59,6 @@ Then:
 - 選んだチェック状態と配色が、再読み込み後も反映される。
 - 他の設定は変わらず、Maximum cards は0、自動再生の間隔は3秒を維持する。
 
-<a id="settings-02"></a>
-
-### SETTINGS-02 Maximum cards 設定を学習開始画面に反映できる
-
-カテゴリ: `write`
-
-区分: 正常系
-
-関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 上限の正数・1・0の説明と新規学習対象件数への適用（[PLAYWRIGHT-SETTINGS-09](../integration/playwright/settings.md#playwright-settings-09)、[PLAYWRIGHT-SETTINGS-15](../integration/playwright/settings.md#playwright-settings-15)、[PLAYWRIGHT-STUDY-SESSION-START-04](../integration/playwright/study-session-start.md#playwright-study-session-start-04)）。置換実装後の E2E 目的: 上限設定の実自動保存・reload 後の復元と新規 session の実保存。
-
-Given:
-
-- Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
-- 認証済みユーザーが所有する Deck に学習対象 Card が存在し、正の上限を選ぶ場合は変更後の上限より多い。
-- 対象 Deck に進行中の学習 session が存在しない。
-
-When:
-
-- 正の上限、1、0 のそれぞれで Settings の `Maximum cards` をスライダーのキーボード操作で変更し、自動保存後に再読み込みして新しい学習 session を開始する。0 の表示は英語・日本語で確認する。
-
-Then:
-
-- 正の上限では数値が表示され、学習開始画面の対象件数と実際に始まった学習の Card 数が上限と一致する。
-- 0 の表示と読み上げは「条件に一致するすべてのカード」（英語: `All matching cards`）となる。説明には「枚数制限なし」と、タグ・復習条件による絞り込みは維持されることを示す。
-- 再読み込み後も0の選択と説明が維持され、学習開始画面と新しい学習にはすべての学習対象 Card が含まれる。
-
-<a id="settings-03"></a>
-
-### SETTINGS-03 Respect review schedule を次の学習 session に反映できる
-
-カテゴリ: `batch`
-
-区分: 正常系
-
-関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 復習予定尊重の選択と次の学習で未来期限の Card を除外（[PLAYWRIGHT-SETTINGS-15](../integration/playwright/settings.md#playwright-settings-15)、[PLAYWRIGHT-STUDY-SESSION-START-06](../integration/playwright/study-session-start.md#playwright-study-session-start-06)）。置換実装後の E2E 目的: 設定の実自動保存・reload 後の復元と新規学習の実保存。
-
-Given:
-
-- Fixture: [`study-review-schedule`](./fixture/study-review-schedule.yaml)
-- 認証済みユーザーが所有する Deck に、過去または将来の復習期限を持つ Card と、復習期限を持たない Card が存在する。
-- `Respect review schedule` は無効である。
-- 対象 Deck に進行中の学習 session が存在しない。
-
-When:
-
-- Settings 画面で `Respect review schedule` を有効にし、自動保存後にページを再読み込みする。
-- 対象 Deck の学習開始画面から session を開始する。
-
-Then:
-
-- `Respect review schedule` が再読み込み後も有効である。
-- 復習期限に達した Card と、復習期限を持たない Card が学習に含まれる。
-- 将来の復習期限を持つ Card は学習に含まれない。
-
 <a id="settings-04"></a>
 
 ### SETTINGS-04 日本語設定を自動保存して再読み込み後も反映できる
@@ -189,8 +66,6 @@ Then:
 カテゴリ: `write`
 
 区分: 正常系
-
-関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 日本語選択を設定・Deck 一覧・ページの言語と読み上げへ即時反映（[PLAYWRIGHT-SETTINGS-14](../integration/playwright/settings.md#playwright-settings-14)）。置換実装後の E2E 目的: 実 browser storage への言語設定の保存と reload 後の復元。
 
 Given:
 
@@ -206,158 +81,6 @@ Then:
 - `日本語` が選ばれ、Settings の見出し・言語選択の読み上げ名・ページの言語が日本語になる。再読み込み後も維持される。
 - 再読み込み後に Deck 一覧を開くと、見出しと作成操作が日本語で表示される。
 
-<a id="settings-05"></a>
-
-### SETTINGS-05 System 設定でブラウザーの言語を再読み込み後も反映できる
-
-カテゴリ: `write`
-
-区分: 正常系
-
-関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: System 選択時にブラウザーの ja-JP に従って表示・読み上げを日本語化（[PLAYWRIGHT-SETTINGS-14](../integration/playwright/settings.md#playwright-settings-14)）。置換実装後の E2E 目的: System の実自動保存と reload 後のブラウザー言語からの復元。
-
-Given:
-
-- Fixture: [`empty`](./fixture/empty.yaml)
-- ブラウザーの言語は `ja-JP` である。
-- 認証済みユーザーが、英語表示の Settings 画面を開いている。
-
-When:
-
-- Language selector で `System` を選択し、自動保存後にページを再読み込みする。
-
-Then:
-
-- `System` の選択を保持し、ブラウザーの `ja-JP` に従って UI・Settings の見出し・言語選択の読み上げ名・ページの言語が日本語になる。再読み込み後も維持される。
-
-<a id="settings-10"></a>
-
-### SETTINGS-10 間隔0の説明と設定を再読み込み後も保持する
-
-カテゴリ: `write`
-
-区分: 正常系
-
-関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 間隔0の説明・読み上げと他の設定の保持（[PLAYWRIGHT-SETTINGS-10](../integration/playwright/settings.md#playwright-settings-10)、[PLAYWRIGHT-SETTINGS-16](../integration/playwright/settings.md#playwright-settings-16)）。置換実装後の E2E 目的: 実 browser storage に保存した間隔0と説明の reload 後の復元。
-
-Given:
-
-- Fixture: [`empty`](./fixture/empty.yaml)
-- 認証済みユーザーが Settings を開いている。
-- 自動再生の間隔は既定の正の値である。「自動再生で開始」と「再生操作を表示」は有効または無効で、変更前の選択を確認できる。
-
-When:
-
-- 間隔スライダーを Home で0へ変更し、自動保存後に再読み込みする。
-
-Then:
-
-- 0 の表示と読み上げは、英語・日本語とも「自動送りなし」を意味する。画面上とスライダーの読み上げ説明に、再生／一時停止ボタンと進捗スライダーも非表示になることを示す。
-- 再読み込み後も0の選択と説明を維持する。
-- 範囲0〜60、既定値60とスライダー操作を維持する。
-- 間隔以外の設定は変わらず、「自動再生で開始」と「再生操作を表示」の有効・無効も維持する。
-
-<a id="settings-11"></a>
-
-### SETTINGS-11 間隔0から正の値へ戻して同じ学習 session の再生操作を利用できる
-
-カテゴリ: `batch`
-
-区分: 正常系
-
-関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 間隔を正値に戻して同じ session の順・位置を保ち再生設定を適用（[PLAYWRIGHT-STUDY-SESSION-36](../integration/playwright/study-session.md#playwright-study-session-36)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
-
-Given:
-
-- Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
-- 間隔0、シャッフル無効で開始した学習 session があり、手動で次の Card へ移動した位置を確認できる。
-- 「自動再生で開始」と「再生操作を表示」は有効である。
-
-When:
-
-- Settings で間隔を正の値へ戻して同じ Deck の学習を Continue し、再生を一時停止する。
-
-Then:
-
-- 保存済みの選択に従って再生操作が表示され、同じ学習の Card の順序と手動移動後の位置を保持する。
-- 再入場時は保存済みの「自動再生で開始」に従い、一時停止してもその設定を無効にしない。
-- 間隔以外の設定と Deck・Card の内容を変更しない。手動移動による学習の進行は維持される。
-
-<a id="settings-12"></a>
-
-### SETTINGS-12 Maximum cards を変更しても進行中の学習を同じ位置から再開できる
-
-カテゴリ: `write`
-
-区分: 正常系
-
-関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 上限変更後も既存 session の Card・順序・位置から Continue（[PLAYWRIGHT-DECK-LIST-37](../integration/playwright/deck-list.md#playwright-deck-list-37)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
-
-Given:
-
-- Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
-- 認証済みユーザーが所有する Deck で、Maximum cards を正の上限・0・1 のいずれかにして開始した学習 session が存在する。
-- 同じ学習の Card・出題順・現在位置を確認できる。
-
-When:
-
-- Settings で Maximum cards を別の上限へ変更し、Deck 一覧から Continue する。
-
-Then:
-
-- 上限の設定は変更されても、同じ学習の Card・出題順・現在位置が維持される。
-
-<a id="settings-16"></a>
-
-### SETTINGS-16 自動再生の間隔を0から正の値へ戻すと秒数表示へ戻る
-
-カテゴリ: `write`
-
-区分: 正常系
-
-関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 間隔0から正値への変更で秒数表示に戻り他の設定を保つ（[PLAYWRIGHT-SETTINGS-10](../integration/playwright/settings.md#playwright-settings-10)、[PLAYWRIGHT-SETTINGS-16](../integration/playwright/settings.md#playwright-settings-16)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
-
-Given:
-
-- Fixture: [`empty`](./fixture/empty.yaml)
-- 認証済みユーザーが Settings を開いており、自動再生の間隔は0である。
-- 「自動再生で開始」と「再生操作を表示」の選択を確認できる。
-
-When:
-
-- 間隔スライダーを End で正の上限へ戻す。
-
-Then:
-
-- 正の値では秒数表示へ戻る。範囲0〜60、既定値60とスライダー操作を維持する。
-- 間隔以外の設定は変わらず、「自動再生で開始」と「再生操作を表示」の有効・無効も維持する。
-
-<a id="settings-17"></a>
-
-### SETTINGS-17 間隔0では自動送りと再生操作を無効にして手動で学習できる
-
-カテゴリ: `batch`
-
-区分: 正常系
-
-関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 間隔0で自動送りと再生操作を無効にし Help と手動移動を維持（[PLAYWRIGHT-STUDY-SESSION-35](../integration/playwright/study-session.md#playwright-study-session-35)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
-
-Given:
-
-- Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
-- 対象 Deck に進行中の学習 session がなく、間隔は0、シャッフルは無効である。
-- 「自動再生で開始」と「再生操作を表示」は有効である。
-
-When:
-
-- 学習開始画面から session を開始し、しばらく待ち、Help を開閉して Space を押した後、手動で次の Card へ移動する。
-
-Then:
-
-- 間隔0では自動送りを行わず、再生／一時停止ボタンと進捗スライダーを表示しない。
-- Help は利用不可の説明を表示し、Space の操作で保存済み設定を書き換えない。
-- 手動の次の Card への移動は利用でき、学習の進行が維持される。
-
 <a id="settings-06"></a>
 
 ### SETTINGS-06 無効な保存済み設定から現在の既定値へ復旧できる
@@ -365,8 +88,6 @@ Then:
 カテゴリ: `read`
 
 区分: 異常系
-
-関連仕様: E2E維持。E2E の目的: 実 browser storage の不正な設定を reload 時に読み、現在の既定値で復旧。
 
 Given:
 
@@ -380,81 +101,3 @@ When:
 Then:
 
 - Settings を利用でき、既定値（Dark mode: 無効、Maximum cards: `10`、Language: `System`）へ復旧する。
-
-<a id="settings-15"></a>
-
-### SETTINGS-15 [TODO] 言語変更後も CSV エラーの再試行内容と通知期限を保持する
-
-カテゴリ: `read`
-
-区分: 異常系
-
-関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 言語変更後の安全な CSV エラー案内と再試行入力・通知期限の保持（[PLAYWRIGHT-DECK-IMPORT-16](../integration/playwright/deck-import.md#playwright-deck-import-16)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
-
-Given:
-
-- Fixture: [`empty`](./fixture/empty.yaml)
-- Language を System に設定し、ブラウザーの言語が英語の状態で CSV import 画面を開いている。
-- CSV の準備・取り込みで、認証・権限・接続・容量不足、または予期しないエラーの案内が表示されている。
-- 再試行する内容と通知の表示期限を確認できる。
-
-When:
-
-- 画面を開いたままブラウザーの言語を日本語へ変更する。
-
-Then:
-
-- 認証・権限・接続・容量不足の案内は日本語になり、予期しないエラーの生のメッセージは表示しない。
-- 再試行する内容と通知の表示期限は変わらない。
-
-<a id="settings-08"></a>
-
-### SETTINGS-08 Card の検証エラーが言語変更に追随し入力を保持する
-
-カテゴリ: `write`
-
-区分: 異常系
-
-関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: System 言語変更で検証エラー・読み上げを更新し未保存の両面・タグを保持（[PLAYWRIGHT-CARD-EDIT-18](../integration/playwright/card-edit.md#playwright-card-edit-18)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
-
-Given:
-
-- Fixture: [`remote-deck-with-card`](./fixture/remote-deck-with-card.yaml)
-- Language を System に設定し、ブラウザーの言語が英語の状態で Card 編集画面を開いている。
-- 裏面に未保存の入力があり、表面を空にして送信した検証エラーが表示されている。
-
-When:
-
-- 画面を開いたままブラウザーの言語を日本語へ変更する。
-
-Then:
-
-- 表示中の必須エラー、入力欄の読み上げ名、ページの言語が日本語へ更新される。
-- 現在の画面、空の表面、裏面の入力、タグと未保存の状態が維持される。言語変更だけで Card が保存されたり、学習の再開位置が変わったりしない。
-- 詳細を説明できない検証エラーも、現在の言語の汎用メッセージで表示される。
-
-<a id="settings-09"></a>
-
-### SETTINGS-09 CSV の検証結果が再読み込みなしで言語変更に追随する
-
-カテゴリ: `write`
-
-区分: 異常系
-
-関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: CSV 診断を翻訳し選択・preview・件数・元の行・診断順序を保持（[PLAYWRIGHT-DECK-IMPORT-14](../integration/playwright/deck-import.md#playwright-deck-import-14)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
-
-Given:
-
-- Fixture: [`empty`](./fixture/empty.yaml)
-- Language を System に設定し、ブラウザーの言語が英語の状態で CSV import 画面を開いている。
-- 日本語を含む有効行、必須項目が空の行、閉じ引用符がない行を含む CSV の検証結果が表示されている。
-
-When:
-
-- 画面を開いたままブラウザーの言語を日本語へ変更する。
-
-Then:
-
-- 必須項目、重複キー、列数、空ファイル、説明可能な解析エラーは現在の言語で表示される。詳細を説明できない解析エラーは翻訳済みの汎用メッセージで表示される。
-- 有効1件・無効2件・診断3件と元の行の文脈、日本語のユーザー入力が維持され、import は無効のままとなる。診断の順序と対象の内容は言語変更前後で変わらない。
-- 選択中のファイルとプレビューを維持し、選び直しは不要となる。

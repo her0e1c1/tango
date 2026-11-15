@@ -53,7 +53,7 @@ const DisableableMenu: React.FC = () => {
   );
 };
 
-describe("STUDY-SESSION-10 DECK-LIST-01 NAVIGATION-08 DeckActionsMenu", () => {
+describe("PLAYWRIGHT-STUDY-HISTORY-10 PLAYWRIGHT-DECK-LIST-27 PLAYWRIGHT-DECK-VIEW-09 DeckActionsMenu", () => {
   it("opens an accessible menu and routes each action", () => {
     // Given: Prepare `actions`, `trigger` and any shared test state below.
     const actions = {

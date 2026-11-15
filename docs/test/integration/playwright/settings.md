@@ -27,7 +27,7 @@
 
 <a id="playwright-settings-01"></a>
 
-### PLAYWRIGHT-SETTINGS-01 [TODO] 設定画面を日本語で表示する
+### PLAYWRIGHT-SETTINGS-01 設定画面を日本語で表示する
 
 カテゴリ: `render`
 
@@ -47,7 +47,7 @@ Then:
 
 <a id="playwright-settings-02"></a>
 
-### PLAYWRIGHT-SETTINGS-02 [TODO] 再生操作の表示設定を切り替える
+### PLAYWRIGHT-SETTINGS-02 再生操作の表示設定を切り替える
 
 カテゴリ: `interaction`
 
@@ -67,7 +67,7 @@ Then:
 
 <a id="playwright-settings-03"></a>
 
-### PLAYWRIGHT-SETTINGS-03 [TODO] スワイプ操作の表示設定を切り替える
+### PLAYWRIGHT-SETTINGS-03 スワイプ操作の表示設定を切り替える
 
 カテゴリ: `interaction`
 
@@ -87,7 +87,7 @@ Then:
 
 <a id="playwright-settings-04"></a>
 
-### PLAYWRIGHT-SETTINGS-04 [TODO] 設定とアカウント操作を分離する
+### PLAYWRIGHT-SETTINGS-04 設定とアカウント操作を分離する
 
 カテゴリ: `render`
 
@@ -107,7 +107,7 @@ Then:
 
 <a id="playwright-settings-05"></a>
 
-### PLAYWRIGHT-SETTINGS-05 [TODO] 入力変更を画面へ反映する
+### PLAYWRIGHT-SETTINGS-05 入力変更を画面へ反映する
 
 カテゴリ: `interaction`
 
@@ -127,7 +127,7 @@ Then:
 
 <a id="playwright-settings-06"></a>
 
-### PLAYWRIGHT-SETTINGS-06 [TODO] 復習の説明とバージョン情報を表示する
+### PLAYWRIGHT-SETTINGS-06 復習の説明とバージョン情報を表示する
 
 カテゴリ: `render`
 
@@ -147,7 +147,7 @@ Then:
 
 <a id="playwright-settings-07"></a>
 
-### PLAYWRIGHT-SETTINGS-07 [TODO] ラベルと説明を対応する入力に関連付ける
+### PLAYWRIGHT-SETTINGS-07 ラベルと説明を対応する入力に関連付ける
 
 カテゴリ: `render`
 
@@ -167,7 +167,7 @@ Then:
 
 <a id="playwright-settings-08"></a>
 
-### PLAYWRIGHT-SETTINGS-08 [TODO] 日本語の操作名と読み上げ値を表示する
+### PLAYWRIGHT-SETTINGS-08 日本語の操作名と読み上げ値を表示する
 
 カテゴリ: `render`
 
@@ -187,7 +187,7 @@ Then:
 
 <a id="playwright-settings-09"></a>
 
-### PLAYWRIGHT-SETTINGS-09 [TODO] 最大カード数0を全件として説明する
+### PLAYWRIGHT-SETTINGS-09 最大カード数0を全件として説明する
 
 カテゴリ: `interaction`
 
@@ -207,7 +207,7 @@ Then:
 
 <a id="playwright-settings-10"></a>
 
-### PLAYWRIGHT-SETTINGS-10 [TODO] 再生間隔の境界値を説明する
+### PLAYWRIGHT-SETTINGS-10 再生間隔の境界値を説明する
 
 カテゴリ: `interaction`
 
@@ -227,7 +227,7 @@ Then:
 
 <a id="playwright-settings-11"></a>
 
-### PLAYWRIGHT-SETTINGS-11 [TODO] ショートカットでホームへ戻る
+### PLAYWRIGHT-SETTINGS-11 ショートカットでホームへ戻る
 
 カテゴリ: `interaction`
 
@@ -288,7 +288,7 @@ Then:
 
 <a id="playwright-settings-14"></a>
 
-### PLAYWRIGHT-SETTINGS-14 [TODO] Language の選択を画面とページの言語へ反映する
+### PLAYWRIGHT-SETTINGS-14 Language の選択を画面とページの言語へ反映する
 
 カテゴリ: `interaction`
 
@@ -300,11 +300,11 @@ Given:
 
 When:
 
-- Language を指定した値へ切り替え、Deck 一覧も開く。
+- Language を指定した値へ切り替えて再読み込みし、Deck 一覧も開く。
 
 Then:
 
-- 選んだ値を表示し、見出し・言語入力の読み上げ名・ページの言語が日本語へ変わる。Deck 一覧の見出しと作成操作も日本語になる。
+- 選んだ値を表示し、見出し・言語入力の読み上げ名・ページの言語が日本語へ変わる。保存済み設定の再読み込み後も選択を維持し、Deck 一覧の見出しと作成操作も日本語になる。
 
 <a id="playwright-settings-15"></a>
 
@@ -329,7 +329,7 @@ Then:
 
 <a id="playwright-settings-16"></a>
 
-### PLAYWRIGHT-SETTINGS-16 [TODO] 間隔スライダーの両端をキーボードで選んでも他の設定を保つ
+### PLAYWRIGHT-SETTINGS-16 間隔スライダーの両端をキーボードで選んでも他の設定を保つ
 
 カテゴリ: `interaction`
 

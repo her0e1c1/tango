@@ -53,7 +53,7 @@ vi.mock("@/entities/study-session/api/firestore", () => ({
 
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
-describe("Study start persistence mode [STUDY-SESSION-01 STUDY-SESSION-14 STUDY-SESSION-19 STUDY-SESSION-20] [STUDY-SESSION-07] [PERSISTENCE-04]", () => {
+describe("Study start persistence mode [PLAYWRIGHT-STUDY-SESSION-START-04 PLAYWRIGHT-STUDY-SESSION-START-05 PLAYWRIGHT-STUDY-SESSION-START-09 PLAYWRIGHT-STUDY-SESSION-START-10 PLAYWRIGHT-DECK-LIST-38] [STUDY-SESSION-07] [PERSISTENCE-04]", () => {
   beforeEach(() => {
     // Given: Establish the shared setup used by the following cases.
     clearStudySessions();
@@ -83,7 +83,7 @@ describe("Study start persistence mode [STUDY-SESSION-01 STUDY-SESSION-14 STUDY-
     expect(getStudySession("deck")).toBeUndefined();
   });
   afterEach(() => vi.useRealTimers());
-  it("reselects at click time and refuses an empty selection [STUDY-SESSION-02]", async () => {
+  it("reselects at click time and refuses an empty selection [PLAYWRIGHT-STUDY-SESSION-START-02 PLAYWRIGHT-STUDY-SESSION-START-15]", async () => {
     // Given: Prepare `now` and any shared test state below.
     vi.useFakeTimers();
     const now = Date.parse("2026-09-21T00:00:00Z");

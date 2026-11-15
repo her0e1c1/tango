@@ -13,7 +13,7 @@ import {
   mustFindDeckById,
 } from "./rules";
 
-describe("CARD-MANAGEMENT-15 CARD-MANAGEMENT-16 category", () => {
+describe("PLAYWRIGHT-CARD-CREATE-05 PLAYWRIGHT-CARD-EDIT-04 category", () => {
   it("defines supported categories including application categories and major languages", () => {
     // Given: Use this case's inputs and any shared test setup.
     // When: Observe the prepared result through the following checks.
@@ -89,7 +89,7 @@ describe("mustFindDeckById", () => {
   });
 });
 
-describe("CARD-FILTER-08 CARD-FILTER-09 CARD-FILTER-12 isDeckTagSelectionMatching", () => {
+describe("PLAYWRIGHT-DECK-VIEW-05 PLAYWRIGHT-DECK-VIEW-05 PLAYWRIGHT-DECK-VIEW-05 isDeckTagSelectionMatching", () => {
   it.each([
     { mode: "AND", tagAndFilter: true },
     { mode: "OR", tagAndFilter: false },
@@ -118,7 +118,7 @@ describe("CARD-FILTER-08 CARD-FILTER-09 CARD-FILTER-12 isDeckTagSelectionMatchin
   });
 });
 
-describe("CARD-FILTER-01 CARD-FILTER-02 STUDY-SESSION-01 Deck filter selection", () => {
+describe("PLAYWRIGHT-DECK-VIEW-04 PLAYWRIGHT-DECK-VIEW-04 PLAYWRIGHT-STUDY-SESSION-START-04 Deck filter selection", () => {
   it("returns each saved filter independently without changing the Deck", () => {
     // Given: Prepare `deck`, `originalDeck` and any shared test state below.
     const deck = createDeck({

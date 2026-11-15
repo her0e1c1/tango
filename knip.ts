@@ -5,13 +5,15 @@ const config: KnipConfig = {
   entry: [
     "steiger.config.ts",
     // Vite loads this HTML entry and these I/O facades through runtime resolve.alias values.
-    "test/integration/playwright/main.tsx",
     "test/integration/playwright/firebase.ts",
     "test/integration/playwright/card.ts",
     "test/integration/playwright/study-answer.ts",
     "test/integration/playwright/study-session.ts",
-    // The browser-side assertions import this response recorder through native ESM.
-    "test/integration/playwright/persistence.ts",
+    "test/integration/playwright/deck.ts",
+    "test/integration/playwright/auth.ts",
+    "test/integration/playwright/files.ts",
+    "test/integration/playwright/sdk-auth.ts",
+    "test/integration/playwright/sdk-firestore.ts",
   ],
   vitest: {
     config: ["vitest.config.ts", "vitest.mutation.config.ts"],

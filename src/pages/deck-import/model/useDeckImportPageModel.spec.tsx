@@ -28,7 +28,7 @@ vi.mock("@/entities/card", async (original) => ({
 
 const csv = (name = "deck.csv") => new File(["front,back,tag,key"], name, { type: "text/csv" });
 
-describe("Deck import operations [DECK-IMPORT-01 DECK-IMPORT-02 DECK-IMPORT-03 DECK-IMPORT-04 DECK-IMPORT-05 DECK-IMPORT-06 DECK-IMPORT-16]", () => {
+describe("Deck import operations [PLAYWRIGHT-IMPORT-02 PLAYWRIGHT-DECK-IMPORT-01 PLAYWRIGHT-IMPORT-03 PLAYWRIGHT-IMPORT-11 PLAYWRIGHT-DECK-IMPORT-13 DECK-IMPORT-03 DECK-IMPORT-04 DECK-IMPORT-05 PLAYWRIGHT-IMPORT-08 PLAYWRIGHT-IMPORT-10 PLAYWRIGHT-DECK-IMPORT-04 PLAYWRIGHT-DECK-IMPORT-05 PLAYWRIGHT-DECK-IMPORT-17 PLAYWRIGHT-IMPORT-08 PLAYWRIGHT-DECK-IMPORT-04]", () => {
   beforeEach(() => {
     // Given: Establish the shared setup used by the following cases.
     vi.clearAllMocks();

@@ -12,8 +12,7 @@ import storybook from "eslint-plugin-storybook";
 // API-based tools use the TypeScript 6 compatibility package; Steiger's TS 5 peers resolve separately.
 // Keep application policies separate from test-runner checks.
 const sourceFiles = ["src/**/*.{ts,tsx}"];
-const integrationStoryFiles = ["test/integration/storybook/**/*.{ts,tsx}"];
-const storyFiles = ["src/**/*.stories.tsx", "test/integration/storybook/**/*.stories.tsx"];
+const storyFiles = ["src/**/*.stories.tsx"];
 // Tests and stories use fixtures, mocks, and direct wiring, so production-only type and UI policies exclude them.
 const nonProductionFiles = ["src/**/*.{spec,test,stories}.{ts,tsx}"];
 // Stories share those production exemptions, but only spec and test modules use Vitest and Testing Library semantics.
@@ -57,7 +56,7 @@ const pageRouteImports = ["react-router", "react-router-dom"].map((name) => ({
 export default defineConfig(
   { linterOptions: { noInlineConfig: true } },
   {
-    files: [...sourceFiles, ...vitestFiles, ...playwrightFiles, ...integrationStoryFiles],
+    files: [...sourceFiles, ...vitestFiles, ...playwrightFiles],
     languageOptions: {
       parser: tsParser,
       parserOptions: { projectService: true, tsconfigRootDir: import.meta.dirname },
@@ -66,7 +65,7 @@ export default defineConfig(
   },
   // Hook correctness and React Compiler compatibility must hold in production, tests, and stories alike.
   {
-    files: [...sourceFiles, ...integrationStoryFiles, "test/integration/playwright/**/*.tsx"],
+    files: [...sourceFiles, "test/integration/playwright/**/*.tsx"],
     // React Compiler is enabled in Vite, so this preset checks both Hooks semantics and compiler-incompatible patterns.
     extends: [reactHooks.configs.flat["recommended-latest"]],
     rules: {

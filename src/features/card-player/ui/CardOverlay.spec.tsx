@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { describe, expect, it } from "vitest";
 import { CardOverlay } from "./CardOverlay";
-describe("CardOverlay [CARD-LIST-01]", () => {
+describe("CardOverlay [PLAYWRIGHT-CARD-LIST-42]", () => {
   it("shows FSRS difficulty only after rating", () => {
     // Given: Use this case's inputs and any shared test setup.
     // When: Exercise `render` with the prepared inputs.

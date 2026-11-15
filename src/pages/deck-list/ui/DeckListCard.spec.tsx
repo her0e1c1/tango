@@ -38,7 +38,7 @@ const deck = createDeck({
   category: "math",
 });
 
-describe("DECK-LIST-02 NAVIGATION-08 DeckListCard [STUDY-SESSION-03] DECK-LIST-06 DECK-LIST-09 DECK-LIST-13", () => {
+describe("PLAYWRIGHT-DECK-LIST-06 PLAYWRIGHT-DECK-LIST-28 PLAYWRIGHT-DECK-VIEW-09 DeckListCard [STUDY-SESSION-03] PLAYWRIGHT-DECK-LIST-09 PLAYWRIGHT-DECK-LIST-17 PLAYWRIGHT-DECK-LIST-31 PLAYWRIGHT-DECK-LIST-16 PLAYWRIGHT-DECK-LIST-18 PLAYWRIGHT-DECK-LIST-50 DECK-LIST-13", () => {
   beforeEach(() => {
     // Given: Establish the shared setup used by the following cases.
     vi.useFakeTimers();
@@ -255,7 +255,7 @@ describe("DECK-LIST-02 NAVIGATION-08 DeckListCard [STUDY-SESSION-03] DECK-LIST-0
     expect(screen.getByRole("button", { name: "Open actions for Other deck" })).not.toBeDisabled();
   });
 
-  it("DECK-LIST-14 keeps selected Study disabled when its session disappears during Continue", () => {
+  it("PLAYWRIGHT-DECK-LIST-38 keeps selected Study disabled when its session disappears during Continue", () => {
     // Given: A selected Deck whose Continue is pending.
     const onClickStudy = vi.fn();
     const props = { deck, cardCount: 2, continuingDeckId: deck.id, onClickStudy };
@@ -285,7 +285,7 @@ describe("DECK-LIST-02 NAVIGATION-08 DeckListCard [STUDY-SESSION-03] DECK-LIST-0
     expect(onClickStudy).toHaveBeenCalledExactlyOnceWith(deck.id);
   });
 
-  it("DECK-LIST-14 updates the existing live region when Continue starts and settles", () => {
+  it("PLAYWRIGHT-DECK-LIST-38 updates the existing live region when Continue starts and settles", () => {
     // Given: A mounted card with an empty status region.
     const { rerender } = render(<DeckListCard deck={deck} cardCount={2} />);
     const status = screen.getByRole("status");

@@ -8,7 +8,7 @@ import "@testing-library/jest-dom/vitest";
 
 import { FrontText } from "./FrontText";
 
-describe("FrontText [STUDY-BACK-TEXT-01] [STUDY-CONTROLS-06]", () => {
+describe("FrontText [PLAYWRIGHT-STUDY-SESSION-21] [PLAYWRIGHT-STUDY-SESSION-08 PLAYWRIGHT-STUDY-SESSION-07]", () => {
   it("renders reading content without a Space-activated flip button", () => {
     // Given: Prepare `onClick` and any shared test state below.
     const onClick = vi.fn();

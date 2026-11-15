@@ -56,7 +56,7 @@ const FormHarness = ({
   );
 };
 
-describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-17 CARD-MANAGEMENT-18 CardFields editing", () => {
+describe("CARD-MANAGEMENT-01 PLAYWRIGHT-CARD-FORM-01 PLAYWRIGHT-CARD-FORM-06 PLAYWRIGHT-CARD-EDIT-05 CardFields editing", () => {
   it("keeps both drafts across tabs and expanded editing, then submits the selected tags", async () => {
     // Given: Prepare `user`, `onSubmit` and any shared test state below.
     const user = userEvent.setup();
@@ -142,7 +142,7 @@ describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-17 CARD-MANAGEMENT-18 CardFields ed
   });
 });
 
-describe("CARD-TAG-MANAGEMENT-01 CARD-TAG-MANAGEMENT-03 CARD-TAG-MANAGEMENT-07 CARD-TAG-MANAGEMENT-08 CARD-TAG-MANAGEMENT-09 CARD-TAG-MANAGEMENT-10 CardFields tag input", () => {
+describe("CARD-TAG-MANAGEMENT-01 PLAYWRIGHT-CARD-FORM-25 PLAYWRIGHT-CARD-EDIT-06 PLAYWRIGHT-CARD-EDIT-08 PLAYWRIGHT-CARD-EDIT-07 PLAYWRIGHT-CARD-FORM-25 CardFields tag input", () => {
   it("removes a padded draft tag by clicking its candidate before leaving the input", async () => {
     // Given: Prepare `user`, `onSubmit`, `saved` and any shared test state below.
     const user = userEvent.setup();
@@ -275,7 +275,7 @@ describe("CARD-TAG-MANAGEMENT-01 CARD-TAG-MANAGEMENT-03 CARD-TAG-MANAGEMENT-07 C
   });
 });
 
-describe("CARD-TAG-MANAGEMENT-01 CardFields tag save boundary CARD-TAG-MANAGEMENT-07", () => {
+describe("CARD-TAG-MANAGEMENT-01 CardFields tag save boundary PLAYWRIGHT-CARD-EDIT-06", () => {
   it("preserves the tag and text drafts on Enter until the Card is explicitly saved", async () => {
     // Given: Prepare `user`, `onSubmit`, `front` and any shared test state below.
     const user = userEvent.setup();
@@ -326,7 +326,7 @@ describe("CARD-TAG-MANAGEMENT-01 CardFields tag save boundary CARD-TAG-MANAGEMEN
   });
 });
 
-describe("CARD-MANAGEMENT-10 CardFields validation", () => {
+describe("PLAYWRIGHT-CARD-EDIT-16 CardFields validation", () => {
   it("shows both tab errors and clears only the corrected side before saving valid drafts", async () => {
     // Given: Prepare `user`, `onSubmit`, `frontTab` and any shared test state below.
     const user = userEvent.setup();
@@ -427,7 +427,7 @@ describe("CARD-MANAGEMENT-10 CardFields validation", () => {
   });
 });
 
-describe("SETTINGS-08 Card validation language changes", () => {
+describe("PLAYWRIGHT-CARD-EDIT-18 Card validation language changes", () => {
   it("translates unknown validation errors in place, including the expanded editor", async () => {
     // Given: Prepare `user`, `front` and any shared test state below.
     const user = userEvent.setup();
@@ -500,7 +500,7 @@ describe("SETTINGS-08 Card validation language changes", () => {
   });
 });
 
-describe("CARD-MANAGEMENT-15 CARD-MANAGEMENT-16 unsaved answer preview", () => {
+describe("PLAYWRIGHT-CARD-CREATE-05 PLAYWRIGHT-CARD-EDIT-04 unsaved answer preview", () => {
   it("previews an incomplete draft without submitting, validating, or replacing the input", async () => {
     // Given: Prepare `user`, `onSubmit` and any shared test state below.
     const user = userEvent.setup();

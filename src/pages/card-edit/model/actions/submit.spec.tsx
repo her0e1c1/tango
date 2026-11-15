@@ -95,7 +95,7 @@ describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 card edit submission", () => {
     });
     expect(editCard).toHaveBeenLastCalledWith("opening-user", { id: "card-id", ...input.values });
   });
-  it("CARD-MANAGEMENT-20 suppresses an old failure after a newer edit succeeds", async () => {
+  it("PLAYWRIGHT-CARD-EDIT-10 suppresses an old failure after a newer edit succeeds", async () => {
     // Given: The first save remains pending while another visit saves the same Card.
     const firstWrite = Promise.withResolvers<void>();
     vi.mocked(editCard).mockImplementationOnce(() => firstWrite.promise);
@@ -114,7 +114,7 @@ describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 card edit submission", () => {
     expect(screen.queryByText("Unable to save changes. Try again.")).not.toBeInTheDocument();
   });
 
-  it("CARD-MANAGEMENT-20 rechecks supersession when observation has just completed", async () => {
+  it("PLAYWRIGHT-CARD-EDIT-10 rechecks supersession when observation has just completed", async () => {
     // Given: The old operation is waiting for its submitted content to be observed.
     const observation = Promise.withResolvers<boolean>();
     vi.mocked(waitForCardContent).mockImplementationOnce(() => observation.promise);

@@ -32,7 +32,7 @@
 
 <a id="playwright-study-history-01"></a>
 
-### PLAYWRIGHT-STUDY-HISTORY-01 [TODO] 期間プリセットを集計表示へ反映する
+### PLAYWRIGHT-STUDY-HISTORY-01 期間プリセットを集計表示へ反映する
 
 カテゴリ: `interaction`
 
@@ -52,7 +52,7 @@ Then:
 
 <a id="playwright-study-history-02"></a>
 
-### PLAYWRIGHT-STUDY-HISTORY-02 [TODO] 任意期間を入力する
+### PLAYWRIGHT-STUDY-HISTORY-02 任意期間を入力する
 
 カテゴリ: `interaction`
 
@@ -72,7 +72,7 @@ Then:
 
 <a id="playwright-study-history-03"></a>
 
-### PLAYWRIGHT-STUDY-HISTORY-03 [TODO] 日別表を30日単位で開く
+### PLAYWRIGHT-STUDY-HISTORY-03 日別表を30日単位で開く
 
 カテゴリ: `interaction`
 
@@ -92,7 +92,7 @@ Then:
 
 <a id="playwright-study-history-04"></a>
 
-### PLAYWRIGHT-STUDY-HISTORY-04 [TODO] 日別表の古い日付へ進む
+### PLAYWRIGHT-STUDY-HISTORY-04 日別表の古い日付へ進む
 
 カテゴリ: `interaction`
 
@@ -112,7 +112,7 @@ Then:
 
 <a id="playwright-study-history-05"></a>
 
-### PLAYWRIGHT-STUDY-HISTORY-05 [TODO] セッションの終了状態を区別する
+### PLAYWRIGHT-STUDY-HISTORY-05 セッションの終了状態を区別する
 
 カテゴリ: `render`
 
@@ -132,7 +132,7 @@ Then:
 
 <a id="playwright-study-history-06"></a>
 
-### PLAYWRIGHT-STUDY-HISTORY-06 [TODO] セッションの状態を日本語で表示する
+### PLAYWRIGHT-STUDY-HISTORY-06 セッションの状態を日本語で表示する
 
 カテゴリ: `render`
 
@@ -152,7 +152,7 @@ Then:
 
 <a id="playwright-study-history-07"></a>
 
-### PLAYWRIGHT-STUDY-HISTORY-07 [TODO] 最近のセッションをすべて展開する
+### PLAYWRIGHT-STUDY-HISTORY-07 最近のセッションをすべて展開する
 
 カテゴリ: `interaction`
 
@@ -172,7 +172,7 @@ Then:
 
 <a id="playwright-study-history-08"></a>
 
-### PLAYWRIGHT-STUDY-HISTORY-08 [TODO] 30日分の集計グラフを表示する
+### PLAYWRIGHT-STUDY-HISTORY-08 30日分の集計グラフを表示する
 
 カテゴリ: `render`
 
@@ -192,7 +192,7 @@ Then:
 
 <a id="playwright-study-history-09"></a>
 
-### PLAYWRIGHT-STUDY-HISTORY-09 [TODO] 90日分のグラフに集約単位を示す
+### PLAYWRIGHT-STUDY-HISTORY-09 90日分のグラフに集約単位を示す
 
 カテゴリ: `render`
 
@@ -212,7 +212,7 @@ Then:
 
 <a id="playwright-study-history-10"></a>
 
-### PLAYWRIGHT-STUDY-HISTORY-10 [TODO] Deck 選択と URL を履歴移動で一致させる
+### PLAYWRIGHT-STUDY-HISTORY-10 Deck 選択と URL を履歴移動で一致させる
 
 カテゴリ: `interaction`
 
@@ -232,7 +232,7 @@ Then:
 
 <a id="playwright-study-history-11"></a>
 
-### PLAYWRIGHT-STUDY-HISTORY-11 [TODO] 記録がなくても期間と日別表を連動させる
+### PLAYWRIGHT-STUDY-HISTORY-11 記録がなくても期間と日別表を連動させる
 
 カテゴリ: `interaction`
 
@@ -437,7 +437,7 @@ Then:
 
 <a id="playwright-study-history-21"></a>
 
-### PLAYWRIGHT-STUDY-HISTORY-21 [TODO] 存在しない Deck 指定を全 Deck に読み替えない
+### PLAYWRIGHT-STUDY-HISTORY-21 存在しない Deck 指定を全 Deck に読み替えない
 
 カテゴリ: `render`
 

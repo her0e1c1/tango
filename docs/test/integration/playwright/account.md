@@ -36,7 +36,7 @@
 
 <a id="playwright-account-01"></a>
 
-### PLAYWRIGHT-ACCOUNT-01 [TODO] 匿名アカウントからログインする
+### PLAYWRIGHT-ACCOUNT-01 匿名アカウントからログインする
 
 カテゴリ: `interaction`
 
@@ -56,7 +56,7 @@ Then:
 
 <a id="playwright-account-02"></a>
 
-### PLAYWRIGHT-ACCOUNT-02 [TODO] ログアウトする
+### PLAYWRIGHT-ACCOUNT-02 ログアウトする
 
 カテゴリ: `interaction`
 
@@ -76,7 +76,7 @@ Then:
 
 <a id="playwright-account-03"></a>
 
-### PLAYWRIGHT-ACCOUNT-03 [TODO] ログイン待機中の操作を無効にする
+### PLAYWRIGHT-ACCOUNT-03 ログイン待機中の操作を無効にする
 
 カテゴリ: `interaction`
 
@@ -96,7 +96,7 @@ Then:
 
 <a id="playwright-account-04"></a>
 
-### PLAYWRIGHT-ACCOUNT-04 [TODO] ログアウト待機中の操作を無効にする
+### PLAYWRIGHT-ACCOUNT-04 ログアウト待機中の操作を無効にする
 
 カテゴリ: `interaction`
 
@@ -116,7 +116,7 @@ Then:
 
 <a id="playwright-account-05"></a>
 
-### PLAYWRIGHT-ACCOUNT-05 [TODO] アカウント画面を日本語で表示する
+### PLAYWRIGHT-ACCOUNT-05 アカウント画面を日本語で表示する
 
 カテゴリ: `render`
 
@@ -136,7 +136,7 @@ Then:
 
 <a id="playwright-account-06"></a>
 
-### PLAYWRIGHT-ACCOUNT-06 [TODO] 認証状態と UID を表示する
+### PLAYWRIGHT-ACCOUNT-06 認証状態と UID を表示する
 
 カテゴリ: `render`
 
@@ -156,7 +156,7 @@ Then:
 
 <a id="playwright-account-07"></a>
 
-### PLAYWRIGHT-ACCOUNT-07 [TODO] 先行操作の完了で別操作の待機を解除しない
+### PLAYWRIGHT-ACCOUNT-07 先行操作の完了で別操作の待機を解除しない
 
 カテゴリ: `interaction`
 
@@ -176,7 +176,7 @@ Then:
 
 <a id="playwright-account-08"></a>
 
-### PLAYWRIGHT-ACCOUNT-08 [TODO] 言語変更でプロフィール値を変えない
+### PLAYWRIGHT-ACCOUNT-08 言語変更でプロフィール値を変えない
 
 カテゴリ: `interaction`
 
@@ -196,7 +196,7 @@ Then:
 
 <a id="playwright-account-09"></a>
 
-### PLAYWRIGHT-ACCOUNT-09 [TODO] ショートカットでホームへ戻る
+### PLAYWRIGHT-ACCOUNT-09 ショートカットでホームへ戻る
 
 カテゴリ: `interaction`
 
@@ -216,7 +216,7 @@ Then:
 
 <a id="playwright-account-10"></a>
 
-### PLAYWRIGHT-ACCOUNT-10 [TODO] 認証失敗後に再試行する
+### PLAYWRIGHT-ACCOUNT-10 認証失敗後に再試行する
 
 カテゴリ: `interaction`
 
@@ -236,7 +236,7 @@ Then:
 
 <a id="playwright-account-11"></a>
 
-### PLAYWRIGHT-ACCOUNT-11 [TODO] 表示済みの通知を画面離脱だけで消さない
+### PLAYWRIGHT-ACCOUNT-11 表示済みの通知を画面離脱だけで消さない
 
 カテゴリ: `interaction`
 
@@ -256,7 +256,7 @@ Then:
 
 <a id="playwright-account-12"></a>
 
-### PLAYWRIGHT-ACCOUNT-12 [TODO] 画面離脱後に届く失敗も通知する
+### PLAYWRIGHT-ACCOUNT-12 画面離脱後に届く失敗も通知する
 
 カテゴリ: `interaction`
 
@@ -276,7 +276,7 @@ Then:
 
 <a id="playwright-account-13"></a>
 
-### PLAYWRIGHT-ACCOUNT-13 [TODO] 日本語で認証成功を通知する
+### PLAYWRIGHT-ACCOUNT-13 日本語で認証成功を通知する
 
 カテゴリ: `interaction`
 
@@ -296,7 +296,7 @@ Then:
 
 <a id="playwright-account-14"></a>
 
-### PLAYWRIGHT-ACCOUNT-14 [TODO] 画面へ戻っても認証待機を保つ
+### PLAYWRIGHT-ACCOUNT-14 画面へ戻っても認証待機を保つ
 
 カテゴリ: `interaction`
 
@@ -381,7 +381,7 @@ Then:
 
 <a id="playwright-account-18"></a>
 
-### PLAYWRIGHT-ACCOUNT-18 [TODO] 認証待機中に変更した言語で完了を通知する
+### PLAYWRIGHT-ACCOUNT-18 認証待機中に変更した言語で完了を通知する
 
 カテゴリ: `interaction`
 
@@ -461,7 +461,7 @@ Then:
 
 <a id="playwright-account-22"></a>
 
-### PLAYWRIGHT-ACCOUNT-22 [TODO] 通知の言語変更でフォーカスと期限を保つ
+### PLAYWRIGHT-ACCOUNT-22 通知の言語変更でフォーカスと期限を保つ
 
 カテゴリ: `interaction`
 
@@ -489,7 +489,7 @@ Then:
 
 Given:
 
-- Account を入口に実際の認証 gate とアプリのルートを結合する契約で、以前の本人の Deck・Card・途中の学習を読み込んでいる。この結合による画面検証は未実装である。
+- Account を入口に実際の認証 gate とアプリのルートを結合する契約で、以前の本人の Deck・Card・途中の学習を読み込んでいる。
 - 別アカウントへのログインと、異なる UID の匿名状態へのログアウトを独立した状態例とする。外部認証とデータ取得は待機・成功を返す。
 
 When:
@@ -511,7 +511,7 @@ Then:
 
 Given:
 
-- Account を入口に認証 gate とアプリのルートを結合する契約で、同じ本人の Deck・Card を読み込んでいる。この結合による画面検証は未実装である。
+- Account を入口に認証 gate とアプリのルートを結合する契約で、同じ本人の Deck・Card を読み込んでいる。
 - 外部の認証切り替え準備は失敗する。元の本人へ戻る場合、待機中に別の本人へ変わる場合、認証管理を終了する場合を独立した状態例とする。
 
 When:

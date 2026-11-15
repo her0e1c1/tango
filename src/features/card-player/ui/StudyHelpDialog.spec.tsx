@@ -37,7 +37,7 @@ const Harness: React.FC = () => {
 
 afterEach(() => dismissToast());
 
-describe("STUDY-CONTROLS-04 STUDY-CONTROLS-17 STUDY-CONTROLS-18 StudyHelpDialog", () => {
+describe("PLAYWRIGHT-STUDY-SESSION-07 PLAYWRIGHT-STUDY-SESSION-10 PLAYWRIGHT-STUDY-SESSION-10 StudyHelpDialog", () => {
   it("provides modal semantics and focuses a safe close control", async () => {
     // Given: Prepare `user` and any shared test state below.
     const user = userEvent.setup();

@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 
 import { Code } from "./Code";
 
-describe("CARD-MANAGEMENT-16 Code language changes", () => {
+describe("PLAYWRIGHT-CARD-EDIT-04 Code language changes", () => {
   it.each([
     { first: "typescript", second: "python", text: "def greet():\n    return True", keyword: "def" },
     { first: "python", second: "typescript", text: "interface Greeting { value: string; }", keyword: "interface" },

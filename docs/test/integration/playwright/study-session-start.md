@@ -23,10 +23,11 @@
 | PLAYWRIGHT-STUDY-SESSION-START-13 | render | 異常系 | [学習結果の取得失敗を対象0件と扱わない](#playwright-study-session-start-13) |
 | PLAYWRIGHT-STUDY-SESSION-START-14 | interaction | 正常系 | [折りたたまれた学習タグを選ぶと自動保存する](#playwright-study-session-start-14) |
 | PLAYWRIGHT-STUDY-SESSION-START-15 | interaction | 正常系 | [対象0件では開始操作を無効にする](#playwright-study-session-start-15) |
+| PLAYWRIGHT-STUDY-SESSION-START-16 | interaction | 正常系 | [開いた開始画面で復習期限を越えると件数を更新する](#playwright-study-session-start-16) |
 
 <a id="playwright-study-session-start-01"></a>
 
-### PLAYWRIGHT-STUDY-SESSION-START-01 [TODO] 学習を開始する
+### PLAYWRIGHT-STUDY-SESSION-START-01 学習を開始する
 
 カテゴリ: `interaction`
 
@@ -46,7 +47,7 @@ Then:
 
 <a id="playwright-study-session-start-02"></a>
 
-### PLAYWRIGHT-STUDY-SESSION-START-02 [TODO] 対象がない場合に理由を示す
+### PLAYWRIGHT-STUDY-SESSION-START-02 対象がない場合に理由を示す
 
 カテゴリ: `render`
 
@@ -66,7 +67,7 @@ Then:
 
 <a id="playwright-study-session-start-03"></a>
 
-### PLAYWRIGHT-STUDY-SESSION-START-03 [TODO] 開始に失敗した場合に復旧できる
+### PLAYWRIGHT-STUDY-SESSION-START-03 開始に失敗した場合に復旧できる
 
 カテゴリ: `interaction`
 
@@ -86,7 +87,7 @@ Then:
 
 <a id="playwright-study-session-start-04"></a>
 
-### PLAYWRIGHT-STUDY-SESSION-START-04 [TODO] 学習タグと上限を開始対象へ反映する
+### PLAYWRIGHT-STUDY-SESSION-START-04 学習タグと上限を開始対象へ反映する
 
 カテゴリ: `interaction`
 
@@ -128,7 +129,7 @@ Then:
 
 <a id="playwright-study-session-start-06"></a>
 
-### PLAYWRIGHT-STUDY-SESSION-START-06 [TODO] 復習期限・シャッフル・上限で出題を選ぶ
+### PLAYWRIGHT-STUDY-SESSION-START-06 復習期限・シャッフル・上限で出題を選ぶ
 
 カテゴリ: `interaction`
 
@@ -328,3 +329,24 @@ When:
 Then:
 
 - 対象0件を表示して開始ボタンを無効にする。新しい学習や再開対象は追加せず、学習画面へ進まない。
+
+<a id="playwright-study-session-start-16"></a>
+
+### PLAYWRIGHT-STUDY-SESSION-START-16 開いた開始画面で復習期限を越えると件数を更新する
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- 匿名の Deck に Easy で評価済みの Card と未評価 Card が1枚ずつある。実際の FSRS 計算で得た期限を Card の公開された分単位の Next review 表示で確認し、学習開始画面では Start 1 card を利用できる。間隔反復は ON、シャッフルと自動再生は OFF である。
+
+When:
+
+- 表示された復習予定の分の1分前へ時計を移し、画面へフォーカスを戻す。開始画面を開いたまま2分経過する。
+
+Then:
+
+- 期限前は Start 1 card のままとなる。
+- 期限の分全体を越えると Start 2 cards を利用でき、開始すると期限を迎えた評価済み Card を先頭に表示する。

@@ -90,14 +90,14 @@ Delegate independent reviews of the same commit to three reviewers: [simplicity]
 - Use the existing Playwright runner and a test-only Vite entry. Keep setup and external I/O substitutes on the test side; do not add production interfaces solely for tests or replace the Page, model, action, or state transition under test.
 - Begin each test title with its specification ID. Parameterized tests may share an ID when the complete input and result matrix is documented. Update the corresponding specification when changing a test.
 - A controlled I/O success or prepared store update does not prove real persistence, subscriptions, reconnection, or backend authorization. Verify those contracts with the existing Firestore integration layer and user-facing E2E journeys.
-- Storybook test specifications are retired. Keep unretired legacy plays and their existing runner/CI checks according to `test/integration/storybook/RETIREMENT.md` until executable Playwright equivalents prove the same behavior and variants. Legacy labels do not implement Playwright specifications. Preserve unrelated visual stories, decorators, and documentation.
+- Keep Storybook for visual stories and documentation. Put executable UI contracts in Playwright; preserve visual-state setup when removing assertions.
 
 ### Other Unit and Integration Tests
 
 - Unit tests with dedicated specifications under `docs/test/unit` must reference the relevant `UNIT-*` case ID in the test title. Documentation rules stay in the corresponding `docs/test/unit/**/AGENTS.md`.
-- Unit/integration tests without a dedicated unit specification use `docs/test/e2e` as their runtime behavior specification and reference at least one existing E2E case ID in the outermost `describe` title, or the test title when there is no `describe`.
+- Unit/integration tests without a dedicated unit specification reference the owning runtime contract in `docs/test/integration/playwright` or `docs/test/e2e`. Include at least one existing case ID in the outermost `describe` title, or the test title when there is no `describe`.
 - Co-locate unit tests under `src/**/*.spec.{ts,tsx}` for deterministic rules, state transitions, validation, and module or component behavior without real external services.
 - Put integration tests under `test/integration/**/*.spec.{ts,tsx}` for contracts across application modules, persistence, stores, or emulators. Do not mock the boundary being verified.
-- Parameterized tests must include a representative row matching the referenced E2E Given / When / Then. Additional boundary-value or equivalence-class rows must preserve the same behavior and invariants.
+- Parameterized tests must include a representative row matching the referenced specification's Given / When / Then. Additional boundary-value or equivalence-class rows must preserve the same behavior and invariants.
 - Do not derive cases or expected results solely from implementation details: branches, private functions, internal state shapes, mock call counts, or coverage gaps.
 - Enforce static constraints, such as dependency direction and type correctness, with lint or typecheck rather than runtime tests; these checks do not require E2E IDs.

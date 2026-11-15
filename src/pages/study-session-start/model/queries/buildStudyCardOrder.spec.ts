@@ -2,7 +2,7 @@ import { calculateFsrsState } from "@/entities/card";
 import { describe, expect, it, vi } from "vitest";
 import { buildStudyCardOrder } from "./buildStudyCardOrder";
 const cardProgress = (id: string) => ({ id, fsrs: null });
-describe("buildStudyCardOrder [STUDY-SESSION-01 STUDY-SESSION-15]", () => {
+describe("buildStudyCardOrder [PLAYWRIGHT-STUDY-SESSION-START-04 PLAYWRIGHT-STUDY-SESSION-START-06]", () => {
   const cards = [cardProgress("a"), cardProgress("b"), cardProgress("c"), cardProgress("d")];
 
   it("returns the source card order when shuffle and maximum are disabled", () => {
@@ -60,7 +60,7 @@ describe("buildStudyCardOrder [STUDY-SESSION-01 STUDY-SESSION-15]", () => {
   });
 });
 
-describe("due ordering [STUDY-SESSION-15]", () => {
+describe("due ordering [PLAYWRIGHT-STUDY-SESSION-START-06]", () => {
   const now = Date.parse("2026-09-21T00:00:00Z");
   const card = { id: "card", fsrs: null };
   const saved = calculateFsrsState(null, "good", now - 600_000);

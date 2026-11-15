@@ -22,7 +22,7 @@ const renderView = (overrides: Partial<React.ComponentProps<typeof StudySessionS
   return { ...view, onClickStart };
 };
 
-describe("SETTINGS-04 STUDY-SESSION-01 STUDY-SESSION-02 StudySessionStart", () => {
+describe("SETTINGS-04 PLAYWRIGHT-STUDY-SESSION-START-04 PLAYWRIGHT-STUDY-SESSION-START-02 PLAYWRIGHT-STUDY-SESSION-START-15 StudySessionStart", () => {
   it("shows deck context, capped session size, matching count, and filters", async () => {
     // Given: Prepare `view` and any shared test state below.
     const view = renderView();

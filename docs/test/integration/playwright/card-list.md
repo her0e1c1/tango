@@ -74,10 +74,11 @@ Card 一覧画面を入口とした Playwright テストで、対象 Deck の一
 | PLAYWRIGHT-CARD-LIST-49 | interaction | 正常系 | [フィルター不一致の0件から条件を確認して変更する](#playwright-card-list-49) |
 | PLAYWRIGHT-CARD-LIST-50 | render | 正常系 | [同じ Deck のタグだけを重複なく候補にする](#playwright-card-list-50) |
 | PLAYWRIGHT-CARD-LIST-51 | interaction | 正常系 | [割り当てがなくなった選択済みタグだけを解除して閲覧する](#playwright-card-list-51) |
+| PLAYWRIGHT-CARD-LIST-52 | render | 正常系 | [表示境界で復習対象0件の理由を区別する](#playwright-card-list-52) |
 
 <a id="playwright-card-list-01"></a>
 
-### PLAYWRIGHT-CARD-LIST-01 [TODO] Card 作成画面を開く
+### PLAYWRIGHT-CARD-LIST-01 Card 作成画面を開く
 
 カテゴリ: `interaction`
 
@@ -97,7 +98,7 @@ Then:
 
 <a id="playwright-card-list-02"></a>
 
-### PLAYWRIGHT-CARD-LIST-02 [TODO] Card 未作成の空状態を表示する
+### PLAYWRIGHT-CARD-LIST-02 Card 未作成の空状態を表示する
 
 カテゴリ: `render`
 
@@ -117,7 +118,7 @@ Then:
 
 <a id="playwright-card-list-03"></a>
 
-### PLAYWRIGHT-CARD-LIST-03 [TODO] フィルターによる0件状態を表示する
+### PLAYWRIGHT-CARD-LIST-03 フィルターによる0件状態を表示する
 
 カテゴリ: `render`
 
@@ -137,7 +138,7 @@ Then:
 
 <a id="playwright-card-list-04"></a>
 
-### PLAYWRIGHT-CARD-LIST-04 [TODO] 学習の復習期限で閲覧を0件にしない
+### PLAYWRIGHT-CARD-LIST-04 学習の復習期限で閲覧を0件にしない
 
 カテゴリ: `render`
 
@@ -157,7 +158,7 @@ Then:
 
 <a id="playwright-card-list-05"></a>
 
-### PLAYWRIGHT-CARD-LIST-05 [TODO] 選んだ Card を閲覧する
+### PLAYWRIGHT-CARD-LIST-05 選んだ Card を閲覧する
 
 カテゴリ: `interaction`
 
@@ -178,7 +179,7 @@ Then:
 
 <a id="playwright-card-list-06"></a>
 
-### PLAYWRIGHT-CARD-LIST-06 [TODO] 選択タグを解除して一覧を更新する
+### PLAYWRIGHT-CARD-LIST-06 選択タグを解除して一覧を更新する
 
 カテゴリ: `interaction`
 
@@ -198,7 +199,7 @@ Then:
 
 <a id="playwright-card-list-07"></a>
 
-### PLAYWRIGHT-CARD-LIST-07 [TODO] Card の拡大表示を閉じる
+### PLAYWRIGHT-CARD-LIST-07 Card の拡大表示を閉じる
 
 カテゴリ: `interaction`
 
@@ -219,7 +220,7 @@ Then:
 
 <a id="playwright-card-list-08"></a>
 
-### PLAYWRIGHT-CARD-LIST-08 [TODO] 標準順に戻す
+### PLAYWRIGHT-CARD-LIST-08 標準順に戻す
 
 カテゴリ: `interaction`
 
@@ -239,7 +240,7 @@ Then:
 
 <a id="playwright-card-list-09"></a>
 
-### PLAYWRIGHT-CARD-LIST-09 [TODO] メニューから Card を編集する
+### PLAYWRIGHT-CARD-LIST-09 メニューから Card を編集する
 
 カテゴリ: `interaction`
 
@@ -279,7 +280,7 @@ Then:
 
 <a id="playwright-card-list-11"></a>
 
-### PLAYWRIGHT-CARD-LIST-11 [TODO] 長い選択タグの名前を確認できる
+### PLAYWRIGHT-CARD-LIST-11 長い選択タグの名前を確認できる
 
 カテゴリ: `render`
 
@@ -299,7 +300,7 @@ Then:
 
 <a id="playwright-card-list-12"></a>
 
-### PLAYWRIGHT-CARD-LIST-12 [TODO] タグ解除後に残るタグへフォーカスを移す
+### PLAYWRIGHT-CARD-LIST-12 タグ解除後に残るタグへフォーカスを移す
 
 カテゴリ: `interaction`
 
@@ -319,7 +320,7 @@ Then:
 
 <a id="playwright-card-list-13"></a>
 
-### PLAYWRIGHT-CARD-LIST-13 [TODO] 最後のタグ解除後はフィルターへ戻る
+### PLAYWRIGHT-CARD-LIST-13 最後のタグ解除後はフィルターへ戻る
 
 カテゴリ: `interaction`
 
@@ -339,7 +340,7 @@ Then:
 
 <a id="playwright-card-list-14"></a>
 
-### PLAYWRIGHT-CARD-LIST-14 [TODO] Tab 移動だけでは選択を変えない
+### PLAYWRIGHT-CARD-LIST-14 Tab 移動だけでは選択を変えない
 
 カテゴリ: `interaction`
 
@@ -359,7 +360,7 @@ Then:
 
 <a id="playwright-card-list-15"></a>
 
-### PLAYWRIGHT-CARD-LIST-15 [TODO] メニューを一つに保ち対象の削除で閉じる
+### PLAYWRIGHT-CARD-LIST-15 メニューを一つに保ち対象の削除で閉じる
 
 カテゴリ: `interaction`
 
@@ -379,7 +380,7 @@ Then:
 
 <a id="playwright-card-list-16"></a>
 
-### PLAYWRIGHT-CARD-LIST-16 [TODO] 並べ替え後も選んだ Card を操作する
+### PLAYWRIGHT-CARD-LIST-16 並べ替え後も選んだ Card を操作する
 
 カテゴリ: `interaction`
 
@@ -387,19 +388,19 @@ Then:
 
 Given:
 
-- 一つの Card の操作メニューを開いている。
+- 生存する Card の閲覧ボタン、またはその Card のメニュー内の編集操作にフォーカスしている。
 
 When:
 
-- Card の表示順が変わった後、編集を選ぶ。
+- 行を並べ替え、別の Card を削除・再表示した後、フォーカスしていた操作を実行する。
 
 Then:
 
-- 行の位置ではなく、メニューを開いた Card の編集画面が表示される。
+- 生存する同じ操作へフォーカスを保ち、行の位置ではなく元の Card の閲覧・編集を実行する。
 
 <a id="playwright-card-list-17"></a>
 
-### PLAYWRIGHT-CARD-LIST-17 [TODO] 空状態から Card 作成を始める
+### PLAYWRIGHT-CARD-LIST-17 空状態から Card 作成を始める
 
 カテゴリ: `interaction`
 
@@ -419,7 +420,7 @@ Then:
 
 <a id="playwright-card-list-18"></a>
 
-### PLAYWRIGHT-CARD-LIST-18 [TODO] 0件状態からフィルターを解除する
+### PLAYWRIGHT-CARD-LIST-18 0件状態からフィルターを解除する
 
 カテゴリ: `interaction`
 
@@ -439,7 +440,7 @@ Then:
 
 <a id="playwright-card-list-19"></a>
 
-### PLAYWRIGHT-CARD-LIST-19 [TODO] 行の編集操作で対象を取り違えない
+### PLAYWRIGHT-CARD-LIST-19 行の編集操作で対象を取り違えない
 
 カテゴリ: `interaction`
 
@@ -459,7 +460,7 @@ Then:
 
 <a id="playwright-card-list-20"></a>
 
-### PLAYWRIGHT-CARD-LIST-20 [TODO] 処理中の Card を操作させない
+### PLAYWRIGHT-CARD-LIST-20 処理中の Card を操作させない
 
 カテゴリ: `render`
 
@@ -480,7 +481,7 @@ Then:
 
 <a id="playwright-card-list-21"></a>
 
-### PLAYWRIGHT-CARD-LIST-21 [TODO] 選んだ Card の削除を開始する
+### PLAYWRIGHT-CARD-LIST-21 選んだ Card の削除を開始する
 
 カテゴリ: `interaction`
 
@@ -500,7 +501,7 @@ Then:
 
 <a id="playwright-card-list-22"></a>
 
-### PLAYWRIGHT-CARD-LIST-22 [TODO] 操作不可の Card にメニューを開かない
+### PLAYWRIGHT-CARD-LIST-22 操作不可の Card にメニューを開かない
 
 カテゴリ: `render`
 
@@ -520,7 +521,7 @@ Then:
 
 <a id="playwright-card-list-23"></a>
 
-### PLAYWRIGHT-CARD-LIST-23 [TODO] 開いた時点の解答を開き直すまで保持する
+### PLAYWRIGHT-CARD-LIST-23 開いた時点の解答を開き直すまで保持する
 
 カテゴリ: `interaction`
 
@@ -542,7 +543,7 @@ Then:
 
 <a id="playwright-card-list-24"></a>
 
-### PLAYWRIGHT-CARD-LIST-24 [TODO] 起点の Card が消えた後は並び順へ戻る
+### PLAYWRIGHT-CARD-LIST-24 起点の Card が消えた後は並び順へ戻る
 
 カテゴリ: `interaction`
 
@@ -563,7 +564,7 @@ Then:
 
 <a id="playwright-card-list-25"></a>
 
-### PLAYWRIGHT-CARD-LIST-25 [TODO] 解答プレビュー中も通知を確認できる
+### PLAYWRIGHT-CARD-LIST-25 解答プレビュー中も通知を確認できる
 
 カテゴリ: `interaction`
 
@@ -584,7 +585,7 @@ Then:
 
 <a id="playwright-deck-filter-01"></a>
 
-### PLAYWRIGHT-DECK-FILTER-01 [TODO] 閲覧タグをまとめて解除する
+### PLAYWRIGHT-DECK-FILTER-01 閲覧タグをまとめて解除する
 
 カテゴリ: `interaction`
 
@@ -604,7 +605,7 @@ Then:
 
 <a id="playwright-deck-filter-02"></a>
 
-### PLAYWRIGHT-DECK-FILTER-02 [TODO] 折りたたまれたタグを表示する
+### PLAYWRIGHT-DECK-FILTER-02 折りたたまれたタグを表示する
 
 カテゴリ: `interaction`
 
@@ -624,7 +625,7 @@ Then:
 
 <a id="playwright-deck-filter-03"></a>
 
-### PLAYWRIGHT-DECK-FILTER-03 [TODO] タグ選択を一覧へ反映する
+### PLAYWRIGHT-DECK-FILTER-03 タグ選択を一覧へ反映する
 
 カテゴリ: `interaction`
 
@@ -644,7 +645,7 @@ Then:
 
 <a id="playwright-deck-filter-04"></a>
 
-### PLAYWRIGHT-DECK-FILTER-04 [TODO] 同じタグを重複して表示しない
+### PLAYWRIGHT-DECK-FILTER-04 同じタグを重複して表示しない
 
 カテゴリ: `interaction`
 
@@ -653,6 +654,7 @@ Then:
 Given:
 
 - 複数の Card が同じタグを持つ Deck の一覧を開いている。
+- タグ選択の表示境界では、選択値 one が重複している状態から two を追加する場合と、one を解除する場合も独立して確認する。
 
 When:
 
@@ -661,10 +663,11 @@ When:
 Then:
 
 - 候補と選択表示に同名のタグが重複せず、タグによる絞り込みが適用される。
+- 重複した選択の表示件数は1件となる。two の追加では one・two を一つずつ、one の解除では空の選択を通知する。
 
 <a id="playwright-deck-filter-05"></a>
 
-### PLAYWRIGHT-DECK-FILTER-05 [TODO] Any と All で絞り込み結果を変える
+### PLAYWRIGHT-DECK-FILTER-05 Any と All で絞り込み結果を変える
 
 カテゴリ: `interaction`
 
@@ -684,7 +687,7 @@ Then:
 
 <a id="playwright-deck-filter-06"></a>
 
-### PLAYWRIGHT-DECK-FILTER-06 [TODO] 候補から消えた選択タグも解除できる
+### PLAYWRIGHT-DECK-FILTER-06 候補から消えた選択タグも解除できる
 
 カテゴリ: `interaction`
 
@@ -692,7 +695,7 @@ Then:
 
 Given:
 
-- 閲覧フィルターには選択タグがあるが、その一部を持つ Card がなくなっている。
+- 閲覧フィルターには選択タグがあるが、その一部を持つ Card がなくなっている。候補や選択に同名値が重複する状態も確認する。
 
 When:
 
@@ -700,11 +703,12 @@ When:
 
 Then:
 
-- 選択済みのタグが見つけやすい位置に残り、候補外になったタグも解除できる。
+- 選択済みのタグが先頭に重複なく残り、その後に未選択の候補が元の順で並ぶ。候補外になったタグも解除できる。
+- 追加表示したタグを選んで折りたたむと、そのタグも選択済みの並びに残り、追加表示の件数から除かれる。
 
 <a id="playwright-deck-filter-07"></a>
 
-### PLAYWRIGHT-DECK-FILTER-07 [TODO] 追加表示したタグをキーボードで選ぶ
+### PLAYWRIGHT-DECK-FILTER-07 追加表示したタグをキーボードで選ぶ
 
 カテゴリ: `interaction`
 
@@ -716,15 +720,16 @@ Given:
 
 When:
 
-- 候補を展開し、キーボードで追加表示されたタグへ移動して選ぶ。
+- 候補を展開し、キーボードで追加表示されたタグへ移動して選ぶ。追加された全候補から折りたたみ操作まで Tab で移動し、Space で折りたたむ場合も確認する。
 
 Then:
 
-- 対象タグが選択済みになり、その条件で一覧が更新される。
+- 最初の追加候補にフォーカスが移る。選んだタグが選択済みになり、その条件で一覧が更新される。
+- 追加候補を順にキーボードで移動でき、折りたたむと追加表示の操作へフォーカスが戻る。
 
 <a id="playwright-deck-filter-08"></a>
 
-### PLAYWRIGHT-DECK-FILTER-08 [TODO] 解除で隠れるタグからフォーカスを移す
+### PLAYWRIGHT-DECK-FILTER-08 解除で隠れるタグからフォーカスを移す
 
 カテゴリ: `interaction`
 
@@ -744,7 +749,7 @@ Then:
 
 <a id="playwright-deck-filter-09"></a>
 
-### PLAYWRIGHT-DECK-FILTER-09 [TODO] 最後の候補外タグを解除する
+### PLAYWRIGHT-DECK-FILTER-09 最後の候補外タグを解除する
 
 カテゴリ: `interaction`
 
@@ -764,7 +769,7 @@ Then:
 
 <a id="playwright-deck-filter-10"></a>
 
-### PLAYWRIGHT-DECK-FILTER-10 [TODO] Clear が無効になる前にフォーカスを移す
+### PLAYWRIGHT-DECK-FILTER-10 Clear が無効になる前にフォーカスを移す
 
 カテゴリ: `interaction`
 
@@ -784,7 +789,7 @@ Then:
 
 <a id="playwright-deck-filter-11"></a>
 
-### PLAYWRIGHT-DECK-FILTER-11 [TODO] 8件以下では追加表示操作を出さない
+### PLAYWRIGHT-DECK-FILTER-11 8件以下では追加表示操作を出さない
 
 カテゴリ: `render`
 
@@ -804,7 +809,7 @@ Then:
 
 <a id="playwright-deck-filter-12"></a>
 
-### PLAYWRIGHT-DECK-FILTER-12 [TODO] タグ候補がなくても一致条件を保持する
+### PLAYWRIGHT-DECK-FILTER-12 タグ候補がなくても一致条件を保持する
 
 カテゴリ: `render`
 
@@ -824,7 +829,7 @@ Then:
 
 <a id="playwright-deck-filter-13"></a>
 
-### PLAYWRIGHT-DECK-FILTER-13 [TODO] 大量の選択タグをスクロールして確認する
+### PLAYWRIGHT-DECK-FILTER-13 大量の選択タグをスクロールして確認する
 
 カテゴリ: `render`
 
@@ -832,7 +837,7 @@ Then:
 
 Given:
 
-- 一画面に収まらない数の閲覧タグを選択している。
+- 一画面に収まらない80件の閲覧タグを選択している。タグ選択の表示境界では、120件の候補をすべて選択した状態も確認する。
 
 When:
 
@@ -840,11 +845,12 @@ When:
 
 Then:
 
-- すべての選択タグを確認・解除でき、一覧の操作が画面外へ押し出され続けない。
+- 選択タグの一覧とタグ候補は高さが制限された縦スクロール領域となり、すべての選択タグを確認・解除できる。
+- 120件を選択した場合も選択件数と全候補を保持し、追加表示の操作を出さずに縦スクロールできる。
 
 <a id="playwright-deck-filter-14"></a>
 
-### PLAYWRIGHT-DECK-FILTER-14 [TODO] 長い候補タグ名を確認できる
+### PLAYWRIGHT-DECK-FILTER-14 長い候補タグ名を確認できる
 
 カテゴリ: `render`
 
@@ -864,7 +870,7 @@ Then:
 
 <a id="playwright-deck-filter-15"></a>
 
-### PLAYWRIGHT-DECK-FILTER-15 [TODO] 言語が変わってもタグの展開を保つ
+### PLAYWRIGHT-DECK-FILTER-15 言語が変わってもタグの展開を保つ
 
 カテゴリ: `interaction`
 
@@ -908,7 +914,7 @@ Then:
 
 <a id="playwright-card-list-27"></a>
 
-### PLAYWRIGHT-CARD-LIST-27 [TODO] Card の表示順を標準へ戻せる
+### PLAYWRIGHT-CARD-LIST-27 Card の表示順を標準へ戻せる
 
 カテゴリ: `interaction`
 
@@ -929,7 +935,7 @@ Then:
 
 <a id="playwright-card-list-28"></a>
 
-### PLAYWRIGHT-CARD-LIST-28 [TODO] 並び替え後も選択した Card のプレビューと行操作を利用できる
+### PLAYWRIGHT-CARD-LIST-28 並び替え後も選択した Card のプレビューと行操作を利用できる
 
 カテゴリ: `interaction`
 
@@ -992,7 +998,7 @@ Then:
 
 <a id="playwright-card-list-31"></a>
 
-### PLAYWRIGHT-CARD-LIST-31 [TODO] 画面を離れるか Deck を変更すると並び順が標準に戻る
+### PLAYWRIGHT-CARD-LIST-31 画面を離れるか Deck を変更すると並び順が標準に戻る
 
 カテゴリ: `interaction`
 
@@ -1094,7 +1100,7 @@ Then:
 
 <a id="playwright-card-list-36"></a>
 
-### PLAYWRIGHT-CARD-LIST-36 [TODO] Card の解答プレビューを閉じて一覧へ戻れる
+### PLAYWRIGHT-CARD-LIST-36 Card の解答プレビューを閉じて一覧へ戻れる
 
 カテゴリ: `interaction`
 
@@ -1115,7 +1121,7 @@ Then:
 
 <a id="playwright-card-list-37"></a>
 
-### PLAYWRIGHT-CARD-LIST-37 [TODO] 解答の文章を選択できる
+### PLAYWRIGHT-CARD-LIST-37 解答の文章を選択できる
 
 カテゴリ: `interaction`
 
@@ -1135,7 +1141,7 @@ Then:
 
 <a id="playwright-card-list-38"></a>
 
-### PLAYWRIGHT-CARD-LIST-38 [TODO] 解答のリンクと脚注をたどれる
+### PLAYWRIGHT-CARD-LIST-38 解答のリンクと脚注をたどれる
 
 カテゴリ: `interaction`
 
@@ -1155,7 +1161,7 @@ Then:
 
 <a id="playwright-card-list-39"></a>
 
-### PLAYWRIGHT-CARD-LIST-39 [TODO] 解答の本文をキーボードで縦にスクロールできる
+### PLAYWRIGHT-CARD-LIST-39 解答の本文をキーボードで縦にスクロールできる
 
 カテゴリ: `interaction`
 
@@ -1175,7 +1181,7 @@ Then:
 
 <a id="playwright-card-list-40"></a>
 
-### PLAYWRIGHT-CARD-LIST-40 [TODO] 解答のコードをキーボードで横にスクロールできる
+### PLAYWRIGHT-CARD-LIST-40 解答のコードをキーボードで横にスクロールできる
 
 カテゴリ: `interaction`
 
@@ -1195,7 +1201,7 @@ Then:
 
 <a id="playwright-card-list-41"></a>
 
-### PLAYWRIGHT-CARD-LIST-41 [TODO] 解答の数式をキーボードで横にスクロールできる
+### PLAYWRIGHT-CARD-LIST-41 解答の数式をキーボードで横にスクロールできる
 
 カテゴリ: `interaction`
 
@@ -1235,7 +1241,7 @@ Then:
 
 <a id="playwright-card-list-43"></a>
 
-### PLAYWRIGHT-CARD-LIST-43 [TODO] 存在しない Deck から復帰できる
+### PLAYWRIGHT-CARD-LIST-43 存在しない Deck から復帰できる
 
 カテゴリ: `interaction`
 
@@ -1255,7 +1261,7 @@ Then:
 
 <a id="playwright-card-list-44"></a>
 
-### PLAYWRIGHT-CARD-LIST-44 [TODO] Card の削除を取り消せる
+### PLAYWRIGHT-CARD-LIST-44 Card の削除を取り消せる
 
 カテゴリ: `interaction`
 
@@ -1340,7 +1346,7 @@ Then:
 
 <a id="playwright-card-list-48"></a>
 
-### PLAYWRIGHT-CARD-LIST-48 [TODO] Card 一覧からキーボードで画面を移る
+### PLAYWRIGHT-CARD-LIST-48 Card 一覧からキーボードで画面を移る
 
 カテゴリ: `interaction`
 
@@ -1360,7 +1366,7 @@ Then:
 
 <a id="playwright-card-list-49"></a>
 
-### PLAYWRIGHT-CARD-LIST-49 [TODO] フィルター不一致の0件から条件を確認して変更する
+### PLAYWRIGHT-CARD-LIST-49 フィルター不一致の0件から条件を確認して変更する
 
 カテゴリ: `interaction`
 
@@ -1381,7 +1387,7 @@ Then:
 
 <a id="playwright-card-list-50"></a>
 
-### PLAYWRIGHT-CARD-LIST-50 [TODO] 同じ Deck のタグだけを重複なく候補にする
+### PLAYWRIGHT-CARD-LIST-50 同じ Deck のタグだけを重複なく候補にする
 
 カテゴリ: `render`
 
@@ -1401,7 +1407,7 @@ Then:
 
 <a id="playwright-card-list-51"></a>
 
-### PLAYWRIGHT-CARD-LIST-51 [TODO] 割り当てがなくなった選択済みタグだけを解除して閲覧する
+### PLAYWRIGHT-CARD-LIST-51 割り当てがなくなった選択済みタグだけを解除して閲覧する
 
 カテゴリ: `interaction`
 
@@ -1420,3 +1426,23 @@ Then:
 
 - 割り当てが0枚でも、選択中はそのタグを解除できる。チェックを外すと選択が解除され、割り当てがないタグは候補から消える。
 - Card 一覧では2枚を表示し、Deck 閲覧でも同じ条件で先頭の Card と「1 of 2」の位置を表示する。
+
+<a id="playwright-card-list-52"></a>
+
+### PLAYWRIGHT-CARD-LIST-52 表示境界で復習対象0件の理由を区別する
+
+カテゴリ: `render`
+
+区分: 正常系
+
+Given:
+
+- Card 一覧の表示境界に、空の Card 群と、復習対象がないことが確定した空状態の理由を渡している。
+
+When:
+
+- 空状態の表示を確認する。
+
+Then:
+
+- 復習対象が0件である案内を表示し、フィルターを解除する操作は表示しない。

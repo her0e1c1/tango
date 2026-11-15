@@ -10,7 +10,7 @@ import { aggregateStudyHistory } from "./aggregateStudyHistory";
 import { getStudyHistoryPeriod } from "./getStudyHistoryPeriod";
 import { getStudyHistoryRange } from "./getStudyHistoryRange";
 
-describe("STUDY-SESSION-13 STUDY-SESSION-35 daily aggregation across midnight DST", () => {
+describe("PLAYWRIGHT-STUDY-HISTORY-11 PLAYWRIGHT-STUDY-HISTORY-13 daily aggregation across midnight DST", () => {
   if (process.env.TANGO_STUDY_HISTORY_MIDNIGHT_DST_CHILD === "1") {
     it.each([
       {

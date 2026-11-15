@@ -49,7 +49,7 @@ describe.each([
     failure: "Unable to sign out.",
     japanese: "ログアウトしました。",
   },
-] as const)("ACCOUNT-02 ACCOUNT-03 ACCOUNT-05 $name", ({ action, name, success, failure, japanese }) => {
+] as const)("ACCOUNT-02 ACCOUNT-03 PLAYWRIGHT-ACCOUNT-18 $name", ({ action, name, success, failure, japanese }) => {
   beforeEach(() => {
     // Given: Establish the shared setup used by the following cases.
     store.setState(store.getInitialState(), true);

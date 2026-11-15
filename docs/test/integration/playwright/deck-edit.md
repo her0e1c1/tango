@@ -22,7 +22,7 @@ Deck 編集画面を入口とした Playwright テストで、既存 Deck の表
 
 <a id="playwright-deck-form-04"></a>
 
-### PLAYWRIGHT-DECK-FORM-04 [TODO] 確認して Deck を削除する
+### PLAYWRIGHT-DECK-FORM-04 確認して Deck を削除する
 
 カテゴリ: `interaction`
 
@@ -42,7 +42,7 @@ Then:
 
 <a id="playwright-deck-form-05"></a>
 
-### PLAYWRIGHT-DECK-FORM-05 [TODO] 削除を取り消して編集を続ける
+### PLAYWRIGHT-DECK-FORM-05 削除を取り消して編集を続ける
 
 カテゴリ: `interaction`
 
@@ -62,7 +62,7 @@ Then:
 
 <a id="playwright-deck-form-06"></a>
 
-### PLAYWRIGHT-DECK-FORM-06 [TODO] 削除処理中は再確定と取消しを受け付けない
+### PLAYWRIGHT-DECK-FORM-06 削除処理中は再確定と取消しを受け付けない
 
 カテゴリ: `interaction`
 
@@ -82,7 +82,7 @@ Then:
 
 <a id="playwright-deck-edit-01"></a>
 
-### PLAYWRIGHT-DECK-EDIT-01 [TODO] 選んだ Deck の保存済み内容を編集する
+### PLAYWRIGHT-DECK-EDIT-01 選んだ Deck の保存済み内容を編集する
 
 カテゴリ: `render`
 
@@ -102,7 +102,7 @@ Then:
 
 <a id="playwright-deck-edit-02"></a>
 
-### PLAYWRIGHT-DECK-EDIT-02 [TODO] 変更した名前を一覧へ反映する
+### PLAYWRIGHT-DECK-EDIT-02 変更した名前を一覧へ反映する
 
 カテゴリ: `interaction`
 
@@ -122,7 +122,7 @@ Then:
 
 <a id="playwright-deck-edit-03"></a>
 
-### PLAYWRIGHT-DECK-EDIT-03 [TODO] 保存失敗後も編集値を保持する
+### PLAYWRIGHT-DECK-EDIT-03 保存失敗後も編集値を保持する
 
 カテゴリ: `interaction`
 
@@ -142,7 +142,7 @@ Then:
 
 <a id="playwright-deck-edit-04"></a>
 
-### PLAYWRIGHT-DECK-EDIT-04 [TODO] 空欄と空白のみの名前に現在の言語でエラーを表示する
+### PLAYWRIGHT-DECK-EDIT-04 空欄と空白のみの名前に現在の言語でエラーを表示する
 
 カテゴリ: `interaction`
 
@@ -163,7 +163,7 @@ Then:
 
 <a id="playwright-deck-edit-05"></a>
 
-### PLAYWRIGHT-DECK-EDIT-05 [TODO] 表示中の名前エラーを言語変更に追従させる
+### PLAYWRIGHT-DECK-EDIT-05 表示中の名前エラーを言語変更に追従させる
 
 カテゴリ: `interaction`
 
@@ -205,7 +205,7 @@ Then:
 
 <a id="playwright-deck-edit-07"></a>
 
-### PLAYWRIGHT-DECK-EDIT-07 [TODO] 編集を続けた後の再離脱で変更を破棄する
+### PLAYWRIGHT-DECK-EDIT-07 編集を続けた後の再離脱で変更を破棄する
 
 カテゴリ: `interaction`
 

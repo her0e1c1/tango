@@ -16,7 +16,7 @@ function emptyDays(start: string, length: number) {
   });
 }
 
-describe("STUDY-SESSION-09 STUDY-SESSION-13 study history chart", () => {
+describe("STUDY-SESSION-09 PLAYWRIGHT-STUDY-HISTORY-11 study history chart", () => {
   it("shows one start and completion on their date throughout the initial 30-day period", () => {
     // Given: Prepare `days` and any shared test state below.
     const days = emptyDays("2026-03-02", 30);

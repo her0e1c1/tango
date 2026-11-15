@@ -14,7 +14,7 @@ const session: StudySession = {
   remote: { uid: "uid", startedAt: 0 },
 };
 
-describe("study card selection [STUDY-SESSION-01] [DECK-LIST-02] [DECK-LIST-03]", () => {
+describe("study card selection [PLAYWRIGHT-STUDY-SESSION-START-04] [PLAYWRIGHT-DECK-LIST-06 PLAYWRIGHT-DECK-LIST-28] [PLAYWRIGHT-DECK-LIST-29]", () => {
   const filter = { selectedTags: ["selected"], tagAndFilter: false };
   const due = calculateFsrsState(null, "good", 0);
   const card = { ...createCard({ id: "due", tags: ["selected"] }), fsrs: due };
@@ -51,7 +51,7 @@ describe("study card selection [STUDY-SESSION-01] [DECK-LIST-02] [DECK-LIST-03]"
   });
 });
 
-describe("canMoveStudySession [STUDY-ACTIONS-03] [STUDY-ACTIONS-04]", () => {
+describe("canMoveStudySession [PLAYWRIGHT-STUDY-SESSION-26] [PLAYWRIGHT-STUDY-SESSION-24]", () => {
   it("reports whether movement stays inside the Card order", () => {
     // Given: Use this case's inputs and any shared test setup.
     // When: Evaluate `canMoveStudySession` as part of the following checks.
@@ -61,7 +61,7 @@ describe("canMoveStudySession [STUDY-ACTIONS-03] [STUDY-ACTIONS-04]", () => {
   });
 });
 
-describe("resolveStudySession [STUDY-ACTIONS-03]", () => {
+describe("resolveStudySession [PLAYWRIGHT-STUDY-SESSION-26]", () => {
   const cards = [{ id: "card-1", frontText: "front" }];
 
   it("resolves the Card at the active session position", () => {

@@ -22,7 +22,7 @@ Card 閲覧画面を入口とした Playwright テストで、指定した一枚
 
 <a id="playwright-card-view-01"></a>
 
-### PLAYWRIGHT-CARD-VIEW-01 [TODO] 指定した Card の両面を読む
+### PLAYWRIGHT-CARD-VIEW-01 指定した Card の両面を読む
 
 カテゴリ: `interaction`
 
@@ -42,7 +42,7 @@ Then:
 
 <a id="playwright-card-view-02"></a>
 
-### PLAYWRIGHT-CARD-VIEW-02 [TODO] 表示している Card を編集する
+### PLAYWRIGHT-CARD-VIEW-02 表示している Card を編集する
 
 カテゴリ: `interaction`
 
@@ -62,7 +62,7 @@ Then:
 
 <a id="playwright-card-view-03"></a>
 
-### PLAYWRIGHT-CARD-VIEW-03 [TODO] 存在しない Card を案内する
+### PLAYWRIGHT-CARD-VIEW-03 存在しない Card を案内する
 
 カテゴリ: `render`
 
@@ -82,7 +82,7 @@ Then:
 
 <a id="playwright-card-view-04"></a>
 
-### PLAYWRIGHT-CARD-VIEW-04 [TODO] Card 閲覧画面を直接開ける
+### PLAYWRIGHT-CARD-VIEW-04 Card 閲覧画面を直接開ける
 
 カテゴリ: `interaction`
 
@@ -102,7 +102,7 @@ Then:
 
 <a id="playwright-card-view-05"></a>
 
-### PLAYWRIGHT-CARD-VIEW-05 [TODO] Card の閲覧 URL の変更に表示が追従する
+### PLAYWRIGHT-CARD-VIEW-05 Card の閲覧 URL の変更に表示が追従する
 
 カテゴリ: `interaction`
 
@@ -185,7 +185,7 @@ Then:
 
 <a id="playwright-card-view-09"></a>
 
-### PLAYWRIGHT-CARD-VIEW-09 [TODO] 利用できない Card のリンクから警告を保って戻る
+### PLAYWRIGHT-CARD-VIEW-09 利用できない Card のリンクから警告を保って戻る
 
 カテゴリ: `interaction`
 
@@ -197,7 +197,7 @@ Given:
 
 When:
 
-- 読み込めない Card の表示リンクを開き、復旧操作で元の Deck の一覧へ戻る。
+- 読み込めない Card の表示リンクを開き、復旧操作で Deck 一覧へ戻る。
 
 Then:
 
@@ -206,7 +206,7 @@ Then:
 
 <a id="playwright-card-view-10"></a>
 
-### PLAYWRIGHT-CARD-VIEW-10 [TODO] 存在しない Card から復帰できる
+### PLAYWRIGHT-CARD-VIEW-10 存在しない Card から復帰できる
 
 カテゴリ: `interaction`
 

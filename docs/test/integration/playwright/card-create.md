@@ -27,7 +27,7 @@ Card 作成画面を入口とした Playwright テストで、対象 Deck への
 
 <a id="playwright-card-form-05"></a>
 
-### PLAYWRIGHT-CARD-FORM-05 [TODO] 入力した両面で Card を作成する
+### PLAYWRIGHT-CARD-FORM-05 入力した両面で Card を作成する
 
 カテゴリ: `interaction`
 
@@ -49,7 +49,7 @@ Then:
 
 <a id="playwright-card-form-17"></a>
 
-### PLAYWRIGHT-CARD-FORM-17 [TODO] 作成成功を画面で通知する
+### PLAYWRIGHT-CARD-FORM-17 作成成功を画面で通知する
 
 カテゴリ: `interaction`
 
@@ -69,7 +69,7 @@ Then:
 
 <a id="playwright-card-form-18"></a>
 
-### PLAYWRIGHT-CARD-FORM-18 [TODO] 作成失敗後に入力を保って再試行する
+### PLAYWRIGHT-CARD-FORM-18 作成失敗後に入力を保って再試行する
 
 カテゴリ: `interaction`
 
@@ -86,10 +86,11 @@ When:
 Then:
 
 - 失敗時は再試行の案内と両面の入力が残り、再試行成功後は成功通知が表示される。
+- 保存境界へ渡す内容は再試行前後で両面・タグ・所属 Deck を保ち、各試行は異なる Card ID を持つ。それぞれの uniqueKey は同じ試行の ID と一致し、成功した Card は一覧に1件だけ表示される。
 
 <a id="playwright-card-form-19"></a>
 
-### PLAYWRIGHT-CARD-FORM-19 [TODO] 作成中の連続操作を抑止する
+### PLAYWRIGHT-CARD-FORM-19 作成中の連続操作を抑止する
 
 カテゴリ: `interaction`
 
@@ -97,7 +98,8 @@ Then:
 
 Given:
 
-- Card 作成画面で両面を入力し、作成の完了を待っている。
+- 両面を入力した Card 作成画面と、同じフォーム部品・作成 action を結合した入力境界を用意する。
+- 即時の連続クリック、非同期検証の待機、保存応答の待機を独立した入力例とする。検証の待機はフォーム部品の公開された resolver で準備する。
 
 When:
 
@@ -105,11 +107,12 @@ When:
 
 Then:
 
-- 待機中は Creating… が無効になり、完了後は Create card が再び有効になる。同じ送信で複数の Card が一覧に増えない。
+- 待機中は Creating… が無効になり、検証中は保存先を呼ばず、どの例も保存先を1回だけ呼ぶ。フォーム部品では完了後に Create card が再び有効になる。
+- 作成画面では対象 Deck の一覧に1件だけ表示し、次の Card 作成へ進むと Create card が再び有効になる。
 
 <a id="playwright-card-create-01"></a>
 
-### PLAYWRIGHT-CARD-CREATE-01 [TODO] 未入力のまま Card を作成しない
+### PLAYWRIGHT-CARD-CREATE-01 未入力のまま Card を作成しない
 
 カテゴリ: `interaction`
 
@@ -129,7 +132,7 @@ Then:
 
 <a id="playwright-card-create-02"></a>
 
-### PLAYWRIGHT-CARD-CREATE-02 [TODO] 下書きを保存せず解答を確認する
+### PLAYWRIGHT-CARD-CREATE-02 下書きを保存せず解答を確認する
 
 カテゴリ: `interaction`
 
@@ -149,7 +152,7 @@ Then:
 
 <a id="playwright-card-create-03"></a>
 
-### PLAYWRIGHT-CARD-CREATE-03 [TODO] 未保存の Card 作成内容の離脱を確認できる
+### PLAYWRIGHT-CARD-CREATE-03 未保存の Card 作成内容の離脱を確認できる
 
 カテゴリ: `interaction`
 
@@ -170,7 +173,7 @@ Then:
 
 <a id="playwright-card-create-04"></a>
 
-### PLAYWRIGHT-CARD-CREATE-04 [TODO] 未変更の Card 作成画面は確認なしで取り消せる
+### PLAYWRIGHT-CARD-CREATE-04 未変更の Card 作成画面は確認なしで取り消せる
 
 カテゴリ: `interaction`
 
@@ -190,7 +193,7 @@ Then:
 
 <a id="playwright-card-create-05"></a>
 
-### PLAYWRIGHT-CARD-CREATE-05 [TODO] 作成中の未保存の解答をプレビューできる
+### PLAYWRIGHT-CARD-CREATE-05 作成中の未保存の解答をプレビューできる
 
 カテゴリ: `interaction`
 
@@ -217,7 +220,7 @@ Then:
 
 <a id="playwright-card-create-06"></a>
 
-### PLAYWRIGHT-CARD-CREATE-06 [TODO] 狭い画面で両面とタグを入力して作成する
+### PLAYWRIGHT-CARD-CREATE-06 狭い画面で両面とタグを入力して作成する
 
 カテゴリ: `interaction`
 
@@ -225,21 +228,21 @@ Then:
 
 Given:
 
-- Google 連携済みの状態で所属 Deck の Card 作成画面をモバイル幅で開いている。
+- Google 連携済みの状態で所属 Deck の Card 作成画面を390×844で開いている。所属 Deck には chapter-1 タグのある Card があり、別 Deck にだけ python タグがある。
 - 保存先は成功応答と新しい Card の結果を返す。
 
 When:
 
-- Front / Back を拡大して入力し、タグ選択画面でタグを選んで作成を続けて選ぶ。
+- Front / Back を順に拡大して入力し、Done で閉じる。chapter-1 を選択して前後空白付きの new tag を追加し、作成を続けて選ぶ。
 
 Then:
 
-- 両面の拡大編集は画面の上端から下端まで表示し、見出し・完了ボタンが欠けず、背景とタグ選択画面は下端に隙間なく接する。
+- Front / Back の拡大編集と背景の描画範囲は viewport 全体に一致し、見出しと Done を表示する。タグ選択の背景も viewport 全体に一致し、選択画面の下端は viewport の下端に接する。別 Deck の python タグは候補に含めない。
 - 検証中・保存中は作成を無効にし、成功応答後に対象 Deck の一覧へ移動して入力した両面とタグの Card を1件だけ表示し、成功を通知する。
 
 <a id="playwright-card-create-07"></a>
 
-### PLAYWRIGHT-CARD-CREATE-07 [TODO] 長い Card 本文の作成通知を狭い画面で閉じる
+### PLAYWRIGHT-CARD-CREATE-07 長い Card 本文の作成通知を狭い画面で閉じる
 
 カテゴリ: `interaction`
 
@@ -256,12 +259,12 @@ When:
 Then:
 
 - 翻訳された成功通知と Card 本文の冒頭を含む最大3行のプレビューが viewport 内に収まり、通知の読み上げは Card の文脈を保つ。
-- Dismiss の描画範囲と可視フォーカスが viewport 内に収まり、ポインターとキーボードで操作でき、閉じるとページへフォーカスが戻る。
+- Dismiss の描画範囲と可視フォーカスが viewport 内に収まり、ポインターで到達できる。Shift+Tab / Tab でフォーカスを戻すと可視フォーカスを表示し、Enter で閉じると遷移後も維持された main へフォーカスが戻る。
 - 一覧と閲覧で両面の全文を確認でき、通知用の切り詰めを本文へ適用しない。
 
 <a id="playwright-card-create-08"></a>
 
-### PLAYWRIGHT-CARD-CREATE-08 [TODO] 作成成功の応答で未回答の離脱確認を閉じる
+### PLAYWRIGHT-CARD-CREATE-08 作成成功の応答で未回答の離脱確認を閉じる
 
 カテゴリ: `interaction`
 
@@ -304,7 +307,7 @@ Then:
 
 <a id="playwright-card-create-10"></a>
 
-### PLAYWRIGHT-CARD-CREATE-10 [TODO] 作成失敗の応答後も離脱確認と入力を保持する
+### PLAYWRIGHT-CARD-CREATE-10 作成失敗の応答後も離脱確認と入力を保持する
 
 カテゴリ: `interaction`
 

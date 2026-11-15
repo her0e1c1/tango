@@ -164,7 +164,7 @@ describe("shared selection controls", () => {
     expect(onTagChange).toHaveBeenCalledOnce();
   });
 
-  it("DECK-IMPORT-11 passes the chosen file before clearing the native selection", async () => {
+  it("PLAYWRIGHT-DECK-IMPORT-08 passes the chosen file before clearing the native selection", async () => {
     // Given: Prepare `onChange`, `file`, `input` and any shared test state below.
     const onChange = vi.fn();
     const file = new File(["front,back"], "biology.csv", { type: "text/csv" });

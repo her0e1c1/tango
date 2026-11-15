@@ -2,7 +2,7 @@
 
 ## 目的
 
-Deck 閲覧画面を入口とした Playwright テストで、閲覧条件に一致する Card の連続閲覧と、読書・表裏切替・移動・表示設定を確認する。学習の評価操作とは区別する。検証境界と実行前提は [AGENTS.md](./AGENTS.md) に従う。
+Deck 閲覧画面を入口とした Playwright テストで、閲覧条件に一致する Card の連続閲覧と、読書・表裏切替・移動・表示設定を確認する。学習の評価操作とは区別する。Card player 部品の配置、読書用入力、公開された操作要求も独立した契約として確認する。検証境界と実行前提は [AGENTS.md](./AGENTS.md) に従う。
 
 ## テストケース
 
@@ -31,6 +31,33 @@ Deck 閲覧画面を入口とした Playwright テストで、閲覧条件に一
 | PLAYWRIGHT-CARD-PLAYER-21 | interaction | 正常系 | [中・右ボタンのドラッグで Card を移動しない](#playwright-card-player-21) |
 | PLAYWRIGHT-CARD-PLAYER-22 | interaction | 正常系 | [裏面のドラッグ後に誤操作しない](#playwright-card-player-22) |
 | PLAYWRIGHT-CARD-PLAYER-23 | render | 正常系 | [未評価と FSRS 難易度を区別する](#playwright-card-player-23) |
+| PLAYWRIGHT-CARD-PLAYER-24 | render | 正常系 | [表示設定と safe area によらず表面を中央に配置する](#playwright-card-player-24) |
+| PLAYWRIGHT-CARD-PLAYER-25 | render | 正常系 | [暗色の数式解答にアプリの配色を適用する](#playwright-card-player-25) |
+| PLAYWRIGHT-CARD-PLAYER-26 | interaction | 正常系 | [狭い画面の操作一覧を重ねず表示する](#playwright-card-player-26) |
+| PLAYWRIGHT-CARD-PLAYER-27 | interaction | 正常系 | [読書中のスクロールを Card 移動にしない](#playwright-card-player-27) |
+| PLAYWRIGHT-CARD-PLAYER-28 | interaction | 正常系 | [文字選択中に閲覧を終了しない](#playwright-card-player-28) |
+| PLAYWRIGHT-CARD-PLAYER-29 | interaction | 正常系 | [Space とタップを区別する](#playwright-card-player-29) |
+| PLAYWRIGHT-CARD-PLAYER-30 | interaction | 正常系 | [閲覧設定で許可済みの裏面操作を失わない](#playwright-card-player-30) |
+| PLAYWRIGHT-CARD-PLAYER-31 | interaction | 正常系 | [編集操作の表示を切り替える](#playwright-card-player-31) |
+| PLAYWRIGHT-CARD-PLAYER-32 | render | 正常系 | [裏面と編集操作なしの画面に編集操作を表示しない](#playwright-card-player-32) |
+| PLAYWRIGHT-CARD-PLAYER-33 | render | 正常系 | [裏面では解答に集中できる表示にする](#playwright-card-player-33) |
+| PLAYWRIGHT-CARD-PLAYER-34 | interaction | 正常系 | [端のホイール入力でも文章をスクロールする](#playwright-card-player-34) |
+| PLAYWRIGHT-CARD-PLAYER-35 | interaction | 正常系 | [操作一覧から各操作を要求する](#playwright-card-player-35) |
+| PLAYWRIGHT-CARD-PLAYER-36 | interaction | 正常系 | [ヘルプの再表示操作を失わない](#playwright-card-player-36) |
+| PLAYWRIGHT-CARD-PLAYER-37 | interaction | 正常系 | [閲覧モードの状態をボタンで示す](#playwright-card-player-37) |
+| PLAYWRIGHT-CARD-PLAYER-38 | interaction | 正常系 | [閲覧モードと切替ボタンの表示を分ける](#playwright-card-player-38) |
+| PLAYWRIGHT-CARD-PLAYER-39 | interaction | 正常系 | [ショートカットの表示組合せを維持する](#playwright-card-player-39) |
+| PLAYWRIGHT-CARD-PLAYER-40 | interaction | 正常系 | [Card の詳細表示をまとめて切り替える](#playwright-card-player-40) |
+| PLAYWRIGHT-CARD-PLAYER-41 | interaction | 正常系 | [再生操作が使えない理由を確認する](#playwright-card-player-41) |
+| PLAYWRIGHT-CARD-PLAYER-42 | render | 正常系 | [選んだ下部操作だけを表示する](#playwright-card-player-42) |
+| PLAYWRIGHT-CARD-PLAYER-43 | interaction | 正常系 | [許可されていない裏面の方向操作を無視する](#playwright-card-player-43) |
+| PLAYWRIGHT-CARD-PLAYER-44 | interaction | 正常系 | [方向ボタンを隠しても表面のスワイプを使う](#playwright-card-player-44) |
+| PLAYWRIGHT-CARD-PLAYER-45 | interaction | 正常系 | [ドラッグ後にクリックを重複して扱わない](#playwright-card-player-45) |
+| PLAYWRIGHT-CARD-PLAYER-46 | interaction | 正常系 | [中・右ボタンのドラッグで Card を移動しない](#playwright-card-player-46) |
+| PLAYWRIGHT-CARD-PLAYER-47 | interaction | 正常系 | [裏面のドラッグ後に誤操作しない](#playwright-card-player-47) |
+| PLAYWRIGHT-CARD-PLAYER-48 | render | 正常系 | [未評価と FSRS 難易度を区別する](#playwright-card-player-48) |
+| PLAYWRIGHT-CARD-PLAYER-49 | interaction | 正常系 | [Card player のヘルプでフォーカスを閉じ込める](#playwright-card-player-49) |
+| PLAYWRIGHT-CARD-PLAYER-50 | interaction | 正常系 | [Card player のモーダルと背景通知の操作を分ける](#playwright-card-player-50) |
 | PLAYWRIGHT-DECK-VIEW-01 | interaction | 正常系 | [閲覧条件に一致する Card を順番に読む](#playwright-deck-view-01) |
 | PLAYWRIGHT-DECK-VIEW-02 | render | 正常系 | [Card がない場合に戻る操作を表示する](#playwright-deck-view-02) |
 | PLAYWRIGHT-DECK-VIEW-03 | render | 正常系 | [閲覧条件による0件を未作成と区別する](#playwright-deck-view-03) |
@@ -59,7 +86,7 @@ Deck 閲覧画面を入口とした Playwright テストで、閲覧条件に一
 
 <a id="playwright-card-player-01"></a>
 
-### PLAYWRIGHT-CARD-PLAYER-01 [TODO] 読書中のスクロールを Card 移動にしない
+### PLAYWRIGHT-CARD-PLAYER-01 読書中のスクロールを Card 移動にしない
 
 カテゴリ: `interaction`
 
@@ -79,7 +106,7 @@ Then:
 
 <a id="playwright-card-player-02"></a>
 
-### PLAYWRIGHT-CARD-PLAYER-02 [TODO] 文字選択中に閲覧を終了しない
+### PLAYWRIGHT-CARD-PLAYER-02 文字選択中に閲覧を終了しない
 
 カテゴリ: `interaction`
 
@@ -87,19 +114,19 @@ Then:
 
 Given:
 
-- Deck 閲覧画面で解答の文章を表示している。
+- Deck 閲覧画面で解答の文章を表示し、その一部が選択されている。
 
 When:
 
-- 文章の一部をドラッグして選択する。
+- 選択を保ったまま、文章を読むために縦方向へドラッグする。
 
 Then:
 
-- 文章を選択でき、一覧へ戻ったり別の Card に移ったりしない。
+- 選択した文字列を保ち、一覧へ戻ったり別の Card に移ったりしない。
 
 <a id="playwright-card-player-03"></a>
 
-### PLAYWRIGHT-CARD-PLAYER-03 [TODO] Space とタップを区別する
+### PLAYWRIGHT-CARD-PLAYER-03 Space とタップを区別する
 
 カテゴリ: `interaction`
 
@@ -119,7 +146,7 @@ Then:
 
 <a id="playwright-card-player-04"></a>
 
-### PLAYWRIGHT-CARD-PLAYER-04 [TODO] 閲覧設定で許可済みの裏面操作を失わない
+### PLAYWRIGHT-CARD-PLAYER-04 閲覧設定で許可済みの裏面操作を失わない
 
 カテゴリ: `interaction`
 
@@ -139,7 +166,7 @@ Then:
 
 <a id="playwright-card-player-05"></a>
 
-### PLAYWRIGHT-CARD-PLAYER-05 [TODO] 編集操作の表示を切り替える
+### PLAYWRIGHT-CARD-PLAYER-05 編集操作の表示を切り替える
 
 カテゴリ: `interaction`
 
@@ -159,7 +186,7 @@ Then:
 
 <a id="playwright-card-player-06"></a>
 
-### PLAYWRIGHT-CARD-PLAYER-06 [TODO] 裏面に編集操作を表示しない
+### PLAYWRIGHT-CARD-PLAYER-06 裏面に編集操作を表示しない
 
 カテゴリ: `render`
 
@@ -179,7 +206,7 @@ Then:
 
 <a id="playwright-card-player-07"></a>
 
-### PLAYWRIGHT-CARD-PLAYER-07 [TODO] 裏面では解答に集中できる表示にする
+### PLAYWRIGHT-CARD-PLAYER-07 裏面では解答に集中できる表示にする
 
 カテゴリ: `render`
 
@@ -199,7 +226,7 @@ Then:
 
 <a id="playwright-card-player-08"></a>
 
-### PLAYWRIGHT-CARD-PLAYER-08 [TODO] 端の Card 移動と解答クリックを分離する
+### PLAYWRIGHT-CARD-PLAYER-08 端の Card 移動と解答クリックを分離する
 
 カテゴリ: `interaction`
 
@@ -219,7 +246,7 @@ Then:
 
 <a id="playwright-card-player-09"></a>
 
-### PLAYWRIGHT-CARD-PLAYER-09 [TODO] 端のホイール入力でも文章をスクロールする
+### PLAYWRIGHT-CARD-PLAYER-09 端のホイール入力でも文章をスクロールする
 
 カテゴリ: `interaction`
 
@@ -239,7 +266,7 @@ Then:
 
 <a id="playwright-card-player-10"></a>
 
-### PLAYWRIGHT-CARD-PLAYER-10 [TODO] 操作一覧から閲覧操作を選ぶ
+### PLAYWRIGHT-CARD-PLAYER-10 操作一覧から閲覧操作を選ぶ
 
 カテゴリ: `interaction`
 
@@ -259,7 +286,7 @@ Then:
 
 <a id="playwright-card-player-11"></a>
 
-### PLAYWRIGHT-CARD-PLAYER-11 [TODO] ヘルプの再表示操作を失わない
+### PLAYWRIGHT-CARD-PLAYER-11 ヘルプの再表示操作を失わない
 
 カテゴリ: `interaction`
 
@@ -279,7 +306,7 @@ Then:
 
 <a id="playwright-card-player-12"></a>
 
-### PLAYWRIGHT-CARD-PLAYER-12 [TODO] 閲覧モードの状態をボタンで示す
+### PLAYWRIGHT-CARD-PLAYER-12 閲覧モードの状態をボタンで示す
 
 カテゴリ: `interaction`
 
@@ -299,7 +326,7 @@ Then:
 
 <a id="playwright-card-player-13"></a>
 
-### PLAYWRIGHT-CARD-PLAYER-13 [TODO] 閲覧モードと切替ボタンの表示を分ける
+### PLAYWRIGHT-CARD-PLAYER-13 閲覧モードと切替ボタンの表示を分ける
 
 カテゴリ: `interaction`
 
@@ -319,7 +346,7 @@ Then:
 
 <a id="playwright-card-player-14"></a>
 
-### PLAYWRIGHT-CARD-PLAYER-14 [TODO] 表示設定をショートカットで切り替える
+### PLAYWRIGHT-CARD-PLAYER-14 表示設定をショートカットで切り替える
 
 カテゴリ: `interaction`
 
@@ -339,7 +366,7 @@ Then:
 
 <a id="playwright-card-player-15"></a>
 
-### PLAYWRIGHT-CARD-PLAYER-15 [TODO] Card の詳細表示をまとめて切り替える
+### PLAYWRIGHT-CARD-PLAYER-15 Card の詳細表示をまとめて切り替える
 
 カテゴリ: `interaction`
 
@@ -359,7 +386,7 @@ Then:
 
 <a id="playwright-card-player-16"></a>
 
-### PLAYWRIGHT-CARD-PLAYER-16 [TODO] 再生操作が使えない理由を確認する
+### PLAYWRIGHT-CARD-PLAYER-16 再生操作が使えない理由を確認する
 
 カテゴリ: `interaction`
 
@@ -379,7 +406,7 @@ Then:
 
 <a id="playwright-card-player-17"></a>
 
-### PLAYWRIGHT-CARD-PLAYER-17 [TODO] 選んだ下部操作だけを表示する
+### PLAYWRIGHT-CARD-PLAYER-17 選んだ下部操作だけを表示する
 
 カテゴリ: `render`
 
@@ -399,7 +426,7 @@ Then:
 
 <a id="playwright-card-player-18"></a>
 
-### PLAYWRIGHT-CARD-PLAYER-18 [TODO] 許可されていない裏面の方向操作を無視する
+### PLAYWRIGHT-CARD-PLAYER-18 許可されていない裏面の方向操作を無視する
 
 カテゴリ: `interaction`
 
@@ -419,7 +446,7 @@ Then:
 
 <a id="playwright-card-player-19"></a>
 
-### PLAYWRIGHT-CARD-PLAYER-19 [TODO] 方向ボタンを隠しても表面のスワイプを使う
+### PLAYWRIGHT-CARD-PLAYER-19 方向ボタンを隠しても表面のスワイプを使う
 
 カテゴリ: `interaction`
 
@@ -439,7 +466,7 @@ Then:
 
 <a id="playwright-card-player-20"></a>
 
-### PLAYWRIGHT-CARD-PLAYER-20 [TODO] ドラッグ後にクリックを重複して扱わない
+### PLAYWRIGHT-CARD-PLAYER-20 ドラッグ後にクリックを重複して扱わない
 
 カテゴリ: `interaction`
 
@@ -459,7 +486,7 @@ Then:
 
 <a id="playwright-card-player-21"></a>
 
-### PLAYWRIGHT-CARD-PLAYER-21 [TODO] 中・右ボタンのドラッグで Card を移動しない
+### PLAYWRIGHT-CARD-PLAYER-21 中・右ボタンのドラッグで Card を移動しない
 
 カテゴリ: `interaction`
 
@@ -479,7 +506,7 @@ Then:
 
 <a id="playwright-card-player-22"></a>
 
-### PLAYWRIGHT-CARD-PLAYER-22 [TODO] 裏面のドラッグ後に誤操作しない
+### PLAYWRIGHT-CARD-PLAYER-22 裏面のドラッグ後に誤操作しない
 
 カテゴリ: `interaction`
 
@@ -499,7 +526,7 @@ Then:
 
 <a id="playwright-card-player-23"></a>
 
-### PLAYWRIGHT-CARD-PLAYER-23 [TODO] 未評価と FSRS 難易度を区別する
+### PLAYWRIGHT-CARD-PLAYER-23 未評価と FSRS 難易度を区別する
 
 カテゴリ: `render`
 
@@ -517,9 +544,558 @@ Then:
 
 - 未評価を難易度0などの評価済み値として表示せず、評価済みの Card は難易度を確認できる。
 
+<a id="playwright-card-player-24"></a>
+
+### PLAYWRIGHT-CARD-PLAYER-24 表示設定と safe area によらず表面を中央に配置する
+
+カテゴリ: `render`
+
+区分: 正常系
+
+Given:
+
+- Card player の表面を、既定・方向非表示・再生非表示・詳細非表示・方向と再生非表示・再生利用不可・閲覧用操作の各状態で準備する。幅375px と上下47px/34pxの safe area も独立して確認する。
+
+When:
+
+- 表面の配置を確認する。
+
+Then:
+
+- 表面の中心は画面中央となり、safe area では上下の差の半分だけ補正する。許容差は1px未満とする。
+- 閲覧用操作では上下の方向が無効で、Next card の選択は次への移動を一度だけ要求し、現在の進捗値を変えない。
+
+<a id="playwright-card-player-25"></a>
+
+### PLAYWRIGHT-CARD-PLAYER-25 暗色の数式解答にアプリの配色を適用する
+
+カテゴリ: `render`
+
+区分: 正常系
+
+Given:
+
+- Card player に暗色テーマの数式解答を表示している。
+
+When:
+
+- Markdown の前景色と境界色の変数を確認する。
+
+Then:
+
+- 前景色はアプリの ink、境界色はアプリの border の変数と一致する。
+
+<a id="playwright-card-player-26"></a>
+
+### PLAYWRIGHT-CARD-PLAYER-26 狭い画面の操作一覧を重ねず表示する
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- 幅320pxの Card player に表面と Card 詳細を表示している。
+
+When:
+
+- 操作一覧を開く。
+
+Then:
+
+- 操作一覧は戻るボタンの下に配置され、右端は画面内に収まる。Card 詳細は操作一覧の下に隠す。
+
+<a id="playwright-card-player-27"></a>
+
+### PLAYWRIGHT-CARD-PLAYER-27 読書中のスクロールを Card 移動にしない
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- Card player に長い表面を表示し、閲覧モードを有効にしている。通常幅、幅320px、幅1280px、数式の表面を独立して確認する。
+
+When:
+
+- 本文の末尾へスクロールし、上下左右へタッチドラッグと主ボタンの上ドラッグを行う。最後に明示的な方向ボタンを選ぶ。
+
+Then:
+
+- 本文は初期フォーカスを持ち、末尾まで読める。本文は上部の閲覧切替と下部の再生操作に重ならない。
+- 読書用ドラッグでは評価・移動・モード変更を要求せず、方向ボタンを選ぶとその方向を一度だけ要求する。
+
+<a id="playwright-card-player-28"></a>
+
+### PLAYWRIGHT-CARD-PLAYER-28 文字選択中に閲覧を終了しない
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- Card player の閲覧モードで表面の文章を表示している。
+
+When:
+
+- 文章を選択してクリックし、選択を解除して再びクリックする。
+
+Then:
+
+- 選択中は閲覧モードの終了を要求しない。選択解除後の本文クリックは終了を一度だけ要求する。
+
+<a id="playwright-card-player-29"></a>
+
+### PLAYWRIGHT-CARD-PLAYER-29 Space とタップを区別する
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- Card player の閲覧モードで表面の読取領域にフォーカスしている。
+
+When:
+
+- Space を押し、続けて本文をタップする。
+
+Then:
+
+- Space は閲覧モードの終了を要求しない。本文のタップは終了を一度だけ要求する。
+
+<a id="playwright-card-player-30"></a>
+
+### PLAYWRIGHT-CARD-PLAYER-30 閲覧設定で許可済みの裏面操作を失わない
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- Card player に裏面を表示し、閲覧モードの設定と裏面の左右ジェスチャー許可を有効にしている。
+
+When:
+
+- 裏面をタップし、左へタッチスワイプする。
+
+Then:
+
+- 解答クリックと左方向の操作をそれぞれ一度だけ要求する。
+
+<a id="playwright-card-player-31"></a>
+
+### PLAYWRIGHT-CARD-PLAYER-31 編集操作の表示を切り替える
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- Card player の表面に編集リンクがある。幅1280px・320px・375pxを独立して確認する。
+
+When:
+
+- 操作一覧を開き、編集リンクを非表示にして Escape で閉じる。再度開いてリンクを再表示し、Escape で閉じる。
+
+Then:
+
+- 操作一覧の表示中はリンクを表示せず、各操作の領域は重ならない。狭い画面では Card 情報を隠す。
+- 押下状態は編集リンクの表示に一致し、Escape は操作一覧のトリガーへフォーカスを戻す。リンクの非表示と再表示を反映する。
+
+<a id="playwright-card-player-32"></a>
+
+### PLAYWRIGHT-CARD-PLAYER-32 裏面と編集操作なしの画面に編集操作を表示しない
+
+カテゴリ: `render`
+
+区分: 正常系
+
+Given:
+
+- Card player に編集リンクを持つ裏面、または編集操作を持たない表面を準備する。
+
+When:
+
+- 裏面を確認するか、表面の操作一覧を開く。
+
+Then:
+
+- 裏面には編集リンクを表示せず、編集操作のない表面では編集リンクの設定を表示しない。
+
+<a id="playwright-card-player-33"></a>
+
+### PLAYWRIGHT-CARD-PLAYER-33 裏面では解答に集中できる表示にする
+
+カテゴリ: `render`
+
+区分: 正常系
+
+Given:
+
+- Card player に長い解答を表示する。幅1280px・375px、および閲覧用の解答ラベルを独立して確認する。
+
+When:
+
+- 解答の領域にフォーカスし、本文と操作を確認する。
+
+Then:
+
+- 解答はスクロール可能でフォーカスを受け取る。
+- 表面の本文・詳細情報・戻る・操作一覧・再生・進捗スライダー・方向ボタンは表示しない。
+
+<a id="playwright-card-player-34"></a>
+
+### PLAYWRIGHT-CARD-PLAYER-34 端のホイール入力でも文章をスクロールする
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- Card player に長い解答と左右の操作領域を表示している。
+
+When:
+
+- 左端の操作領域でホイールを動かし、その後に左端をクリックする。
+
+Then:
+
+- 本文がスクロールしても操作領域の位置は固定で、ホイールでは移動や解答クリックを要求しない。上下の操作領域は表示しない。
+- 後の左端クリックは左方向だけを一度要求する。
+
+<a id="playwright-card-player-35"></a>
+
+### PLAYWRIGHT-CARD-PLAYER-35 操作一覧から各操作を要求する
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- Card player に方向・再生・Skip・Card 詳細の操作を表示し、操作一覧は閉じている。
+
+When:
+
+- 操作一覧を開き、戻る、方向・再生・Skip・Card 詳細の各表示設定を選び、Escape で閉じる。
+
+Then:
+
+- 操作一覧の開閉を expanded 状態で示す。表示中はヘルプのショートカットを隠し、各設定の押下状態を示す。
+- 選んだ操作をそれぞれ一度だけ要求する。Escape 後は一覧のトリガーへフォーカスが戻り、ヘルプのショートカットが再表示される。
+
+<a id="playwright-card-player-36"></a>
+
+### PLAYWRIGHT-CARD-PLAYER-36 ヘルプの再表示操作を失わない
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- Card player でヘルプのショートカットを表示している。
+
+When:
+
+- 操作一覧からヘルプを非表示にして再表示する。
+
+Then:
+
+- 非表示の間は設定が非押下となり、説明は再表示を案内する。再表示で押下状態に戻り、対応する操作を二度だけ要求する。
+
+<a id="playwright-card-player-37"></a>
+
+### PLAYWRIGHT-CARD-PLAYER-37 閲覧モードの状態をボタンで示す
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- Card player で閲覧モードは OFF、切替ボタンは表示されている。
+
+When:
+
+- 閲覧モードを ON にする。
+
+Then:
+
+- 切替は一度だけ要求される。ボタンは非押下・Enter view mode の説明から押下・Exit view mode の説明へ変わる。
+
+<a id="playwright-card-player-38"></a>
+
+### PLAYWRIGHT-CARD-PLAYER-38 閲覧モードと切替ボタンの表示を分ける
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- Card player で閲覧モードを有効にし、切替ボタンを表示している。
+
+When:
+
+- 操作一覧から切替ボタンを非表示にして閉じ、再び表示する。
+
+Then:
+
+- ボタン表示だけが変わり、閲覧モードの変更は要求しない。本文の読取領域を維持し、表示を戻すと Exit view mode と案内する。操作一覧を閉じるとトリガーへフォーカスが戻る。
+
+<a id="playwright-card-player-39"></a>
+
+### PLAYWRIGHT-CARD-PLAYER-39 ショートカットの表示組合せを維持する
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- Card player のヘルプ・閲覧モード・編集リンクの表示を、ON/ON/ON、OFF/ON/ON、ON/ON/OFF、OFF/ON/OFF、ON/OFF/ON、OFF/OFF/OFF の各組合せで準備する。
+
+When:
+
+- 操作一覧を開き、ヘルプ・閲覧モード・編集リンクの各表示設定を選んで Escape で閉じる。同じ操作を二度行う。
+
+Then:
+
+- 閉じた操作列には指定したショートカットが指定の順序で表示される。開いた間は編集リンクを隠す。
+- 各設定の要求は一巡につき一度だけ行い、閉じると操作一覧トリガーへフォーカスが戻る。
+
+<a id="playwright-card-player-40"></a>
+
+### PLAYWRIGHT-CARD-PLAYER-40 Card の詳細表示をまとめて切り替える
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- Card player で未評価の Card の詳細情報を表示している。
+
+When:
+
+- 操作一覧で Card 詳細を非表示にして再表示する。
+
+Then:
+
+- 情報がまとまって消え、再表示で戻る。押下状態と説明は Show card details・Hide card details に追従する。
+
+<a id="playwright-card-player-41"></a>
+
+### PLAYWRIGHT-CARD-PLAYER-41 再生操作が使えない理由を確認する
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- Card player で間隔0のため再生操作を利用できず、方向と再生操作を非表示にしている。
+
+When:
+
+- 操作一覧を開き、再生設定へフォーカスして選ぶ。
+
+Then:
+
+- 方向設定は非押下で再表示の説明を示す。再生設定はフォーカス可能だが aria-disabled が true で、title と読み上げ説明は間隔0を利用不可の理由として示す。再生の切替は要求しない。
+
+<a id="playwright-card-player-42"></a>
+
+### PLAYWRIGHT-CARD-PLAYER-42 選んだ下部操作だけを表示する
+
+カテゴリ: `render`
+
+区分: 正常系
+
+Given:
+
+- Card player で方向操作のみ、再生操作のみ、両方なしの設定を独立して準備する。
+
+When:
+
+- 下部の操作領域を確認する。
+
+Then:
+
+- 指定した操作だけを表示し、非表示の操作は DOM に存在しない。
+
+<a id="playwright-card-player-43"></a>
+
+### PLAYWRIGHT-CARD-PLAYER-43 許可されていない裏面の方向操作を無視する
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- Card player に裏面を表示し、裏面の左右ジェスチャーを許可していない。
+
+When:
+
+- 裏面を左と上へタッチスワイプする。
+
+Then:
+
+- 左右と上下の方向操作を要求しない。
+
+<a id="playwright-card-player-44"></a>
+
+### PLAYWRIGHT-CARD-PLAYER-44 方向ボタンを隠しても表面のスワイプを使う
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- Card player で表面を表示し、方向ボタンを非表示にしている。
+
+When:
+
+- 表面で上方向のタッチスワイプを行う。
+
+Then:
+
+- 上方向の操作を一度だけ要求する。
+
+<a id="playwright-card-player-45"></a>
+
+### PLAYWRIGHT-CARD-PLAYER-45 ドラッグ後にクリックを重複して扱わない
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- Card player で表面を表示している。
+
+When:
+
+- 主ボタンで上方向にドラッグして離し、ブラウザーの後続クリックを届ける。
+
+Then:
+
+- 上方向の操作を一度だけ要求し、解答クリックや閲覧モードの切替は要求しない。
+
+<a id="playwright-card-player-46"></a>
+
+### PLAYWRIGHT-CARD-PLAYER-46 中・右ボタンのドラッグで Card を移動しない
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- Card player で表面を表示している。
+
+When:
+
+- 中ボタンと右ボタンで上方向にドラッグする。
+
+Then:
+
+- 方向操作を要求しない。
+
+<a id="playwright-card-player-47"></a>
+
+### PLAYWRIGHT-CARD-PLAYER-47 裏面のドラッグ後に誤操作しない
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- Card player に裏面を表示し、裏面の左右ジェスチャーを許可していない。
+
+When:
+
+- 主ボタンで裏面をドラッグし、ブラウザーの後続クリックを届ける。
+
+Then:
+
+- 方向操作と解答クリックを要求しない。
+
+<a id="playwright-card-player-48"></a>
+
+### PLAYWRIGHT-CARD-PLAYER-48 未評価と FSRS 難易度を区別する
+
+カテゴリ: `render`
+
+区分: 正常系
+
+Given:
+
+- Card player に未評価の Card と、FSRS 難易度8の Card を独立して表示する。
+
+When:
+
+- 詳細情報を確認する。
+
+Then:
+
+- 未評価では not studied yet を示して FSRS 難易度を表示しない。評価済みでは FSRS D: 8 を示して未評価の表示を出さない。
+
+<a id="playwright-card-player-49"></a>
+
+### PLAYWRIGHT-CARD-PLAYER-49 Card player のヘルプでフォーカスを閉じ込める
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- Card player のヘルプは閉じており、上方向の Good と表裏切替の説明を持つ。
+
+When:
+
+- ヘルプを開き、Tab・Shift+Tab・Escape の順に入力する。
+
+Then:
+
+- 名前と説明を持つ aria-modal な Study controls が開き、上方向と Good、表裏切替の説明を表示する。
+- 閉じる操作が初期フォーカスと Tab・Shift+Tab の移動先になる。Escape で閉じるとトリガーへフォーカスが戻る。
+
+<a id="playwright-card-player-50"></a>
+
+### PLAYWRIGHT-CARD-PLAYER-50 Card player のモーダルと背景通知の操作を分ける
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- StrictMode の Card player に閉じられる持続通知がある。
+
+When:
+
+- ヘルプを開いて通知を消す。Escape で閉じ、新しい通知を表示してヘルプを開閉する。
+
+Then:
+
+- ヘルプの表示中は通知の閉じる操作が対象外となり、通知が消えても閉じる操作へのフォーカスを維持する。
+- ヘルプを閉じると通知を閉じる操作を利用でき、閉じた通知は表示しない。
+
 <a id="playwright-deck-view-01"></a>
 
-### PLAYWRIGHT-DECK-VIEW-01 [TODO] 閲覧条件に一致する Card を順番に読む
+### PLAYWRIGHT-DECK-VIEW-01 閲覧条件に一致する Card を順番に読む
 
 カテゴリ: `interaction`
 
@@ -539,7 +1115,7 @@ Then:
 
 <a id="playwright-deck-view-02"></a>
 
-### PLAYWRIGHT-DECK-VIEW-02 [TODO] Card がない場合に戻る操作を表示する
+### PLAYWRIGHT-DECK-VIEW-02 Card がない場合に戻る操作を表示する
 
 カテゴリ: `render`
 
@@ -559,7 +1135,7 @@ Then:
 
 <a id="playwright-deck-view-03"></a>
 
-### PLAYWRIGHT-DECK-VIEW-03 [TODO] 閲覧条件による0件を未作成と区別する
+### PLAYWRIGHT-DECK-VIEW-03 閲覧条件による0件を未作成と区別する
 
 カテゴリ: `render`
 
@@ -624,7 +1200,7 @@ Then:
 
 <a id="playwright-deck-view-06"></a>
 
-### PLAYWRIGHT-DECK-VIEW-06 [TODO] Card 未登録の Deck 閲覧から Deck 一覧へ戻れる
+### PLAYWRIGHT-DECK-VIEW-06 Card 未登録の Deck 閲覧から Deck 一覧へ戻れる
 
 カテゴリ: `interaction`
 
@@ -665,7 +1241,7 @@ Then:
 
 <a id="playwright-deck-view-08"></a>
 
-### PLAYWRIGHT-DECK-VIEW-08 [TODO] 全 Card を読めない Deck から警告を維持して戻る
+### PLAYWRIGHT-DECK-VIEW-08 全 Card を読めない Deck から警告を維持して戻る
 
 カテゴリ: `interaction`
 
@@ -677,7 +1253,7 @@ Given:
 
 When:
 
-- 対象 Deck の閲覧リンクを開き、元の Deck の Card 一覧へ戻る。
+- 対象 Deck の閲覧リンクを開き、Deck 一覧へ戻る。
 
 Then:
 
@@ -686,7 +1262,7 @@ Then:
 
 <a id="playwright-deck-view-09"></a>
 
-### PLAYWRIGHT-DECK-VIEW-09 [TODO] 閲覧を先頭の表面から開始し端を越えると一覧へ戻る
+### PLAYWRIGHT-DECK-VIEW-09 閲覧を先頭の表面から開始し端を越えると一覧へ戻る
 
 カテゴリ: `interaction`
 
@@ -708,7 +1284,7 @@ Then:
 
 <a id="playwright-deck-view-10"></a>
 
-### PLAYWRIGHT-DECK-VIEW-10 [TODO] 学習の条件に制限されず全 Card を標準順で閲覧する
+### PLAYWRIGHT-DECK-VIEW-10 学習の条件に制限されず全 Card を標準順で閲覧する
 
 カテゴリ: `interaction`
 
@@ -749,7 +1325,7 @@ Then:
 
 <a id="playwright-deck-view-12"></a>
 
-### PLAYWRIGHT-DECK-VIEW-12 [TODO] 一枚の長い解答をタッチで読み左右の端から退出する
+### PLAYWRIGHT-DECK-VIEW-12 一枚の長い解答をタッチで読み左右の端から退出する
 
 カテゴリ: `interaction`
 
@@ -770,7 +1346,7 @@ Then:
 
 <a id="playwright-deck-view-13"></a>
 
-### PLAYWRIGHT-DECK-VIEW-13 [TODO] 閲覧の再生を明示的に開始して停止と再開を操作する
+### PLAYWRIGHT-DECK-VIEW-13 閲覧の再生を明示的に開始して停止と再開を操作する
 
 カテゴリ: `interaction`
 
@@ -791,7 +1367,7 @@ Then:
 
 <a id="playwright-deck-view-14"></a>
 
-### PLAYWRIGHT-DECK-VIEW-14 [TODO] 進捗スライダーの標準操作で閲覧位置を選ぶ
+### PLAYWRIGHT-DECK-VIEW-14 進捗スライダーの標準操作で閲覧位置を選ぶ
 
 カテゴリ: `interaction`
 
@@ -935,7 +1511,7 @@ Then:
 
 <a id="playwright-deck-view-21"></a>
 
-### PLAYWRIGHT-DECK-VIEW-21 [TODO] 閲覧モードを保ってボタンまたは自動送りで次へ進む
+### PLAYWRIGHT-DECK-VIEW-21 閲覧モードを保ってボタンまたは自動送りで次へ進む
 
 カテゴリ: `interaction`
 
@@ -955,7 +1531,7 @@ Then:
 
 <a id="playwright-deck-view-22"></a>
 
-### PLAYWRIGHT-DECK-VIEW-22 [TODO] 閲覧の表示設定を学習と共有する
+### PLAYWRIGHT-DECK-VIEW-22 閲覧の表示設定を学習と共有する
 
 カテゴリ: `interaction`
 
@@ -976,7 +1552,7 @@ Then:
 
 <a id="playwright-deck-view-23"></a>
 
-### PLAYWRIGHT-DECK-VIEW-23 [TODO] 閲覧モードで長い表面を読み Card 移動を防ぐ
+### PLAYWRIGHT-DECK-VIEW-23 閲覧モードで長い表面を読み Card 移動を防ぐ
 
 カテゴリ: `interaction`
 
@@ -996,7 +1572,7 @@ Then:
 
 <a id="playwright-deck-view-24"></a>
 
-### PLAYWRIGHT-DECK-VIEW-24 [TODO] 閲覧モードを終了して通常の表裏操作へ戻る
+### PLAYWRIGHT-DECK-VIEW-24 閲覧モードを終了して通常の表裏操作へ戻る
 
 カテゴリ: `interaction`
 

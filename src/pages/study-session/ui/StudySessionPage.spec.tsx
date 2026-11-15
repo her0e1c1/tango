@@ -98,7 +98,7 @@ const DeckListDestination = () => {
   );
 };
 
-describe("StudySessionPage [STUDY-CONTROLS-07] [STUDY-ACTIONS-04] [STUDY-SESSION-03 STUDY-SESSION-23 STUDY-SESSION-24] [SETTINGS-04] [STUDY-ACTIONS-01] [STUDY-ACTIONS-02] [STUDY-ACTIONS-05 STUDY-ACTIONS-07 STUDY-ACTIONS-09 STUDY-ACTIONS-12 STUDY-ACTIONS-15] [STUDY-SESSION-05] [STUDY-CONTROLS-04]", () => {
+describe("StudySessionPage [PLAYWRIGHT-STUDY-SESSION-13] [PLAYWRIGHT-STUDY-SESSION-24] [STUDY-SESSION-03 PLAYWRIGHT-STUDY-SESSION-39 STUDY-SESSION-24] [SETTINGS-04] [STUDY-ACTIONS-01] [PLAYWRIGHT-STUDY-SESSION-25] [STUDY-ACTIONS-05 PLAYWRIGHT-STUDY-SESSION-25 PLAYWRIGHT-STUDY-SESSION-27 PLAYWRIGHT-STUDY-SESSION-32 PLAYWRIGHT-STUDY-SESSION-38] [STUDY-SESSION-05] [PLAYWRIGHT-STUDY-SESSION-07]", () => {
   const deckId = "deck-id";
   const deck = createLocalDeck({ id: deckId, name: "Study deck", category: "raw" });
   const firstCard = createLocalCard({
@@ -181,7 +181,7 @@ describe("StudySessionPage [STUDY-CONTROLS-07] [STUDY-ACTIONS-04] [STUDY-SESSION
   });
 
   it.each(["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"])(
-    "STUDY-CONTROLS-13 ignores held %s after saving and accepts a fresh press",
+    "PLAYWRIGHT-STUDY-SESSION-18 ignores held %s after saving and accepts a fresh press",
     async (key) => {
       // Given: Use this case's inputs and any shared test setup.
       renderPage();
@@ -206,7 +206,7 @@ describe("StudySessionPage [STUDY-CONTROLS-07] [STUDY-ACTIONS-04] [STUDY-SESSION
     }
   );
 
-  it("STUDY-CONTROLS-14 keeps playback active during held Space and pauses on a fresh press", () => {
+  it("PLAYWRIGHT-STUDY-SESSION-09 keeps playback active during held Space and pauses on a fresh press", () => {
     // Given: Use this case's inputs and any shared test setup.
     mocks.preferences = createPreferences({ cardInterval: 60 });
     renderPage();
@@ -232,33 +232,36 @@ describe("StudySessionPage [STUDY-CONTROLS-07] [STUDY-ACTIONS-04] [STUDY-SESSION
     { ctrlKey: true, shiftKey: true },
     { metaKey: true, shiftKey: true },
     { altKey: true, shiftKey: true },
-  ])("STUDY-CONTROLS-15 ignores modified shortcuts %o without cancelling them", async (modifiers) => {
-    // Given: Prepare `before` and any shared test state below.
-    renderPage();
-    const before = getStudySession(deckId);
-    for (const key of ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Enter", " ", "b"]) {
-      // Given: Use the current iteration or branch inputs from the enclosing case.
-      // When: Evaluate `actAsync` as part of the following checks.
+  ])(
+    "PLAYWRIGHT-STUDY-SESSION-19 PLAYWRIGHT-STUDY-SESSION-40 ignores modified shortcuts %o without cancelling them",
+    async (modifiers) => {
+      // Given: Prepare `before` and any shared test state below.
+      renderPage();
+      const before = getStudySession(deckId);
+      for (const key of ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Enter", " ", "b"]) {
+        // Given: Use the current iteration or branch inputs from the enclosing case.
+        // When: Evaluate `actAsync` as part of the following checks.
+        // Then: Verify the expected result in the assertions below.
+        await actAsync(async () => {
+          expect(fireEvent.keyDown(window, { key, ...modifiers })).toBe(true);
+        });
+        expect(screen.getByText("Front one")).toBeVisible();
+        expect(screen.getByRole("button", { name: "Play" })).toBeVisible();
+        expect(getStudySession(deckId)).toEqual(before);
+      }
+      // When: Observe the prepared result through the following checks.
       // Then: Verify the expected result in the assertions below.
-      await actAsync(async () => {
-        expect(fireEvent.keyDown(window, { key, ...modifiers })).toBe(true);
-      });
-      expect(screen.getByText("Front one")).toBeVisible();
-      expect(screen.getByRole("button", { name: "Play" })).toBeVisible();
-      expect(getStudySession(deckId)).toEqual(before);
+      expect(mocks.persistOperation).not.toHaveBeenCalled();
+      expect(mocks.toggleShowSwipeButtonList).not.toHaveBeenCalled();
+      // When: Exercise `fireEvent.keyDown` with the prepared inputs.
+      fireEvent.keyDown(window, { key: "Enter" });
+      // Then: Verify the expected result in the assertions below.
+      expect(screen.getByText("Back one")).toBeVisible();
     }
-    // When: Observe the prepared result through the following checks.
-    // Then: Verify the expected result in the assertions below.
-    expect(mocks.persistOperation).not.toHaveBeenCalled();
-    expect(mocks.toggleShowSwipeButtonList).not.toHaveBeenCalled();
-    // When: Exercise `fireEvent.keyDown` with the prepared inputs.
-    fireEvent.keyDown(window, { key: "Enter" });
-    // Then: Verify the expected result in the assertions below.
-    expect(screen.getByText("Back one")).toBeVisible();
-  });
+  );
 
   it.each([{ ctrlKey: true }, { metaKey: true }, { altKey: true }])(
-    "STUDY-CONTROLS-16 preserves view mode on modified Enter %o",
+    "PLAYWRIGHT-STUDY-SESSION-19 PLAYWRIGHT-STUDY-SESSION-13 preserves view mode on modified Enter %o",
     (modifiers) => {
       // Given: Prepare `surface` and any shared test state below.
       mocks.preferences.controls.viewMode = true;
@@ -289,7 +292,7 @@ describe("StudySessionPage [STUDY-CONTROLS-07] [STUDY-ACTIONS-04] [STUDY-SESSION
     }
   );
 
-  it("STUDY-CONTROLS-15 preserves Shift-only Enter and exact lowercase b matching", () => {
+  it("PLAYWRIGHT-STUDY-SESSION-19 PLAYWRIGHT-STUDY-SESSION-40 preserves Shift-only Enter and exact lowercase b matching", () => {
     // Given: Use this case's inputs and any shared test setup.
     renderPage();
     // When: Exercise `fireEvent.keyDown` with the prepared inputs.
@@ -306,7 +309,7 @@ describe("StudySessionPage [STUDY-CONTROLS-07] [STUDY-ACTIONS-04] [STUDY-SESSION
     expect(mocks.toggleShowSwipeButtonList).toHaveBeenCalledOnce();
   });
 
-  it("STUDY-CONTROLS-15 leaves text entry and contenteditable keys native", async () => {
+  it("PLAYWRIGHT-STUDY-SESSION-19 PLAYWRIGHT-STUDY-SESSION-40 leaves text entry and contenteditable keys native", async () => {
     // Given: Prepare `user` and any shared test state below.
     const user = userEvent.setup();
     renderPage();
@@ -387,7 +390,7 @@ describe("StudySessionPage [STUDY-CONTROLS-07] [STUDY-ACTIONS-04] [STUDY-SESSION
       ja: ["スキップ", "学習を終了", "何もしない", "Hard"],
     },
   ])(
-    "STUDY-CONTROLS-12 names the current actions and preserves focus on language changes: $en",
+    "PLAYWRIGHT-STUDY-SESSION-17 names the current actions and preserves focus on language changes: $en",
     async ({ controls, en, ja }) => {
       // Given: Prepare `session`, `preferences`, `directions` and any shared test state below.
       mocks.preferences = createPreferences({ controls });

@@ -61,7 +61,7 @@ const renderPage = () =>
     </MemoryRouter>
   );
 
-describe("NAVIGATION-08 NAVIGATION-09 NAVIGATION-10 NAVIGATION-11 NAVIGATION-12 NAVIGATION-14 NAVIGATION-15 NAVIGATION-16 DeckViewPage NAVIGATION-27 NAVIGATION-29 NAVIGATION-30 NAVIGATION-32 NAVIGATION-33 NAVIGATION-34", () => {
+describe("PLAYWRIGHT-DECK-VIEW-09 PLAYWRIGHT-DECK-VIEW-09 PLAYWRIGHT-DECK-VIEW-10 PLAYWRIGHT-DECK-VIEW-10 PLAYWRIGHT-DECK-VIEW-06 PLAYWRIGHT-DECK-VIEW-22 PLAYWRIGHT-DECK-VIEW-13 PLAYWRIGHT-DECK-VIEW-14 DeckViewPage PLAYWRIGHT-DECK-VIEW-15 PLAYWRIGHT-DECK-VIEW-11 PLAYWRIGHT-DECK-VIEW-17 PLAYWRIGHT-DECK-VIEW-19 PLAYWRIGHT-DECK-VIEW-20 PLAYWRIGHT-DECK-VIEW-25", () => {
   afterEach(() => vi.useRealTimers());
 
   beforeEach(() => {
@@ -181,7 +181,7 @@ describe("NAVIGATION-08 NAVIGATION-09 NAVIGATION-10 NAVIGATION-11 NAVIGATION-12 
     expect(screen.getByRole("button", { name: "Card front" })).toHaveTextContent("First prompt");
   });
 
-  it("[CARD-FILTER-01] includes future review cards when the review schedule is enabled", () => {
+  it("[PLAYWRIGHT-DECK-VIEW-04] includes future review cards when the review schedule is enabled", () => {
     // Given: Use this case's inputs and any shared test setup.
     data.preferences = createPreferences({ useCardInterval: true });
     data.cards = data.cards.map((card, index) =>

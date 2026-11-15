@@ -43,7 +43,7 @@ const futureCard = createLocalCard({
   uniqueKey: "future-card",
 });
 
-describe("useStudySessionStartState [STUDY-SESSION-01]", () => {
+describe("useStudySessionStartState [PLAYWRIGHT-STUDY-SESSION-START-04]", () => {
   beforeEach(async () => {
     // Given: Establish the shared setup used by the following cases.
     replaceAuthSession({

@@ -19,7 +19,7 @@ const preview = {
   },
 } satisfies NonNullable<DeckImportViewProps["preview"]>;
 
-describe("DeckImportView [DECK-IMPORT-01 DECK-IMPORT-02 DECK-IMPORT-06 SETTINGS-09 SETTINGS-15 DECK-IMPORT-16]", () => {
+describe("DeckImportView [PLAYWRIGHT-IMPORT-02 PLAYWRIGHT-DECK-IMPORT-01 PLAYWRIGHT-IMPORT-03 PLAYWRIGHT-IMPORT-11 PLAYWRIGHT-DECK-IMPORT-13 PLAYWRIGHT-IMPORT-08 PLAYWRIGHT-IMPORT-10 PLAYWRIGHT-DECK-IMPORT-04 PLAYWRIGHT-DECK-IMPORT-05 PLAYWRIGHT-DECK-IMPORT-17 PLAYWRIGHT-DECK-IMPORT-14 PLAYWRIGHT-DECK-IMPORT-16 PLAYWRIGHT-IMPORT-08 PLAYWRIGHT-DECK-IMPORT-04]", () => {
   it.each([
     [new ImportFailure("authentication"), "アカウントへのインポートには認証済みユーザーが必要です。"],
     [new ImportFailure("account-changed"), "アカウントが変わりました。CSVファイルや例をもう一度選んでください。"],

@@ -6,5 +6,5 @@
 - Keep the Vite entry and external I/O substitutes in this test directory. Do not add production exports, parameters, callbacks, or test globals solely for test setup. A substitute's response or prepared state update does not prove Firestore persistence or subscription delivery.
 - Run `npm run test:playwright` without starting Firebase emulators. Use the normal Playwright Chromium installation; `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` may select an existing Chromium binary in a cloud environment.
 - Keep contexts isolated and await observable results. Do not add sleeps, force operations, timeout increases, or retries to conceal failures. Keep unexpected browser errors and attempted external network access visible to the test.
-- Remove a specification's `[TODO]` only after its complete Given / When / Then and input variants are implemented and executed in this runner. A partial pilot or a legacy Storybook play does not implement a broader case.
-- Retire legacy assertions only after the parity gate in `../storybook/RETIREMENT.md` is satisfied. Keep the existing E2E coverage until its replacement is proven as well.
+- Remove a specification's `[TODO]` only after its complete Given / When / Then and input variants are implemented and executed in this runner.
+- When moving a regression between test levels, preserve its behavior and input variants and verify the replacement before removing the original assertions.

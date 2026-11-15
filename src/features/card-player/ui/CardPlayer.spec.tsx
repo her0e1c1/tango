@@ -64,7 +64,7 @@ const swipeWithMouse = (
   fireEvent.mouseUp(document, { ...end, button });
 };
 
-describe("CardPlayer [STUDY-CONTROLS-05] [STUDY-CONTROLS-06 STUDY-CONTROLS-19] [STUDY-CONTROLS-07] [STUDY-ACTIONS-01] [STUDY-CONTROLS-04] [NAVIGATION-14]", () => {
+describe("CardPlayer [PLAYWRIGHT-STUDY-SESSION-12] [PLAYWRIGHT-STUDY-SESSION-08 PLAYWRIGHT-STUDY-SESSION-07 PLAYWRIGHT-STUDY-SESSION-15] [PLAYWRIGHT-STUDY-SESSION-13] [STUDY-ACTIONS-01] [PLAYWRIGHT-STUDY-SESSION-07] [PLAYWRIGHT-DECK-VIEW-22]", () => {
   it("ignores reading gestures and their trailing click while keeping explicit buttons active", () => {
     // Given: Prepare `props`, `onSwipeUp`, `onSwipeLeft` and any shared test state below.
     const props = toolbarProps();
@@ -322,7 +322,7 @@ describe("CardPlayer [STUDY-CONTROLS-05] [STUDY-CONTROLS-06 STUDY-CONTROLS-19] [
     expect(onClickLeft).not.toHaveBeenCalled();
   });
 
-  it("STUDY-CONTROLS-05 keeps Help available while opening the remaining study actions", async () => {
+  it("PLAYWRIGHT-STUDY-SESSION-12 keeps Help available while opening the remaining study actions", async () => {
     // Given: Prepare `user`, `onBack`, `onToggleCardDetails` and any shared test state below.
     const user = userEvent.setup();
     const onBack = vi.fn();
@@ -408,7 +408,7 @@ describe("CardPlayer [STUDY-CONTROLS-05] [STUDY-CONTROLS-06 STUDY-CONTROLS-19] [
     expect(screen.getByRole("button", { name: "Open study help" })).toBeVisible();
   });
 
-  it("STUDY-CONTROLS-05 keeps the Help visibility toggle mounted while visibility changes", () => {
+  it("PLAYWRIGHT-STUDY-SESSION-12 keeps the Help visibility toggle mounted while visibility changes", () => {
     // Given: Prepare `onToggleHelp`, `props` and any shared test state below.
     const onToggleHelp = vi.fn();
     const props = toolbarProps();
@@ -524,7 +524,7 @@ describe("CardPlayer [STUDY-CONTROLS-05] [STUDY-CONTROLS-06 STUDY-CONTROLS-19] [
     { showHelp: false, showViewMode: true, showEdit: false },
     { showHelp: true, showViewMode: false, showEdit: true },
     { showHelp: false, showViewMode: false, showEdit: false },
-  ])("STUDY-CONTROLS-05 composes visible shortcuts: %o", ({ showHelp, showViewMode, showEdit }) => {
+  ])("PLAYWRIGHT-STUDY-SESSION-12 composes visible shortcuts: %o", ({ showHelp, showViewMode, showEdit }) => {
     // Given: Prepare `trigger`, `shortcuts` and any shared test state below.
     render(
       <CardPlayer

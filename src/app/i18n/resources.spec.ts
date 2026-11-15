@@ -8,7 +8,7 @@ const leafPaths = (value: object, prefix = ""): string[] =>
     return typeof child === "string" ? [path] : leafPaths(child as object, path);
   });
 
-describe("SETTINGS-04 SETTINGS-05 translation resources", () => {
+describe("SETTINGS-04 PLAYWRIGHT-SETTINGS-14 translation resources", () => {
   it("keeps English and Japanese translation keys in parity", () => {
     // Given: Prepare `comparePaths` and any shared test state below.
     const comparePaths = (left: string, right: string) => left.localeCompare(right);

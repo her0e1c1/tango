@@ -1,3 +1,5 @@
+import { io, events } from "./io";
+
 export {
   useCards,
   useCard,
@@ -5,13 +7,11 @@ export {
   useHasCards,
   useInvalidCardIds,
   subscribeCards,
-  createCard,
-  deleteCard,
   waitForCardContent,
+  cardContentInputSchema,
   clearRemoteCards,
   findCardById,
   getCards,
-  cardContentInputSchema,
   filterCardsByDeckId,
   filterCardsByTags,
   getCardContentValidationErrors,
@@ -34,4 +34,16 @@ export type {
   CardRaw,
   FsrsState,
 } from "../../../src/entities/card";
-export { editCard } from "./persistence";
+
+export const createCard: typeof io.createCard = (...args) => {
+  events.push({ name: "createCard", args: structuredClone(args.filter((value) => typeof value !== "function")) });
+  return io.createCard(...args);
+};
+export const editCard: typeof io.editCard = (...args) => {
+  events.push({ name: "editCard", args: structuredClone(args.filter((value) => typeof value !== "function")) });
+  return io.editCard(...args);
+};
+export const deleteCard: typeof io.deleteCard = (...args) => {
+  events.push({ name: "deleteCard", args: structuredClone(args.filter((value) => typeof value !== "function")) });
+  return io.deleteCard(...args);
+};
