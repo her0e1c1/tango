@@ -131,6 +131,11 @@ export const Mobile320ActionsOpen: Story = {
 };
 
 export const MobileSafeArea: Story = {
+  play: ({ canvasElement }) => {
+    const surface = canvasElement.querySelector<HTMLElement>("[style*='--study-safe-area-top']");
+    surface?.style.setProperty("--study-safe-area-top", "47px");
+    surface?.style.setProperty("--study-safe-area-bottom", "34px");
+  },
   globals: { viewport: { value: "iphonex", isRotated: false } },
 };
 

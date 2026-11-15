@@ -35,7 +35,7 @@ export interface AppParameters {
   path?: string;
   decks?: Deck[];
   cards?: RemoteCard[];
-  preferences?: PreferencesFixture;
+  preferences?: PreferencesFixture | null;
   sessionsByDeckId?: Partial<
     Record<
       string,
@@ -105,6 +105,18 @@ export function session(index = 0, cardOrder = cards) {
     },
   };
 }
+function preparePreferences(preferences: AppParameters["preferences"], autoPlay?: boolean) {
+  // A null fixture preserves the production store's hydrated preferences across document navigations.
+  if (preferences === null) return;
+  replacePreferences({
+    ...preferences,
+    study: {
+      ...preferences?.study,
+      ...(autoPlay === undefined ? {} : { defaultAutoPlay: autoPlay }),
+    },
+  });
+}
+
 export function prepareApp(parameters: AppParameters = {}) {
   resetIO();
   accountPageStore.setState(accountPageStore.getInitialState(), true);
@@ -124,13 +136,7 @@ export function prepareApp(parameters: AppParameters = {}) {
     remoteLoading: false,
     fromCache: false,
   });
-  replacePreferences({
-    ...parameters.preferences,
-    study: {
-      ...parameters.preferences?.study,
-      ...(parameters.autoPlay === undefined ? {} : { defaultAutoPlay: parameters.autoPlay }),
-    },
-  });
+  preparePreferences(parameters.preferences, parameters.autoPlay);
   for (const [deckId, value] of Object.entries(parameters.sessionsByDeckId ?? {})) {
     if (value)
       restoreStudySession({

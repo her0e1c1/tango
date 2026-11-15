@@ -31,7 +31,7 @@ export default function conditions(params: URLSearchParams) {
   if (!seed) throw new Error("A prepared application store fixture is required");
   const user = seed.auth.users[0];
   if (!user) throw new Error("An authenticated fixture user is required");
-  const persisted = JSON.parse(localStorage.getItem("tango-config") ?? "null")?.state?.preferences;
+  const seeded = sessionStorage.getItem("tango-integration-preferences-seeded") === "true";
   prepareApp({
     auth: {
       status: "authenticated",
@@ -41,11 +41,12 @@ export default function conditions(params: URLSearchParams) {
     },
     cards: seed.remote.cards,
     decks: seed.remote.decks,
-    preferences: persisted ?? seed.browser.preferences,
+    preferences: seeded ? null : seed.browser.preferences,
     sessionsByDeckId: Object.fromEntries(
       Object.entries(seed.remote.studySessions).map(([id, session]) => [id, { ...session, startedAt: 0 }])
     ),
   });
+  sessionStorage.setItem("tango-integration-preferences-seeded", "true");
   studySessionStore.setState({
     ownerUid: user.uid,
     remoteLoading: false,
