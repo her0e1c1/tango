@@ -138,6 +138,9 @@ run = """
 docker compose run --rm --remove-orphans --env CI --env PLAYWRIGHT_MAIN_TRACE --entrypoint npm dev run e2e
 """
 
+[tasks."e2e:test"]
+run = "npx playwright test --reporter=html"
+
 [tasks."e2e:ui"]
 description = "Run the existing E2E environment in Playwright UI mode"
 interactive = true
