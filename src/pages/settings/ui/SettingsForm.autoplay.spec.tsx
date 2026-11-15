@@ -44,46 +44,43 @@ describe.each([
       { input: "60", visible: "60秒", spoken: "60秒" },
     ],
   },
-])(
-  "PLAYWRIGHT-SETTINGS-10 PLAYWRIGHT-SETTINGS-16 Autoplay interval presentation in $language",
-  (copy) => {
-    it.each([
-      { defaultAutoPlay: true, showPlaybackControls: true },
-      { defaultAutoPlay: false, showPlaybackControls: false },
-      { defaultAutoPlay: true, showPlaybackControls: false },
-      { defaultAutoPlay: false, showPlaybackControls: true },
-    ])(
-      "explains zero and preserves autoplay=$defaultAutoPlay and playback controls=$showPlaybackControls",
-      async ({ defaultAutoPlay, showPlaybackControls }) => {
-        // Given: Prepare `preferences`, `interval` and any shared test state below.
-        await getI18n().changeLanguage(copy.language);
-        const preferences = createPreferences({ cardInterval: 60, showPlaybackControls });
-        preferences.study.defaultAutoPlay = defaultAutoPlay;
-        render(<SettingsFormHarness values={preferences} />);
+])("PLAYWRIGHT-SETTINGS-10 PLAYWRIGHT-SETTINGS-16 Autoplay interval presentation in $language", (copy) => {
+  it.each([
+    { defaultAutoPlay: true, showPlaybackControls: true },
+    { defaultAutoPlay: false, showPlaybackControls: false },
+    { defaultAutoPlay: true, showPlaybackControls: false },
+    { defaultAutoPlay: false, showPlaybackControls: true },
+  ])(
+    "explains zero and preserves autoplay=$defaultAutoPlay and playback controls=$showPlaybackControls",
+    async ({ defaultAutoPlay, showPlaybackControls }) => {
+      // Given: Prepare `preferences`, `interval` and any shared test state below.
+      await getI18n().changeLanguage(copy.language);
+      const preferences = createPreferences({ cardInterval: 60, showPlaybackControls });
+      preferences.study.defaultAutoPlay = defaultAutoPlay;
+      render(<SettingsFormHarness values={preferences} />);
 
-        const interval = screen.getByRole("slider", { name: copy.intervalLabel });
-        expect(interval).toHaveValue("60");
-        expect(interval).toHaveAttribute("min", "0");
-        expect(interval).toHaveAttribute("max", "60");
+      const interval = screen.getByRole("slider", { name: copy.intervalLabel });
+      expect(interval).toHaveValue("60");
+      expect(interval).toHaveAttribute("min", "0");
+      expect(interval).toHaveAttribute("max", "60");
+      expect(interval).toHaveAccessibleDescription(copy.description);
+      expect(screen.getByText(copy.description)).toBeVisible();
+
+      for (const value of copy.values) {
+        // Given: Use the current iteration or branch inputs from the enclosing case.
+        // When: Exercise `fireEvent.change` with the prepared inputs.
+        fireEvent.change(interval, { target: { value: value.input } });
+
+        // Then: Verify the expected result in the assertions below.
+        expect(interval).toHaveValue(value.input);
+        expect(interval).toHaveAttribute("aria-valuetext", value.spoken);
+        expect(screen.getByText(value.visible, { exact: true })).toBeVisible();
         expect(interval).toHaveAccessibleDescription(copy.description);
-        expect(screen.getByText(copy.description)).toBeVisible();
-
-        for (const value of copy.values) {
-          // Given: Use the current iteration or branch inputs from the enclosing case.
-          // When: Exercise `fireEvent.change` with the prepared inputs.
-          fireEvent.change(interval, { target: { value: value.input } });
-
-          // Then: Verify the expected result in the assertions below.
-          expect(interval).toHaveValue(value.input);
-          expect(interval).toHaveAttribute("aria-valuetext", value.spoken);
-          expect(screen.getByText(value.visible, { exact: true })).toBeVisible();
-          expect(interval).toHaveAccessibleDescription(copy.description);
-          const autoplay = screen.getByRole("checkbox", { name: copy.autoplayLabel });
-          const playback = screen.getByRole("checkbox", { name: copy.playbackLabel });
-          expect(autoplay).toHaveProperty("checked", defaultAutoPlay);
-          expect(playback).toHaveProperty("checked", showPlaybackControls);
-        }
+        const autoplay = screen.getByRole("checkbox", { name: copy.autoplayLabel });
+        const playback = screen.getByRole("checkbox", { name: copy.playbackLabel });
+        expect(autoplay).toHaveProperty("checked", defaultAutoPlay);
+        expect(playback).toHaveProperty("checked", showPlaybackControls);
       }
-    );
-  }
-);
+    }
+  );
+});
