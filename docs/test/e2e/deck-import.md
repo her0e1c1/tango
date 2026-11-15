@@ -38,6 +38,8 @@ CSV の確認・取り込み・再試行と、Sample Deck の追加・自動初�
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: キーボードと視覚focus・確定前のpreview（[PLAYWRIGHT-IMPORT-02](../integration/playwright/deck-import.md#playwright-import-02)、[PLAYWRIGHT-DECK-IMPORT-01](../integration/playwright/deck-import.md#playwright-deck-import-01)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`empty`](./fixture/empty.yaml)
@@ -64,6 +66,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 4例のCSV出力の全内容と特殊文字（[PLAYWRIGHT-DECK-IMPORT-03](../integration/playwright/deck-import.md#playwright-deck-import-03)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`empty`](./fixture/empty.yaml)
@@ -84,6 +88,8 @@ Then:
 カテゴリ: `read`
 
 区分: 正常系
+
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 4例のpreviewと確定前の保存禁止（[PLAYWRIGHT-IMPORT-08](../integration/playwright/deck-import.md#playwright-import-08)、[PLAYWRIGHT-DECK-IMPORT-04](../integration/playwright/deck-import.md#playwright-deck-import-04)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
 
 Given:
 
@@ -107,6 +113,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: ファイル選択取消しでpreview/診断/操作可否維持（[PLAYWRIGHT-DECK-IMPORT-02](../integration/playwright/deck-import.md#playwright-deck-import-02)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`empty`](./fixture/empty.yaml)
@@ -127,6 +135,8 @@ Then:
 カテゴリ: `batch`
 
 区分: 正常系
+
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: CSV成功時の件数通知と一覧反映・処理中の排他（[PLAYWRIGHT-DECK-IMPORT-05](../integration/playwright/deck-import.md#playwright-deck-import-05)、[PLAYWRIGHT-DECK-IMPORT-17](../integration/playwright/deck-import.md#playwright-deck-import-17)）。置換実装後の E2E 目的: 通常アカウントのDeck/全Card実保存とreload復元。
 
 Given:
 
@@ -151,6 +161,8 @@ Then:
 カテゴリ: `batch`
 
 区分: 正常系
+
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 匿名の保存先非表示・内容反映・件数通知（[PLAYWRIGHT-IMPORT-01](../integration/playwright/deck-import.md#playwright-import-01)、[PLAYWRIGHT-DECK-IMPORT-05](../integration/playwright/deck-import.md#playwright-deck-import-05)、[PLAYWRIGHT-DECK-IMPORT-17](../integration/playwright/deck-import.md#playwright-deck-import-17)）。置換実装後の E2E 目的: 匿名cacheへの実保存とreload後の学習・クラウド未追加。
 
 Given:
 
@@ -179,6 +191,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 4例で共通の確認・確定手順と結果通知（[PLAYWRIGHT-IMPORT-08](../integration/playwright/deck-import.md#playwright-import-08)、[PLAYWRIGHT-IMPORT-10](../integration/playwright/deck-import.md#playwright-import-10)、[PLAYWRIGHT-DECK-IMPORT-04](../integration/playwright/deck-import.md#playwright-deck-import-04)、[PLAYWRIGHT-DECK-IMPORT-05](../integration/playwright/deck-import.md#playwright-deck-import-05)、[PLAYWRIGHT-DECK-IMPORT-17](../integration/playwright/deck-import.md#playwright-deck-import-17)）。置換実装後の E2E 目的: 4例のDeck/全Card実保存とreload復元。
+
 Given:
 
 - Fixture: [`empty`](./fixture/empty.yaml)
@@ -204,6 +218,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: Sample自動生成結果・画面復帰での重複防止・CSV内容（[PLAYWRIGHT-DECK-LIST-45](../integration/playwright/deck-list.md#playwright-deck-list-45)）。置換実装後の E2E 目的: 自動生成の実保存とreload後の重複なし・全Card出力。
+
 Given:
 
 - Fixture: [`sample-bootstrap`](./fixture/sample-bootstrap.yaml)
@@ -225,6 +241,8 @@ Then:
 カテゴリ: `batch`
 
 区分: 正常系
+
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: Sample全内容のpreview・成功後の一覧・件数通知（[PLAYWRIGHT-DECK-IMPORT-04](../integration/playwright/deck-import.md#playwright-deck-import-04)、[PLAYWRIGHT-DECK-IMPORT-05](../integration/playwright/deck-import.md#playwright-deck-import-05)、[PLAYWRIGHT-DECK-IMPORT-17](../integration/playwright/deck-import.md#playwright-deck-import-17)）。置換実装後の E2E 目的: 匿名cache/非同期・reload後の全内容と学習導線。
 
 Given:
 
@@ -252,6 +270,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: Sample追加後の一覧遷移と件数通知（[PLAYWRIGHT-DECK-IMPORT-05](../integration/playwright/deck-import.md#playwright-deck-import-05)、[PLAYWRIGHT-DECK-IMPORT-17](../integration/playwright/deck-import.md#playwright-deck-import-17)）。置換実装後の E2E 目的: 通常アカウントの実同期・reload後の全内容と重複なし。
+
 Given:
 
 - Fixture: [`empty`](./fixture/empty.yaml)
@@ -274,6 +294,8 @@ Then:
 カテゴリ: `batch`
 
 区分: 正常系
+
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 匿名状態のSample追加結果・保存先非表示・一覧遷移（[PLAYWRIGHT-IMPORT-01](../integration/playwright/deck-import.md#playwright-import-01)、[PLAYWRIGHT-DECK-IMPORT-05](../integration/playwright/deck-import.md#playwright-deck-import-05)、[PLAYWRIGHT-DECK-IMPORT-17](../integration/playwright/deck-import.md#playwright-deck-import-17)）。置換実装後の E2E 目的: 初回匿名認証・cache保存・クラウド未追加とreload復元。
 
 Given:
 
@@ -301,6 +323,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 再選択は新しい取り込みとして既存内容を上書きしない（[PLAYWRIGHT-DECK-IMPORT-06](../integration/playwright/deck-import.md#playwright-deck-import-06)）。置換実装後の E2E 目的: 実保存先で同一例の別Deck/全Cardが重複なく共存。
+
 Given:
 
 - Fixture: [`empty`](./fixture/empty.yaml)
@@ -323,6 +347,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: account状態変更後の古い選択解除と確定禁止（[PLAYWRIGHT-DECK-IMPORT-07](../integration/playwright/deck-import.md#playwright-deck-import-07)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`empty`](./fixture/empty.yaml)
@@ -344,6 +370,8 @@ Then:
 カテゴリ: `batch`
 
 区分: 正常系
+
+関連仕様: E2E維持。E2E の目的: 匿名で4例を実cacheへ保存しreload復元・クラウド未保存。
 
 Given:
 
@@ -368,6 +396,8 @@ Then:
 
 区分: 異常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 不正行の診断とファイル全体の追加禁止（[PLAYWRIGHT-IMPORT-03](../integration/playwright/deck-import.md#playwright-import-03)、[PLAYWRIGHT-IMPORT-11](../integration/playwright/deck-import.md#playwright-import-11)、[PLAYWRIGHT-DECK-IMPORT-13](../integration/playwright/deck-import.md#playwright-deck-import-13)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`empty`](./fixture/empty.yaml)
@@ -391,6 +421,8 @@ Then:
 カテゴリ: `read`
 
 区分: 異常系
+
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 同名CSVのUTF-8修正再選択・診断更新（[PLAYWRIGHT-DECK-IMPORT-08](../integration/playwright/deck-import.md#playwright-deck-import-08)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
 
 Given:
 
@@ -417,6 +449,8 @@ Then:
 
 区分: 異常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 複数行CSVの論理レコード番号・正規化前の文脈（[PLAYWRIGHT-DECK-IMPORT-09](../integration/playwright/deck-import.md#playwright-deck-import-09)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`empty`](./fixture/empty.yaml)
@@ -442,6 +476,8 @@ Then:
 
 区分: 異常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 引用符エラーの論理レコード番号と元列値（[PLAYWRIGHT-DECK-IMPORT-10](../integration/playwright/deck-import.md#playwright-deck-import-10)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`empty`](./fixture/empty.yaml)
@@ -464,6 +500,8 @@ Then:
 カテゴリ: `read`
 
 区分: 異常系
+
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 空白CSVのファイル全体エラーと追加禁止（[PLAYWRIGHT-DECK-IMPORT-11](../integration/playwright/deck-import.md#playwright-deck-import-11)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
 
 Given:
 
@@ -488,6 +526,8 @@ Then:
 
 区分: 異常系
 
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 失敗通知・入力保持・再試行・遷移抑止（[PLAYWRIGHT-DECK-IMPORT-12](../integration/playwright/deck-import.md#playwright-deck-import-12)）。置換実装後の E2E 目的: 実クラウド拒否・rollback・部分成功の永続性と重複防止。
+
 Given:
 
 - Fixture: [`empty`](./fixture/empty.yaml)
@@ -510,6 +550,8 @@ Then:
 カテゴリ: `batch`
 
 区分: 異常系
+
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 同じpreviewによる再試行・対象同一性・結果表示（[PLAYWRIGHT-DECK-IMPORT-12](../integration/playwright/deck-import.md#playwright-deck-import-12)）。置換実装後の E2E 目的: 部分保存後の実再試行でDeck/Cardの重複なし。
 
 Given:
 

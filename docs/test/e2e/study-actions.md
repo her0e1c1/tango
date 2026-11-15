@@ -33,6 +33,8 @@
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 前へ戻る操作を表示せず後方slider入力を拒否（[PLAYWRIGHT-STUDY-SESSION-24](../integration/playwright/study-session.md#playwright-study-session-24)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`study-session-middle`](./fixture/study-session-middle.yaml)
@@ -55,6 +57,8 @@ Then:
 カテゴリ: `write`
 
 区分: 正常系
+
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: Goodの入力割当・次表面・方向通知と評価後の一覧復帰で最近学習順へ反映（[PLAYWRIGHT-STUDY-SESSION-25](../integration/playwright/study-session.md#playwright-study-session-25)、[PLAYWRIGHT-DECK-LIST-35](../integration/playwright/deck-list.md#playwright-deck-list-35)）。置換実装後の E2E 目的: Good回答と記憶状態・復習予定・最終復習・位置の実保存。
 
 Given:
 
@@ -83,6 +87,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: Againの入力割当・次表面・同学習への再追加抑止（[PLAYWRIGHT-STUDY-SESSION-25](../integration/playwright/study-session.md#playwright-study-session-25)）。置換実装後の E2E 目的: Again回答・短い復習予定・最終復習・位置の実保存。
+
 Given:
 
 - Fixture: [`study-session-start`](./fixture/study-session-start.yaml)
@@ -106,6 +112,8 @@ Then:
 カテゴリ: `write`
 
 区分: 正常系
+
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: Skipで回答・記憶状態を変更せず次表面へ進む（[PLAYWRIGHT-STUDY-SESSION-26](../integration/playwright/study-session.md#playwright-study-session-26)）。置換実装後の E2E 目的: 学習位置だけを実保存しCardと回答を変更しない。
 
 Given:
 
@@ -131,6 +139,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 評価以外の操作で回答・記憶状態・Card内容を変更しない（[PLAYWRIGHT-STUDY-SESSION-26](../integration/playwright/study-session.md#playwright-study-session-26)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`study-session-start`](./fixture/study-session-start.yaml)
@@ -154,6 +164,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 4方向の評価をボタン・キー・スワイプ・裏面領域で一致（[PLAYWRIGHT-STUDY-SESSION-25](../integration/playwright/study-session.md#playwright-study-session-25)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`study-session-start`](./fixture/study-session-start.yaml)
@@ -176,6 +188,8 @@ Then:
 カテゴリ: `write`
 
 区分: 正常系
+
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 保存待ちの競合操作・二重評価・飛び越し防止と完了後の受付（[PLAYWRIGHT-STUDY-SESSION-27](../integration/playwright/study-session.md#playwright-study-session-27)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
 
 Given:
 
@@ -201,6 +215,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 最後の保存中に学習不在でも完了/一覧へ自動遷移せず読込表示（[PLAYWRIGHT-STUDY-SESSION-27](../integration/playwright/study-session.md#playwright-study-session-27)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`study-session-start`](./fixture/study-session-start.yaml)
@@ -222,6 +238,8 @@ Then:
 カテゴリ: `write`
 
 区分: 正常系
+
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 保存待ちでは追加評価を受け付けない（[PLAYWRIGHT-STUDY-SESSION-27](../integration/playwright/study-session.md#playwright-study-session-27)）。置換実装後の E2E 目的: オフライン保留・再接続後の実保存、再読込復元と回答重複防止。
 
 Given:
 
@@ -247,6 +265,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 切替前の結果で現在Card・通知を変更しない（[PLAYWRIGHT-STUDY-SESSION-28](../integration/playwright/study-session.md#playwright-study-session-28)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`study-session-start`](./fixture/study-session-start.yaml)
@@ -269,6 +289,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 明示的中止の成功後に一覧へ戻る（[PLAYWRIGHT-STUDY-SESSION-29](../integration/playwright/study-session.md#playwright-study-session-29)）。置換実装後の E2E 目的: 学習中止の実保存と購読反映。
+
 Given:
 
 - Fixture: [`study-session-start`](./fixture/study-session-start.yaml)
@@ -290,6 +312,8 @@ Then:
 カテゴリ: `write`
 
 区分: 異常系
+
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 部分失敗の通知・方向通知抑止と後続評価受付（[PLAYWRIGHT-STUDY-SESSION-30](../integration/playwright/study-session.md#playwright-study-session-30)）。置換実装後の E2E 目的: 回答履歴だけの実保存失敗と成功済み状態/位置の再読込復元、重複防止。
 
 Given:
 
@@ -317,6 +341,8 @@ Then:
 
 区分: 異常系
 
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 匿名の受付後は次操作を許可し古い診断で後続待機を変更しない（[PLAYWRIGHT-STUDY-SESSION-31](../integration/playwright/study-session.md#playwright-study-session-31)）。置換実装後の E2E 目的: 匿名Adapterの即時受付・遅延したローカル保存失敗のreportError診断。
+
 Given:
 
 - Fixture: [`study-session-start-local`](./fixture/study-session-start-local.yaml)
@@ -341,6 +367,8 @@ Then:
 
 区分: 異常系
 
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 同期失敗通知と受信した復元位置のCard表示（[PLAYWRIGHT-STUDY-SESSION-32](../integration/playwright/study-session.md#playwright-study-session-32)）。置換実装後の E2E 目的: 位置の同期拒否とSDKによる巻き戻し、成功済み回答・記憶状態の保持。
+
 Given:
 
 - Fixture: [`study-session-start`](./fixture/study-session-start.yaml)
@@ -363,6 +391,8 @@ Then:
 
 区分: 異常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: アカウント変更後に元アカウントのCardの回答を拒否（[PLAYWRIGHT-STUDY-SESSION-28](../integration/playwright/study-session.md#playwright-study-session-28)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`study-session-start`](./fixture/study-session-start.yaml)
@@ -384,6 +414,8 @@ Then:
 カテゴリ: `write`
 
 区分: 異常系
+
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 保存失敗後に巻き戻しを待たずロック解除し受信内容表示（[PLAYWRIGHT-STUDY-SESSION-38](../integration/playwright/study-session.md#playwright-study-session-38)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
 
 Given:
 

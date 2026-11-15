@@ -2,7 +2,17 @@ import type { KnipConfig } from "knip";
 
 const config: KnipConfig = {
   // These files are loaded externally; plugins discover the application, test, and other tooling entry points.
-  entry: ["steiger.config.ts"],
+  entry: [
+    "steiger.config.ts",
+    // Vite loads this HTML entry and these I/O facades through runtime resolve.alias values.
+    "test/integration/playwright/main.tsx",
+    "test/integration/playwright/firebase.ts",
+    "test/integration/playwright/card.ts",
+    "test/integration/playwright/study-answer.ts",
+    "test/integration/playwright/study-session.ts",
+    // The browser-side assertions import this response recorder through native ESM.
+    "test/integration/playwright/persistence.ts",
+  ],
   vitest: {
     config: ["vitest.config.ts", "vitest.mutation.config.ts"],
   },

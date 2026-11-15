@@ -4,7 +4,7 @@
 
 - Document persistence, subscription, and security-rule contracts here. Keep browser-facing user flows in `docs/test/e2e`; related E2E links are optional.
 - Follow the shared format and ID-only correspondence rules in `../../AGENTS.md`. Do not add implementation file or test-title mappings.
-- Use `FIRESTORE-<UPPERCASE-SPEC-FILENAME>-<NN>` IDs, starting at `01` in document order without gaps. Update indexes, anchors, and headings together; README files do not define case IDs.
+- ID は `FIRESTORE-<UPPERCASE-SPEC-FILENAME>-<NN>` とし、文書順に `01` から欠番なく採番する。仕様書内のケース一覧、anchor、見出しを同時に更新する。
 - Use the categories `read` (reads and subscriptions), `write` (a single save or authorization), and `batch` (multiple operations). Describe case-specific setup inline; do not add fixture files.
 - 正常系・異常系の区分は [共通規約](../../AGENTS.md#正常系異常系の区分) に従い、カテゴリとは別に明示する。
 - Parameterized inputs may share a case ID when all authentication actors, inputs, and expected results are documented.

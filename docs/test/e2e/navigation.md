@@ -48,6 +48,8 @@
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: Deck 一覧と Card 一覧の shortcut による遷移先表示とデータ無変更（[PLAYWRIGHT-DECK-LIST-49](../integration/playwright/deck-list.md#playwright-deck-list-49)、[PLAYWRIGHT-CARD-LIST-48](../integration/playwright/card-list.md#playwright-card-list-48)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
@@ -70,6 +72,8 @@ Then:
 カテゴリ: `read`
 
 区分: 正常系
+
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 閲覧の初期位置・表面・停止状態と再入場時のリセット（[PLAYWRIGHT-DECK-VIEW-09](../integration/playwright/deck-view.md#playwright-deck-view-09)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
 
 Given:
 
@@ -97,6 +101,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 閲覧の初期位置・表面・停止状態と再入場時のリセット（[PLAYWRIGHT-DECK-VIEW-09](../integration/playwright/deck-view.md#playwright-deck-view-09)）。置換実装後の E2E 目的: 匿名 Firestore cache からの reload 後の閲覧データ復元とクラウド非同期。
+
 Given:
 
 - Fixture: [`study-session-start-local`](./fixture/study-session-start-local.yaml)
@@ -122,6 +128,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 学習条件に制限されない全 Card の標準順閲覧（[PLAYWRIGHT-DECK-VIEW-10](../integration/playwright/deck-view.md#playwright-deck-view-10)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`study-filter`](./fixture/study-filter.yaml)
@@ -146,6 +154,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 学習条件に制限されない全 Card の標準順閲覧（[PLAYWRIGHT-DECK-VIEW-10](../integration/playwright/deck-view.md#playwright-deck-view-10)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`study-review-schedule`](./fixture/study-review-schedule.yaml)
@@ -169,6 +179,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 0枚の閲覧表示と一覧へ戻る遷移（[PLAYWRIGHT-DECK-VIEW-06](../integration/playwright/deck-view.md#playwright-deck-view-06)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`browse-filter`](./fixture/browse-filter.yaml)
@@ -190,6 +202,8 @@ Then:
 カテゴリ: `read`
 
 区分: 正常系
+
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 長い裏面のタッチ読書と左右の端からの退出（[PLAYWRIGHT-DECK-VIEW-12](../integration/playwright/deck-view.md#playwright-deck-view-12)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
 
 Given:
 
@@ -214,6 +228,8 @@ Then:
 カテゴリ: `read`
 
 区分: 正常系
+
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 閲覧の再生開始・停止・再開・手動移動・退出（[PLAYWRIGHT-DECK-VIEW-13](../integration/playwright/deck-view.md#playwright-deck-view-13)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
 
 Given:
 
@@ -241,6 +257,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 進捗スライダーと位置・本文の一致および標準キー操作（[PLAYWRIGHT-DECK-VIEW-14](../integration/playwright/deck-view.md#playwright-deck-view-14)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`study-session-start-local`](./fixture/study-session-start-local.yaml)
@@ -266,6 +284,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 表裏切替と裏面のリンク・入力部品の独立操作（[PLAYWRIGHT-DECK-VIEW-15](../integration/playwright/deck-view.md#playwright-deck-view-15)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`study-session-middle`](./fixture/study-session-middle.yaml)
@@ -290,6 +310,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 上下キー・drag と主ボタン以外の drag で移動・反転しない（[PLAYWRIGHT-DECK-VIEW-16](../integration/playwright/deck-view.md#playwright-deck-view-16)、[PLAYWRIGHT-CARD-PLAYER-21](../integration/playwright/deck-view.md#playwright-card-player-21)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`study-session-middle`](./fixture/study-session-middle.yaml)
@@ -312,6 +334,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 閲覧 Help の操作説明・背景 shortcut 抑止・フォーカス復帰（[PLAYWRIGHT-DECK-VIEW-17](../integration/playwright/deck-view.md#playwright-deck-view-17)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`study-session-middle`](./fixture/study-session-middle.yaml)
@@ -333,6 +357,8 @@ Then:
 カテゴリ: `read`
 
 区分: 正常系
+
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 現在 Card への編集リンクと裏面非表示・読み上げ・狭い画面（[PLAYWRIGHT-DECK-VIEW-18](../integration/playwright/deck-view.md#playwright-deck-view-18)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
 
 Given:
 
@@ -357,6 +383,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 間隔0で再生を無効にし Help の理由を案内（[PLAYWRIGHT-DECK-VIEW-19](../integration/playwright/deck-view.md#playwright-deck-view-19)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`study-session-middle`](./fixture/study-session-middle.yaml)
@@ -377,6 +405,8 @@ Then:
 カテゴリ: `read`
 
 区分: 正常系
+
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: Help 中の自動送り停止と閉じた後の再開（[PLAYWRIGHT-DECK-VIEW-20](../integration/playwright/deck-view.md#playwright-deck-view-20)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
 
 Given:
 
@@ -400,6 +430,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: view mode を保ったボタンと自動送りによる前進（[PLAYWRIGHT-DECK-VIEW-21](../integration/playwright/deck-view.md#playwright-deck-view-21)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`study-session-start`](./fixture/study-session-start.yaml)
@@ -420,6 +452,8 @@ Then:
 カテゴリ: `write`
 
 区分: 正常系
+
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 表示設定だけの変更と学習画面との共有（[PLAYWRIGHT-DECK-VIEW-22](../integration/playwright/deck-view.md#playwright-deck-view-22)）。置換実装後の E2E 目的: 表示設定の実 browser storage 自動保存と reload 後の学習画面への共有。
 
 Given:
 
@@ -447,6 +481,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: view mode の読書でジェスチャーによる移動を防止（[PLAYWRIGHT-DECK-VIEW-23](../integration/playwright/deck-view.md#playwright-deck-view-23)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`study-back-text-long`](./fixture/study-back-text-long.yaml)
@@ -469,6 +505,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: view mode 終了で誤反転せず通常の操作へ戻る（[PLAYWRIGHT-DECK-VIEW-24](../integration/playwright/deck-view.md#playwright-deck-view-24)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`study-session-start`](./fixture/study-session-start.yaml)
@@ -490,6 +528,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: view mode を保ったボタンと自動送りによる前進（[PLAYWRIGHT-DECK-VIEW-21](../integration/playwright/deck-view.md#playwright-deck-view-21)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`study-session-start`](./fixture/study-session-start.yaml)
@@ -510,6 +550,8 @@ Then:
 カテゴリ: `write`
 
 区分: 正常系
+
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 本文の shortcut とフォーカス対象の標準キー操作を分離（[PLAYWRIGHT-DECK-VIEW-25](../integration/playwright/deck-view.md#playwright-deck-view-25)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
 
 Given:
 
@@ -534,6 +576,8 @@ Then:
 
 区分: 異常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 未知ルートの案内から実 router で Deck 一覧へ戻る（[PLAYWRIGHT-NOT-FOUND-01](../integration/playwright/not-found.md#playwright-not-found-01)、[PLAYWRIGHT-NOT-FOUND-02](../integration/playwright/not-found.md#playwright-not-found-02)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`empty`](./fixture/empty.yaml)
@@ -555,6 +599,8 @@ Then:
 カテゴリ: `read`
 
 区分: 異常系
+
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 予期しない障害の最初の理由・診断と一つの復旧操作（[PLAYWRIGHT-APPLICATION-02](../integration/playwright/application.md#playwright-application-02)）。置換実装後の E2E 目的: 実runtime error/unhandled rejectionの検出とブラウザー診断保持、reload後の復旧。
 
 Given:
 
@@ -579,6 +625,8 @@ Then:
 カテゴリ: `read`
 
 区分: 異常系
+
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 起動失敗の案内、手動削除とデータ消失の説明、自動消去の抑止（[PLAYWRIGHT-APPLICATION-03](../integration/playwright/application.md#playwright-application-03)）。置換実装後の E2E 目的: 実PWA cacheの起動失敗とreload、保存領域・クラウドデータの保持。
 
 Given:
 
@@ -606,6 +654,8 @@ Then:
 
 区分: 異常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 保存済み言語を利用できない場合の英語の共通復旧案内（[PLAYWRIGHT-APPLICATION-05](../integration/playwright/application.md#playwright-application-05)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`empty`](./fixture/empty.yaml)
@@ -626,6 +676,8 @@ Then:
 カテゴリ: `read`
 
 区分: 異常系
+
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 個別処理済みの操作・画像失敗で共通復旧画面に置き換えない（[PLAYWRIGHT-APPLICATION-06](../integration/playwright/application.md#playwright-application-06)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
 
 Given:
 
@@ -648,6 +700,8 @@ Then:
 
 区分: 異常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 存在しない Deck の案内と一覧へ戻る遷移（[PLAYWRIGHT-DECK-VIEW-11](../integration/playwright/deck-view.md#playwright-deck-view-11)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`browse-filter`](./fixture/browse-filter.yaml)
@@ -669,6 +723,8 @@ Then:
 カテゴリ: `write`
 
 区分: 異常系
+
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 現在の言語・元の理由・削除操作の表示条件とReload要求（[PLAYWRIGHT-APPLICATION-01](../integration/playwright/application.md#playwright-application-01)）。置換実装後の E2E 目的: 実reload後に元のURL・認証・設定・匿名データを保持して復旧。
 
 Given:
 
@@ -694,6 +750,8 @@ Then:
 カテゴリ: `batch`
 
 区分: 異常系
+
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 消失警告・起動中表示・復旧操作の二重実行防止（[PLAYWRIGHT-APPLICATION-04](../integration/playwright/application.md#playwright-application-04)）。置換実装後の E2E 目的: 実originの全IndexedDB・localStorage・sessionStorage削除、SW/Cache保持と新認証起動。
 
 Given:
 
@@ -724,6 +782,8 @@ Then:
 
 区分: 異常系
 
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 削除待機・二重実行防止・削除失敗後の再試行案内（[PLAYWRIGHT-APPLICATION-07](../integration/playwright/application.md#playwright-application-07)）。置換実装後の E2E 目的: 実保存領域を削除できない場合の復旧と誤起動の防止。
+
 Given:
 
 - Fixture: [`empty`](./fixture/empty.yaml)
@@ -746,6 +806,8 @@ Then:
 カテゴリ: `batch`
 
 区分: 異常系
+
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 削除・起動の待機表示から起動失敗の復旧案内への切り替え（[PLAYWRIGHT-APPLICATION-08](../integration/playwright/application.md#playwright-application-08)）。置換実装後の E2E 目的: 実保存領域を削除した後のアプリ読み込み失敗と復旧。
 
 Given:
 

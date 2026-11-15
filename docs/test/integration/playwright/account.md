@@ -1,43 +1,43 @@
-# アカウント画面 Storybook 結合テスト仕様書
+# アカウント画面 Playwright 結合テスト仕様書
 
 ## 目的
 
-アカウント画面を入口とした `play` で、認証状態の表示、認証操作の結果、待機・失敗・画面再入場時の振る舞いを確認する。検証境界と実行前提は [AGENTS.md](./AGENTS.md) に従う。
+アカウント画面を入口とした Playwright テストで、認証状態の表示、認証操作の結果、待機・失敗・画面再入場時の振る舞いを確認する。検証境界と実行前提は [AGENTS.md](./AGENTS.md) に従う。
 
 ## テストケース
 
 | ID | カテゴリ | 区分 | テストケース |
 | --- | --- | --- | --- |
-| STORYBOOK-ACCOUNT-01 | interaction | 正常系 | [匿名アカウントからログインする](#storybook-account-01) |
-| STORYBOOK-ACCOUNT-02 | interaction | 正常系 | [ログアウトする](#storybook-account-02) |
-| STORYBOOK-ACCOUNT-03 | interaction | 正常系 | [ログイン待機中の操作を無効にする](#storybook-account-03) |
-| STORYBOOK-ACCOUNT-04 | interaction | 正常系 | [ログアウト待機中の操作を無効にする](#storybook-account-04) |
-| STORYBOOK-ACCOUNT-05 | render | 正常系 | [アカウント画面を日本語で表示する](#storybook-account-05) |
-| STORYBOOK-ACCOUNT-06 | render | 正常系 | [認証状態と UID を表示する](#storybook-account-06) |
-| STORYBOOK-ACCOUNT-07 | interaction | 正常系 | [先行操作の完了で別操作の待機を解除しない](#storybook-account-07) |
-| STORYBOOK-ACCOUNT-08 | interaction | 正常系 | [言語変更でプロフィール値を変えない](#storybook-account-08) |
-| STORYBOOK-ACCOUNT-09 | interaction | 正常系 | [ショートカットでホームへ戻る](#storybook-account-09) |
-| STORYBOOK-ACCOUNT-10 | interaction | 異常系 | [認証失敗後に再試行する](#storybook-account-10) |
-| STORYBOOK-ACCOUNT-11 | interaction | 異常系 | [表示済みの通知を画面離脱だけで消さない](#storybook-account-11) |
-| STORYBOOK-ACCOUNT-12 | interaction | 異常系 | [画面離脱後に届く失敗も通知する](#storybook-account-12) |
-| STORYBOOK-ACCOUNT-13 | interaction | 正常系 | [日本語で認証成功を通知する](#storybook-account-13) |
-| STORYBOOK-ACCOUNT-14 | interaction | 正常系 / 異常系 | [画面へ戻っても認証待機を保つ](#storybook-account-14) |
-| STORYBOOK-ACCOUNT-15 | interaction | 異常系 | [Card 保存結果とログアウト失敗を両方確認する](#storybook-account-15) |
-| STORYBOOK-ACCOUNT-16 | render | 正常系 | [ログイン前に匿名データの引き継ぎ条件を確認する](#storybook-account-16) |
-| STORYBOOK-ACCOUNT-17 | interaction | 正常系 | [認証状態の変更を受けて UID と連携状態を表示する](#storybook-account-17) |
-| STORYBOOK-ACCOUNT-18 | interaction | 正常系 | [認証待機中に変更した言語で完了を通知する](#storybook-account-18) |
-| STORYBOOK-ACCOUNT-19 | interaction | 正常系 | [ログインをキャンセルしても匿名のデータを表示する](#storybook-account-19) |
-| STORYBOOK-ACCOUNT-20 | interaction | 異常系 | [ログイン再試行中もエラー通知の元の期限を保つ](#storybook-account-20) |
-| STORYBOOK-ACCOUNT-21 | interaction | 異常系 | [同期が必要なログアウト拒否を案内する](#storybook-account-21) |
-| STORYBOOK-ACCOUNT-22 | interaction | 正常系 | [通知の言語変更でフォーカスと期限を保つ](#storybook-account-22) |
-| STORYBOOK-ACCOUNT-23 | interaction | 異常系 | [Account を開く認証初期化失敗を現在の言語で案内する](#storybook-account-23) |
-| STORYBOOK-ACCOUNT-24 | interaction | 正常系 | [Account の切り替え中に以前のデータを新しい本人へ表示しない](#storybook-account-24) |
-| STORYBOOK-ACCOUNT-25 | interaction | 異常系 | [アカウント切り替え中断後に現在の本人だけを利用する](#storybook-account-25) |
-| STORYBOOK-ACCOUNT-26 | interaction | 異常系 | [ログイン失敗後も匿名のデータを表示する](#storybook-account-26) |
+| PLAYWRIGHT-ACCOUNT-01 | interaction | 正常系 | [匿名アカウントからログインする](#playwright-account-01) |
+| PLAYWRIGHT-ACCOUNT-02 | interaction | 正常系 | [ログアウトする](#playwright-account-02) |
+| PLAYWRIGHT-ACCOUNT-03 | interaction | 正常系 | [ログイン待機中の操作を無効にする](#playwright-account-03) |
+| PLAYWRIGHT-ACCOUNT-04 | interaction | 正常系 | [ログアウト待機中の操作を無効にする](#playwright-account-04) |
+| PLAYWRIGHT-ACCOUNT-05 | render | 正常系 | [アカウント画面を日本語で表示する](#playwright-account-05) |
+| PLAYWRIGHT-ACCOUNT-06 | render | 正常系 | [認証状態と UID を表示する](#playwright-account-06) |
+| PLAYWRIGHT-ACCOUNT-07 | interaction | 正常系 | [先行操作の完了で別操作の待機を解除しない](#playwright-account-07) |
+| PLAYWRIGHT-ACCOUNT-08 | interaction | 正常系 | [言語変更でプロフィール値を変えない](#playwright-account-08) |
+| PLAYWRIGHT-ACCOUNT-09 | interaction | 正常系 | [ショートカットでホームへ戻る](#playwright-account-09) |
+| PLAYWRIGHT-ACCOUNT-10 | interaction | 異常系 | [認証失敗後に再試行する](#playwright-account-10) |
+| PLAYWRIGHT-ACCOUNT-11 | interaction | 異常系 | [表示済みの通知を画面離脱だけで消さない](#playwright-account-11) |
+| PLAYWRIGHT-ACCOUNT-12 | interaction | 異常系 | [画面離脱後に届く失敗も通知する](#playwright-account-12) |
+| PLAYWRIGHT-ACCOUNT-13 | interaction | 正常系 | [日本語で認証成功を通知する](#playwright-account-13) |
+| PLAYWRIGHT-ACCOUNT-14 | interaction | 正常系 / 異常系 | [画面へ戻っても認証待機を保つ](#playwright-account-14) |
+| PLAYWRIGHT-ACCOUNT-15 | interaction | 異常系 | [Card 保存結果とログアウト失敗を両方確認する](#playwright-account-15) |
+| PLAYWRIGHT-ACCOUNT-16 | render | 正常系 | [ログイン前に匿名データの引き継ぎ条件を確認する](#playwright-account-16) |
+| PLAYWRIGHT-ACCOUNT-17 | interaction | 正常系 | [認証状態の変更を受けて UID と連携状態を表示する](#playwright-account-17) |
+| PLAYWRIGHT-ACCOUNT-18 | interaction | 正常系 | [認証待機中に変更した言語で完了を通知する](#playwright-account-18) |
+| PLAYWRIGHT-ACCOUNT-19 | interaction | 正常系 | [ログインをキャンセルしても匿名のデータを表示する](#playwright-account-19) |
+| PLAYWRIGHT-ACCOUNT-20 | interaction | 異常系 | [ログイン再試行中もエラー通知の元の期限を保つ](#playwright-account-20) |
+| PLAYWRIGHT-ACCOUNT-21 | interaction | 異常系 | [同期が必要なログアウト拒否を案内する](#playwright-account-21) |
+| PLAYWRIGHT-ACCOUNT-22 | interaction | 正常系 | [通知の言語変更でフォーカスと期限を保つ](#playwright-account-22) |
+| PLAYWRIGHT-ACCOUNT-23 | interaction | 異常系 | [Account を開く認証初期化失敗を現在の言語で案内する](#playwright-account-23) |
+| PLAYWRIGHT-ACCOUNT-24 | interaction | 正常系 | [Account の切り替え中に以前のデータを新しい本人へ表示しない](#playwright-account-24) |
+| PLAYWRIGHT-ACCOUNT-25 | interaction | 異常系 | [アカウント切り替え中断後に現在の本人だけを利用する](#playwright-account-25) |
+| PLAYWRIGHT-ACCOUNT-26 | interaction | 異常系 | [ログイン失敗後も匿名のデータを表示する](#playwright-account-26) |
 
-<a id="storybook-account-01"></a>
+<a id="playwright-account-01"></a>
 
-### STORYBOOK-ACCOUNT-01 匿名アカウントからログインする
+### PLAYWRIGHT-ACCOUNT-01 [TODO] 匿名アカウントからログインする
 
 カテゴリ: `interaction`
 
@@ -55,9 +55,9 @@ Then:
 
 - ログインの成功通知が表示される。認証状態の変更が届くとログイン済みの表示へ変わる。
 
-<a id="storybook-account-02"></a>
+<a id="playwright-account-02"></a>
 
-### STORYBOOK-ACCOUNT-02 ログアウトする
+### PLAYWRIGHT-ACCOUNT-02 [TODO] ログアウトする
 
 カテゴリ: `interaction`
 
@@ -75,9 +75,9 @@ Then:
 
 - ログアウトの成功通知が表示される。匿名状態の通知が届くとログインの操作を利用できる。
 
-<a id="storybook-account-03"></a>
+<a id="playwright-account-03"></a>
 
-### STORYBOOK-ACCOUNT-03 ログイン待機中の操作を無効にする
+### PLAYWRIGHT-ACCOUNT-03 [TODO] ログイン待機中の操作を無効にする
 
 カテゴリ: `interaction`
 
@@ -95,9 +95,9 @@ Then:
 
 - 待機中の表示になり、同じログイン操作を再び実行できない。
 
-<a id="storybook-account-04"></a>
+<a id="playwright-account-04"></a>
 
-### STORYBOOK-ACCOUNT-04 ログアウト待機中の操作を無効にする
+### PLAYWRIGHT-ACCOUNT-04 [TODO] ログアウト待機中の操作を無効にする
 
 カテゴリ: `interaction`
 
@@ -115,9 +115,9 @@ Then:
 
 - 待機中の表示になり、同じログアウト操作を再び実行できない。
 
-<a id="storybook-account-05"></a>
+<a id="playwright-account-05"></a>
 
-### STORYBOOK-ACCOUNT-05 アカウント画面を日本語で表示する
+### PLAYWRIGHT-ACCOUNT-05 [TODO] アカウント画面を日本語で表示する
 
 カテゴリ: `render`
 
@@ -135,9 +135,9 @@ Then:
 
 - 見出しと操作名が日本語になり、ユーザーの表示名は翻訳されない。
 
-<a id="storybook-account-06"></a>
+<a id="playwright-account-06"></a>
 
-### STORYBOOK-ACCOUNT-06 認証状態と UID を表示する
+### PLAYWRIGHT-ACCOUNT-06 [TODO] 認証状態と UID を表示する
 
 カテゴリ: `render`
 
@@ -155,9 +155,9 @@ Then:
 
 - 匿名では Anonymous account、Not available、anonymous-user とログイン操作が表示される。ログイン済みでは Signed in with Google、Test User、linked-user とログアウト操作が表示される。
 
-<a id="storybook-account-07"></a>
+<a id="playwright-account-07"></a>
 
-### STORYBOOK-ACCOUNT-07 先行操作の完了で別操作の待機を解除しない
+### PLAYWRIGHT-ACCOUNT-07 [TODO] 先行操作の完了で別操作の待機を解除しない
 
 カテゴリ: `interaction`
 
@@ -175,9 +175,9 @@ Then:
 
 - ログインの完了だけではログアウト操作は有効にならず、ログアウト完了後に新しい匿名 UID と有効なログイン操作が表示される。
 
-<a id="storybook-account-08"></a>
+<a id="playwright-account-08"></a>
 
-### STORYBOOK-ACCOUNT-08 言語変更でプロフィール値を変えない
+### PLAYWRIGHT-ACCOUNT-08 [TODO] 言語変更でプロフィール値を変えない
 
 カテゴリ: `interaction`
 
@@ -195,9 +195,9 @@ Then:
 
 - 固定文言とログアウト操作は日本語へ変わり、Test User と linked-user はそのままである。
 
-<a id="storybook-account-09"></a>
+<a id="playwright-account-09"></a>
 
-### STORYBOOK-ACCOUNT-09 ショートカットでホームへ戻る
+### PLAYWRIGHT-ACCOUNT-09 [TODO] ショートカットでホームへ戻る
 
 カテゴリ: `interaction`
 
@@ -215,9 +215,9 @@ Then:
 
 - Deck 一覧画面に遷移し、Decks の見出しが表示される。
 
-<a id="storybook-account-10"></a>
+<a id="playwright-account-10"></a>
 
-### STORYBOOK-ACCOUNT-10 認証失敗後に再試行する
+### PLAYWRIGHT-ACCOUNT-10 [TODO] 認証失敗後に再試行する
 
 カテゴリ: `interaction`
 
@@ -235,9 +235,9 @@ Then:
 
 - 失敗時に操作に対応したエラーが表示され、再試行成功後はエラーが消えて成功通知が表示される。Account に留まるログアウト失敗は画面内に表示し、ログイン失敗の通知経路は変えない。
 
-<a id="storybook-account-11"></a>
+<a id="playwright-account-11"></a>
 
-### STORYBOOK-ACCOUNT-11 表示済みの通知を画面離脱だけで消さない
+### PLAYWRIGHT-ACCOUNT-11 [TODO] 表示済みの通知を画面離脱だけで消さない
 
 カテゴリ: `interaction`
 
@@ -255,9 +255,9 @@ Then:
 
 - Deck 一覧画面が表示され、表示済みの認証失敗通知が画面離脱だけでは消えない。
 
-<a id="storybook-account-12"></a>
+<a id="playwright-account-12"></a>
 
-### STORYBOOK-ACCOUNT-12 画面離脱後に届く失敗も通知する
+### PLAYWRIGHT-ACCOUNT-12 [TODO] 画面離脱後に届く失敗も通知する
 
 カテゴリ: `interaction`
 
@@ -275,9 +275,9 @@ Then:
 
 - ホームに留まったまま、元の操作に対応する認証失敗が通知される。
 
-<a id="storybook-account-13"></a>
+<a id="playwright-account-13"></a>
 
-### STORYBOOK-ACCOUNT-13 日本語で認証成功を通知する
+### PLAYWRIGHT-ACCOUNT-13 [TODO] 日本語で認証成功を通知する
 
 カテゴリ: `interaction`
 
@@ -295,9 +295,9 @@ Then:
 
 - 日本語の通知領域に「ログインしました。」が表示される。
 
-<a id="storybook-account-14"></a>
+<a id="playwright-account-14"></a>
 
-### STORYBOOK-ACCOUNT-14 画面へ戻っても認証待機を保つ
+### PLAYWRIGHT-ACCOUNT-14 [TODO] 画面へ戻っても認証待機を保つ
 
 カテゴリ: `interaction`
 
@@ -315,9 +315,9 @@ Then:
 
 - 戻った直後も対象操作は無効で、完了後は結果の通知と有効な操作が表示される。その後の再実行も完了できる。
 
-<a id="storybook-account-15"></a>
+<a id="playwright-account-15"></a>
 
-### STORYBOOK-ACCOUNT-15 Card 保存結果とログアウト失敗を両方確認する
+### PLAYWRIGHT-ACCOUNT-15 [TODO] Card 保存結果とログアウト失敗を両方確認する
 
 カテゴリ: `interaction`
 
@@ -340,9 +340,9 @@ Then:
 - 画面内の失敗は元の Account 訪問と本人に限り表示する。実際の画面移動や本人の変更後に再表示せず、一時的な認証確認から同じ本人へ戻る場合は維持する。
 - 各通知の閉じる操作には対象文言が説明として関連付けられる。通知の追加・置換・削除時に、変更していない文言の再通知を要求しない構造を持つ。
 
-<a id="storybook-account-16"></a>
+<a id="playwright-account-16"></a>
 
-### STORYBOOK-ACCOUNT-16 [TODO] ログイン前に匿名データの引き継ぎ条件を確認する
+### PLAYWRIGHT-ACCOUNT-16 [TODO] ログイン前に匿名データの引き継ぎ条件を確認する
 
 カテゴリ: `render`
 
@@ -360,9 +360,9 @@ Then:
 
 - 新規連携では匿名データを引き継ぎ、既存の別アカウントへのログインでは引き継がない旨を説明する。
 
-<a id="storybook-account-17"></a>
+<a id="playwright-account-17"></a>
 
-### STORYBOOK-ACCOUNT-17 [TODO] 認証状態の変更を受けて UID と連携状態を表示する
+### PLAYWRIGHT-ACCOUNT-17 [TODO] 認証状態の変更を受けて UID と連携状態を表示する
 
 カテゴリ: `interaction`
 
@@ -380,9 +380,9 @@ Then:
 
 - 成功を通知し、連携時は同じ UID と Google 連携済みの表示、ログアウト時は異なる UID と匿名状態の表示になる。該当する次の認証操作を利用できる。
 
-<a id="storybook-account-18"></a>
+<a id="playwright-account-18"></a>
 
-### STORYBOOK-ACCOUNT-18 [TODO] 認証待機中に変更した言語で完了を通知する
+### PLAYWRIGHT-ACCOUNT-18 [TODO] 認証待機中に変更した言語で完了を通知する
 
 カテゴリ: `interaction`
 
@@ -400,9 +400,9 @@ Then:
 
 - 現在の画面を維持し、日本語の成功通知を表示・読み上げする。
 
-<a id="storybook-account-19"></a>
+<a id="playwright-account-19"></a>
 
-### STORYBOOK-ACCOUNT-19 [TODO] ログインをキャンセルしても匿名のデータを表示する
+### PLAYWRIGHT-ACCOUNT-19 [TODO] ログインをキャンセルしても匿名のデータを表示する
 
 カテゴリ: `interaction`
 
@@ -420,9 +420,9 @@ Then:
 
 - 匿名状態を保って元の Deck と Card の表示・操作を利用でき、別アカウントへ遷移しない。認証操作の待機が解除される。
 
-<a id="storybook-account-20"></a>
+<a id="playwright-account-20"></a>
 
-### STORYBOOK-ACCOUNT-20 [TODO] ログイン再試行中もエラー通知の元の期限を保つ
+### PLAYWRIGHT-ACCOUNT-20 [TODO] ログイン再試行中もエラー通知の元の期限を保つ
 
 カテゴリ: `interaction`
 
@@ -440,9 +440,9 @@ Then:
 
 - 再試行開始だけでは通知を消さず、成功時には成功通知へ置き換える。応答前に元の表示開始から4秒が過ぎる場合はエラー通知だけを自動で消す。
 
-<a id="storybook-account-21"></a>
+<a id="playwright-account-21"></a>
 
-### STORYBOOK-ACCOUNT-21 [TODO] 同期が必要なログアウト拒否を案内する
+### PLAYWRIGHT-ACCOUNT-21 [TODO] 同期が必要なログアウト拒否を案内する
 
 カテゴリ: `interaction`
 
@@ -460,9 +460,9 @@ Then:
 
 - ログアウトせず、同期後の再操作を案内する。待機を解除して操作可能になり、同じアカウントの表示を保持する。
 
-<a id="storybook-account-22"></a>
+<a id="playwright-account-22"></a>
 
-### STORYBOOK-ACCOUNT-22 [TODO] 通知の言語変更でフォーカスと期限を保つ
+### PLAYWRIGHT-ACCOUNT-22 [TODO] 通知の言語変更でフォーカスと期限を保つ
 
 カテゴリ: `interaction`
 
@@ -480,9 +480,9 @@ Then:
 
 - 本文・成功表示・閉じるボタンの読み上げ名・通知の読み上げが英語へ変わる。閉じるボタンのフォーカスと最初の表示から4秒の期限を維持し、通知を重複させない。
 
-<a id="storybook-account-23"></a>
+<a id="playwright-account-23"></a>
 
-### STORYBOOK-ACCOUNT-23 [TODO] Account を開く認証初期化失敗を現在の言語で案内する
+### PLAYWRIGHT-ACCOUNT-23 [TODO] Account を開く認証初期化失敗を現在の言語で案内する
 
 カテゴリ: `interaction`
 
@@ -501,9 +501,9 @@ Then:
 - 現在の言語の見出し・説明・Reload の読み上げ名と元の失敗理由を表示し、認証・保存データの初期化で失敗し得る旨を案内する。
 - 再読み込みを要求でき、画面や操作を重複表示しない。実際のブラウザー再起動・認証成功はこの境界の結果としない。
 
-<a id="storybook-account-24"></a>
+<a id="playwright-account-24"></a>
 
-### STORYBOOK-ACCOUNT-24 [TODO] Account の切り替え中に以前のデータを新しい本人へ表示しない
+### PLAYWRIGHT-ACCOUNT-24 [TODO] Account の切り替え中に以前のデータを新しい本人へ表示しない
 
 カテゴリ: `interaction`
 
@@ -523,9 +523,9 @@ Then:
 - 確認と初期データの受領が完了するまでは起動中の案内を表示し、以前の Deck・Card・学習を次の本人のものとして操作できない。
 - 完了後は現在の本人のデータだけを表示し、直接開いた以前の Deck・Card・学習の URL からも利用できない。
 
-<a id="storybook-account-25"></a>
+<a id="playwright-account-25"></a>
 
-### STORYBOOK-ACCOUNT-25 [TODO] アカウント切り替え中断後に現在の本人だけを利用する
+### PLAYWRIGHT-ACCOUNT-25 [TODO] アカウント切り替え中断後に現在の本人だけを利用する
 
 カテゴリ: `interaction`
 
@@ -545,9 +545,9 @@ Then:
 - 元の本人が現在も利用中の場合は確認中表示に取り残されず、元の Deck・Card の閲覧・変更操作へ戻れる。
 - 別の本人へ変わった後や認証管理の終了後は、遅い失敗で以前の本人とデータを復活させない。
 
-<a id="storybook-account-26"></a>
+<a id="playwright-account-26"></a>
 
-### STORYBOOK-ACCOUNT-26 [TODO] ログイン失敗後も匿名のデータを表示する
+### PLAYWRIGHT-ACCOUNT-26 [TODO] ログイン失敗後も匿名のデータを表示する
 
 カテゴリ: `interaction`
 

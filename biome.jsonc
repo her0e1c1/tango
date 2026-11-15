@@ -149,7 +149,7 @@
     },
     {
       // Share Playwright diagnostics with #1015; Storybook uses its own interaction rules.
-      "includes": ["playwright.config.ts", "test/e2e/**/*.{ts,tsx}"],
+      "includes": ["playwright.config.ts", "playwright.integration.config.ts", "test/e2e/**/*.{ts,tsx}", "test/integration/playwright/**/*.{ts,tsx}"],
       "linter": {
         "rules": {
           "correctness": {

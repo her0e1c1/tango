@@ -72,7 +72,7 @@ Delegate independent reviews of the same commit to three reviewers: [simplicity]
 
 ### Given / When / Then Mapping
 
-- When adding or changing a test, mark the start of each phase with English `// Given: ...`, `// When: ...`, and `// Then: ...` comments (use `# Given: ...`, `# When: ...`, and `# Then: ...` in Python) so readers can trace the referenced specification's Given / When / Then to setup, actions, and assertions in code. Playwright E2E tests use named `test.step` blocks instead, following `test/e2e/AGENTS.md`, without duplicate phase comments.
+- When adding or changing a test, mark the start of each phase with English `// Given: ...`, `// When: ...`, and `// Then: ...` comments (use `# Given: ...`, `# When: ...`, and `# Then: ...` in Python) so readers can trace the referenced specification's Given / When / Then to setup, actions, and assertions in code. Playwright tests use named `test.step` blocks instead, following their test directory's instructions, without duplicate phase comments.
 - Given (setup) establishes the specification's preconditions, When (action) performs the operation or event under test, and Then (assertions) verifies the specified expected results. Calls that establish preconditions belong in Given even when they use the same update function as the action under test.
 - When fixtures, `beforeEach`, or helpers provide setup, make their role traceable from the phase comments or E2E steps. Keep assertions that check preconditions in Given and distinguish them from assertions of the expected results under test.
 - In parameterized tests, map each row's inputs and expected results to the appropriate phases. When a case repeats actions and assertions, repeat When / Then comments or E2E steps following the specification's sequence.
@@ -84,12 +84,13 @@ Delegate independent reviews of the same commit to three reviewers: [simplicity]
 - Each `it` or `it.each` title must include its specification ID. Update title references when specification IDs change. Parameterized rows may share an ID when their inputs and expected results are documented.
 - Update the corresponding specification when adding or changing a test, including regressions. Do not mock the Firestore boundary being verified. Distinguish Adapter validation from Rules authorization.
 
-### Storybook Integration Tests
+### Playwright Store Integration Tests
 
-- Verify public UI contracts from `docs/test/integration/storybook` with `play` functions in `test/integration/storybook/**/*.stories.tsx`. Keep component stories under `src` and avoid duplicating screen integration stories there.
-- Prefix the relevant `play` step labels with their specification IDs. A shared play may reference multiple IDs, and inherited plays may share the same IDs. Keep these references aligned with specification changes.
-- Test observable UI behavior with real composed components and forms. Mock only boundaries outside the contract, using story-side setup and public callback spies; do not add production interfaces solely for tests.
-- Update the corresponding specification when adding or changing a play, including regressions. Rendering-only stories and setup-only plays do not verify behavior; a callback notification does not prove persistence or navigation.
+- Verify UI and application contracts from `docs/test/integration/playwright` in `test/integration/playwright`. Start from prepared real application stores and exercise real Pages, models, actions, forms, routing, and notifications without connecting to Firestore.
+- Use the existing Playwright runner and a test-only Vite entry. Keep setup and external I/O substitutes on the test side; do not add production interfaces solely for tests or replace the Page, model, action, or state transition under test.
+- Begin each test title with its specification ID. Parameterized tests may share an ID when the complete input and result matrix is documented. Update the corresponding specification when changing a test.
+- A controlled I/O success or prepared store update does not prove real persistence, subscriptions, reconnection, or backend authorization. Verify those contracts with the existing Firestore integration layer and user-facing E2E journeys.
+- Storybook test specifications are retired. Keep unretired legacy plays and their existing runner/CI checks according to `test/integration/storybook/RETIREMENT.md` until executable Playwright equivalents prove the same behavior and variants. Legacy labels do not implement Playwright specifications. Preserve unrelated visual stories, decorators, and documentation.
 
 ### Other Unit and Integration Tests
 

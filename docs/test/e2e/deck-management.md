@@ -28,6 +28,8 @@ Deck の作成・編集・削除と、重複しない再試行を確認する。
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 高さ360pxの削除確認・フォーカス・取消し・学習無変更（[PLAYWRIGHT-DECK-LIST-40](../integration/playwright/deck-list.md#playwright-deck-list-40)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`study-session-middle`](./fixture/study-session-middle.yaml)
@@ -54,6 +56,8 @@ Then:
 カテゴリ: `read`
 
 区分: 正常系
+
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 高さ640pxの削除確認・フォーカス・取消し・学習無変更（[PLAYWRIGHT-DECK-LIST-40](../integration/playwright/deck-list.md#playwright-deck-list-40)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
 
 Given:
 
@@ -82,6 +86,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 通知変化中も未保存の離脱確認と編集値を保持（[PLAYWRIGHT-DECK-EDIT-06](../integration/playwright/deck-edit.md#playwright-deck-edit-06)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`deck-unsaved-navigation`](./fixture/deck-unsaved-navigation.yaml)
@@ -104,6 +110,8 @@ Then:
 カテゴリ: `read`
 
 区分: 正常系
+
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 編集継続後の再離脱で下書き破棄・単一遷移（[PLAYWRIGHT-DECK-EDIT-07](../integration/playwright/deck-edit.md#playwright-deck-edit-07)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
 
 Given:
 
@@ -128,6 +136,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 空Deckの作成成功通知・一覧と編集画面の入力値（[PLAYWRIGHT-DECK-CREATE-01](../integration/playwright/deck-create.md#playwright-deck-create-01)、[PLAYWRIGHT-DECK-CREATE-05](../integration/playwright/deck-create.md#playwright-deck-create-05)、[PLAYWRIGHT-DECK-EDIT-01](../integration/playwright/deck-edit.md#playwright-deck-edit-01)）。置換実装後の E2E 目的: 通常アカウントの実保存・reload/同期後の単一Deckと旧値false。
+
 Given:
 
 - Fixture: [`empty`](./fixture/empty.yaml)
@@ -151,6 +161,8 @@ Then:
 カテゴリ: `write`
 
 区分: 正常系
+
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 匿名で保存先選択なしに作成結果を通知・表示（[PLAYWRIGHT-DECK-CREATE-05](../integration/playwright/deck-create.md#playwright-deck-create-05)）。置換実装後の E2E 目的: 匿名cache書込の非待機・reload復元・クラウド未追加。
 
 Given:
 
@@ -178,6 +190,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 名前・表示形式の変更反映と旧設定・本文の保持（[PLAYWRIGHT-DECK-EDIT-02](../integration/playwright/deck-edit.md#playwright-deck-edit-02)、[PLAYWRIGHT-DECK-EDIT-08](../integration/playwright/deck-edit.md#playwright-deck-edit-08)）。置換実装後の E2E 目的: 編集内容・旧改行変換値・Card本文の実保存とreload復元。
+
 Given:
 
 - Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
@@ -200,6 +214,8 @@ Then:
 カテゴリ: `batch`
 
 区分: 正常系
+
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 削除成功通知と対象/他Deckの操作可否（[PLAYWRIGHT-DECK-LIST-41](../integration/playwright/deck-list.md#playwright-deck-list-41)）。置換実装後の E2E 目的: 実削除の永続化・未キャッシュCardの利用拒否・session再開不可。
 
 Given:
 
@@ -228,6 +244,8 @@ Then:
 
 区分: 異常系
 
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 保留後の拒否で入力保持・失敗通知・利用不可（[PLAYWRIGHT-DECK-CREATE-02](../integration/playwright/deck-create.md#playwright-deck-create-02)、[PLAYWRIGHT-DECK-CREATE-06](../integration/playwright/deck-create.md#playwright-deck-create-06)）。置換実装後の E2E 目的: 実Firestoreのlocal反映後の拒否・rollbackと反復書込なし。
+
 Given:
 
 - Fixture: [`empty`](./fixture/empty.yaml)
@@ -251,6 +269,8 @@ Then:
 カテゴリ: `batch`
 
 区分: 異常系
+
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 削除失敗後に確認を開き直し再試行（[PLAYWRIGHT-DECK-LIST-42](../integration/playwright/deck-list.md#playwright-deck-list-42)）。置換実装後の E2E 目的: 実Firestoreの拒否とrollback後の再削除・関連データ利用拒否。
 
 Given:
 
@@ -277,6 +297,8 @@ Then:
 カテゴリ: `batch`
 
 区分: 異常系
+
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 削除と後処理の別結果・待機解除・失敗通知（[PLAYWRIGHT-DECK-LIST-43](../integration/playwright/deck-list.md#playwright-deck-list-43)）。置換実装後の E2E 目的: 削除永続化・後処理拒否後のreload・未キャッシュCard利用拒否。
 
 Given:
 

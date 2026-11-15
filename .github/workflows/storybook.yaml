@@ -35,6 +35,10 @@ jobs:
       - name: Run Storybook tests
         run: mise run test-storybook
 
+      # Keep legacy regression checks until their Playwright replacements are verified.
+      - name: Run Playwright store integration tests
+        run: npm run test:playwright
+
       - name: Upload Storybook diagnostics
         if: ${{ failure() }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -43,4 +47,5 @@ jobs:
           path: |
             debug-storybook.log
             test-results/storybook/
+            test-results/playwright/
           if-no-files-found: ignore

@@ -1,28 +1,28 @@
-# Deck 編集画面 Storybook 結合テスト仕様書
+# Deck 編集画面 Playwright 結合テスト仕様書
 
 ## 目的
 
-Deck 編集画面を入口とした `play` で、既存 Deck の表示・編集、保存失敗時の入力保持、削除確認と取消しを確認する。検証境界と実行前提は [AGENTS.md](./AGENTS.md) に従う。
+Deck 編集画面を入口とした Playwright テストで、既存 Deck の表示・編集、保存失敗時の入力保持、削除確認と取消しを確認する。検証境界と実行前提は [AGENTS.md](./AGENTS.md) に従う。
 
 ## テストケース
 
 | ID | カテゴリ | 区分 | テストケース |
 | --- | --- | --- | --- |
-| STORYBOOK-DECK-FORM-04 | interaction | 正常系 | [確認して Deck を削除する](#storybook-deck-form-04) |
-| STORYBOOK-DECK-FORM-05 | interaction | 正常系 | [削除を取り消して編集を続ける](#storybook-deck-form-05) |
-| STORYBOOK-DECK-FORM-06 | interaction | 正常系 | [削除処理中は再確定と取消しを受け付けない](#storybook-deck-form-06) |
-| STORYBOOK-DECK-EDIT-01 | render | 正常系 | [選んだ Deck の保存済み内容を編集する](#storybook-deck-edit-01) |
-| STORYBOOK-DECK-EDIT-02 | interaction | 正常系 | [変更した名前を一覧へ反映する](#storybook-deck-edit-02) |
-| STORYBOOK-DECK-EDIT-03 | interaction | 異常系 | [保存失敗後も編集値を保持する](#storybook-deck-edit-03) |
-| STORYBOOK-DECK-EDIT-04 | interaction | 異常系 | [空欄と空白のみの名前に現在の言語でエラーを表示する](#storybook-deck-edit-04) |
-| STORYBOOK-DECK-EDIT-05 | interaction | 異常系 | [表示中の名前エラーを言語変更に追従させる](#storybook-deck-edit-05) |
-| STORYBOOK-DECK-EDIT-06 | interaction | 正常系 | [通知が変わっても未保存の Deck 編集を続ける](#storybook-deck-edit-06) |
-| STORYBOOK-DECK-EDIT-07 | interaction | 正常系 | [編集を続けた後の再離脱で変更を破棄する](#storybook-deck-edit-07) |
-| STORYBOOK-DECK-EDIT-08 | interaction | 正常系 | [表示形式と名前の変更を反映し非編集の内容を保つ](#storybook-deck-edit-08) |
+| PLAYWRIGHT-DECK-FORM-04 | interaction | 正常系 | [確認して Deck を削除する](#playwright-deck-form-04) |
+| PLAYWRIGHT-DECK-FORM-05 | interaction | 正常系 | [削除を取り消して編集を続ける](#playwright-deck-form-05) |
+| PLAYWRIGHT-DECK-FORM-06 | interaction | 正常系 | [削除処理中は再確定と取消しを受け付けない](#playwright-deck-form-06) |
+| PLAYWRIGHT-DECK-EDIT-01 | render | 正常系 | [選んだ Deck の保存済み内容を編集する](#playwright-deck-edit-01) |
+| PLAYWRIGHT-DECK-EDIT-02 | interaction | 正常系 | [変更した名前を一覧へ反映する](#playwright-deck-edit-02) |
+| PLAYWRIGHT-DECK-EDIT-03 | interaction | 異常系 | [保存失敗後も編集値を保持する](#playwright-deck-edit-03) |
+| PLAYWRIGHT-DECK-EDIT-04 | interaction | 異常系 | [空欄と空白のみの名前に現在の言語でエラーを表示する](#playwright-deck-edit-04) |
+| PLAYWRIGHT-DECK-EDIT-05 | interaction | 異常系 | [表示中の名前エラーを言語変更に追従させる](#playwright-deck-edit-05) |
+| PLAYWRIGHT-DECK-EDIT-06 | interaction | 正常系 | [通知が変わっても未保存の Deck 編集を続ける](#playwright-deck-edit-06) |
+| PLAYWRIGHT-DECK-EDIT-07 | interaction | 正常系 | [編集を続けた後の再離脱で変更を破棄する](#playwright-deck-edit-07) |
+| PLAYWRIGHT-DECK-EDIT-08 | interaction | 正常系 | [表示形式と名前の変更を反映し非編集の内容を保つ](#playwright-deck-edit-08) |
 
-<a id="storybook-deck-form-04"></a>
+<a id="playwright-deck-form-04"></a>
 
-### STORYBOOK-DECK-FORM-04 確認して Deck を削除する
+### PLAYWRIGHT-DECK-FORM-04 [TODO] 確認して Deck を削除する
 
 カテゴリ: `interaction`
 
@@ -40,9 +40,9 @@ Then:
 
 - 確認画面が閉じ、一覧に戻ると削除対象の Deck が表示されない。他の Deck は残る。
 
-<a id="storybook-deck-form-05"></a>
+<a id="playwright-deck-form-05"></a>
 
-### STORYBOOK-DECK-FORM-05 削除を取り消して編集を続ける
+### PLAYWRIGHT-DECK-FORM-05 [TODO] 削除を取り消して編集を続ける
 
 カテゴリ: `interaction`
 
@@ -60,9 +60,9 @@ Then:
 
 - 確認画面が閉じ、同じ Deck の編集画面と入力が残り、削除成功の表示は出ない。
 
-<a id="storybook-deck-form-06"></a>
+<a id="playwright-deck-form-06"></a>
 
-### STORYBOOK-DECK-FORM-06 削除処理中は再確定と取消しを受け付けない
+### PLAYWRIGHT-DECK-FORM-06 [TODO] 削除処理中は再確定と取消しを受け付けない
 
 カテゴリ: `interaction`
 
@@ -80,9 +80,9 @@ Then:
 
 - 処理中の表示と確認画面が保たれ、確定と取消しは操作できない。
 
-<a id="storybook-deck-edit-01"></a>
+<a id="playwright-deck-edit-01"></a>
 
-### STORYBOOK-DECK-EDIT-01 選んだ Deck の保存済み内容を編集する
+### PLAYWRIGHT-DECK-EDIT-01 [TODO] 選んだ Deck の保存済み内容を編集する
 
 カテゴリ: `render`
 
@@ -100,9 +100,9 @@ Then:
 
 - 対象の名前とカテゴリが入力欄に表示され、他の Deck の値は混ざらない。
 
-<a id="storybook-deck-edit-02"></a>
+<a id="playwright-deck-edit-02"></a>
 
-### STORYBOOK-DECK-EDIT-02 変更した名前を一覧へ反映する
+### PLAYWRIGHT-DECK-EDIT-02 [TODO] 変更した名前を一覧へ反映する
 
 カテゴリ: `interaction`
 
@@ -120,9 +120,9 @@ Then:
 
 - 対象の名前が Renamed deck になり、他の Deck の名前は変わらない。
 
-<a id="storybook-deck-edit-03"></a>
+<a id="playwright-deck-edit-03"></a>
 
-### STORYBOOK-DECK-EDIT-03 保存失敗後も編集値を保持する
+### PLAYWRIGHT-DECK-EDIT-03 [TODO] 保存失敗後も編集値を保持する
 
 カテゴリ: `interaction`
 
@@ -140,9 +140,9 @@ Then:
 
 - 失敗が表示され、変更中の名前が残り、再試行できる。
 
-<a id="storybook-deck-edit-04"></a>
+<a id="playwright-deck-edit-04"></a>
 
-### STORYBOOK-DECK-EDIT-04 空欄と空白のみの名前に現在の言語でエラーを表示する
+### PLAYWRIGHT-DECK-EDIT-04 [TODO] 空欄と空白のみの名前に現在の言語でエラーを表示する
 
 カテゴリ: `interaction`
 
@@ -161,9 +161,9 @@ Then:
 - 英語では `Deck name is required.`、日本語では `デッキ名は必須です。` が表示され、名前の入力欄は不正な値としてこのエラーを説明に持つ。
 - 名前と表示形式の入力が保持され、保存先への操作は開始されない。
 
-<a id="storybook-deck-edit-05"></a>
+<a id="playwright-deck-edit-05"></a>
 
-### STORYBOOK-DECK-EDIT-05 表示中の名前エラーを言語変更に追従させる
+### PLAYWRIGHT-DECK-EDIT-05 [TODO] 表示中の名前エラーを言語変更に追従させる
 
 カテゴリ: `interaction`
 
@@ -182,9 +182,9 @@ Then:
 - 表示中のエラーと入力欄の説明が、日本語では `デッキ名は必須です。`、英語では `Deck name is required.` に切り替わる。
 - 同じ名前入力欄、エラーとの関連付け、フォーカス、名前と表示形式の入力が保持され、保存先への操作は開始されない。
 
-<a id="storybook-deck-edit-06"></a>
+<a id="playwright-deck-edit-06"></a>
 
-### STORYBOOK-DECK-EDIT-06 [TODO] 通知が変わっても未保存の Deck 編集を続ける
+### PLAYWRIGHT-DECK-EDIT-06 [TODO] 通知が変わっても未保存の Deck 編集を続ける
 
 カテゴリ: `interaction`
 
@@ -203,9 +203,9 @@ Then:
 - 確認操作は通知に覆われず、通知の変化で Keep editing のフォーカスを失わない。
 - 離脱を取り消し、同じ編集画面と変更中の名前を維持する。
 
-<a id="storybook-deck-edit-07"></a>
+<a id="playwright-deck-edit-07"></a>
 
-### STORYBOOK-DECK-EDIT-07 [TODO] 編集を続けた後の再離脱で変更を破棄する
+### PLAYWRIGHT-DECK-EDIT-07 [TODO] 編集を続けた後の再離脱で変更を破棄する
 
 カテゴリ: `interaction`
 
@@ -223,9 +223,9 @@ Then:
 
 - 一覧へ一度だけ遷移し、対象 Deck の名前は変更前の値で表示される。
 
-<a id="storybook-deck-edit-08"></a>
+<a id="playwright-deck-edit-08"></a>
 
-### STORYBOOK-DECK-EDIT-08 [TODO] 表示形式と名前の変更を反映し非編集の内容を保つ
+### PLAYWRIGHT-DECK-EDIT-08 [TODO] 表示形式と名前の変更を反映し非編集の内容を保つ
 
 カテゴリ: `interaction`
 

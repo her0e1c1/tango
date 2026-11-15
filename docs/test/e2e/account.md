@@ -36,6 +36,8 @@
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: ログイン前の匿名データ引き継ぎ条件の説明（[PLAYWRIGHT-ACCOUNT-16](../integration/playwright/account.md#playwright-account-16)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`study-session-start-local`](./fixture/study-session-start-local.yaml)
@@ -56,6 +58,8 @@ Then:
 カテゴリ: `batch`
 
 区分: 正常系
+
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 成功応答と認証状態の通知による同一 UID・Google 連携表示（[PLAYWRIGHT-ACCOUNT-17](../integration/playwright/account.md#playwright-account-17)）。置換実装後の E2E 目的: 実 Auth emulator の新規 Google 連携で匿名 UID が変わらない契約。
 
 Given:
 
@@ -80,6 +84,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 認証完了後の新しい匿名 UID と操作表示（[PLAYWRIGHT-ACCOUNT-17](../integration/playwright/account.md#playwright-account-17)）。置換実装後の E2E 目的: 実ログアウト後の別匿名 UID の確立と同期済み状態からの切り替え。
+
 Given:
 
 - Fixture: [`google-study-session-middle`](./fixture/google-study-session-middle.yaml)
@@ -102,6 +108,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 認証待機中に変更した現在の言語で完了を表示・読み上げ（[PLAYWRIGHT-ACCOUNT-18](../integration/playwright/account.md#playwright-account-18)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`empty`](./fixture/empty.yaml)
@@ -122,6 +130,8 @@ Then:
 カテゴリ: `batch`
 
 区分: 正常系
+
+関連仕様: E2E維持。E2E の目的: 匿名 Deck・Card の連携後の再読み込みと実同期。
 
 Given:
 
@@ -144,6 +154,8 @@ Then:
 カテゴリ: `batch`
 
 区分: 正常系
+
+関連仕様: E2E維持。E2E の目的: 匿名学習位置を連携後の reload と同期先で復元。
 
 Given:
 
@@ -168,6 +180,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: E2E維持。E2E の目的: 匿名学習結果が連携後の本人の記録として同期される契約。
+
 Given:
 
 - Fixture: [`study-session-start-local`](./fixture/study-session-start-local.yaml)
@@ -191,6 +205,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 認証 gate が新しい本人のデータの受領前に以前の内容を表示しない（[PLAYWRIGHT-ACCOUNT-24](../integration/playwright/account.md#playwright-account-24)）。置換実装後の E2E 目的: 実認証と本人別購読によるデータの切り替え・匿名データを引き継がない契約。
+
 Given:
 
 - Fixture: [`study-session-start-local`](./fixture/study-session-start-local.yaml)
@@ -212,6 +228,8 @@ Then:
 カテゴリ: `batch`
 
 区分: 正常系
+
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: キャンセル応答後も同じ匿名状態と既存 Deck・Card の画面操作を維持（[PLAYWRIGHT-ACCOUNT-19](../integration/playwright/account.md#playwright-account-19)）。置換実装後の E2E 目的: 実 Auth popup のキャンセル後も匿名認証と保存データを維持。
 
 Given:
 
@@ -235,6 +253,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 別 UID への切り替え中と完了後に以前のデータを表示・操作させない（[PLAYWRIGHT-ACCOUNT-24](../integration/playwright/account.md#playwright-account-24)）。置換実装後の E2E 目的: 実ログアウトで本人別の購読・cacheを切り替え、reload後も元の学習を再開できない契約。
+
 Given:
 
 - Fixture: [`google-study-session-middle`](./fixture/google-study-session-middle.yaml)
@@ -257,6 +277,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 認証確認中・初期データ受領前の表示を gate する（[PLAYWRIGHT-ACCOUNT-24](../integration/playwright/account.md#playwright-account-24)）。置換実装後の E2E 目的: 実認証切り替えと購読の停止・再開を通じた本人別データの分離。
+
 Given:
 
 - Fixture: [`google-study-session-middle`](./fixture/google-study-session-middle.yaml)
@@ -277,6 +299,8 @@ Then:
 カテゴリ: `batch`
 
 区分: 正常系
+
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 通知の翻訳・読み上げ更新でフォーカスと元の4秒期限を保つ（[PLAYWRIGHT-ACCOUNT-22](../integration/playwright/account.md#playwright-account-22)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
 
 Given:
 
@@ -301,6 +325,8 @@ Then:
 
 区分: 異常系
 
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 認証初期化失敗の案内と Reload 操作を重複表示しない（[PLAYWRIGHT-ACCOUNT-23](../integration/playwright/account.md#playwright-account-23)）。置換実装後の E2E 目的: 実ブラウザー reload 後に認証を再初期化し Deck 一覧へ復旧。
+
 Given:
 
 - Fixture: [`empty`](./fixture/empty.yaml)
@@ -322,6 +348,8 @@ Then:
 カテゴリ: `read`
 
 区分: 異常系
+
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 初回匿名認証失敗の理由と復旧案内を現在の言語で表示（[PLAYWRIGHT-ACCOUNT-23](../integration/playwright/account.md#playwright-account-23)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
 
 Given:
 
@@ -346,6 +374,8 @@ Then:
 
 区分: 異常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: ログイン失敗後の再試行でエラーを成功通知へ置き換え、連携表示へ切り替える（[PLAYWRIGHT-ACCOUNT-10](../integration/playwright/account.md#playwright-account-10)、[PLAYWRIGHT-ACCOUNT-17](../integration/playwright/account.md#playwright-account-17)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`empty`](./fixture/empty.yaml)
@@ -367,6 +397,8 @@ Then:
 カテゴリ: `batch`
 
 区分: 異常系
+
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 認証失敗後も同じ匿名状態と既存 Deck・Card の画面操作を維持（[PLAYWRIGHT-ACCOUNT-26](../integration/playwright/account.md#playwright-account-26)）。置換実装後の E2E 目的: 実 Auth 認証失敗後の匿名認証と保存データの維持。
 
 Given:
 
@@ -390,6 +422,8 @@ Then:
 
 区分: 異常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 再試行開始時もエラー通知を保持し、成功または元の期限で切り替える（[PLAYWRIGHT-ACCOUNT-20](../integration/playwright/account.md#playwright-account-20)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`empty`](./fixture/empty.yaml)
@@ -412,6 +446,8 @@ Then:
 
 区分: 異常系
 
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 未同期を理由とするログアウト拒否の案内と操作復旧（[PLAYWRIGHT-ACCOUNT-21](../integration/playwright/account.md#playwright-account-21)）。置換実装後の E2E 目的: 実 Firestore cache の pending writes を検出し、未同期時の認証切り替えを拒否。
+
 Given:
 
 - Fixture: [`google-study-session-middle`](./fixture/google-study-session-middle.yaml)
@@ -432,6 +468,8 @@ Then:
 カテゴリ: `batch`
 
 区分: 異常系
+
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 切り替え中断後の本人復帰と古い失敗による別本人への巻き戻し防止（[PLAYWRIGHT-ACCOUNT-25](../integration/playwright/account.md#playwright-account-25)）。置換実装後の E2E 目的: 実認証準備・ネットワーク停止失敗後も元の購読・書き込み・同期を継続できる契約。
 
 Given:
 

@@ -26,6 +26,8 @@
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 同じCardの表面を選択して裏面表示（[PLAYWRIGHT-STUDY-SESSION-21](../integration/playwright/study-session.md#playwright-study-session-21)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`study-session-start`](./fixture/study-session-start.yaml)
@@ -48,6 +50,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 裏面本文をドラッグ選択して状態維持（[PLAYWRIGHT-STUDY-SESSION-21](../integration/playwright/study-session.md#playwright-study-session-21)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`study-session-start`](./fixture/study-session-start.yaml)
@@ -69,6 +73,8 @@ Then:
 カテゴリ: `read`
 
 区分: 正常系
+
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 操作領域OFFでは裏面タップで同Cardの表面へ戻る（[PLAYWRIGHT-STUDY-SESSION-21](../integration/playwright/study-session.md#playwright-study-session-21)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
 
 Given:
 
@@ -93,6 +99,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 裏面スクロールで状態を変えず下側を読む（[PLAYWRIGHT-STUDY-SESSION-22](../integration/playwright/study-session.md#playwright-study-session-22)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`study-back-text-long`](./fixture/study-back-text-long.yaml)
@@ -114,6 +122,8 @@ Then:
 カテゴリ: `read`
 
 区分: 正常系
+
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 幅320pxで裏面本文を全幅表示し左右領域を重ねる（[PLAYWRIGHT-STUDY-SESSION-22](../integration/playwright/study-session.md#playwright-study-session-22)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
 
 Given:
 
@@ -137,6 +147,8 @@ Then:
 カテゴリ: `read`
 
 区分: 正常系
+
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 左領域のホイールと右端scrollbarで裏面を読み誤操作しない（[PLAYWRIGHT-STUDY-SESSION-22](../integration/playwright/study-session.md#playwright-study-session-22)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
 
 Given:
 
@@ -165,6 +177,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 右領域のタッチと右端scrollbarで裏面を読み誤操作しない（[PLAYWRIGHT-STUDY-SESSION-22](../integration/playwright/study-session.md#playwright-study-session-22)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`study-back-text-overlays-long`](./fixture/study-back-text-overlays-long.yaml)
@@ -192,6 +206,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 左裏面領域のGood割当と次表面へ一つ進む操作（[PLAYWRIGHT-STUDY-SESSION-23](../integration/playwright/study-session.md#playwright-study-session-23)、[PLAYWRIGHT-STUDY-SESSION-25](../integration/playwright/study-session.md#playwright-study-session-25)）。置換実装後の E2E 目的: Goodの回答・記憶状態・最終復習と位置の実保存。
+
 Given:
 
 - Fixture: [`study-back-text-overlays`](./fixture/study-back-text-overlays.yaml)
@@ -216,6 +232,8 @@ Then:
 カテゴリ: `write`
 
 区分: 正常系
+
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 右裏面領域のAgain割当と次表面へ一つ進む操作（[PLAYWRIGHT-STUDY-SESSION-23](../integration/playwright/study-session.md#playwright-study-session-23)、[PLAYWRIGHT-STUDY-SESSION-25](../integration/playwright/study-session.md#playwright-study-session-25)）。置換実装後の E2E 目的: Againの回答・記憶状態・最終復習と位置の実保存。
 
 Given:
 

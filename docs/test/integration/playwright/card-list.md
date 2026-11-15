@@ -1,82 +1,83 @@
-# Card 一覧画面 Storybook 結合テスト仕様書
+# Card 一覧画面 Playwright 結合テスト仕様書
 
 ## 目的
 
-Card 一覧画面を入口とした `play` で、対象 Deck の一覧、閲覧フィルター、タグ、一行ごとの操作と空状態を確認する。学習条件とは別の閲覧条件を扱う。検証境界と実行前提は [AGENTS.md](./AGENTS.md) に従う。
+Card 一覧画面を入口とした Playwright テストで、対象 Deck の一覧、閲覧フィルター、タグ、一行ごとの操作と空状態を確認する。学習条件とは別の閲覧条件を扱う。検証境界と実行前提は [AGENTS.md](./AGENTS.md) に従う。
 
 ## テストケース
 
 | ID | カテゴリ | 区分 | テストケース |
 | --- | --- | --- | --- |
-| STORYBOOK-CARD-LIST-01 | interaction | 正常系 | [Card 作成画面を開く](#storybook-card-list-01) |
-| STORYBOOK-CARD-LIST-02 | render | 正常系 | [Card 未作成の空状態を表示する](#storybook-card-list-02) |
-| STORYBOOK-CARD-LIST-03 | render | 正常系 | [フィルターによる0件状態を表示する](#storybook-card-list-03) |
-| STORYBOOK-CARD-LIST-04 | render | 正常系 | [学習の復習期限で閲覧を0件にしない](#storybook-card-list-04) |
-| STORYBOOK-CARD-LIST-05 | interaction | 正常系 | [選んだ Card を閲覧する](#storybook-card-list-05) |
-| STORYBOOK-CARD-LIST-06 | interaction | 正常系 | [選択タグを解除して一覧を更新する](#storybook-card-list-06) |
-| STORYBOOK-CARD-LIST-07 | interaction | 正常系 | [Card の拡大表示を閉じる](#storybook-card-list-07) |
-| STORYBOOK-CARD-LIST-08 | interaction | 正常系 | [標準順に戻す](#storybook-card-list-08) |
-| STORYBOOK-CARD-LIST-09 | interaction | 正常系 | [メニューから Card を編集する](#storybook-card-list-09) |
-| STORYBOOK-CARD-LIST-10 | render | 正常系 | [空の理由を断定できない間は誤案内しない](#storybook-card-list-10) |
-| STORYBOOK-CARD-LIST-11 | render | 正常系 | [長い選択タグの名前を確認できる](#storybook-card-list-11) |
-| STORYBOOK-CARD-LIST-12 | interaction | 正常系 | [タグ解除後に残るタグへフォーカスを移す](#storybook-card-list-12) |
-| STORYBOOK-CARD-LIST-13 | interaction | 正常系 | [最後のタグ解除後はフィルターへ戻る](#storybook-card-list-13) |
-| STORYBOOK-CARD-LIST-14 | interaction | 正常系 | [Tab 移動だけでは選択を変えない](#storybook-card-list-14) |
-| STORYBOOK-CARD-LIST-15 | interaction | 正常系 | [メニューを一つに保ち対象の削除で閉じる](#storybook-card-list-15) |
-| STORYBOOK-CARD-LIST-16 | interaction | 正常系 | [並べ替え後も選んだ Card を操作する](#storybook-card-list-16) |
-| STORYBOOK-CARD-LIST-17 | interaction | 正常系 | [空状態から Card 作成を始める](#storybook-card-list-17) |
-| STORYBOOK-CARD-LIST-18 | interaction | 正常系 | [0件状態からフィルターを解除する](#storybook-card-list-18) |
-| STORYBOOK-CARD-LIST-19 | interaction | 正常系 | [行の編集操作で対象を取り違えない](#storybook-card-list-19) |
-| STORYBOOK-CARD-LIST-20 | render | 正常系 | [処理中の Card を操作させない](#storybook-card-list-20) |
-| STORYBOOK-CARD-LIST-21 | interaction | 正常系 | [選んだ Card の削除を開始する](#storybook-card-list-21) |
-| STORYBOOK-CARD-LIST-22 | render | 正常系 | [操作不可の Card にメニューを開かない](#storybook-card-list-22) |
-| STORYBOOK-CARD-LIST-23 | interaction | 正常系 | [開いた時点の解答を開き直すまで保持する](#storybook-card-list-23) |
-| STORYBOOK-CARD-LIST-24 | interaction | 正常系 | [起点の Card が消えた後は並び順へ戻る](#storybook-card-list-24) |
-| STORYBOOK-CARD-LIST-25 | interaction | 正常系 | [解答プレビュー中も通知を確認できる](#storybook-card-list-25) |
-| STORYBOOK-DECK-FILTER-01 | interaction | 正常系 | [閲覧タグをまとめて解除する](#storybook-deck-filter-01) |
-| STORYBOOK-DECK-FILTER-02 | interaction | 正常系 | [折りたたまれたタグを表示する](#storybook-deck-filter-02) |
-| STORYBOOK-DECK-FILTER-03 | interaction | 正常系 | [タグ選択を一覧へ反映する](#storybook-deck-filter-03) |
-| STORYBOOK-DECK-FILTER-04 | interaction | 正常系 | [同じタグを重複して表示しない](#storybook-deck-filter-04) |
-| STORYBOOK-DECK-FILTER-05 | interaction | 正常系 | [Any と All で絞り込み結果を変える](#storybook-deck-filter-05) |
-| STORYBOOK-DECK-FILTER-06 | interaction | 正常系 | [候補から消えた選択タグも解除できる](#storybook-deck-filter-06) |
-| STORYBOOK-DECK-FILTER-07 | interaction | 正常系 | [追加表示したタグをキーボードで選ぶ](#storybook-deck-filter-07) |
-| STORYBOOK-DECK-FILTER-08 | interaction | 正常系 | [解除で隠れるタグからフォーカスを移す](#storybook-deck-filter-08) |
-| STORYBOOK-DECK-FILTER-09 | interaction | 正常系 | [最後の候補外タグを解除する](#storybook-deck-filter-09) |
-| STORYBOOK-DECK-FILTER-10 | interaction | 正常系 | [Clear が無効になる前にフォーカスを移す](#storybook-deck-filter-10) |
-| STORYBOOK-DECK-FILTER-11 | render | 正常系 | [8件以下では追加表示操作を出さない](#storybook-deck-filter-11) |
-| STORYBOOK-DECK-FILTER-12 | render | 正常系 | [タグ候補がなくても一致条件を保持する](#storybook-deck-filter-12) |
-| STORYBOOK-DECK-FILTER-13 | render | 正常系 | [大量の選択タグをスクロールして確認する](#storybook-deck-filter-13) |
-| STORYBOOK-DECK-FILTER-14 | render | 正常系 | [長い候補タグ名を確認できる](#storybook-deck-filter-14) |
-| STORYBOOK-DECK-FILTER-15 | interaction | 正常系 | [言語が変わってもタグの展開を保つ](#storybook-deck-filter-15) |
-| STORYBOOK-CARD-LIST-26 | interaction | 正常系 | [Card を追加が新しい順に表示できる](#storybook-card-list-26) |
-| STORYBOOK-CARD-LIST-27 | interaction | 正常系 | [Card の表示順を標準へ戻せる](#storybook-card-list-27) |
-| STORYBOOK-CARD-LIST-28 | interaction | 正常系 | [並び替え後も選択した Card のプレビューと行操作を利用できる](#storybook-card-list-28) |
-| STORYBOOK-CARD-LIST-29 | interaction | 正常系 | [別 Card の変更後も行のフォーカスとメニューを維持できる](#storybook-card-list-29) |
-| STORYBOOK-CARD-LIST-30 | interaction | 正常系 | [フィルター保存中も並び替えでき、禁止中の操作は実行できない](#storybook-card-list-30) |
-| STORYBOOK-CARD-LIST-31 | interaction | 正常系 | [画面を離れるか Deck を変更すると並び順が標準に戻る](#storybook-card-list-31) |
-| STORYBOOK-CARD-LIST-32 | interaction | 正常系 | [フィルター保存中に変更しても最後の選択を維持できる](#storybook-card-list-32) |
-| STORYBOOK-CARD-LIST-33 | interaction | 正常系 | [言語やフィルターを変更しても並び順を保持できる](#storybook-card-list-33) |
-| STORYBOOK-CARD-LIST-34 | interaction | 異常系 | [フィルター保存失敗後も選択を維持して次の変更を保存できる](#storybook-card-list-34) |
-| STORYBOOK-CARD-LIST-35 | interaction | 正常系 | [Card の解答プレビューを開ける](#storybook-card-list-35) |
-| STORYBOOK-CARD-LIST-36 | interaction | 正常系 | [Card の解答プレビューを閉じて一覧へ戻れる](#storybook-card-list-36) |
-| STORYBOOK-CARD-LIST-37 | interaction | 正常系 | [解答の文章を選択できる](#storybook-card-list-37) |
-| STORYBOOK-CARD-LIST-38 | interaction | 正常系 | [解答のリンクと脚注をたどれる](#storybook-card-list-38) |
-| STORYBOOK-CARD-LIST-39 | interaction | 正常系 | [解答の本文をキーボードで縦にスクロールできる](#storybook-card-list-39) |
-| STORYBOOK-CARD-LIST-40 | interaction | 正常系 | [解答のコードをキーボードで横にスクロールできる](#storybook-card-list-40) |
-| STORYBOOK-CARD-LIST-41 | interaction | 正常系 | [解答の数式をキーボードで横にスクロールできる](#storybook-card-list-41) |
-| STORYBOOK-CARD-LIST-42 | render | 正常系 | [Card 一覧に学習情報を表示できる](#storybook-card-list-42) |
-| STORYBOOK-CARD-LIST-43 | interaction | 異常系 | [存在しない Deck から復帰できる](#storybook-card-list-43) |
-| STORYBOOK-CARD-LIST-44 | interaction | 正常系 | [Card の削除を取り消せる](#storybook-card-list-44) |
-| STORYBOOK-CARD-LIST-45 | interaction | 正常系 | [削除成功の応答後に一覧を更新する](#storybook-card-list-45) |
-| STORYBOOK-CARD-LIST-46 | interaction | 異常系 | [削除失敗の応答後に同じ Card を再試行する](#storybook-card-list-46) |
-| STORYBOOK-CARD-LIST-47 | interaction | 異常系 | [読めない Card の件数と結果の回復を表示する](#storybook-card-list-47) |
-| STORYBOOK-CARD-LIST-48 | interaction | 正常系 | [Card 一覧からキーボードで画面を移る](#storybook-card-list-48) |
-| STORYBOOK-CARD-LIST-49 | interaction | 正常系 | [フィルター不一致の0件から条件を確認して変更する](#storybook-card-list-49) |
-| STORYBOOK-CARD-LIST-50 | render | 正常系 | [同じ Deck のタグだけを重複なく候補にする](#storybook-card-list-50) |
+| PLAYWRIGHT-CARD-LIST-01 | interaction | 正常系 | [Card 作成画面を開く](#playwright-card-list-01) |
+| PLAYWRIGHT-CARD-LIST-02 | render | 正常系 | [Card 未作成の空状態を表示する](#playwright-card-list-02) |
+| PLAYWRIGHT-CARD-LIST-03 | render | 正常系 | [フィルターによる0件状態を表示する](#playwright-card-list-03) |
+| PLAYWRIGHT-CARD-LIST-04 | render | 正常系 | [学習の復習期限で閲覧を0件にしない](#playwright-card-list-04) |
+| PLAYWRIGHT-CARD-LIST-05 | interaction | 正常系 | [選んだ Card を閲覧する](#playwright-card-list-05) |
+| PLAYWRIGHT-CARD-LIST-06 | interaction | 正常系 | [選択タグを解除して一覧を更新する](#playwright-card-list-06) |
+| PLAYWRIGHT-CARD-LIST-07 | interaction | 正常系 | [Card の拡大表示を閉じる](#playwright-card-list-07) |
+| PLAYWRIGHT-CARD-LIST-08 | interaction | 正常系 | [標準順に戻す](#playwright-card-list-08) |
+| PLAYWRIGHT-CARD-LIST-09 | interaction | 正常系 | [メニューから Card を編集する](#playwright-card-list-09) |
+| PLAYWRIGHT-CARD-LIST-10 | render | 正常系 | [空の理由を断定できない間は誤案内しない](#playwright-card-list-10) |
+| PLAYWRIGHT-CARD-LIST-11 | render | 正常系 | [長い選択タグの名前を確認できる](#playwright-card-list-11) |
+| PLAYWRIGHT-CARD-LIST-12 | interaction | 正常系 | [タグ解除後に残るタグへフォーカスを移す](#playwright-card-list-12) |
+| PLAYWRIGHT-CARD-LIST-13 | interaction | 正常系 | [最後のタグ解除後はフィルターへ戻る](#playwright-card-list-13) |
+| PLAYWRIGHT-CARD-LIST-14 | interaction | 正常系 | [Tab 移動だけでは選択を変えない](#playwright-card-list-14) |
+| PLAYWRIGHT-CARD-LIST-15 | interaction | 正常系 | [メニューを一つに保ち対象の削除で閉じる](#playwright-card-list-15) |
+| PLAYWRIGHT-CARD-LIST-16 | interaction | 正常系 | [並べ替え後も選んだ Card を操作する](#playwright-card-list-16) |
+| PLAYWRIGHT-CARD-LIST-17 | interaction | 正常系 | [空状態から Card 作成を始める](#playwright-card-list-17) |
+| PLAYWRIGHT-CARD-LIST-18 | interaction | 正常系 | [0件状態からフィルターを解除する](#playwright-card-list-18) |
+| PLAYWRIGHT-CARD-LIST-19 | interaction | 正常系 | [行の編集操作で対象を取り違えない](#playwright-card-list-19) |
+| PLAYWRIGHT-CARD-LIST-20 | render | 正常系 | [処理中の Card を操作させない](#playwright-card-list-20) |
+| PLAYWRIGHT-CARD-LIST-21 | interaction | 正常系 | [選んだ Card の削除を開始する](#playwright-card-list-21) |
+| PLAYWRIGHT-CARD-LIST-22 | render | 正常系 | [操作不可の Card にメニューを開かない](#playwright-card-list-22) |
+| PLAYWRIGHT-CARD-LIST-23 | interaction | 正常系 | [開いた時点の解答を開き直すまで保持する](#playwright-card-list-23) |
+| PLAYWRIGHT-CARD-LIST-24 | interaction | 正常系 | [起点の Card が消えた後は並び順へ戻る](#playwright-card-list-24) |
+| PLAYWRIGHT-CARD-LIST-25 | interaction | 正常系 | [解答プレビュー中も通知を確認できる](#playwright-card-list-25) |
+| PLAYWRIGHT-DECK-FILTER-01 | interaction | 正常系 | [閲覧タグをまとめて解除する](#playwright-deck-filter-01) |
+| PLAYWRIGHT-DECK-FILTER-02 | interaction | 正常系 | [折りたたまれたタグを表示する](#playwright-deck-filter-02) |
+| PLAYWRIGHT-DECK-FILTER-03 | interaction | 正常系 | [タグ選択を一覧へ反映する](#playwright-deck-filter-03) |
+| PLAYWRIGHT-DECK-FILTER-04 | interaction | 正常系 | [同じタグを重複して表示しない](#playwright-deck-filter-04) |
+| PLAYWRIGHT-DECK-FILTER-05 | interaction | 正常系 | [Any と All で絞り込み結果を変える](#playwright-deck-filter-05) |
+| PLAYWRIGHT-DECK-FILTER-06 | interaction | 正常系 | [候補から消えた選択タグも解除できる](#playwright-deck-filter-06) |
+| PLAYWRIGHT-DECK-FILTER-07 | interaction | 正常系 | [追加表示したタグをキーボードで選ぶ](#playwright-deck-filter-07) |
+| PLAYWRIGHT-DECK-FILTER-08 | interaction | 正常系 | [解除で隠れるタグからフォーカスを移す](#playwright-deck-filter-08) |
+| PLAYWRIGHT-DECK-FILTER-09 | interaction | 正常系 | [最後の候補外タグを解除する](#playwright-deck-filter-09) |
+| PLAYWRIGHT-DECK-FILTER-10 | interaction | 正常系 | [Clear が無効になる前にフォーカスを移す](#playwright-deck-filter-10) |
+| PLAYWRIGHT-DECK-FILTER-11 | render | 正常系 | [8件以下では追加表示操作を出さない](#playwright-deck-filter-11) |
+| PLAYWRIGHT-DECK-FILTER-12 | render | 正常系 | [タグ候補がなくても一致条件を保持する](#playwright-deck-filter-12) |
+| PLAYWRIGHT-DECK-FILTER-13 | render | 正常系 | [大量の選択タグをスクロールして確認する](#playwright-deck-filter-13) |
+| PLAYWRIGHT-DECK-FILTER-14 | render | 正常系 | [長い候補タグ名を確認できる](#playwright-deck-filter-14) |
+| PLAYWRIGHT-DECK-FILTER-15 | interaction | 正常系 | [言語が変わってもタグの展開を保つ](#playwright-deck-filter-15) |
+| PLAYWRIGHT-CARD-LIST-26 | interaction | 正常系 | [Card を追加が新しい順に表示できる](#playwright-card-list-26) |
+| PLAYWRIGHT-CARD-LIST-27 | interaction | 正常系 | [Card の表示順を標準へ戻せる](#playwright-card-list-27) |
+| PLAYWRIGHT-CARD-LIST-28 | interaction | 正常系 | [並び替え後も選択した Card のプレビューと行操作を利用できる](#playwright-card-list-28) |
+| PLAYWRIGHT-CARD-LIST-29 | interaction | 正常系 | [別 Card の変更後も行のフォーカスとメニューを維持できる](#playwright-card-list-29) |
+| PLAYWRIGHT-CARD-LIST-30 | interaction | 正常系 | [フィルター保存中も並び替えでき、禁止中の操作は実行できない](#playwright-card-list-30) |
+| PLAYWRIGHT-CARD-LIST-31 | interaction | 正常系 | [画面を離れるか Deck を変更すると並び順が標準に戻る](#playwright-card-list-31) |
+| PLAYWRIGHT-CARD-LIST-32 | interaction | 正常系 | [フィルター保存中に変更しても最後の選択を維持できる](#playwright-card-list-32) |
+| PLAYWRIGHT-CARD-LIST-33 | interaction | 正常系 | [言語やフィルターを変更しても並び順を保持できる](#playwright-card-list-33) |
+| PLAYWRIGHT-CARD-LIST-34 | interaction | 異常系 | [フィルター保存失敗後も選択を維持して次の変更を保存できる](#playwright-card-list-34) |
+| PLAYWRIGHT-CARD-LIST-35 | interaction | 正常系 | [Card の解答プレビューを開ける](#playwright-card-list-35) |
+| PLAYWRIGHT-CARD-LIST-36 | interaction | 正常系 | [Card の解答プレビューを閉じて一覧へ戻れる](#playwright-card-list-36) |
+| PLAYWRIGHT-CARD-LIST-37 | interaction | 正常系 | [解答の文章を選択できる](#playwright-card-list-37) |
+| PLAYWRIGHT-CARD-LIST-38 | interaction | 正常系 | [解答のリンクと脚注をたどれる](#playwright-card-list-38) |
+| PLAYWRIGHT-CARD-LIST-39 | interaction | 正常系 | [解答の本文をキーボードで縦にスクロールできる](#playwright-card-list-39) |
+| PLAYWRIGHT-CARD-LIST-40 | interaction | 正常系 | [解答のコードをキーボードで横にスクロールできる](#playwright-card-list-40) |
+| PLAYWRIGHT-CARD-LIST-41 | interaction | 正常系 | [解答の数式をキーボードで横にスクロールできる](#playwright-card-list-41) |
+| PLAYWRIGHT-CARD-LIST-42 | render | 正常系 | [Card 一覧に学習情報を表示できる](#playwright-card-list-42) |
+| PLAYWRIGHT-CARD-LIST-43 | interaction | 異常系 | [存在しない Deck から復帰できる](#playwright-card-list-43) |
+| PLAYWRIGHT-CARD-LIST-44 | interaction | 正常系 | [Card の削除を取り消せる](#playwright-card-list-44) |
+| PLAYWRIGHT-CARD-LIST-45 | interaction | 正常系 | [削除成功の応答後に一覧を更新する](#playwright-card-list-45) |
+| PLAYWRIGHT-CARD-LIST-46 | interaction | 異常系 | [削除失敗の応答後に同じ Card を再試行する](#playwright-card-list-46) |
+| PLAYWRIGHT-CARD-LIST-47 | interaction | 異常系 | [読めない Card の件数と結果の回復を表示する](#playwright-card-list-47) |
+| PLAYWRIGHT-CARD-LIST-48 | interaction | 正常系 | [Card 一覧からキーボードで画面を移る](#playwright-card-list-48) |
+| PLAYWRIGHT-CARD-LIST-49 | interaction | 正常系 | [フィルター不一致の0件から条件を確認して変更する](#playwright-card-list-49) |
+| PLAYWRIGHT-CARD-LIST-50 | render | 正常系 | [同じ Deck のタグだけを重複なく候補にする](#playwright-card-list-50) |
+| PLAYWRIGHT-CARD-LIST-51 | interaction | 正常系 | [割り当てがなくなった選択済みタグだけを解除して閲覧する](#playwright-card-list-51) |
 
-<a id="storybook-card-list-01"></a>
+<a id="playwright-card-list-01"></a>
 
-### STORYBOOK-CARD-LIST-01 Card 作成画面を開く
+### PLAYWRIGHT-CARD-LIST-01 [TODO] Card 作成画面を開く
 
 カテゴリ: `interaction`
 
@@ -94,9 +95,9 @@ Then:
 
 - 同じ Deck の Card 作成画面が表示される。
 
-<a id="storybook-card-list-02"></a>
+<a id="playwright-card-list-02"></a>
 
-### STORYBOOK-CARD-LIST-02 Card 未作成の空状態を表示する
+### PLAYWRIGHT-CARD-LIST-02 [TODO] Card 未作成の空状態を表示する
 
 カテゴリ: `render`
 
@@ -114,9 +115,9 @@ Then:
 
 - Card がまだないことと、追加する操作が表示される。
 
-<a id="storybook-card-list-03"></a>
+<a id="playwright-card-list-03"></a>
 
-### STORYBOOK-CARD-LIST-03 フィルターによる0件状態を表示する
+### PLAYWRIGHT-CARD-LIST-03 [TODO] フィルターによる0件状態を表示する
 
 カテゴリ: `render`
 
@@ -134,9 +135,9 @@ Then:
 
 - 絞り込み結果が0件であることが表示され、Card 未作成の案内とは区別される。
 
-<a id="storybook-card-list-04"></a>
+<a id="playwright-card-list-04"></a>
 
-### STORYBOOK-CARD-LIST-04 学習の復習期限で閲覧を0件にしない
+### PLAYWRIGHT-CARD-LIST-04 [TODO] 学習の復習期限で閲覧を0件にしない
 
 カテゴリ: `render`
 
@@ -154,9 +155,9 @@ Then:
 
 - 対象 Deck の Card を全件表示でき、復習対象0件を理由に非表示にしない。
 
-<a id="storybook-card-list-05"></a>
+<a id="playwright-card-list-05"></a>
 
-### STORYBOOK-CARD-LIST-05 選んだ Card を閲覧する
+### PLAYWRIGHT-CARD-LIST-05 [TODO] 選んだ Card を閲覧する
 
 カテゴリ: `interaction`
 
@@ -175,9 +176,9 @@ Then:
 - 選んだ Card の名前付きプレビューに表面と解答を表示し、もう片方の内容と取り違えない。
 - プレビュー内へフォーカスが移り、背景操作と画面移動のショートカットは利用できない。
 
-<a id="storybook-card-list-06"></a>
+<a id="playwright-card-list-06"></a>
 
-### STORYBOOK-CARD-LIST-06 選択タグを解除して一覧を更新する
+### PLAYWRIGHT-CARD-LIST-06 [TODO] 選択タグを解除して一覧を更新する
 
 カテゴリ: `interaction`
 
@@ -195,9 +196,9 @@ Then:
 
 - 解除したタグが選択表示から消え、残った条件に一致する Card が表示される。
 
-<a id="storybook-card-list-07"></a>
+<a id="playwright-card-list-07"></a>
 
-### STORYBOOK-CARD-LIST-07 Card の拡大表示を閉じる
+### PLAYWRIGHT-CARD-LIST-07 [TODO] Card の拡大表示を閉じる
 
 カテゴリ: `interaction`
 
@@ -216,9 +217,9 @@ Then:
 - 拡大表示が閉じ、接続済みで操作可能な元の表示ボタンへフォーカスが戻る。
 - 一覧を再び操作できる。
 
-<a id="storybook-card-list-08"></a>
+<a id="playwright-card-list-08"></a>
 
-### STORYBOOK-CARD-LIST-08 標準順に戻す
+### PLAYWRIGHT-CARD-LIST-08 [TODO] 標準順に戻す
 
 カテゴリ: `interaction`
 
@@ -236,9 +237,9 @@ Then:
 
 - 標準順の選択が表示され、同じ Card 群が標準順に並ぶ。
 
-<a id="storybook-card-list-09"></a>
+<a id="playwright-card-list-09"></a>
 
-### STORYBOOK-CARD-LIST-09 メニューから Card を編集する
+### PLAYWRIGHT-CARD-LIST-09 [TODO] メニューから Card を編集する
 
 カテゴリ: `interaction`
 
@@ -256,9 +257,9 @@ Then:
 
 - メニューが閉じ、同じ Card の編集画面が表示される。
 
-<a id="storybook-card-list-10"></a>
+<a id="playwright-card-list-10"></a>
 
-### STORYBOOK-CARD-LIST-10 空の理由を断定できない間は誤案内しない
+### PLAYWRIGHT-CARD-LIST-10 [TODO] 空の理由を断定できない間は誤案内しない
 
 カテゴリ: `render`
 
@@ -276,9 +277,9 @@ Then:
 
 - Card 未作成やフィルター不一致と断定した案内は表示されない。
 
-<a id="storybook-card-list-11"></a>
+<a id="playwright-card-list-11"></a>
 
-### STORYBOOK-CARD-LIST-11 長い選択タグの名前を確認できる
+### PLAYWRIGHT-CARD-LIST-11 [TODO] 長い選択タグの名前を確認できる
 
 カテゴリ: `render`
 
@@ -296,9 +297,9 @@ Then:
 
 - タグ名が失われず、表示または読み上げ名から名前を確認できる。
 
-<a id="storybook-card-list-12"></a>
+<a id="playwright-card-list-12"></a>
 
-### STORYBOOK-CARD-LIST-12 タグ解除後に残るタグへフォーカスを移す
+### PLAYWRIGHT-CARD-LIST-12 [TODO] タグ解除後に残るタグへフォーカスを移す
 
 カテゴリ: `interaction`
 
@@ -316,9 +317,9 @@ Then:
 
 - 残ったタグの解除操作へフォーカスが移り、続けて操作できる。
 
-<a id="storybook-card-list-13"></a>
+<a id="playwright-card-list-13"></a>
 
-### STORYBOOK-CARD-LIST-13 最後のタグ解除後はフィルターへ戻る
+### PLAYWRIGHT-CARD-LIST-13 [TODO] 最後のタグ解除後はフィルターへ戻る
 
 カテゴリ: `interaction`
 
@@ -336,9 +337,9 @@ Then:
 
 - 選択タグが消え、フィルター操作へフォーカスが戻る。
 
-<a id="storybook-card-list-14"></a>
+<a id="playwright-card-list-14"></a>
 
-### STORYBOOK-CARD-LIST-14 Tab 移動だけでは選択を変えない
+### PLAYWRIGHT-CARD-LIST-14 [TODO] Tab 移動だけでは選択を変えない
 
 カテゴリ: `interaction`
 
@@ -356,9 +357,9 @@ Then:
 
 - フォーカスだけが移り、選択タグと絞り込み結果は変わらない。
 
-<a id="storybook-card-list-15"></a>
+<a id="playwright-card-list-15"></a>
 
-### STORYBOOK-CARD-LIST-15 メニューを一つに保ち対象の削除で閉じる
+### PLAYWRIGHT-CARD-LIST-15 [TODO] メニューを一つに保ち対象の削除で閉じる
 
 カテゴリ: `interaction`
 
@@ -376,9 +377,9 @@ Then:
 
 - 二つのメニューは同時に表示されず、消えた Card のメニューも残らない。
 
-<a id="storybook-card-list-16"></a>
+<a id="playwright-card-list-16"></a>
 
-### STORYBOOK-CARD-LIST-16 並べ替え後も選んだ Card を操作する
+### PLAYWRIGHT-CARD-LIST-16 [TODO] 並べ替え後も選んだ Card を操作する
 
 カテゴリ: `interaction`
 
@@ -396,9 +397,9 @@ Then:
 
 - 行の位置ではなく、メニューを開いた Card の編集画面が表示される。
 
-<a id="storybook-card-list-17"></a>
+<a id="playwright-card-list-17"></a>
 
-### STORYBOOK-CARD-LIST-17 空状態から Card 作成を始める
+### PLAYWRIGHT-CARD-LIST-17 [TODO] 空状態から Card 作成を始める
 
 カテゴリ: `interaction`
 
@@ -416,9 +417,9 @@ Then:
 
 - 同じ Deck の Card 作成画面が表示される。
 
-<a id="storybook-card-list-18"></a>
+<a id="playwright-card-list-18"></a>
 
-### STORYBOOK-CARD-LIST-18 0件状態からフィルターを解除する
+### PLAYWRIGHT-CARD-LIST-18 [TODO] 0件状態からフィルターを解除する
 
 カテゴリ: `interaction`
 
@@ -436,9 +437,9 @@ Then:
 
 - 選択条件が解除され、対象 Deck の Card が表示される。
 
-<a id="storybook-card-list-19"></a>
+<a id="playwright-card-list-19"></a>
 
-### STORYBOOK-CARD-LIST-19 行の編集操作で対象を取り違えない
+### PLAYWRIGHT-CARD-LIST-19 [TODO] 行の編集操作で対象を取り違えない
 
 カテゴリ: `interaction`
 
@@ -456,9 +457,9 @@ Then:
 
 - その Card の表面・裏面を持つ編集画面が表示される。
 
-<a id="storybook-card-list-20"></a>
+<a id="playwright-card-list-20"></a>
 
-### STORYBOOK-CARD-LIST-20 処理中の Card を操作させない
+### PLAYWRIGHT-CARD-LIST-20 [TODO] 処理中の Card を操作させない
 
 カテゴリ: `render`
 
@@ -477,9 +478,9 @@ Then:
 - 削除処理中は対象の再操作と背景の Card 操作を受け付けない。
 - 処理が完了するとモーダルが閉じ、残った Card を操作できる。
 
-<a id="storybook-card-list-21"></a>
+<a id="playwright-card-list-21"></a>
 
-### STORYBOOK-CARD-LIST-21 選んだ Card の削除を開始する
+### PLAYWRIGHT-CARD-LIST-21 [TODO] 選んだ Card の削除を開始する
 
 カテゴリ: `interaction`
 
@@ -497,9 +498,9 @@ Then:
 
 - その Card が削除対象として扱われ、別の Card が対象にならない。確認が必要な場合は確定前に一覧から消えない。
 
-<a id="storybook-card-list-22"></a>
+<a id="playwright-card-list-22"></a>
 
-### STORYBOOK-CARD-LIST-22 操作不可の Card にメニューを開かない
+### PLAYWRIGHT-CARD-LIST-22 [TODO] 操作不可の Card にメニューを開かない
 
 カテゴリ: `render`
 
@@ -517,9 +518,9 @@ Then:
 
 - 操作メニューが表示されず、Card の内容も変わらない。
 
-<a id="storybook-card-list-23"></a>
+<a id="playwright-card-list-23"></a>
 
-### STORYBOOK-CARD-LIST-23 開いた時点の解答を開き直すまで保持する
+### PLAYWRIGHT-CARD-LIST-23 [TODO] 開いた時点の解答を開き直すまで保持する
 
 カテゴリ: `interaction`
 
@@ -539,9 +540,9 @@ Then:
 - 一覧の更新後も同じ起点へ戻り、開き直すと新しい本文とタグによる表示になる。
 - プレビューの開閉は Card・Deck・セッション・設定を変更しない。
 
-<a id="storybook-card-list-24"></a>
+<a id="playwright-card-list-24"></a>
 
-### STORYBOOK-CARD-LIST-24 起点の Card が消えた後は並び順へ戻る
+### PLAYWRIGHT-CARD-LIST-24 [TODO] 起点の Card が消えた後は並び順へ戻る
 
 カテゴリ: `interaction`
 
@@ -560,9 +561,9 @@ Then:
 - プレビューが閉じ、別の Card や画面外へ移らず、並び順操作へフォーカスが移る。
 - 一覧は Card 未作成の案内を表示する。
 
-<a id="storybook-card-list-25"></a>
+<a id="playwright-card-list-25"></a>
 
-### STORYBOOK-CARD-LIST-25 解答プレビュー中も通知を確認できる
+### PLAYWRIGHT-CARD-LIST-25 [TODO] 解答プレビュー中も通知を確認できる
 
 カテゴリ: `interaction`
 
@@ -581,9 +582,9 @@ Then:
 - 表示中のプレビュー内で同じ通知の表示と読み上げ領域を一つだけ利用できる。通知はフォーカスを奪わず、背景の通知を消す操作は利用できない。
 - プレビューを閉じても通知を失わず、通常の通知表示と通知を消す操作へ戻る。フォーカスは元の Card の表示操作へ戻る。
 
-<a id="storybook-deck-filter-01"></a>
+<a id="playwright-deck-filter-01"></a>
 
-### STORYBOOK-DECK-FILTER-01 閲覧タグをまとめて解除する
+### PLAYWRIGHT-DECK-FILTER-01 [TODO] 閲覧タグをまとめて解除する
 
 カテゴリ: `interaction`
 
@@ -601,9 +602,9 @@ Then:
 
 - 選択タグがなくなり、タグで除外されていた Card も表示される。
 
-<a id="storybook-deck-filter-02"></a>
+<a id="playwright-deck-filter-02"></a>
 
-### STORYBOOK-DECK-FILTER-02 折りたたまれたタグを表示する
+### PLAYWRIGHT-DECK-FILTER-02 [TODO] 折りたたまれたタグを表示する
 
 カテゴリ: `interaction`
 
@@ -621,9 +622,9 @@ Then:
 
 - 隠れていたタグが表示され、選択できる。
 
-<a id="storybook-deck-filter-03"></a>
+<a id="playwright-deck-filter-03"></a>
 
-### STORYBOOK-DECK-FILTER-03 タグ選択を一覧へ反映する
+### PLAYWRIGHT-DECK-FILTER-03 [TODO] タグ選択を一覧へ反映する
 
 カテゴリ: `interaction`
 
@@ -641,9 +642,9 @@ Then:
 
 - タグ A が選択済みになり、A を持つ Card だけが表示される。
 
-<a id="storybook-deck-filter-04"></a>
+<a id="playwright-deck-filter-04"></a>
 
-### STORYBOOK-DECK-FILTER-04 同じタグを重複して表示しない
+### PLAYWRIGHT-DECK-FILTER-04 [TODO] 同じタグを重複して表示しない
 
 カテゴリ: `interaction`
 
@@ -661,9 +662,9 @@ Then:
 
 - 候補と選択表示に同名のタグが重複せず、タグによる絞り込みが適用される。
 
-<a id="storybook-deck-filter-05"></a>
+<a id="playwright-deck-filter-05"></a>
 
-### STORYBOOK-DECK-FILTER-05 Any と All で絞り込み結果を変える
+### PLAYWRIGHT-DECK-FILTER-05 [TODO] Any と All で絞り込み結果を変える
 
 カテゴリ: `interaction`
 
@@ -681,9 +682,9 @@ Then:
 
 - Any では3枚、All では両方のタグを持つ1枚が表示される。
 
-<a id="storybook-deck-filter-06"></a>
+<a id="playwright-deck-filter-06"></a>
 
-### STORYBOOK-DECK-FILTER-06 候補から消えた選択タグも解除できる
+### PLAYWRIGHT-DECK-FILTER-06 [TODO] 候補から消えた選択タグも解除できる
 
 カテゴリ: `interaction`
 
@@ -701,9 +702,9 @@ Then:
 
 - 選択済みのタグが見つけやすい位置に残り、候補外になったタグも解除できる。
 
-<a id="storybook-deck-filter-07"></a>
+<a id="playwright-deck-filter-07"></a>
 
-### STORYBOOK-DECK-FILTER-07 追加表示したタグをキーボードで選ぶ
+### PLAYWRIGHT-DECK-FILTER-07 [TODO] 追加表示したタグをキーボードで選ぶ
 
 カテゴリ: `interaction`
 
@@ -721,9 +722,9 @@ Then:
 
 - 対象タグが選択済みになり、その条件で一覧が更新される。
 
-<a id="storybook-deck-filter-08"></a>
+<a id="playwright-deck-filter-08"></a>
 
-### STORYBOOK-DECK-FILTER-08 解除で隠れるタグからフォーカスを移す
+### PLAYWRIGHT-DECK-FILTER-08 [TODO] 解除で隠れるタグからフォーカスを移す
 
 カテゴリ: `interaction`
 
@@ -741,9 +742,9 @@ Then:
 
 - タグが隠れても、表示中の操作へフォーカスが移り、操作を続けられる。
 
-<a id="storybook-deck-filter-09"></a>
+<a id="playwright-deck-filter-09"></a>
 
-### STORYBOOK-DECK-FILTER-09 最後の候補外タグを解除する
+### PLAYWRIGHT-DECK-FILTER-09 [TODO] 最後の候補外タグを解除する
 
 カテゴリ: `interaction`
 
@@ -761,9 +762,9 @@ Then:
 
 - 候補外タグが選択表示から消え、存在しないタグにフォーカスが残らない。
 
-<a id="storybook-deck-filter-10"></a>
+<a id="playwright-deck-filter-10"></a>
 
-### STORYBOOK-DECK-FILTER-10 Clear が無効になる前にフォーカスを移す
+### PLAYWRIGHT-DECK-FILTER-10 [TODO] Clear が無効になる前にフォーカスを移す
 
 カテゴリ: `interaction`
 
@@ -781,9 +782,9 @@ Then:
 
 - Clear が無効になってもフォーカスを失わず、利用可能なフィルター操作へ移る。
 
-<a id="storybook-deck-filter-11"></a>
+<a id="playwright-deck-filter-11"></a>
 
-### STORYBOOK-DECK-FILTER-11 8件以下では追加表示操作を出さない
+### PLAYWRIGHT-DECK-FILTER-11 [TODO] 8件以下では追加表示操作を出さない
 
 カテゴリ: `render`
 
@@ -801,9 +802,9 @@ Then:
 
 - すべての候補を表示し、追加表示のためのボタンは表示しない。
 
-<a id="storybook-deck-filter-12"></a>
+<a id="playwright-deck-filter-12"></a>
 
-### STORYBOOK-DECK-FILTER-12 タグ候補がなくても一致条件を保持する
+### PLAYWRIGHT-DECK-FILTER-12 [TODO] タグ候補がなくても一致条件を保持する
 
 カテゴリ: `render`
 
@@ -821,9 +822,9 @@ Then:
 
 - 候補がないことだけでは Any に変更されず、All の選択が保たれる。
 
-<a id="storybook-deck-filter-13"></a>
+<a id="playwright-deck-filter-13"></a>
 
-### STORYBOOK-DECK-FILTER-13 大量の選択タグをスクロールして確認する
+### PLAYWRIGHT-DECK-FILTER-13 [TODO] 大量の選択タグをスクロールして確認する
 
 カテゴリ: `render`
 
@@ -841,9 +842,9 @@ Then:
 
 - すべての選択タグを確認・解除でき、一覧の操作が画面外へ押し出され続けない。
 
-<a id="storybook-deck-filter-14"></a>
+<a id="playwright-deck-filter-14"></a>
 
-### STORYBOOK-DECK-FILTER-14 長い候補タグ名を確認できる
+### PLAYWRIGHT-DECK-FILTER-14 [TODO] 長い候補タグ名を確認できる
 
 カテゴリ: `render`
 
@@ -861,9 +862,9 @@ Then:
 
 - 候補の名前を表示または読み上げ名で確認でき、選択後も同じ名前を確認できる。
 
-<a id="storybook-deck-filter-15"></a>
+<a id="playwright-deck-filter-15"></a>
 
-### STORYBOOK-DECK-FILTER-15 言語が変わってもタグの展開を保つ
+### PLAYWRIGHT-DECK-FILTER-15 [TODO] 言語が変わってもタグの展開を保つ
 
 カテゴリ: `interaction`
 
@@ -881,9 +882,9 @@ Then:
 
 - 操作名が日本語へ変わり、展開状態とタグ名と選択内容は保たれる。
 
-<a id="storybook-card-list-26"></a>
+<a id="playwright-card-list-26"></a>
 
-### STORYBOOK-CARD-LIST-26 [TODO] Card を追加が新しい順に表示できる
+### PLAYWRIGHT-CARD-LIST-26 [TODO] Card を追加が新しい順に表示できる
 
 カテゴリ: `interaction`
 
@@ -905,9 +906,9 @@ Then:
 - Card・Deck の内容や既存の学習の出題順・現在位置は変わらない。
 - 新しく始める学習の対象や出題順にも影響しない。
 
-<a id="storybook-card-list-27"></a>
+<a id="playwright-card-list-27"></a>
 
-### STORYBOOK-CARD-LIST-27 [TODO] Card の表示順を標準へ戻せる
+### PLAYWRIGHT-CARD-LIST-27 [TODO] Card の表示順を標準へ戻せる
 
 カテゴリ: `interaction`
 
@@ -926,9 +927,9 @@ Then:
 
 - その時点の標準の順序へ戻り、件数・Card と Deck の内容・学習の出題順と現在位置は変わらない。
 
-<a id="storybook-card-list-28"></a>
+<a id="playwright-card-list-28"></a>
 
-### STORYBOOK-CARD-LIST-28 [TODO] 並び替え後も選択した Card のプレビューと行操作を利用できる
+### PLAYWRIGHT-CARD-LIST-28 [TODO] 並び替え後も選択した Card のプレビューと行操作を利用できる
 
 カテゴリ: `interaction`
 
@@ -946,9 +947,9 @@ Then:
 
 - プレビューと行操作は選択した Card を対象とし、プレビュー開閉後も並び順を保つ。
 
-<a id="storybook-card-list-29"></a>
+<a id="playwright-card-list-29"></a>
 
-### STORYBOOK-CARD-LIST-29 [TODO] 別 Card の変更後も行のフォーカスとメニューを維持できる
+### PLAYWRIGHT-CARD-LIST-29 [TODO] 別 Card の変更後も行のフォーカスとメニューを維持できる
 
 カテゴリ: `interaction`
 
@@ -967,9 +968,9 @@ Then:
 
 - 別 Card の変更では、残る行のフォーカスとメニューを保つ。対象 Card が削除された場合はメニューを閉じる。
 
-<a id="storybook-card-list-30"></a>
+<a id="playwright-card-list-30"></a>
 
-### STORYBOOK-CARD-LIST-30 [TODO] フィルター保存中も並び替えでき、禁止中の操作は実行できない
+### PLAYWRIGHT-CARD-LIST-30 [TODO] フィルター保存中も並び替えでき、禁止中の操作は実行できない
 
 カテゴリ: `interaction`
 
@@ -989,9 +990,9 @@ Then:
 - フィルター自動保存中も並び順を選択できる。
 - Card の変更中やダイアログ表示中に禁止されている操作は引き続き実行できない。
 
-<a id="storybook-card-list-31"></a>
+<a id="playwright-card-list-31"></a>
 
-### STORYBOOK-CARD-LIST-31 [TODO] 画面を離れるか Deck を変更すると並び順が標準に戻る
+### PLAYWRIGHT-CARD-LIST-31 [TODO] 画面を離れるか Deck を変更すると並び順が標準に戻る
 
 カテゴリ: `interaction`
 
@@ -1009,9 +1010,9 @@ Then:
 
 - 並び順は標準に戻る。
 
-<a id="storybook-card-list-32"></a>
+<a id="playwright-card-list-32"></a>
 
-### STORYBOOK-CARD-LIST-32 [TODO] フィルター保存中に変更しても最後の選択を維持できる
+### PLAYWRIGHT-CARD-LIST-32 [TODO] フィルター保存中に変更しても最後の選択を維持できる
 
 カテゴリ: `interaction`
 
@@ -1029,9 +1030,9 @@ Then:
 
 - 保存中も変更でき、最後の選択が以前の条件に戻らない。
 
-<a id="storybook-card-list-33"></a>
+<a id="playwright-card-list-33"></a>
 
-### STORYBOOK-CARD-LIST-33 [TODO] 言語やフィルターを変更しても並び順を保持できる
+### PLAYWRIGHT-CARD-LIST-33 [TODO] 言語やフィルターを変更しても並び順を保持できる
 
 カテゴリ: `interaction`
 
@@ -1049,9 +1050,9 @@ Then:
 
 - 言語・フィルター変更後や結果0件でも、選択した並び順を保持する。
 
-<a id="storybook-card-list-34"></a>
+<a id="playwright-card-list-34"></a>
 
-### STORYBOOK-CARD-LIST-34 [TODO] フィルター保存失敗後も選択を維持して次の変更を保存できる
+### PLAYWRIGHT-CARD-LIST-34 [TODO] フィルター保存失敗後も選択を維持して次の変更を保存できる
 
 カテゴリ: `interaction`
 
@@ -1069,9 +1070,9 @@ Then:
 
 - 保存失敗を通知し、選択を維持する。次の保存に成功すると選択中の全条件を再表示できる。
 
-<a id="storybook-card-list-35"></a>
+<a id="playwright-card-list-35"></a>
 
-### STORYBOOK-CARD-LIST-35 [TODO] Card の解答プレビューを開ける
+### PLAYWRIGHT-CARD-LIST-35 [TODO] Card の解答プレビューを開ける
 
 カテゴリ: `interaction`
 
@@ -1091,9 +1092,9 @@ Then:
 - タイトル・閉じる操作・本文へキーボードで移動でき、Tab と Shift+Tab はプレビュー内を循環する。長いタイトルもキーボードでスクロールできる。
 - 本文を読む間は背景の一覧・フィルター・並び順・画面移動の操作へ移らない。
 
-<a id="storybook-card-list-36"></a>
+<a id="playwright-card-list-36"></a>
 
-### STORYBOOK-CARD-LIST-36 [TODO] Card の解答プレビューを閉じて一覧へ戻れる
+### PLAYWRIGHT-CARD-LIST-36 [TODO] Card の解答プレビューを閉じて一覧へ戻れる
 
 カテゴリ: `interaction`
 
@@ -1112,9 +1113,9 @@ Then:
 - プレビューが閉じ、接続済みで操作可能な起点へフォーカスが戻る。起点がなくなっている場合は、別の Card へ移さず一覧の並び順操作へ戻る。
 - 一覧の絞り込みと並び順、Card の内容と学習結果は変わらず、一覧を再び操作できる。
 
-<a id="storybook-card-list-37"></a>
+<a id="playwright-card-list-37"></a>
 
-### STORYBOOK-CARD-LIST-37 [TODO] 解答の文章を選択できる
+### PLAYWRIGHT-CARD-LIST-37 [TODO] 解答の文章を選択できる
 
 カテゴリ: `interaction`
 
@@ -1132,9 +1133,9 @@ Then:
 
 - 文章が選択され、プレビューは開いたままである。
 
-<a id="storybook-card-list-38"></a>
+<a id="playwright-card-list-38"></a>
 
-### STORYBOOK-CARD-LIST-38 [TODO] 解答のリンクと脚注をたどれる
+### PLAYWRIGHT-CARD-LIST-38 [TODO] 解答のリンクと脚注をたどれる
 
 カテゴリ: `interaction`
 
@@ -1152,9 +1153,9 @@ Then:
 
 - 脚注と元の注番号が表示範囲へ移り、プレビューは開いたままである。
 
-<a id="storybook-card-list-39"></a>
+<a id="playwright-card-list-39"></a>
 
-### STORYBOOK-CARD-LIST-39 [TODO] 解答の本文をキーボードで縦にスクロールできる
+### PLAYWRIGHT-CARD-LIST-39 [TODO] 解答の本文をキーボードで縦にスクロールできる
 
 カテゴリ: `interaction`
 
@@ -1172,9 +1173,9 @@ Then:
 
 - 本文の下方へ読み取り位置が移り、プレビューは開いたままである。
 
-<a id="storybook-card-list-40"></a>
+<a id="playwright-card-list-40"></a>
 
-### STORYBOOK-CARD-LIST-40 [TODO] 解答のコードをキーボードで横にスクロールできる
+### PLAYWRIGHT-CARD-LIST-40 [TODO] 解答のコードをキーボードで横にスクロールできる
 
 カテゴリ: `interaction`
 
@@ -1192,9 +1193,9 @@ Then:
 
 - コードの右方へ読み取り位置が移り、プレビューは開いたままである。
 
-<a id="storybook-card-list-41"></a>
+<a id="playwright-card-list-41"></a>
 
-### STORYBOOK-CARD-LIST-41 [TODO] 解答の数式をキーボードで横にスクロールできる
+### PLAYWRIGHT-CARD-LIST-41 [TODO] 解答の数式をキーボードで横にスクロールできる
 
 カテゴリ: `interaction`
 
@@ -1212,9 +1213,9 @@ Then:
 
 - 数式の右方へ読み取り位置が移り、プレビューは開いたままである。
 
-<a id="storybook-card-list-42"></a>
+<a id="playwright-card-list-42"></a>
 
-### STORYBOOK-CARD-LIST-42 [TODO] Card 一覧に学習情報を表示できる
+### PLAYWRIGHT-CARD-LIST-42 [TODO] Card 一覧に学習情報を表示できる
 
 カテゴリ: `render`
 
@@ -1232,9 +1233,9 @@ Then:
 
 - 対象 Card の表面の本文とタグを表示する。
 
-<a id="storybook-card-list-43"></a>
+<a id="playwright-card-list-43"></a>
 
-### STORYBOOK-CARD-LIST-43 [TODO] 存在しない Deck から復帰できる
+### PLAYWRIGHT-CARD-LIST-43 [TODO] 存在しない Deck から復帰できる
 
 カテゴリ: `interaction`
 
@@ -1252,9 +1253,9 @@ Then:
 
 - Deck 一覧が表示される。
 
-<a id="storybook-card-list-44"></a>
+<a id="playwright-card-list-44"></a>
 
-### STORYBOOK-CARD-LIST-44 [TODO] Card の削除を取り消せる
+### PLAYWRIGHT-CARD-LIST-44 [TODO] Card の削除を取り消せる
 
 カテゴリ: `interaction`
 
@@ -1274,9 +1275,9 @@ Then:
 - ダイアログが閉じ、対象 Card の操作メニューボタンにフォーカスが戻る。
 - 対象 Card の内容と学習状態を維持する。
 
-<a id="storybook-card-list-45"></a>
+<a id="playwright-card-list-45"></a>
 
-### STORYBOOK-CARD-LIST-45 [TODO] 削除成功の応答後に一覧を更新する
+### PLAYWRIGHT-CARD-LIST-45 [TODO] 削除成功の応答後に一覧を更新する
 
 カテゴリ: `interaction`
 
@@ -1295,9 +1296,9 @@ Then:
 - 削除成功を通知し、ダイアログを閉じ、Card 件数0の案内を表示する。
 - 削除した Card を代わりの Card と取り違えず、他の Deck の内容と学習状態は変わらない。
 
-<a id="storybook-card-list-46"></a>
+<a id="playwright-card-list-46"></a>
 
-### STORYBOOK-CARD-LIST-46 [TODO] 削除失敗の応答後に同じ Card を再試行する
+### PLAYWRIGHT-CARD-LIST-46 [TODO] 削除失敗の応答後に同じ Card を再試行する
 
 カテゴリ: `interaction`
 
@@ -1315,9 +1316,9 @@ Then:
 
 - 失敗を通知して対象 Card を操作可能に戻し、再試行成功後にダイアログを閉じて一覧から対象 Card を除く。
 
-<a id="storybook-card-list-47"></a>
+<a id="playwright-card-list-47"></a>
 
-### STORYBOOK-CARD-LIST-47 [TODO] 読めない Card の件数と結果の回復を表示する
+### PLAYWRIGHT-CARD-LIST-47 [TODO] 読めない Card の件数と結果の回復を表示する
 
 カテゴリ: `interaction`
 
@@ -1337,9 +1338,9 @@ Then:
 - 読めない件数と保存データを変更していない警告を表示する。結果の回復で同じ本文の Card を再表示して件数を減らし、全件が正常になると警告を消す。
 - 未評価として補完した Card を表示せず、画面の復旧操作だけで保存値を変更しない。
 
-<a id="storybook-card-list-48"></a>
+<a id="playwright-card-list-48"></a>
 
-### STORYBOOK-CARD-LIST-48 [TODO] Card 一覧からキーボードで画面を移る
+### PLAYWRIGHT-CARD-LIST-48 [TODO] Card 一覧からキーボードで画面を移る
 
 カテゴリ: `interaction`
 
@@ -1357,9 +1358,9 @@ Then:
 
 - t は Deck 一覧、s は Settings へそれぞれ一度だけ遷移し、Deck・Card の内容と学習状態は変わらない。
 
-<a id="storybook-card-list-49"></a>
+<a id="playwright-card-list-49"></a>
 
-### STORYBOOK-CARD-LIST-49 [TODO] フィルター不一致の0件から条件を確認して変更する
+### PLAYWRIGHT-CARD-LIST-49 [TODO] フィルター不一致の0件から条件を確認して変更する
 
 カテゴリ: `interaction`
 
@@ -1378,9 +1379,9 @@ Then:
 - 変更前は0件とフィルター不一致を表示し、Card 未登録や全件表示へ切り替えない。
 - 選択タグと AND 条件を確認でき、解除後は残る条件に一致する Card を表示する。
 
-<a id="storybook-card-list-50"></a>
+<a id="playwright-card-list-50"></a>
 
-### STORYBOOK-CARD-LIST-50 [TODO] 同じ Deck のタグだけを重複なく候補にする
+### PLAYWRIGHT-CARD-LIST-50 [TODO] 同じ Deck のタグだけを重複なく候補にする
 
 カテゴリ: `render`
 
@@ -1397,3 +1398,25 @@ When:
 Then:
 
 - 同じ Deck のタグは一度ずつ表示し、別 Deck のタグと固定カテゴリを候補へ追加しない。
+
+<a id="playwright-card-list-51"></a>
+
+### PLAYWRIGHT-CARD-LIST-51 [TODO] 割り当てがなくなった選択済みタグだけを解除して閲覧する
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- 同じ Deck に2枚の Card があり、唯一そのタグを持つ Card から最後の割り当てを外した結果を受信済みである。
+- Card 一覧では、そのタグの選択条件が残っている。タグが割り当てられた Card は0枚であり、一覧に一致する Card も0枚である。
+
+When:
+
+- 選択済みとして残るそのタグのチェックボックスだけを解除し、同じ Deck の閲覧を開く。全条件を解除する Clear は使わない。
+
+Then:
+
+- 割り当てが0枚でも、選択中はそのタグを解除できる。チェックを外すと選択が解除され、割り当てがないタグは候補から消える。
+- Card 一覧では2枚を表示し、Deck 閲覧でも同じ条件で先頭の Card と「1 of 2」の位置を表示する。

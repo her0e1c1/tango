@@ -22,7 +22,7 @@ Storybook: `Pages/Card Create/CardCreator`。
 
 ## 同じファイルにある結合Story
 
-次のStoryは部品単体の表示仕様とは分け、[結合テスト仕様](../../test/integration/storybook/README.md)で扱う。ここでは対応先だけを示し、保存・通知などの結合契約を重複定義しない。
+次のStoryは部品単体の表示仕様とは分け、[Playwright結合テストの規約](../../test/integration/playwright/AGENTS.md)に従って移行する。旧実行コードは同等なPlaywright検証を確認するまで残し、ここでは対象外の結合境界だけを示す。
 
 | Story | 対象外となる境界 |
 | --- | --- |

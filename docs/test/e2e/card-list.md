@@ -27,6 +27,8 @@ Card 一覧の本文・タグ、裏面のプレビュー、Card 未登録時の�
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: Card 一覧に学習情報を表示できる（[PLAYWRIGHT-CARD-LIST-42](../integration/playwright/card-list.md#playwright-card-list-42)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
@@ -47,6 +49,8 @@ Then:
 カテゴリ: `read`
 
 区分: 正常系
+
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: Card の解答プレビューを開ける（[PLAYWRIGHT-CARD-LIST-35](../integration/playwright/card-list.md#playwright-card-list-35)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
 
 Given:
 
@@ -71,6 +75,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: Card の解答プレビューを閉じて一覧へ戻れる（[PLAYWRIGHT-CARD-LIST-36](../integration/playwright/card-list.md#playwright-card-list-36)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
@@ -93,6 +99,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: Card 未登録の一覧から Card の追加へ進める（[PLAYWRIGHT-CARD-LIST-17](../integration/playwright/card-list.md#playwright-card-list-17)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`browse-filter`](./fixture/browse-filter.yaml)
@@ -113,6 +121,8 @@ Then:
 カテゴリ: `read`
 
 区分: 正常系
+
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 解答の文章を選択できる（[PLAYWRIGHT-CARD-LIST-37](../integration/playwright/card-list.md#playwright-card-list-37)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
 
 Given:
 
@@ -135,6 +145,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 解答のリンクと脚注をたどれる（[PLAYWRIGHT-CARD-LIST-38](../integration/playwright/card-list.md#playwright-card-list-38)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`card-answer-preview`](./fixture/card-answer-preview.yaml)
@@ -155,6 +167,8 @@ Then:
 カテゴリ: `read`
 
 区分: 正常系
+
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 解答の本文をキーボードで縦にスクロールできる（[PLAYWRIGHT-CARD-LIST-39](../integration/playwright/card-list.md#playwright-card-list-39)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
 
 Given:
 
@@ -177,6 +191,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 解答のコードをキーボードで横にスクロールできる（[PLAYWRIGHT-CARD-LIST-40](../integration/playwright/card-list.md#playwright-card-list-40)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`card-answer-preview`](./fixture/card-answer-preview.yaml)
@@ -198,6 +214,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 解答の数式をキーボードで横にスクロールできる（[PLAYWRIGHT-CARD-LIST-41](../integration/playwright/card-list.md#playwright-card-list-41)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`card-answer-preview`](./fixture/card-answer-preview.yaml)
@@ -218,6 +236,8 @@ Then:
 カテゴリ: `read`
 
 区分: 異常系
+
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 存在しない Deck から復帰できる（[PLAYWRIGHT-CARD-LIST-43](../integration/playwright/card-list.md#playwright-card-list-43)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
 
 Given:
 

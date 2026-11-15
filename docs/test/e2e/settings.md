@@ -34,6 +34,8 @@
 
 区分: 正常系
 
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 詳細設定のキーボード開閉・フォーカス・バージョンと commit 表示（[PLAYWRIGHT-SETTINGS-12](../integration/playwright/settings.md#playwright-settings-12)）。置換実装後の E2E 目的: 実ブラウザー reload 後の詳細設定の閉状態と設定・認証・学習位置の保持。
+
 Given:
 
 - Fixture: [`empty`](./fixture/empty.yaml)
@@ -60,6 +62,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: E2E維持。E2E の目的: browser storage からの旧方向割当の移行・独自割当保持と reload。
+
 Given:
 
 - Fixture: [`empty`](./fixture/empty.yaml)
@@ -83,6 +87,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: System 言語の変更後も CSV 選択と preview を保持し import を開始しない（[PLAYWRIGHT-DECK-IMPORT-15](../integration/playwright/deck-import.md#playwright-deck-import-15)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`empty`](./fixture/empty.yaml)
@@ -104,6 +110,8 @@ Then:
 カテゴリ: `write`
 
 区分: 正常系
+
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: Dark mode の即時配色反映と他の設定の保持（[PLAYWRIGHT-SETTINGS-13](../integration/playwright/settings.md#playwright-settings-13)）。置換実装後の E2E 目的: 実 browser storage への自動保存と reload 後の配色・他設定の保持。
 
 Given:
 
@@ -128,6 +136,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 上限の正数・1・0の説明と新規学習対象件数への適用（[PLAYWRIGHT-SETTINGS-09](../integration/playwright/settings.md#playwright-settings-09)、[PLAYWRIGHT-SETTINGS-15](../integration/playwright/settings.md#playwright-settings-15)、[PLAYWRIGHT-STUDY-SESSION-START-04](../integration/playwright/study-session-start.md#playwright-study-session-start-04)）。置換実装後の E2E 目的: 上限設定の実自動保存・reload 後の復元と新規 session の実保存。
+
 Given:
 
 - Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
@@ -151,6 +161,8 @@ Then:
 カテゴリ: `batch`
 
 区分: 正常系
+
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 復習予定尊重の選択と次の学習で未来期限の Card を除外（[PLAYWRIGHT-SETTINGS-15](../integration/playwright/settings.md#playwright-settings-15)、[PLAYWRIGHT-STUDY-SESSION-START-06](../integration/playwright/study-session-start.md#playwright-study-session-start-06)）。置換実装後の E2E 目的: 設定の実自動保存・reload 後の復元と新規学習の実保存。
 
 Given:
 
@@ -178,6 +190,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 日本語選択を設定・Deck 一覧・ページの言語と読み上げへ即時反映（[PLAYWRIGHT-SETTINGS-14](../integration/playwright/settings.md#playwright-settings-14)）。置換実装後の E2E 目的: 実 browser storage への言語設定の保存と reload 後の復元。
+
 Given:
 
 - Fixture: [`empty`](./fixture/empty.yaml)
@@ -200,6 +214,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: System 選択時にブラウザーの ja-JP に従って表示・読み上げを日本語化（[PLAYWRIGHT-SETTINGS-14](../integration/playwright/settings.md#playwright-settings-14)）。置換実装後の E2E 目的: System の実自動保存と reload 後のブラウザー言語からの復元。
+
 Given:
 
 - Fixture: [`empty`](./fixture/empty.yaml)
@@ -221,6 +237,8 @@ Then:
 カテゴリ: `write`
 
 区分: 正常系
+
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 間隔0の説明・読み上げと他の設定の保持（[PLAYWRIGHT-SETTINGS-10](../integration/playwright/settings.md#playwright-settings-10)、[PLAYWRIGHT-SETTINGS-16](../integration/playwright/settings.md#playwright-settings-16)）。置換実装後の E2E 目的: 実 browser storage に保存した間隔0と説明の reload 後の復元。
 
 Given:
 
@@ -247,6 +265,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 間隔を正値に戻して同じ session の順・位置を保ち再生設定を適用（[PLAYWRIGHT-STUDY-SESSION-36](../integration/playwright/study-session.md#playwright-study-session-36)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
@@ -271,6 +291,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 上限変更後も既存 session の Card・順序・位置から Continue（[PLAYWRIGHT-DECK-LIST-37](../integration/playwright/deck-list.md#playwright-deck-list-37)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
@@ -292,6 +314,8 @@ Then:
 カテゴリ: `write`
 
 区分: 正常系
+
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 間隔0から正値への変更で秒数表示に戻り他の設定を保つ（[PLAYWRIGHT-SETTINGS-10](../integration/playwright/settings.md#playwright-settings-10)、[PLAYWRIGHT-SETTINGS-16](../integration/playwright/settings.md#playwright-settings-16)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
 
 Given:
 
@@ -315,6 +339,8 @@ Then:
 カテゴリ: `batch`
 
 区分: 正常系
+
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 間隔0で自動送りと再生操作を無効にし Help と手動移動を維持（[PLAYWRIGHT-STUDY-SESSION-35](../integration/playwright/study-session.md#playwright-study-session-35)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
 
 Given:
 
@@ -340,6 +366,8 @@ Then:
 
 区分: 異常系
 
+関連仕様: E2E維持。E2E の目的: 実 browser storage の不正な設定を reload 時に読み、現在の既定値で復旧。
+
 Given:
 
 - Fixture: [`empty`](./fixture/empty.yaml)
@@ -360,6 +388,8 @@ Then:
 カテゴリ: `read`
 
 区分: 異常系
+
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 言語変更後の安全な CSV エラー案内と再試行入力・通知期限の保持（[PLAYWRIGHT-DECK-IMPORT-16](../integration/playwright/deck-import.md#playwright-deck-import-16)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
 
 Given:
 
@@ -385,6 +415,8 @@ Then:
 
 区分: 異常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: System 言語変更で検証エラー・読み上げを更新し未保存の両面・タグを保持（[PLAYWRIGHT-CARD-EDIT-18](../integration/playwright/card-edit.md#playwright-card-edit-18)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`remote-deck-with-card`](./fixture/remote-deck-with-card.yaml)
@@ -408,6 +440,8 @@ Then:
 カテゴリ: `write`
 
 区分: 異常系
+
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: CSV 診断を翻訳し選択・preview・件数・元の行・診断順序を保持（[PLAYWRIGHT-DECK-IMPORT-14](../integration/playwright/deck-import.md#playwright-deck-import-14)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
 
 Given:
 

@@ -6,6 +6,7 @@
 
 非公開の学習データは [StudySession](../integration/firestore/rules-study-session.md#firestore-rules-study-session-02)、削除済み公開データの読取拒否は [Deck](../integration/firestore/rules-deck.md#firestore-rules-deck-01)・[Card](../integration/firestore/rules-card.md#firestore-rules-card-01) の認可仕様を参照する。匿名の学習結果・記録の復元は [STUDY-SESSION-07](./study-session.md#study-session-07)・[STUDY-SESSION-12](./study-session.md#study-session-12)、保存先は [共通前提](./AGENTS.md#保存先の用語) を参照する。
 旧アプリで保存したデータの自動引き継ぎは対象外とする。
+サーバー上の論理削除済み document の保持は [Firestore の論理削除反映](../integration/firestore/incremental-sync.md#firestore-incremental-sync-02)、保存操作時の本文・子 Card の保持は [Card 削除](../integration/firestore/card.md#firestore-card-07)・[Deck 削除](../integration/firestore/deck.md#firestore-deck-04) の契約とする。本書では画面を開き直した利用者が変更後の内容だけを利用できることを確認する。
 
 ## テストケース
 
@@ -40,6 +41,8 @@
 
 区分: 正常系
 
+関連仕様: E2E維持。E2E の目的: 再読み込み後のUIDごとの実データ分離。
+
 Given:
 
 - Fixture: [`two-users`](./fixture/two-users.yaml)
@@ -63,6 +66,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: E2E維持。E2E の目的: Firestore永続cacheからオフライン再読み込みで学習位置を復元。
+
 Given:
 
 - Fixture: [`google-study-session-middle`](./fixture/google-study-session-middle.yaml)
@@ -83,6 +88,8 @@ Then:
 カテゴリ: `read`
 
 区分: 正常系
+
+関連仕様: E2E維持。E2E の目的: cache・再購読後も全Cardが欠落・重複しない。
 
 Given:
 
@@ -105,6 +112,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: E2E維持。E2E の目的: 匿名オフライン作成のcache永続化と再読み込み後の一意性。
+
 Given:
 
 - Fixture: [`local-deck-with-cards`](./fixture/local-deck-with-cards.yaml)
@@ -125,6 +134,8 @@ Then:
 カテゴリ: `batch`
 
 区分: 正常系
+
+関連仕様: E2E維持。E2E の目的: 匿名オフラインimportのcache永続化と再読み込み後の一意性。
 
 Given:
 
@@ -147,6 +158,8 @@ Then:
 カテゴリ: `batch`
 
 区分: 正常系
+
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 保存応答の保留中は操作・成功通知・遷移を止め、成功応答後に解除して更新内容を表示する（[PLAYWRIGHT-CARD-FORM-20](../integration/playwright/card-edit.md#playwright-card-form-20)、[PLAYWRIGHT-CARD-EDIT-09](../integration/playwright/card-edit.md#playwright-card-edit-09)、[PLAYWRIGHT-CARD-EDIT-15](../integration/playwright/card-edit.md#playwright-card-edit-15)）。置換実装後の E2E 目的: 実際の通信断中の保留書込と再接続後の別ブラウザー同期・重複防止。
 
 Given:
 
@@ -175,6 +188,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: E2E維持。E2E の目的: 独立したブラウザーへの実購読通知で本文を更新。
+
 Given:
 
 - Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
@@ -198,6 +213,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: E2E維持。E2E の目的: 匿名Deck編集のcache復元とクラウドへの非送信。
+
 Given:
 
 - Fixture: [`local-deck-with-cards`](./fixture/local-deck-with-cards.yaml)
@@ -218,6 +235,8 @@ Then:
 カテゴリ: `batch`
 
 区分: 正常系
+
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 回答の保存応答待ち中は追加評価と競合操作を止め、成功応答後に再開する（[PLAYWRIGHT-STUDY-SESSION-27](../integration/playwright/study-session.md#playwright-study-session-27)）。置換実装後の E2E 目的: 保留回答と学習位置を再接続後に永続化し別ブラウザーで同じ順に復元、回答を重複しない。
 
 Given:
 
@@ -245,6 +264,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: E2E維持。E2E の目的: 画面停止中の別クライアント編集を購読再開で受信。
+
 Given:
 
 - Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
@@ -265,6 +286,8 @@ Then:
 カテゴリ: `batch`
 
 区分: 正常系
+
+関連仕様: E2E維持。E2E の目的: 匿名Card編集のcache復元とクラウドへの非送信。
 
 Given:
 
@@ -287,6 +310,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: E2E維持。E2E の目的: 匿名オフライン削除のcache永続化と再読み込み後の非表示。
+
 Given:
 
 - Fixture: [`local-deck-with-cards`](./fixture/local-deck-with-cards.yaml)
@@ -308,6 +333,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: E2E維持。E2E の目的: 開き直すと削除済み Card は表示されず、変更しなかった Card は利用できること。サーバー上の削除済み document の保持は [Firestore IT](../integration/firestore/incremental-sync.md#firestore-incremental-sync-02) の目的とする。
+
 Given:
 
 - Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
@@ -320,7 +347,6 @@ When:
 Then:
 
 - 削除した Card は表示せず、変更しなかった Card は残る。
-- サーバーには削除済みの Card が残る。
 
 <a id="persistence-16"></a>
 
@@ -329,6 +355,8 @@ Then:
 カテゴリ: `batch`
 
 区分: 正常系
+
+関連仕様: E2E維持。E2E の目的: 開き直した一覧から削除済み Deck が消え、再読み込みでも復活しないこと。サーバー上の削除済み document と子 Card の保持は [論理削除反映](../integration/firestore/incremental-sync.md#firestore-incremental-sync-02)・[Deck 削除](../integration/firestore/deck.md#firestore-deck-04) の目的とする。
 
 Given:
 
@@ -343,7 +371,6 @@ When:
 Then:
 
 - 親 Deck は一覧から消え、再読み込みでも復活しない。
-- サーバーには削除済みの Deck と Card が残る。
 
 <a id="persistence-19"></a>
 
@@ -352,6 +379,8 @@ Then:
 カテゴリ: `read`
 
 区分: 異常系
+
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 利用不能Cardの表示・編集リンクからの警告と一覧復帰後の維持（[PLAYWRIGHT-CARD-VIEW-09](../integration/playwright/card-view.md#playwright-card-view-09)、[PLAYWRIGHT-CARD-EDIT-19](../integration/playwright/card-edit.md#playwright-card-edit-19)）。置換実装後の E2E 目的: 不正な匿名保存値を再読み込みで検出し、保存値を変更せず警告を復元。
 
 Given:
 
@@ -377,6 +406,8 @@ Then:
 
 区分: 異常系
 
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 全Card利用不能時の空表示と一覧復帰後の警告維持（[PLAYWRIGHT-DECK-VIEW-08](../integration/playwright/deck-view.md#playwright-deck-view-08)）。置換実装後の E2E 目的: 全Cardの不正保存値を再読み込みで検出し、空表示と警告を復元。
+
 Given:
 
 - Fixture: [`local-deck-with-cards`](./fixture/local-deck-with-cards.yaml)
@@ -401,6 +432,8 @@ Then:
 
 区分: 異常系
 
+関連仕様: E2E維持。E2E の目的: 端末内cache消失後にサーバーから欠落・重複なく再取得。
+
 Given:
 
 - Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
@@ -421,6 +454,8 @@ Then:
 カテゴリ: `batch`
 
 区分: 異常系
+
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 読取結果として正常Cardと警告件数を準備した場合の表示（[PLAYWRIGHT-CARD-LIST-47](../integration/playwright/card-list.md#playwright-card-list-47)）。置換実装後の E2E 目的: 実際の不正なFSRS保存値の解析・除外と再起動後の正常データ復元、保存値の無変更。
 
 Given:
 
@@ -452,6 +487,8 @@ Then:
 
 区分: 異常系
 
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 回復した読取結果への更新に合わせたCard再表示と警告件数の減少・消去（[PLAYWRIGHT-CARD-LIST-47](../integration/playwright/card-list.md#playwright-card-list-47)）。置換実装後の E2E 目的: 実保存値修復の購読・再取得によりCardと警告件数が回復。
+
 Given:
 
 - Fixture: [`local-deck-with-cards`](./fixture/local-deck-with-cards.yaml)
@@ -481,6 +518,8 @@ Then:
 カテゴリ: `batch`
 
 区分: 異常系
+
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 390×844で警告・本文・評価/再生操作へ到達し正常1枚の学習を完了する（[PLAYWRIGHT-STUDY-SESSION-37](../integration/playwright/study-session.md#playwright-study-session-37)）。置換実装後の E2E 目的: 不正な匿名保存値の実読取・除外と正常Cardへの回答永続化。
 
 Given:
 

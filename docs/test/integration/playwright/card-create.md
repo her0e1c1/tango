@@ -1,33 +1,33 @@
-# Card 作成画面 Storybook 結合テスト仕様書
+# Card 作成画面 Playwright 結合テスト仕様書
 
 ## 目的
 
-Card 作成画面を入口とした `play` で、対象 Deck への Card 作成、解答プレビュー、作成中・失敗後の操作を確認する。検証境界と実行前提は [AGENTS.md](./AGENTS.md) に従う。
+Card 作成画面を入口とした Playwright テストで、対象 Deck への Card 作成、解答プレビュー、作成中・失敗後の操作を確認する。検証境界と実行前提は [AGENTS.md](./AGENTS.md) に従う。
 
 ## テストケース
 
 | ID | カテゴリ | 区分 | テストケース |
 | --- | --- | --- | --- |
-| STORYBOOK-CARD-FORM-05 | interaction | 正常系 | [入力した両面で Card を作成する](#storybook-card-form-05) |
-| STORYBOOK-CARD-FORM-17 | interaction | 正常系 | [作成成功を画面で通知する](#storybook-card-form-17) |
-| STORYBOOK-CARD-FORM-18 | interaction | 異常系 | [作成失敗後に入力を保って再試行する](#storybook-card-form-18) |
-| STORYBOOK-CARD-FORM-19 | interaction | 正常系 | [作成中の連続操作を抑止する](#storybook-card-form-19) |
-| STORYBOOK-CARD-CREATE-01 | interaction | 異常系 | [未入力のまま Card を作成しない](#storybook-card-create-01) |
-| STORYBOOK-CARD-CREATE-02 | interaction | 正常系 | [下書きを保存せず解答を確認する](#storybook-card-create-02) |
-| STORYBOOK-CARD-CREATE-03 | interaction | 正常系 | [未保存の Card 作成内容の離脱を確認できる](#storybook-card-create-03) |
-| STORYBOOK-CARD-CREATE-04 | interaction | 正常系 | [未変更の Card 作成画面は確認なしで取り消せる](#storybook-card-create-04) |
-| STORYBOOK-CARD-CREATE-05 | interaction | 正常系 | [作成中の未保存の解答をプレビューできる](#storybook-card-create-05) |
-| STORYBOOK-CARD-CREATE-06 | interaction | 正常系 | [狭い画面で両面とタグを入力して作成する](#storybook-card-create-06) |
-| STORYBOOK-CARD-CREATE-07 | interaction | 正常系 | [長い Card 本文の作成通知を狭い画面で閉じる](#storybook-card-create-07) |
-| STORYBOOK-CARD-CREATE-08 | interaction | 正常系 | [作成成功の応答で未回答の離脱確認を閉じる](#storybook-card-create-08) |
-| STORYBOOK-CARD-CREATE-09 | interaction | 正常系 | [作成中の離脱後に遅い成功で画面を戻さない](#storybook-card-create-09) |
-| STORYBOOK-CARD-CREATE-10 | interaction | 異常系 | [作成失敗の応答後も離脱確認と入力を保持する](#storybook-card-create-10) |
-| STORYBOOK-CARD-CREATE-11 | interaction | 異常系 | [作成画面の離脱後に失敗の応答を通知する](#storybook-card-create-11) |
-| STORYBOOK-CARD-CREATE-12 | interaction | 正常系 | [Card 作成で所属 Deck のタグを選択し新規タグを追加できる](#storybook-card-create-12) |
+| PLAYWRIGHT-CARD-FORM-05 | interaction | 正常系 | [入力した両面で Card を作成する](#playwright-card-form-05) |
+| PLAYWRIGHT-CARD-FORM-17 | interaction | 正常系 | [作成成功を画面で通知する](#playwright-card-form-17) |
+| PLAYWRIGHT-CARD-FORM-18 | interaction | 異常系 | [作成失敗後に入力を保って再試行する](#playwright-card-form-18) |
+| PLAYWRIGHT-CARD-FORM-19 | interaction | 正常系 | [作成中の連続操作を抑止する](#playwright-card-form-19) |
+| PLAYWRIGHT-CARD-CREATE-01 | interaction | 異常系 | [未入力のまま Card を作成しない](#playwright-card-create-01) |
+| PLAYWRIGHT-CARD-CREATE-02 | interaction | 正常系 | [下書きを保存せず解答を確認する](#playwright-card-create-02) |
+| PLAYWRIGHT-CARD-CREATE-03 | interaction | 正常系 | [未保存の Card 作成内容の離脱を確認できる](#playwright-card-create-03) |
+| PLAYWRIGHT-CARD-CREATE-04 | interaction | 正常系 | [未変更の Card 作成画面は確認なしで取り消せる](#playwright-card-create-04) |
+| PLAYWRIGHT-CARD-CREATE-05 | interaction | 正常系 | [作成中の未保存の解答をプレビューできる](#playwright-card-create-05) |
+| PLAYWRIGHT-CARD-CREATE-06 | interaction | 正常系 | [狭い画面で両面とタグを入力して作成する](#playwright-card-create-06) |
+| PLAYWRIGHT-CARD-CREATE-07 | interaction | 正常系 | [長い Card 本文の作成通知を狭い画面で閉じる](#playwright-card-create-07) |
+| PLAYWRIGHT-CARD-CREATE-08 | interaction | 正常系 | [作成成功の応答で未回答の離脱確認を閉じる](#playwright-card-create-08) |
+| PLAYWRIGHT-CARD-CREATE-09 | interaction | 正常系 | [作成中の離脱後に遅い成功で画面を戻さない](#playwright-card-create-09) |
+| PLAYWRIGHT-CARD-CREATE-10 | interaction | 異常系 | [作成失敗の応答後も離脱確認と入力を保持する](#playwright-card-create-10) |
+| PLAYWRIGHT-CARD-CREATE-11 | interaction | 異常系 | [作成画面の離脱後に失敗の応答を通知する](#playwright-card-create-11) |
+| PLAYWRIGHT-CARD-CREATE-12 | interaction | 正常系 | [Card 作成で所属 Deck のタグを選択し新規タグを追加できる](#playwright-card-create-12) |
 
-<a id="storybook-card-form-05"></a>
+<a id="playwright-card-form-05"></a>
 
-### STORYBOOK-CARD-FORM-05 入力した両面で Card を作成する
+### PLAYWRIGHT-CARD-FORM-05 [TODO] 入力した両面で Card を作成する
 
 カテゴリ: `interaction`
 
@@ -47,9 +47,9 @@ Then:
 - 新規タグ名の前後空白だけを除き、内部の空白は保持して一覧に表示する。
 - 新規タグの候補を一度クリックすると入力行が消え、解除される。
 
-<a id="storybook-card-form-17"></a>
+<a id="playwright-card-form-17"></a>
 
-### STORYBOOK-CARD-FORM-17 作成成功を画面で通知する
+### PLAYWRIGHT-CARD-FORM-17 [TODO] 作成成功を画面で通知する
 
 カテゴリ: `interaction`
 
@@ -67,9 +67,9 @@ Then:
 
 - 成功応答を受けた後に Created card “Front value”. が表示される。
 
-<a id="storybook-card-form-18"></a>
+<a id="playwright-card-form-18"></a>
 
-### STORYBOOK-CARD-FORM-18 作成失敗後に入力を保って再試行する
+### PLAYWRIGHT-CARD-FORM-18 [TODO] 作成失敗後に入力を保って再試行する
 
 カテゴリ: `interaction`
 
@@ -87,9 +87,9 @@ Then:
 
 - 失敗時は再試行の案内と両面の入力が残り、再試行成功後は成功通知が表示される。
 
-<a id="storybook-card-form-19"></a>
+<a id="playwright-card-form-19"></a>
 
-### STORYBOOK-CARD-FORM-19 作成中の連続操作を抑止する
+### PLAYWRIGHT-CARD-FORM-19 [TODO] 作成中の連続操作を抑止する
 
 カテゴリ: `interaction`
 
@@ -107,9 +107,9 @@ Then:
 
 - 待機中は Creating… が無効になり、完了後は Create card が再び有効になる。同じ送信で複数の Card が一覧に増えない。
 
-<a id="storybook-card-create-01"></a>
+<a id="playwright-card-create-01"></a>
 
-### STORYBOOK-CARD-CREATE-01 未入力のまま Card を作成しない
+### PLAYWRIGHT-CARD-CREATE-01 [TODO] 未入力のまま Card を作成しない
 
 カテゴリ: `interaction`
 
@@ -127,9 +127,9 @@ Then:
 
 - 必須入力のエラーが表示され、作成成功の通知は出ない。入力を修正して再び操作できる。
 
-<a id="storybook-card-create-02"></a>
+<a id="playwright-card-create-02"></a>
 
-### STORYBOOK-CARD-CREATE-02 下書きを保存せず解答を確認する
+### PLAYWRIGHT-CARD-CREATE-02 [TODO] 下書きを保存せず解答を確認する
 
 カテゴリ: `interaction`
 
@@ -147,9 +147,9 @@ Then:
 
 - 入力内容がプレビューに描画され、閉じても下書きが残り、作成成功の通知は出ない。
 
-<a id="storybook-card-create-03"></a>
+<a id="playwright-card-create-03"></a>
 
-### STORYBOOK-CARD-CREATE-03 [TODO] 未保存の Card 作成内容の離脱を確認できる
+### PLAYWRIGHT-CARD-CREATE-03 [TODO] 未保存の Card 作成内容の離脱を確認できる
 
 カテゴリ: `interaction`
 
@@ -168,9 +168,9 @@ Then:
 - 未保存変更の確認を表示し、Keep editing では入力を保つ。
 - Discard changes では所属 Deck の Card 一覧へ移動し、Card は作成しない。
 
-<a id="storybook-card-create-04"></a>
+<a id="playwright-card-create-04"></a>
 
-### STORYBOOK-CARD-CREATE-04 [TODO] 未変更の Card 作成画面は確認なしで取り消せる
+### PLAYWRIGHT-CARD-CREATE-04 [TODO] 未変更の Card 作成画面は確認なしで取り消せる
 
 カテゴリ: `interaction`
 
@@ -188,9 +188,9 @@ Then:
 
 - 未変更の場合は確認なしで所属 Deck の Card 一覧へ戻る。
 
-<a id="storybook-card-create-05"></a>
+<a id="playwright-card-create-05"></a>
 
-### STORYBOOK-CARD-CREATE-05 [TODO] 作成中の未保存の解答をプレビューできる
+### PLAYWRIGHT-CARD-CREATE-05 [TODO] 作成中の未保存の解答をプレビューできる
 
 カテゴリ: `interaction`
 
@@ -215,9 +215,9 @@ Then:
 - 狭い画面でもプレビュー操作と入力欄を利用できる。
 - プレビューだけでは Card を作成せず、Deck の内容・学習結果・学習の現在位置・URL は変わらない。
 
-<a id="storybook-card-create-06"></a>
+<a id="playwright-card-create-06"></a>
 
-### STORYBOOK-CARD-CREATE-06 [TODO] 狭い画面で両面とタグを入力して作成する
+### PLAYWRIGHT-CARD-CREATE-06 [TODO] 狭い画面で両面とタグを入力して作成する
 
 カテゴリ: `interaction`
 
@@ -237,9 +237,9 @@ Then:
 - 両面の拡大編集は画面の上端から下端まで表示し、見出し・完了ボタンが欠けず、背景とタグ選択画面は下端に隙間なく接する。
 - 検証中・保存中は作成を無効にし、成功応答後に対象 Deck の一覧へ移動して入力した両面とタグの Card を1件だけ表示し、成功を通知する。
 
-<a id="storybook-card-create-07"></a>
+<a id="playwright-card-create-07"></a>
 
-### STORYBOOK-CARD-CREATE-07 [TODO] 長い Card 本文の作成通知を狭い画面で閉じる
+### PLAYWRIGHT-CARD-CREATE-07 [TODO] 長い Card 本文の作成通知を狭い画面で閉じる
 
 カテゴリ: `interaction`
 
@@ -259,9 +259,9 @@ Then:
 - Dismiss の描画範囲と可視フォーカスが viewport 内に収まり、ポインターとキーボードで操作でき、閉じるとページへフォーカスが戻る。
 - 一覧と閲覧で両面の全文を確認でき、通知用の切り詰めを本文へ適用しない。
 
-<a id="storybook-card-create-08"></a>
+<a id="playwright-card-create-08"></a>
 
-### STORYBOOK-CARD-CREATE-08 [TODO] 作成成功の応答で未回答の離脱確認を閉じる
+### PLAYWRIGHT-CARD-CREATE-08 [TODO] 作成成功の応答で未回答の離脱確認を閉じる
 
 カテゴリ: `interaction`
 
@@ -280,9 +280,9 @@ Then:
 - 確認には離脱後も作成が続くことと、留まる場合の成功時の遷移・失敗時の通知を表示する。Keep editing では入力と処理を保つ。
 - 成功応答前は遷移せず、成功応答後に未回答の確認を閉じて所属 Deck の一覧へ移動し、入力した Card を1件表示して成功を通知する。以前 Header で選んだ画面へ移動しない。
 
-<a id="storybook-card-create-09"></a>
+<a id="playwright-card-create-09"></a>
 
-### STORYBOOK-CARD-CREATE-09 [TODO] 作成中の離脱後に遅い成功で画面を戻さない
+### PLAYWRIGHT-CARD-CREATE-09 [TODO] 作成中の離脱後に遅い成功で画面を戻さない
 
 カテゴリ: `interaction`
 
@@ -302,9 +302,9 @@ Then:
 - 遅い成功応答と Card の結果を受け取っても、現在の画面を維持し、離脱した作成画面の成功通知・自動遷移を行わない。所属 Deck を開き直すと入力した Card を1件確認できる。
 - 別画面へ移動した後に同じ結果が届いても再び遷移しない。
 
-<a id="storybook-card-create-10"></a>
+<a id="playwright-card-create-10"></a>
 
-### STORYBOOK-CARD-CREATE-10 [TODO] 作成失敗の応答後も離脱確認と入力を保持する
+### PLAYWRIGHT-CARD-CREATE-10 [TODO] 作成失敗の応答後も離脱確認と入力を保持する
 
 カテゴリ: `interaction`
 
@@ -323,9 +323,9 @@ Then:
 - 失敗応答では未回答の離脱確認と入力を保持し、成功時の遷移を行わない。
 - Keep editing 後に同じ入力で再試行でき、成功応答と作成結果を受け取ると所属 Deck の一覧へ移動し、入力した Card を1件表示して成功を通知する。
 
-<a id="storybook-card-create-11"></a>
+<a id="playwright-card-create-11"></a>
 
-### STORYBOOK-CARD-CREATE-11 [TODO] 作成画面の離脱後に失敗の応答を通知する
+### PLAYWRIGHT-CARD-CREATE-11 [TODO] 作成画面の離脱後に失敗の応答を通知する
 
 カテゴリ: `interaction`
 
@@ -345,9 +345,9 @@ Then:
 - 失敗通知を表示し、成功時の遷移は行わない。
 - 拒否された Card は一覧に残らず、離脱済みの入力画面や確認へ戻らない。
 
-<a id="storybook-card-create-12"></a>
+<a id="playwright-card-create-12"></a>
 
-### STORYBOOK-CARD-CREATE-12 [TODO] Card 作成で所属 Deck のタグを選択し新規タグを追加できる
+### PLAYWRIGHT-CARD-CREATE-12 [TODO] Card 作成で所属 Deck のタグを選択し新規タグを追加できる
 
 カテゴリ: `interaction`
 

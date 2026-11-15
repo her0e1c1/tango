@@ -19,6 +19,8 @@ Card の内容を失わず CSV へ出力できることを確認する。
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 対象Deckのファイル名・4列のCSV出力内容（[PLAYWRIGHT-DECK-LIST-44](../integration/playwright/deck-list.md#playwright-deck-list-44)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
@@ -41,6 +43,8 @@ Then:
 カテゴリ: `read`
 
 区分: 正常系
+
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 特殊文字・空タグを保持するCSVとDeck分離・無変更（[PLAYWRIGHT-DECK-LIST-44](../integration/playwright/deck-list.md#playwright-deck-list-44)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
 
 Given:
 

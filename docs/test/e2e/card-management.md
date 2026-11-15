@@ -45,6 +45,8 @@ Card の作成・編集・削除、未保存入力の扱い、失敗後の再試
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: Card の削除を取り消せる（[PLAYWRIGHT-CARD-LIST-44](../integration/playwright/card-list.md#playwright-card-list-44)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
@@ -67,6 +69,8 @@ Then:
 カテゴリ: `read`
 
 区分: 正常系
+
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 未保存の Card 編集内容を離脱前に確認できる（[PLAYWRIGHT-CARD-EDIT-03](../integration/playwright/card-edit.md#playwright-card-edit-03)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
 
 Given:
 
@@ -92,6 +96,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 未保存の Card 作成内容の離脱を確認できる（[PLAYWRIGHT-CARD-CREATE-03](../integration/playwright/card-create.md#playwright-card-create-03)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
@@ -113,6 +119,8 @@ Then:
 カテゴリ: `read`
 
 区分: 正常系
+
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 作成中の未保存の解答をプレビューできる（[PLAYWRIGHT-CARD-CREATE-05](../integration/playwright/card-create.md#playwright-card-create-05)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
 
 Given:
 
@@ -142,6 +150,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 編集中の未保存の解答と表示形式をプレビューできる（[PLAYWRIGHT-CARD-EDIT-04](../integration/playwright/card-edit.md#playwright-card-edit-04)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`local-deck-with-cards`](./fixture/local-deck-with-cards.yaml)
@@ -169,6 +179,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: Card のタブと拡大画面を切り替えても下書きを維持する（[PLAYWRIGHT-CARD-FORM-01](../integration/playwright/card-edit.md#playwright-card-form-01)、[PLAYWRIGHT-CARD-FORM-06](../integration/playwright/card-edit.md#playwright-card-form-06)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
@@ -189,6 +201,8 @@ Then:
 カテゴリ: `read`
 
 区分: 正常系
+
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: Card 結果更新後も編集中の下書きを保持（[PLAYWRIGHT-CARD-FORM-21](../integration/playwright/card-edit.md#playwright-card-form-21)）。置換実装後の E2E 目的: 別ブラウザーからの実購読更新の到達。
 
 Given:
 
@@ -211,6 +225,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 通知の表示が変化しても Card の離脱確認を操作できる（[PLAYWRIGHT-CARD-EDIT-14](../integration/playwright/card-edit.md#playwright-card-edit-14)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
@@ -232,6 +248,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 未変更の Card 作成画面は確認なしで取り消せる（[PLAYWRIGHT-CARD-CREATE-04](../integration/playwright/card-create.md#playwright-card-create-04)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
@@ -252,6 +270,8 @@ Then:
 カテゴリ: `write`
 
 区分: 正常系
+
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: モバイルの拡大入力・二重送信抑止・成功表示（[PLAYWRIGHT-CARD-CREATE-06](../integration/playwright/card-create.md#playwright-card-create-06)）。置換実装後の E2E 目的: ログイン UID の Deck への一意な実保存と reload・同期。
 
 Given:
 
@@ -277,6 +297,8 @@ Then:
 カテゴリ: `write`
 
 区分: 正常系
+
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 長文の作成成功通知・フォーカス・全文表示（[PLAYWRIGHT-CARD-CREATE-07](../integration/playwright/card-create.md#playwright-card-create-07)）。置換実装後の E2E 目的: 匿名 cache への実保存・reload 後の全文とクラウド非追加。
 
 Given:
 
@@ -305,6 +327,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 保存待ちの離脱確認と成功応答後の遷移（[PLAYWRIGHT-CARD-CREATE-08](../integration/playwright/card-create.md#playwright-card-create-08)）。置換実装後の E2E 目的: 作成の実保存・reload 後の非重複。
+
 Given:
 
 - Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
@@ -328,6 +352,8 @@ Then:
 カテゴリ: `write`
 
 区分: 正常系
+
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 保存中の離脱と遅い成功応答での画面維持（[PLAYWRIGHT-CARD-CREATE-09](../integration/playwright/card-create.md#playwright-card-create-09)）。置換実装後の E2E 目的: 離脱後も実保存が完了し reload 後に同じ Card を表示。
 
 Given:
 
@@ -353,6 +379,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: Card 作成で所属 Deck のタグを選択し新規タグを追加できる（[PLAYWRIGHT-CARD-CREATE-12](../integration/playwright/card-create.md#playwright-card-create-12)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
@@ -376,6 +404,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 成功応答後の通知・遷移・対象の本文とタグ（[PLAYWRIGHT-CARD-EDIT-09](../integration/playwright/card-edit.md#playwright-card-edit-09)）。置換実装後の E2E 目的: 実保存・reload 後の本文とタグ・学習状態の保持。
+
 Given:
 
 - Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
@@ -398,6 +428,8 @@ Then:
 カテゴリ: `write`
 
 区分: 正常系
+
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: Card のタグ候補を選んで下書きへ反映できる（[PLAYWRIGHT-CARD-EDIT-05](../integration/playwright/card-edit.md#playwright-card-edit-05)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
 
 Given:
 
@@ -424,6 +456,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: Card の編集保存中は重ねて操作できない（[PLAYWRIGHT-CARD-EDIT-15](../integration/playwright/card-edit.md#playwright-card-edit-15)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
@@ -444,6 +478,8 @@ Then:
 カテゴリ: `write`
 
 区分: 正常系
+
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: Card 編集画面の離脱後に保存が完了しても現在の画面を維持する（[PLAYWRIGHT-CARD-EDIT-10](../integration/playwright/card-edit.md#playwright-card-edit-10)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
 
 Given:
 
@@ -468,6 +504,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 削除成功応答後の通知・一覧更新（[PLAYWRIGHT-CARD-LIST-45](../integration/playwright/card-list.md#playwright-card-list-45)）。置換実装後の E2E 目的: 実削除と reload 後の閲覧・学習対象からの除外。
+
 Given:
 
 - Fixture: [`remote-deck-with-card`](./fixture/remote-deck-with-card.yaml)
@@ -488,6 +526,8 @@ Then:
 カテゴリ: `batch`
 
 区分: 正常系
+
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 認証確認と保存結果の順序別の通知・画面維持（[PLAYWRIGHT-CARD-EDIT-11](../integration/playwright/card-edit.md#playwright-card-edit-11)）。置換実装後の E2E 目的: 実 pending writes による sign-out 中止と保存完了。
 
 Given:
 
@@ -513,6 +553,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: Deck 除去の結果後に古い保存通知・遷移を抑止（[PLAYWRIGHT-CARD-EDIT-12](../integration/playwright/card-edit.md#playwright-card-edit-12)）。置換実装後の E2E 目的: 所属 Deck の実削除と保留 Card 保存の結合。
+
 Given:
 
 - Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
@@ -536,6 +578,8 @@ Then:
 カテゴリ: `batch`
 
 区分: 異常系
+
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 認証確認中の保存失敗の保留・復帰後通知と破棄（[PLAYWRIGHT-CARD-EDIT-13](../integration/playwright/card-edit.md#playwright-card-edit-13)）。置換実装後の E2E 目的: 実 pending writes による sign-out 中止と保存失敗。
 
 Given:
 
@@ -562,6 +606,8 @@ Then:
 
 区分: 異常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: Card の未表示の面にある入力エラーを修正できる（[PLAYWRIGHT-CARD-EDIT-16](../integration/playwright/card-edit.md#playwright-card-edit-16)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
@@ -587,6 +633,8 @@ Then:
 
 区分: 異常系
 
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 作成失敗応答からの入力保持と再試行（[PLAYWRIGHT-CARD-FORM-18](../integration/playwright/card-create.md#playwright-card-form-18)）。置換実装後の E2E 目的: 確定した Firestore 拒否の rollback と再試行後の実データ非重複。
+
 Given:
 
 - Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
@@ -610,6 +658,8 @@ Then:
 カテゴリ: `write`
 
 区分: 異常系
+
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 失敗応答時の確認・入力保持と再試行（[PLAYWRIGHT-CARD-CREATE-10](../integration/playwright/card-create.md#playwright-card-create-10)）。置換実装後の E2E 目的: 実保存拒否の rollback と再試行後の永続化・非重複。
 
 Given:
 
@@ -635,6 +685,8 @@ Then:
 
 区分: 異常系
 
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 離脱後の失敗応答で通知し現在画面を維持（[PLAYWRIGHT-CARD-CREATE-11](../integration/playwright/card-create.md#playwright-card-create-11)）。置換実装後の E2E 目的: Firestore 拒否と rollback で Card が残らない。
+
 Given:
 
 - Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
@@ -658,6 +710,8 @@ Then:
 
 区分: 異常系
 
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 保存失敗の通知・入力保持・成功応答後の遷移（[PLAYWRIGHT-CARD-FORM-23](../integration/playwright/card-edit.md#playwright-card-form-23)）。置換実装後の E2E 目的: Firestore 拒否の rollback・実再試行・reload 後の変更値。
+
 Given:
 
 - Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
@@ -679,6 +733,8 @@ Then:
 カテゴリ: `write`
 
 区分: 異常系
+
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 削除失敗応答後の再操作と成功時の一覧更新（[PLAYWRIGHT-CARD-LIST-46](../integration/playwright/card-list.md#playwright-card-list-46)）。置換実装後の E2E 目的: Firestore 削除拒否の rollback・再試行と reload 後の除外。
 
 Given:
 

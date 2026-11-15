@@ -28,6 +28,8 @@ Card 一覧のタグフィルター・並び順・行操作が、教材と学習
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: Card を追加が新しい順に表示できる（[PLAYWRIGHT-CARD-LIST-26](../integration/playwright/card-list.md#playwright-card-list-26)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`card-list-sort`](./fixture/card-list-sort.yaml)
@@ -53,6 +55,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: Card の表示順を標準へ戻せる（[PLAYWRIGHT-CARD-LIST-27](../integration/playwright/card-list.md#playwright-card-list-27)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`card-list-sort`](./fixture/card-list-sort.yaml)
@@ -75,6 +79,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 並び替え後も選択した Card のプレビューと行操作を利用できる（[PLAYWRIGHT-CARD-LIST-28](../integration/playwright/card-list.md#playwright-card-list-28)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`card-list-sort`](./fixture/card-list-sort.yaml)
@@ -95,6 +101,8 @@ Then:
 カテゴリ: `read`
 
 区分: 正常系
+
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 別 Card の変更後も行のフォーカスとメニューを維持できる（[PLAYWRIGHT-CARD-LIST-29](../integration/playwright/card-list.md#playwright-card-list-29)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
 
 Given:
 
@@ -117,6 +125,8 @@ Then:
 カテゴリ: `read`
 
 区分: 正常系
+
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: フィルター保存中も並び替えでき、禁止中の操作は実行できない（[PLAYWRIGHT-CARD-LIST-30](../integration/playwright/card-list.md#playwright-card-list-30)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
 
 Given:
 
@@ -141,6 +151,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 画面を離れるか Deck を変更すると並び順が標準に戻る（[PLAYWRIGHT-CARD-LIST-31](../integration/playwright/card-list.md#playwright-card-list-31)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`card-list-sort`](./fixture/card-list-sort.yaml)
@@ -161,6 +173,8 @@ Then:
 カテゴリ: `write`
 
 区分: 正常系
+
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 保存応答後のタグ選択・一致結果（[PLAYWRIGHT-DECK-VIEW-05](../integration/playwright/deck-view.md#playwright-deck-view-05)）。置換実装後の E2E 目的: Firestore へのフィルター実保存と reload 後の復元。
 
 Given:
 
@@ -184,6 +198,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 選択済みタグをキーボードで解除して操作を続けられる（[PLAYWRIGHT-CARD-LIST-12](../integration/playwright/card-list.md#playwright-card-list-12)、[PLAYWRIGHT-CARD-LIST-13](../integration/playwright/card-list.md#playwright-card-list-13)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
@@ -204,6 +220,8 @@ Then:
 カテゴリ: `write`
 
 区分: 正常系
+
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: フィルター保存中に変更しても最後の選択を維持できる（[PLAYWRIGHT-CARD-LIST-32](../integration/playwright/card-list.md#playwright-card-list-32)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
 
 Given:
 
@@ -226,6 +244,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 言語やフィルターを変更しても並び順を保持できる（[PLAYWRIGHT-CARD-LIST-33](../integration/playwright/card-list.md#playwright-card-list-33)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`card-list-sort`](./fixture/card-list-sort.yaml)
@@ -246,6 +266,8 @@ Then:
 カテゴリ: `write`
 
 区分: 異常系
+
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: フィルター保存失敗後も選択を維持して次の変更を保存できる（[PLAYWRIGHT-CARD-LIST-34](../integration/playwright/card-list.md#playwright-card-list-34)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
 
 Given:
 

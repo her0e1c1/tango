@@ -1,46 +1,46 @@
-# Deck インポート画面 Storybook 結合テスト仕様書
+# Deck インポート画面 Playwright 結合テスト仕様書
 
 ## 目的
 
-Deck インポート画面を入口とした `play` で、CSV とサンプルの選択から解析・プレビュー・確定までの画面内の振る舞いを確認する。検証境界と実行前提は [AGENTS.md](./AGENTS.md) に従う。
+Deck インポート画面を入口とした Playwright テストで、CSV とサンプルの選択から解析・プレビュー・確定までの画面内の振る舞いを確認する。検証境界と実行前提は [AGENTS.md](./AGENTS.md) に従う。
 
 ## テストケース
 
 | ID | カテゴリ | 区分 | テストケース |
 | --- | --- | --- | --- |
-| STORYBOOK-IMPORT-01 | render | 正常系 | [初期画面に保存先選択を表示しない](#storybook-import-01) |
-| STORYBOOK-IMPORT-02 | interaction | 正常系 | [CSV を読み込んでプレビューする](#storybook-import-02) |
-| STORYBOOK-IMPORT-03 | interaction | 異常系 | [日本語の診断と無効な確定操作を表示する](#storybook-import-03) |
-| STORYBOOK-IMPORT-04 | interaction | 異常系 | [プレビュー失敗を安全な日本語にする](#storybook-import-04) |
-| STORYBOOK-IMPORT-05 | interaction | 異常系 | [診断を翻訳してユーザー入力を保持する](#storybook-import-05) |
-| STORYBOOK-IMPORT-06 | interaction | 正常系 | [CSV 形式の説明を開く](#storybook-import-06) |
-| STORYBOOK-IMPORT-07 | render | 正常系 | [インポート処理中の選択を無効にする](#storybook-import-07) |
-| STORYBOOK-IMPORT-08 | interaction | 正常系 | [選んだサンプルを試す](#storybook-import-08) |
-| STORYBOOK-IMPORT-09 | interaction | 正常系 | [プレビュー後もファイルを選び直す](#storybook-import-09) |
-| STORYBOOK-IMPORT-10 | interaction | 正常系 | [内容確認とインポート確定を区別する](#storybook-import-10) |
-| STORYBOOK-IMPORT-11 | interaction | 異常系 | [不正な行があれば確定を止める](#storybook-import-11) |
-| STORYBOOK-IMPORT-12 | interaction | 異常系 | [準備失敗後もファイルを選び直す](#storybook-import-12) |
-| STORYBOOK-DECK-IMPORT-01 | interaction | 正常系 | [ファイル選択へキーボードで移動し保存前にプレビューする](#storybook-deck-import-01) |
-| STORYBOOK-DECK-IMPORT-02 | interaction | 正常系 | [選択を取り消してもプレビューと診断を保持する](#storybook-deck-import-02) |
-| STORYBOOK-DECK-IMPORT-03 | interaction | 正常系 | [4種類の例の全内容を CSV で出力する](#storybook-deck-import-03) |
-| STORYBOOK-DECK-IMPORT-04 | interaction | 正常系 | [4種類の例を追加確定前に保存しない](#storybook-deck-import-04) |
-| STORYBOOK-DECK-IMPORT-05 | interaction | 正常系 | [CSV と各例の追加成功を件数と一覧へ反映する](#storybook-deck-import-05) |
-| STORYBOOK-DECK-IMPORT-06 | interaction | 正常系 | [新たに選んだ同名の CSV や例を別の Deck として追加する](#storybook-deck-import-06) |
-| STORYBOOK-DECK-IMPORT-07 | interaction | 正常系 | [アカウント変更後に以前の選択を追加できない](#storybook-deck-import-07) |
-| STORYBOOK-DECK-IMPORT-08 | interaction | 異常系 | [不正な UTF-8 を拒否し同名の修正ファイルを再検証する](#storybook-deck-import-08) |
-| STORYBOOK-DECK-IMPORT-09 | interaction | 異常系 | [複数行 CSV の診断を論理レコードと元列値で示す](#storybook-deck-import-09) |
-| STORYBOOK-DECK-IMPORT-10 | interaction | 異常系 | [引用符エラーに論理レコード番号と元列値を示す](#storybook-deck-import-10) |
-| STORYBOOK-DECK-IMPORT-11 | interaction | 異常系 | [空白だけの CSV をファイル全体のエラーにする](#storybook-deck-import-11) |
-| STORYBOOK-DECK-IMPORT-12 | interaction | 異常系 | [保存失敗後に同じプレビューで再試行する](#storybook-deck-import-12) |
-| STORYBOOK-DECK-IMPORT-13 | interaction | 異常系 | [不正な必須列の CSV 全体を追加不可にする](#storybook-deck-import-13) |
-| STORYBOOK-DECK-IMPORT-14 | interaction | 異常系 | [System 言語変更でも CSV の診断と入力を保持する](#storybook-deck-import-14) |
-| STORYBOOK-DECK-IMPORT-15 | interaction | 正常系 | [System 言語変更でも有効な CSV の選択を保つ](#storybook-deck-import-15) |
-| STORYBOOK-DECK-IMPORT-16 | interaction | 異常系 | [System 言語変更でも再試行内容と通知期限を保つ](#storybook-deck-import-16) |
-| STORYBOOK-DECK-IMPORT-17 | interaction | 正常系 | [取り込み中の離脱と再入場でも競合操作と古い遷移を防ぐ](#storybook-deck-import-17) |
+| PLAYWRIGHT-IMPORT-01 | render | 正常系 | [初期画面に保存先選択を表示しない](#playwright-import-01) |
+| PLAYWRIGHT-IMPORT-02 | interaction | 正常系 | [CSV を読み込んでプレビューする](#playwright-import-02) |
+| PLAYWRIGHT-IMPORT-03 | interaction | 異常系 | [日本語の診断と無効な確定操作を表示する](#playwright-import-03) |
+| PLAYWRIGHT-IMPORT-04 | interaction | 異常系 | [プレビュー失敗を安全な日本語にする](#playwright-import-04) |
+| PLAYWRIGHT-IMPORT-05 | interaction | 異常系 | [診断を翻訳してユーザー入力を保持する](#playwright-import-05) |
+| PLAYWRIGHT-IMPORT-06 | interaction | 正常系 | [CSV 形式の説明を開く](#playwright-import-06) |
+| PLAYWRIGHT-IMPORT-07 | render | 正常系 | [インポート処理中の選択を無効にする](#playwright-import-07) |
+| PLAYWRIGHT-IMPORT-08 | interaction | 正常系 | [選んだサンプルを試す](#playwright-import-08) |
+| PLAYWRIGHT-IMPORT-09 | interaction | 正常系 | [プレビュー後もファイルを選び直す](#playwright-import-09) |
+| PLAYWRIGHT-IMPORT-10 | interaction | 正常系 | [内容確認とインポート確定を区別する](#playwright-import-10) |
+| PLAYWRIGHT-IMPORT-11 | interaction | 異常系 | [不正な行があれば確定を止める](#playwright-import-11) |
+| PLAYWRIGHT-IMPORT-12 | interaction | 異常系 | [準備失敗後もファイルを選び直す](#playwright-import-12) |
+| PLAYWRIGHT-DECK-IMPORT-01 | interaction | 正常系 | [ファイル選択へキーボードで移動し保存前にプレビューする](#playwright-deck-import-01) |
+| PLAYWRIGHT-DECK-IMPORT-02 | interaction | 正常系 | [選択を取り消してもプレビューと診断を保持する](#playwright-deck-import-02) |
+| PLAYWRIGHT-DECK-IMPORT-03 | interaction | 正常系 | [4種類の例の全内容を CSV で出力する](#playwright-deck-import-03) |
+| PLAYWRIGHT-DECK-IMPORT-04 | interaction | 正常系 | [4種類の例を追加確定前に保存しない](#playwright-deck-import-04) |
+| PLAYWRIGHT-DECK-IMPORT-05 | interaction | 正常系 | [CSV と各例の追加成功を件数と一覧へ反映する](#playwright-deck-import-05) |
+| PLAYWRIGHT-DECK-IMPORT-06 | interaction | 正常系 | [新たに選んだ同名の CSV や例を別の Deck として追加する](#playwright-deck-import-06) |
+| PLAYWRIGHT-DECK-IMPORT-07 | interaction | 正常系 | [アカウント変更後に以前の選択を追加できない](#playwright-deck-import-07) |
+| PLAYWRIGHT-DECK-IMPORT-08 | interaction | 異常系 | [不正な UTF-8 を拒否し同名の修正ファイルを再検証する](#playwright-deck-import-08) |
+| PLAYWRIGHT-DECK-IMPORT-09 | interaction | 異常系 | [複数行 CSV の診断を論理レコードと元列値で示す](#playwright-deck-import-09) |
+| PLAYWRIGHT-DECK-IMPORT-10 | interaction | 異常系 | [引用符エラーに論理レコード番号と元列値を示す](#playwright-deck-import-10) |
+| PLAYWRIGHT-DECK-IMPORT-11 | interaction | 異常系 | [空白だけの CSV をファイル全体のエラーにする](#playwright-deck-import-11) |
+| PLAYWRIGHT-DECK-IMPORT-12 | interaction | 異常系 | [保存失敗後に同じプレビューで再試行する](#playwright-deck-import-12) |
+| PLAYWRIGHT-DECK-IMPORT-13 | interaction | 異常系 | [不正な必須列の CSV 全体を追加不可にする](#playwright-deck-import-13) |
+| PLAYWRIGHT-DECK-IMPORT-14 | interaction | 異常系 | [System 言語変更でも CSV の診断と入力を保持する](#playwright-deck-import-14) |
+| PLAYWRIGHT-DECK-IMPORT-15 | interaction | 正常系 | [System 言語変更でも有効な CSV の選択を保つ](#playwright-deck-import-15) |
+| PLAYWRIGHT-DECK-IMPORT-16 | interaction | 異常系 | [System 言語変更でも再試行内容と通知期限を保つ](#playwright-deck-import-16) |
+| PLAYWRIGHT-DECK-IMPORT-17 | interaction | 正常系 | [取り込み中の離脱と再入場でも競合操作と古い遷移を防ぐ](#playwright-deck-import-17) |
 
-<a id="storybook-import-01"></a>
+<a id="playwright-import-01"></a>
 
-### STORYBOOK-IMPORT-01 初期画面に保存先選択を表示しない
+### PLAYWRIGHT-IMPORT-01 [TODO] 初期画面に保存先選択を表示しない
 
 カテゴリ: `render`
 
@@ -58,9 +58,9 @@ Then:
 
 - Add a deck とファイル選択が表示され、保存先を選ぶ radio は表示されない。
 
-<a id="storybook-import-02"></a>
+<a id="playwright-import-02"></a>
 
-### STORYBOOK-IMPORT-02 CSV を読み込んでプレビューする
+### PLAYWRIGHT-IMPORT-02 [TODO] CSV を読み込んでプレビューする
 
 カテゴリ: `interaction`
 
@@ -78,9 +78,9 @@ Then:
 
 - 選択前には Review import と保存先の radio がなく、選択後は Review import、有効1件、CSV の解答が表示される。
 
-<a id="storybook-import-03"></a>
+<a id="playwright-import-03"></a>
 
-### STORYBOOK-IMPORT-03 日本語の診断と無効な確定操作を表示する
+### PLAYWRIGHT-IMPORT-03 [TODO] 日本語の診断と無効な確定操作を表示する
 
 カテゴリ: `interaction`
 
@@ -98,9 +98,9 @@ Then:
 
 - 日本語の診断と有効0件が表示され、追加操作は無効になる。
 
-<a id="storybook-import-04"></a>
+<a id="playwright-import-04"></a>
 
-### STORYBOOK-IMPORT-04 プレビュー失敗を安全な日本語にする
+### PLAYWRIGHT-IMPORT-04 [TODO] プレビュー失敗を安全な日本語にする
 
 カテゴリ: `interaction`
 
@@ -118,9 +118,9 @@ Then:
 
 - 各原因に応じた日本語の案内へ変わり、未知の例外の内部情報は表示されない。
 
-<a id="storybook-import-05"></a>
+<a id="playwright-import-05"></a>
 
-### STORYBOOK-IMPORT-05 診断を翻訳してユーザー入力を保持する
+### PLAYWRIGHT-IMPORT-05 [TODO] 診断を翻訳してユーザー入力を保持する
 
 カテゴリ: `interaction`
 
@@ -138,9 +138,9 @@ Then:
 
 - 診断は日本語へ変わり、診断に含まれる「自作キー」「ユーザー入力」などの入力文字列は変更されない。
 
-<a id="storybook-import-06"></a>
+<a id="playwright-import-06"></a>
 
-### STORYBOOK-IMPORT-06 CSV 形式の説明を開く
+### PLAYWRIGHT-IMPORT-06 [TODO] CSV 形式の説明を開く
 
 カテゴリ: `interaction`
 
@@ -158,9 +158,9 @@ Then:
 
 - 隠れていたヘッダーなし4列の説明が表示される。ファイル選択は有効なままで、プレビューはまだ表示されない。
 
-<a id="storybook-import-07"></a>
+<a id="playwright-import-07"></a>
 
-### STORYBOOK-IMPORT-07 インポート処理中の選択を無効にする
+### PLAYWRIGHT-IMPORT-07 [TODO] インポート処理中の選択を無効にする
 
 カテゴリ: `render`
 
@@ -178,9 +178,9 @@ Then:
 
 - ファイル選択と Try this example は無効になり、保存先の選択領域は表示されない。
 
-<a id="storybook-import-08"></a>
+<a id="playwright-import-08"></a>
 
-### STORYBOOK-IMPORT-08 選んだサンプルを試す
+### PLAYWRIGHT-IMPORT-08 [TODO] 選んだサンプルを試す
 
 カテゴリ: `interaction`
 
@@ -198,9 +198,9 @@ Then:
 
 - 選んだサンプルが押下状態になり、そのサンプルの内容がプレビューに表示される。Download CSV はキーボードで選べる。
 
-<a id="storybook-import-09"></a>
+<a id="playwright-import-09"></a>
 
-### STORYBOOK-IMPORT-09 プレビュー後もファイルを選び直す
+### PLAYWRIGHT-IMPORT-09 [TODO] プレビュー後もファイルを選び直す
 
 カテゴリ: `interaction`
 
@@ -218,9 +218,9 @@ Then:
 
 - 新しいファイルの内容がプレビューへ反映され、以前の内容と混ざらない。
 
-<a id="storybook-import-10"></a>
+<a id="playwright-import-10"></a>
 
-### STORYBOOK-IMPORT-10 内容確認とインポート確定を区別する
+### PLAYWRIGHT-IMPORT-10 [TODO] 内容確認とインポート確定を区別する
 
 カテゴリ: `interaction`
 
@@ -238,9 +238,9 @@ Then:
 
 - プレビューには両面・キー・スキップ件数が表示される。確認や選び直しだけでは完了表示にならず、確定操作からインポートが始まる。
 
-<a id="storybook-import-11"></a>
+<a id="playwright-import-11"></a>
 
-### STORYBOOK-IMPORT-11 不正な行があれば確定を止める
+### PLAYWRIGHT-IMPORT-11 [TODO] 不正な行があれば確定を止める
 
 カテゴリ: `interaction`
 
@@ -258,9 +258,9 @@ Then:
 
 - Row 3: Unique key is required. と修正した CSV を選ぶ案内が表示され、有効な行があっても追加操作は無効になる。
 
-<a id="storybook-import-12"></a>
+<a id="playwright-import-12"></a>
 
-### STORYBOOK-IMPORT-12 準備失敗後もファイルを選び直す
+### PLAYWRIGHT-IMPORT-12 [TODO] 準備失敗後もファイルを選び直す
 
 カテゴリ: `interaction`
 
@@ -278,9 +278,9 @@ Then:
 
 - 安全な準備失敗の案内が表示され、内部エラー文は露出しない。ファイル選択とサンプルの試用が利用でき、新しい内容をプレビューできる。
 
-<a id="storybook-deck-import-01"></a>
+<a id="playwright-deck-import-01"></a>
 
-### STORYBOOK-DECK-IMPORT-01 [TODO] ファイル選択へキーボードで移動し保存前にプレビューする
+### PLAYWRIGHT-DECK-IMPORT-01 [TODO] ファイル選択へキーボードで移動し保存前にプレビューする
 
 カテゴリ: `interaction`
 
@@ -299,9 +299,9 @@ Then:
 - 通常のフォーカス順で移動でき、アップロード領域のフォーカス枠を識別できる。他の操作へ移ると枠が消える。
 - Deck 名・検証件数・Card の内容を表示し、追加が可能になる。確定前は Deck・Card を追加しない。
 
-<a id="storybook-deck-import-02"></a>
+<a id="playwright-deck-import-02"></a>
 
-### STORYBOOK-DECK-IMPORT-02 [TODO] 選択を取り消してもプレビューと診断を保持する
+### PLAYWRIGHT-DECK-IMPORT-02 [TODO] 選択を取り消してもプレビューと診断を保持する
 
 カテゴリ: `interaction`
 
@@ -319,9 +319,9 @@ Then:
 
 - プレビュー・エラー・追加可否を変更しない。
 
-<a id="storybook-deck-import-03"></a>
+<a id="playwright-deck-import-03"></a>
 
-### STORYBOOK-DECK-IMPORT-03 [TODO] 4種類の例の全内容を CSV で出力する
+### PLAYWRIGHT-DECK-IMPORT-03 [TODO] 4種類の例の全内容を CSV で出力する
 
 カテゴリ: `interaction`
 
@@ -340,9 +340,9 @@ Then:
 - 表示した種類の全 Card を含む CSV を出力し、表裏・タグ・uniqueKey・数式・Markdown・引用符内の改行を保持する。
 - 選択と出力だけで Deck・Card を追加しない。
 
-<a id="storybook-deck-import-04"></a>
+<a id="playwright-deck-import-04"></a>
 
-### STORYBOOK-DECK-IMPORT-04 [TODO] 4種類の例を追加確定前に保存しない
+### PLAYWRIGHT-DECK-IMPORT-04 [TODO] 4種類の例を追加確定前に保存しない
 
 カテゴリ: `interaction`
 
@@ -360,9 +360,9 @@ Then:
 
 - Deck 名・件数・全 Card の表裏をプレビューでき、追加確定前は Deck・Card を追加しない。
 
-<a id="storybook-deck-import-05"></a>
+<a id="playwright-deck-import-05"></a>
 
-### STORYBOOK-DECK-IMPORT-05 [TODO] CSV と各例の追加成功を件数と一覧へ反映する
+### PLAYWRIGHT-DECK-IMPORT-05 [TODO] CSV と各例の追加成功を件数と一覧へ反映する
 
 カテゴリ: `interaction`
 
@@ -382,9 +382,9 @@ Then:
 - CSV とすべての例で同じ確認・確定手順を利用でき、成功後は Deck 一覧へ戻り、プレビューが残らない。
 - 表裏・複数タグ・uniqueKey・引用符・改行と日本語、文字として含まれる U+FFFD を保持する。例の追加で自動初期生成設定を変更しない。
 
-<a id="storybook-deck-import-06"></a>
+<a id="playwright-deck-import-06"></a>
 
-### STORYBOOK-DECK-IMPORT-06 [TODO] 新たに選んだ同名の CSV や例を別の Deck として追加する
+### PLAYWRIGHT-DECK-IMPORT-06 [TODO] 新たに選んだ同名の CSV や例を別の Deck として追加する
 
 カテゴリ: `interaction`
 
@@ -402,9 +402,9 @@ Then:
 
 - 既存の Deck・Card を上書きせず新しい Deck として表示し、両方の内容を利用できる。保存失敗後の同じプレビューによる再試行とは区別する。
 
-<a id="storybook-deck-import-07"></a>
+<a id="playwright-deck-import-07"></a>
 
-### STORYBOOK-DECK-IMPORT-07 [TODO] アカウント変更後に以前の選択を追加できない
+### PLAYWRIGHT-DECK-IMPORT-07 [TODO] アカウント変更後に以前の選択を追加できない
 
 カテゴリ: `interaction`
 
@@ -422,9 +422,9 @@ Then:
 
 - 以前の選択を解除し、古い選択内容を別のアカウントへ追加できない。新しくファイル・例を選び直せる。
 
-<a id="storybook-deck-import-08"></a>
+<a id="playwright-deck-import-08"></a>
 
-### STORYBOOK-DECK-IMPORT-08 [TODO] 不正な UTF-8 を拒否し同名の修正ファイルを再検証する
+### PLAYWRIGHT-DECK-IMPORT-08 [TODO] 不正な UTF-8 を拒否し同名の修正ファイルを再検証する
 
 カテゴリ: `interaction`
 
@@ -443,9 +443,9 @@ Then:
 - 選び直すたびにエラー・プレビュー・追加可否を更新し、ファイル名を維持する。読み取り中は再選択できず、終わるとキーボードで再選択できる。
 - 不正な UTF-8 では英語・日本語で UTF-8 での再保存と再選択を案内し、プレビューや以前の選択へ戻らない。確定前に Deck・Card を追加しない。
 
-<a id="storybook-deck-import-09"></a>
+<a id="playwright-deck-import-09"></a>
 
-### STORYBOOK-DECK-IMPORT-09 [TODO] 複数行 CSV の診断を論理レコードと元列値で示す
+### PLAYWRIGHT-DECK-IMPORT-09 [TODO] 複数行 CSV の診断を論理レコードと元列値で示す
 
 カテゴリ: `interaction`
 
@@ -465,9 +465,9 @@ Then:
 - 診断は引用符内改行を数えない1始まりの論理レコード番号と正規化前の元列値を示す。レコード3は `["bad \"front\"","back"," key "]`、レコード4は `[" "," "," foo,foo, bar "," key "]` である。
 - 追加は無効になり、Deck・Card を追加しない。
 
-<a id="storybook-deck-import-10"></a>
+<a id="playwright-deck-import-10"></a>
 
-### STORYBOOK-DECK-IMPORT-10 [TODO] 引用符エラーに論理レコード番号と元列値を示す
+### PLAYWRIGHT-DECK-IMPORT-10 [TODO] 引用符エラーに論理レコード番号と元列値を示す
 
 カテゴリ: `interaction`
 
@@ -486,9 +486,9 @@ Then:
 - 論理レコード3の引用符エラーを不正1件として示す。元列値はそれぞれ `["unterminated"]` と `["bad\"tail,back,,key"]` である。
 - 追加は無効になり、Deck・Card を追加しない。
 
-<a id="storybook-deck-import-11"></a>
+<a id="playwright-deck-import-11"></a>
 
-### STORYBOOK-DECK-IMPORT-11 [TODO] 空白だけの CSV をファイル全体のエラーにする
+### PLAYWRIGHT-DECK-IMPORT-11 [TODO] 空白だけの CSV をファイル全体のエラーにする
 
 カテゴリ: `interaction`
 
@@ -506,9 +506,9 @@ Then:
 
 - 空の CSV として、レコード番号と元列値を付けずファイル全体のエラーを表示する。追加は無効になり、Deck・Card を追加しない。
 
-<a id="storybook-deck-import-12"></a>
+<a id="playwright-deck-import-12"></a>
 
-### STORYBOOK-DECK-IMPORT-12 [TODO] 保存失敗後に同じプレビューで再試行する
+### PLAYWRIGHT-DECK-IMPORT-12 [TODO] 保存失敗後に同じプレビューで再試行する
 
 カテゴリ: `interaction`
 
@@ -527,9 +527,9 @@ Then:
 - 失敗を通知し、失敗時は成功通知や保存後の遷移をせず同じ入力で再試行できる。
 - 再試行成功後は一度の取り込みの内容を利用でき、保存先へ渡す取り込みの対象が変わって Deck・Card が増えることはない。
 
-<a id="storybook-deck-import-13"></a>
+<a id="playwright-deck-import-13"></a>
 
-### STORYBOOK-DECK-IMPORT-13 [TODO] 不正な必須列の CSV 全体を追加不可にする
+### PLAYWRIGHT-DECK-IMPORT-13 [TODO] 不正な必須列の CSV 全体を追加不可にする
 
 カテゴリ: `interaction`
 
@@ -548,9 +548,9 @@ Then:
 - 不正な行と理由を画面内に表示し、列不足を正常な Card に補完しない。
 - 不正な行を含む場合は全体の追加が無効になり、Deck・Card を追加しない。
 
-<a id="storybook-deck-import-14"></a>
+<a id="playwright-deck-import-14"></a>
 
-### STORYBOOK-DECK-IMPORT-14 [TODO] System 言語変更でも CSV の診断と入力を保持する
+### PLAYWRIGHT-DECK-IMPORT-14 [TODO] System 言語変更でも CSV の診断と入力を保持する
 
 カテゴリ: `interaction`
 
@@ -569,9 +569,9 @@ Then:
 - 診断を現在の言語へ更新し、説明できない解析エラーは汎用メッセージとする。
 - 複合入力では有効1件・無効2件・診断3件、元の行の文脈、日本語入力、診断の順序と対象を維持する。ファイル選択・プレビューは保持され、再選択不要で追加は無効のままである。
 
-<a id="storybook-deck-import-15"></a>
+<a id="playwright-deck-import-15"></a>
 
-### STORYBOOK-DECK-IMPORT-15 [TODO] System 言語変更でも有効な CSV の選択を保つ
+### PLAYWRIGHT-DECK-IMPORT-15 [TODO] System 言語変更でも有効な CSV の選択を保つ
 
 カテゴリ: `interaction`
 
@@ -589,9 +589,9 @@ Then:
 
 - 同じファイル選択とプレビューを保持し、言語変更だけで追加を始めない。
 
-<a id="storybook-deck-import-16"></a>
+<a id="playwright-deck-import-16"></a>
 
-### STORYBOOK-DECK-IMPORT-16 [TODO] System 言語変更でも再試行内容と通知期限を保つ
+### PLAYWRIGHT-DECK-IMPORT-16 [TODO] System 言語変更でも再試行内容と通知期限を保つ
 
 カテゴリ: `interaction`
 
@@ -610,9 +610,9 @@ Then:
 - 原因別の安全な日本語案内を表示し、未知のエラーの生の内部メッセージを露出しない。
 - 再試行する入力・選択を維持し、通知は言語変更で表示期限を延長せず元の消去予定時刻で消える。
 
-<a id="storybook-deck-import-17"></a>
+<a id="playwright-deck-import-17"></a>
 
-### STORYBOOK-DECK-IMPORT-17 [TODO] 取り込み中の離脱と再入場でも競合操作と古い遷移を防ぐ
+### PLAYWRIGHT-DECK-IMPORT-17 [TODO] 取り込み中の離脱と再入場でも競合操作と古い遷移を防ぐ
 
 カテゴリ: `interaction`
 

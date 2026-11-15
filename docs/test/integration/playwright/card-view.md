@@ -1,28 +1,28 @@
-# Card 閲覧画面 Storybook 結合テスト仕様書
+# Card 閲覧画面 Playwright 結合テスト仕様書
 
 ## 目的
 
-Card 閲覧画面を入口とした `play` で、指定した一枚の Card の閲覧、編集への移動、存在しない場合の案内を確認する。検証境界と実行前提は [AGENTS.md](./AGENTS.md) に従う。
+Card 閲覧画面を入口とした Playwright テストで、指定した一枚の Card の閲覧、編集への移動、存在しない場合の案内を確認する。検証境界と実行前提は [AGENTS.md](./AGENTS.md) に従う。
 
 ## テストケース
 
 | ID | カテゴリ | 区分 | テストケース |
 | --- | --- | --- | --- |
-| STORYBOOK-CARD-VIEW-01 | interaction | 正常系 | [指定した Card の両面を読む](#storybook-card-view-01) |
-| STORYBOOK-CARD-VIEW-02 | interaction | 正常系 | [表示している Card を編集する](#storybook-card-view-02) |
-| STORYBOOK-CARD-VIEW-03 | render | 異常系 | [存在しない Card を案内する](#storybook-card-view-03) |
-| STORYBOOK-CARD-VIEW-04 | interaction | 正常系 | [Card 閲覧画面を直接開ける](#storybook-card-view-04) |
-| STORYBOOK-CARD-VIEW-05 | interaction | 正常系 | [Card の閲覧 URL の変更に表示が追従する](#storybook-card-view-05) |
-| STORYBOOK-CARD-VIEW-06 | render | 正常系 | [未評価の Card に推定した記憶状態を表示しない](#storybook-card-view-06) |
-| STORYBOOK-CARD-VIEW-07 | interaction | 正常系 | [Card の切り替え・再表示で記憶状態を更新する](#storybook-card-view-07) |
-| STORYBOOK-CARD-VIEW-08 | interaction | 正常系 | [評価済み Card の記憶状態を現在の基準時刻で表示する](#storybook-card-view-08) |
-| STORYBOOK-CARD-VIEW-09 | interaction | 異常系 | [利用できない Card のリンクから警告を保って戻る](#storybook-card-view-09) |
-| STORYBOOK-CARD-VIEW-10 | interaction | 異常系 | [存在しない Card から復帰できる](#storybook-card-view-10) |
-| STORYBOOK-CARD-VIEW-11 | render | 異常系 | [読み込めない記憶状態を未評価として表示しない](#storybook-card-view-11) |
+| PLAYWRIGHT-CARD-VIEW-01 | interaction | 正常系 | [指定した Card の両面を読む](#playwright-card-view-01) |
+| PLAYWRIGHT-CARD-VIEW-02 | interaction | 正常系 | [表示している Card を編集する](#playwright-card-view-02) |
+| PLAYWRIGHT-CARD-VIEW-03 | render | 異常系 | [存在しない Card を案内する](#playwright-card-view-03) |
+| PLAYWRIGHT-CARD-VIEW-04 | interaction | 正常系 | [Card 閲覧画面を直接開ける](#playwright-card-view-04) |
+| PLAYWRIGHT-CARD-VIEW-05 | interaction | 正常系 | [Card の閲覧 URL の変更に表示が追従する](#playwright-card-view-05) |
+| PLAYWRIGHT-CARD-VIEW-06 | render | 正常系 | [未評価の Card に推定した記憶状態を表示しない](#playwright-card-view-06) |
+| PLAYWRIGHT-CARD-VIEW-07 | interaction | 正常系 | [Card の切り替え・再表示で記憶状態を更新する](#playwright-card-view-07) |
+| PLAYWRIGHT-CARD-VIEW-08 | interaction | 正常系 | [評価済み Card の記憶状態を現在の基準時刻で表示する](#playwright-card-view-08) |
+| PLAYWRIGHT-CARD-VIEW-09 | interaction | 異常系 | [利用できない Card のリンクから警告を保って戻る](#playwright-card-view-09) |
+| PLAYWRIGHT-CARD-VIEW-10 | interaction | 異常系 | [存在しない Card から復帰できる](#playwright-card-view-10) |
+| PLAYWRIGHT-CARD-VIEW-11 | render | 異常系 | [読み込めない記憶状態を未評価として表示しない](#playwright-card-view-11) |
 
-<a id="storybook-card-view-01"></a>
+<a id="playwright-card-view-01"></a>
 
-### STORYBOOK-CARD-VIEW-01 指定した Card の両面を読む
+### PLAYWRIGHT-CARD-VIEW-01 [TODO] 指定した Card の両面を読む
 
 カテゴリ: `interaction`
 
@@ -40,9 +40,9 @@ Then:
 
 - Hello と Hola を確認でき、他の Card の内容は表示されない。
 
-<a id="storybook-card-view-02"></a>
+<a id="playwright-card-view-02"></a>
 
-### STORYBOOK-CARD-VIEW-02 表示している Card を編集する
+### PLAYWRIGHT-CARD-VIEW-02 [TODO] 表示している Card を編集する
 
 カテゴリ: `interaction`
 
@@ -60,9 +60,9 @@ Then:
 
 - 同じ Card の表面・裏面を持つ編集画面が表示される。
 
-<a id="storybook-card-view-03"></a>
+<a id="playwright-card-view-03"></a>
 
-### STORYBOOK-CARD-VIEW-03 存在しない Card を案内する
+### PLAYWRIGHT-CARD-VIEW-03 [TODO] 存在しない Card を案内する
 
 カテゴリ: `render`
 
@@ -80,9 +80,9 @@ Then:
 
 - 見つからないことと戻る操作が表示され、別の Card を代わりに表示しない。
 
-<a id="storybook-card-view-04"></a>
+<a id="playwright-card-view-04"></a>
 
-### STORYBOOK-CARD-VIEW-04 [TODO] Card 閲覧画面を直接開ける
+### PLAYWRIGHT-CARD-VIEW-04 [TODO] Card 閲覧画面を直接開ける
 
 カテゴリ: `interaction`
 
@@ -100,9 +100,9 @@ Then:
 
 - 裏面の本文を Card answer に表示し、共通ヘッダーとナビゲーションも表示する。
 
-<a id="storybook-card-view-05"></a>
+<a id="playwright-card-view-05"></a>
 
-### STORYBOOK-CARD-VIEW-05 [TODO] Card の閲覧 URL の変更に表示が追従する
+### PLAYWRIGHT-CARD-VIEW-05 [TODO] Card の閲覧 URL の変更に表示が追従する
 
 カテゴリ: `interaction`
 
@@ -120,9 +120,9 @@ Then:
 
 - Card answer を遷移先の裏面の本文に更新し、共通ヘッダーとナビゲーションも表示する。
 
-<a id="storybook-card-view-06"></a>
+<a id="playwright-card-view-06"></a>
 
-### STORYBOOK-CARD-VIEW-06 [TODO] 未評価の Card に推定した記憶状態を表示しない
+### PLAYWRIGHT-CARD-VIEW-06 [TODO] 未評価の Card に推定した記憶状態を表示しない
 
 カテゴリ: `render`
 
@@ -140,9 +140,9 @@ Then:
 
 - FSRS 未開始と表示し、以前の復習予定や閲覧回数から推定した数値は表示しない。
 
-<a id="storybook-card-view-07"></a>
+<a id="playwright-card-view-07"></a>
 
-### STORYBOOK-CARD-VIEW-07 [TODO] Card の切り替え・再表示で記憶状態を更新する
+### PLAYWRIGHT-CARD-VIEW-07 [TODO] Card の切り替え・再表示で記憶状態を更新する
 
 カテゴリ: `interaction`
 
@@ -160,9 +160,9 @@ Then:
 
 - 現在の基準時刻を表示し、別 Card の曲線を残さない。
 
-<a id="storybook-card-view-08"></a>
+<a id="playwright-card-view-08"></a>
 
-### STORYBOOK-CARD-VIEW-08 [TODO] 評価済み Card の記憶状態を現在の基準時刻で表示する
+### PLAYWRIGHT-CARD-VIEW-08 [TODO] 評価済み Card の記憶状態を現在の基準時刻で表示する
 
 カテゴリ: `interaction`
 
@@ -183,9 +183,9 @@ Then:
 - 最終復習直後の想起率は100%で、追加の復習をしない時間経過によって増えない。基準時刻の数値とマーカーと期限到達が一致する。
 - 同時刻のマーカーを識別でき、短期・長期の曲線を確認できる。復習間隔 OFF でも表示を失わず、各表示例で文言と読み上げ名・説明を確認できる。
 
-<a id="storybook-card-view-09"></a>
+<a id="playwright-card-view-09"></a>
 
-### STORYBOOK-CARD-VIEW-09 [TODO] 利用できない Card のリンクから警告を保って戻る
+### PLAYWRIGHT-CARD-VIEW-09 [TODO] 利用できない Card のリンクから警告を保って戻る
 
 カテゴリ: `interaction`
 
@@ -204,9 +204,9 @@ Then:
 - 対象 Card が利用できない旨、読み込めない件数、保存データを変更していない警告を表示する。
 - 一覧へ戻っても警告を維持し、別の Card を代わりに表示しない。
 
-<a id="storybook-card-view-10"></a>
+<a id="playwright-card-view-10"></a>
 
-### STORYBOOK-CARD-VIEW-10 [TODO] 存在しない Card から復帰できる
+### PLAYWRIGHT-CARD-VIEW-10 [TODO] 存在しない Card から復帰できる
 
 カテゴリ: `interaction`
 
@@ -224,9 +224,9 @@ Then:
 
 - Deck 一覧が表示される。
 
-<a id="storybook-card-view-11"></a>
+<a id="playwright-card-view-11"></a>
 
-### STORYBOOK-CARD-VIEW-11 [TODO] 読み込めない記憶状態を未評価として表示しない
+### PLAYWRIGHT-CARD-VIEW-11 [TODO] 読み込めない記憶状態を未評価として表示しない
 
 カテゴリ: `render`
 

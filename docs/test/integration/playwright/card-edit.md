@@ -1,57 +1,57 @@
-# Card 編集画面 Storybook 結合テスト仕様書
+# Card 編集画面 Playwright 結合テスト仕様書
 
 ## 目的
 
-Card 編集画面を入口とした `play` で、既存 Card の両面・タグ・プレビューの編集と、保存中・失敗後の操作を確認する。検証境界と実行前提は [AGENTS.md](./AGENTS.md) に従う。
+Card 編集画面を入口とした Playwright テストで、既存 Card の両面・タグ・プレビューの編集と、保存中・失敗後の操作を確認する。検証境界と実行前提は [AGENTS.md](./AGENTS.md) に従う。
 
 ## テストケース
 
 | ID | カテゴリ | 区分 | テストケース |
 | --- | --- | --- | --- |
-| STORYBOOK-CARD-FORM-01 | interaction | 正常系 | [タブを切り替えても表面の入力を保持する](#storybook-card-form-01) |
-| STORYBOOK-CARD-FORM-02 | interaction | 正常系 | [編集する Card のタグを選ぶ](#storybook-card-form-02) |
-| STORYBOOK-CARD-FORM-03 | interaction | 異常系 | [日本語の入力エラーを関連付ける](#storybook-card-form-03) |
-| STORYBOOK-CARD-FORM-04 | interaction | 正常系 | [解答プレビューを開く](#storybook-card-form-04) |
-| STORYBOOK-CARD-FORM-06 | interaction | 正常系 | [拡大編集後も両面の下書きを保つ](#storybook-card-form-06) |
-| STORYBOOK-CARD-FORM-07 | interaction | 正常系 | [独自タグの選択と要約を保って保存する](#storybook-card-form-07) |
-| STORYBOOK-CARD-FORM-08 | interaction | 正常系 | [キーボードで編集面を切り替える](#storybook-card-form-08) |
-| STORYBOOK-CARD-FORM-09 | interaction | 異常系 | [裏面エラーのある入力欄を開く](#storybook-card-form-09) |
-| STORYBOOK-CARD-FORM-10 | interaction | 異常系 | [未知のエラーを安全な翻訳文で表示する](#storybook-card-form-10) |
-| STORYBOOK-CARD-FORM-11 | interaction | 異常系 | [言語変更後も下書きとタグを保つ](#storybook-card-form-11) |
-| STORYBOOK-CARD-FORM-12 | interaction | 正常系 | [不完全な下書きを保存せずプレビューする](#storybook-card-form-12) |
-| STORYBOOK-CARD-FORM-13 | interaction | 異常系 | [拡大編集の変更を数式プレビューへ反映する](#storybook-card-form-13) |
-| STORYBOOK-CARD-FORM-14 | interaction | 正常系 | [表示条件に応じてコードを表示する](#storybook-card-form-14) |
-| STORYBOOK-CARD-FORM-15 | interaction | 正常系 | [タグ変更をプレビューへ反映する](#storybook-card-form-15) |
-| STORYBOOK-CARD-FORM-16 | interaction | 正常系 | [言語が変わってもプレビューを開いておく](#storybook-card-form-16) |
-| STORYBOOK-CARD-FORM-20 | interaction | 正常系 | [保存中は編集と離脱を無効にする](#storybook-card-form-20) |
-| STORYBOOK-CARD-FORM-21 | interaction | 正常系 | [外部更新で編集中の下書きを上書きしない](#storybook-card-form-21) |
-| STORYBOOK-CARD-FORM-22 | interaction | 異常系 | [両面が不正なら表面から修正する](#storybook-card-form-22) |
-| STORYBOOK-CARD-FORM-23 | interaction | 異常系 | [保存失敗後に同じ下書きを再送信する](#storybook-card-form-23) |
-| STORYBOOK-CARD-FORM-24 | interaction | 正常系 | [確認なしのタグ編集を下書きへ即時反映する](#storybook-card-form-24) |
-| STORYBOOK-CARD-FORM-25 | interaction | 異常系 | [空白や重複したタグ名で保存しない](#storybook-card-form-25) |
-| STORYBOOK-CARD-EDIT-01 | interaction | 正常系 | [長い解答プレビューへキーボードで移動する](#storybook-card-edit-01) |
-| STORYBOOK-CARD-EDIT-02 | interaction | 正常系 | [プレビューを閉じた拡大編集内でフォーカスを循環させる](#storybook-card-edit-02) |
-| STORYBOOK-CARD-EDIT-03 | interaction | 正常系 | [未保存の Card 編集内容を離脱前に確認できる](#storybook-card-edit-03) |
-| STORYBOOK-CARD-EDIT-04 | interaction | 正常系 | [編集中の未保存の解答と表示形式をプレビューできる](#storybook-card-edit-04) |
-| STORYBOOK-CARD-EDIT-05 | interaction | 正常系 | [Card のタグ候補を選んで下書きへ反映できる](#storybook-card-edit-05) |
-| STORYBOOK-CARD-EDIT-06 | interaction | 正常系 | [タグ入力中の Enter は Card を送信せず下書きを保つ](#storybook-card-edit-06) |
-| STORYBOOK-CARD-EDIT-07 | interaction | 正常系 | [入力直後の候補クリックで対象タグだけを解除する](#storybook-card-edit-07) |
-| STORYBOOK-CARD-EDIT-08 | interaction | 正常系 | [タグ名の前後空白だけを除いて選択順に保存する](#storybook-card-edit-08) |
-| STORYBOOK-CARD-EDIT-09 | interaction | 正常系 | [編集成功の応答後に対象 Card の内容を確認する](#storybook-card-edit-09) |
-| STORYBOOK-CARD-EDIT-10 | interaction | 正常系 | [Card 編集画面の離脱後に保存が完了しても現在の画面を維持する](#storybook-card-edit-10) |
-| STORYBOOK-CARD-EDIT-11 | interaction | 正常系 | [ログアウトを中止して元のアカウントへ戻っても Card の保存成功を通知する](#storybook-card-edit-11) |
-| STORYBOOK-CARD-EDIT-12 | interaction | 正常系 | [保存待ち中に所属 Deck を削除した Card の古い成功を通知しない](#storybook-card-edit-12) |
-| STORYBOOK-CARD-EDIT-13 | interaction | 異常系 | [認証確認中の Card 保存失敗を元のアカウントへの復帰後に通知する](#storybook-card-edit-13) |
-| STORYBOOK-CARD-EDIT-14 | interaction | 正常系 | [通知の表示が変化しても Card の離脱確認を操作できる](#storybook-card-edit-14) |
-| STORYBOOK-CARD-EDIT-15 | interaction | 正常系 | [Card の編集保存中は重ねて操作できない](#storybook-card-edit-15) |
-| STORYBOOK-CARD-EDIT-16 | interaction | 異常系 | [Card の未表示の面にある入力エラーを修正できる](#storybook-card-edit-16) |
-| STORYBOOK-CARD-EDIT-17 | interaction | 正常系 | [未保存のタグ変更を破棄する](#storybook-card-edit-17) |
-| STORYBOOK-CARD-EDIT-18 | interaction | 異常系 | [System の言語変更後も検証エラーと未保存の入力を保つ](#storybook-card-edit-18) |
-| STORYBOOK-CARD-EDIT-19 | interaction | 異常系 | [読めない Card の編集リンクから警告を維持して戻る](#storybook-card-edit-19) |
+| PLAYWRIGHT-CARD-FORM-01 | interaction | 正常系 | [タブを切り替えても表面の入力を保持する](#playwright-card-form-01) |
+| PLAYWRIGHT-CARD-FORM-02 | interaction | 正常系 | [編集する Card のタグを選ぶ](#playwright-card-form-02) |
+| PLAYWRIGHT-CARD-FORM-03 | interaction | 異常系 | [日本語の入力エラーを関連付ける](#playwright-card-form-03) |
+| PLAYWRIGHT-CARD-FORM-04 | interaction | 正常系 | [解答プレビューを開く](#playwright-card-form-04) |
+| PLAYWRIGHT-CARD-FORM-06 | interaction | 正常系 | [拡大編集後も両面の下書きを保つ](#playwright-card-form-06) |
+| PLAYWRIGHT-CARD-FORM-07 | interaction | 正常系 | [独自タグの選択と要約を保って保存する](#playwright-card-form-07) |
+| PLAYWRIGHT-CARD-FORM-08 | interaction | 正常系 | [キーボードで編集面を切り替える](#playwright-card-form-08) |
+| PLAYWRIGHT-CARD-FORM-09 | interaction | 異常系 | [裏面エラーのある入力欄を開く](#playwright-card-form-09) |
+| PLAYWRIGHT-CARD-FORM-10 | interaction | 異常系 | [未知のエラーを安全な翻訳文で表示する](#playwright-card-form-10) |
+| PLAYWRIGHT-CARD-FORM-11 | interaction | 異常系 | [言語変更後も下書きとタグを保つ](#playwright-card-form-11) |
+| PLAYWRIGHT-CARD-FORM-12 | interaction | 正常系 | [不完全な下書きを保存せずプレビューする](#playwright-card-form-12) |
+| PLAYWRIGHT-CARD-FORM-13 | interaction | 異常系 | [拡大編集の変更を数式プレビューへ反映する](#playwright-card-form-13) |
+| PLAYWRIGHT-CARD-FORM-14 | interaction | 正常系 | [表示条件に応じてコードを表示する](#playwright-card-form-14) |
+| PLAYWRIGHT-CARD-FORM-15 | interaction | 正常系 | [タグ変更をプレビューへ反映する](#playwright-card-form-15) |
+| PLAYWRIGHT-CARD-FORM-16 | interaction | 正常系 | [言語が変わってもプレビューを開いておく](#playwright-card-form-16) |
+| PLAYWRIGHT-CARD-FORM-20 | interaction | 正常系 | [保存中は編集と離脱を無効にする](#playwright-card-form-20) |
+| PLAYWRIGHT-CARD-FORM-21 | interaction | 正常系 | [外部更新で編集中の下書きを上書きしない](#playwright-card-form-21) |
+| PLAYWRIGHT-CARD-FORM-22 | interaction | 異常系 | [両面が不正なら表面から修正する](#playwright-card-form-22) |
+| PLAYWRIGHT-CARD-FORM-23 | interaction | 異常系 | [保存失敗後に同じ下書きを再送信する](#playwright-card-form-23) |
+| PLAYWRIGHT-CARD-FORM-24 | interaction | 正常系 | [確認なしのタグ編集を下書きへ即時反映する](#playwright-card-form-24) |
+| PLAYWRIGHT-CARD-FORM-25 | interaction | 異常系 | [空白や重複したタグ名で保存しない](#playwright-card-form-25) |
+| PLAYWRIGHT-CARD-EDIT-01 | interaction | 正常系 | [長い解答プレビューへキーボードで移動する](#playwright-card-edit-01) |
+| PLAYWRIGHT-CARD-EDIT-02 | interaction | 正常系 | [プレビューを閉じた拡大編集内でフォーカスを循環させる](#playwright-card-edit-02) |
+| PLAYWRIGHT-CARD-EDIT-03 | interaction | 正常系 | [未保存の Card 編集内容を離脱前に確認できる](#playwright-card-edit-03) |
+| PLAYWRIGHT-CARD-EDIT-04 | interaction | 正常系 | [編集中の未保存の解答と表示形式をプレビューできる](#playwright-card-edit-04) |
+| PLAYWRIGHT-CARD-EDIT-05 | interaction | 正常系 | [Card のタグ候補を選んで下書きへ反映できる](#playwright-card-edit-05) |
+| PLAYWRIGHT-CARD-EDIT-06 | interaction | 正常系 | [タグ入力中の Enter は Card を送信せず下書きを保つ](#playwright-card-edit-06) |
+| PLAYWRIGHT-CARD-EDIT-07 | interaction | 正常系 | [入力直後の候補クリックで対象タグだけを解除する](#playwright-card-edit-07) |
+| PLAYWRIGHT-CARD-EDIT-08 | interaction | 正常系 | [タグ名の前後空白だけを除いて選択順に保存する](#playwright-card-edit-08) |
+| PLAYWRIGHT-CARD-EDIT-09 | interaction | 正常系 | [編集成功の応答後に対象 Card の内容を確認する](#playwright-card-edit-09) |
+| PLAYWRIGHT-CARD-EDIT-10 | interaction | 正常系 | [Card 編集画面の離脱後に保存が完了しても現在の画面を維持する](#playwright-card-edit-10) |
+| PLAYWRIGHT-CARD-EDIT-11 | interaction | 正常系 | [ログアウトを中止して元のアカウントへ戻っても Card の保存成功を通知する](#playwright-card-edit-11) |
+| PLAYWRIGHT-CARD-EDIT-12 | interaction | 正常系 | [保存待ち中に所属 Deck を削除した Card の古い成功を通知しない](#playwright-card-edit-12) |
+| PLAYWRIGHT-CARD-EDIT-13 | interaction | 異常系 | [認証確認中の Card 保存失敗を元のアカウントへの復帰後に通知する](#playwright-card-edit-13) |
+| PLAYWRIGHT-CARD-EDIT-14 | interaction | 正常系 | [通知の表示が変化しても Card の離脱確認を操作できる](#playwright-card-edit-14) |
+| PLAYWRIGHT-CARD-EDIT-15 | interaction | 正常系 | [Card の編集保存中は重ねて操作できない](#playwright-card-edit-15) |
+| PLAYWRIGHT-CARD-EDIT-16 | interaction | 異常系 | [Card の未表示の面にある入力エラーを修正できる](#playwright-card-edit-16) |
+| PLAYWRIGHT-CARD-EDIT-17 | interaction | 正常系 | [未保存のタグ変更を破棄する](#playwright-card-edit-17) |
+| PLAYWRIGHT-CARD-EDIT-18 | interaction | 異常系 | [System の言語変更後も検証エラーと未保存の入力を保つ](#playwright-card-edit-18) |
+| PLAYWRIGHT-CARD-EDIT-19 | interaction | 異常系 | [読めない Card の編集リンクから警告を維持して戻る](#playwright-card-edit-19) |
 
-<a id="storybook-card-form-01"></a>
+<a id="playwright-card-form-01"></a>
 
-### STORYBOOK-CARD-FORM-01 タブを切り替えても表面の入力を保持する
+### PLAYWRIGHT-CARD-FORM-01 [TODO] タブを切り替えても表面の入力を保持する
 
 カテゴリ: `interaction`
 
@@ -69,9 +69,9 @@ Then:
 
 - 表面の値は Updated prompt のままである。
 
-<a id="storybook-card-form-02"></a>
+<a id="playwright-card-form-02"></a>
 
-### STORYBOOK-CARD-FORM-02 編集する Card のタグを選ぶ
+### PLAYWRIGHT-CARD-FORM-02 [TODO] 編集する Card のタグを選ぶ
 
 カテゴリ: `interaction`
 
@@ -89,9 +89,9 @@ Then:
 
 - raw が選択済みになり、Card のタグの要約へ反映される。
 
-<a id="storybook-card-form-03"></a>
+<a id="playwright-card-form-03"></a>
 
-### STORYBOOK-CARD-FORM-03 日本語の入力エラーを関連付ける
+### PLAYWRIGHT-CARD-FORM-03 [TODO] 日本語の入力エラーを関連付ける
 
 カテゴリ: `interaction`
 
@@ -109,9 +109,9 @@ Then:
 
 - 表面の必須エラーが表示され、入力の説明に「表面のテキストは必須です。」が関連付けられる。
 
-<a id="storybook-card-form-04"></a>
+<a id="playwright-card-form-04"></a>
 
-### STORYBOOK-CARD-FORM-04 解答プレビューを開く
+### PLAYWRIGHT-CARD-FORM-04 [TODO] 解答プレビューを開く
 
 カテゴリ: `interaction`
 
@@ -129,9 +129,9 @@ Then:
 
 - 解答プレビュー領域が表示され、入力した太字と数式を確認できる。
 
-<a id="storybook-card-form-06"></a>
+<a id="playwright-card-form-06"></a>
 
-### STORYBOOK-CARD-FORM-06 拡大編集後も両面の下書きを保つ
+### PLAYWRIGHT-CARD-FORM-06 [TODO] 拡大編集後も両面の下書きを保つ
 
 カテゴリ: `interaction`
 
@@ -149,9 +149,9 @@ Then:
 
 - 裏面の拡大ボタンにフォーカスが戻り、通常入力に Updated back、表面に Updated front が残る。
 
-<a id="storybook-card-form-07"></a>
+<a id="playwright-card-form-07"></a>
 
-### STORYBOOK-CARD-FORM-07 独自タグの選択と要約を保って保存する
+### PLAYWRIGHT-CARD-FORM-07 [TODO] 独自タグの選択と要約を保って保存する
 
 カテゴリ: `interaction`
 
@@ -169,9 +169,9 @@ Then:
 
 - 開き直しても選択が残り、要約で language、custom、math を確認できる。保存後も対象 Card に3タグが表示される。
 
-<a id="storybook-card-form-08"></a>
+<a id="playwright-card-form-08"></a>
 
-### STORYBOOK-CARD-FORM-08 キーボードで編集面を切り替える
+### PLAYWRIGHT-CARD-FORM-08 [TODO] キーボードで編集面を切り替える
 
 カテゴリ: `interaction`
 
@@ -189,9 +189,9 @@ Then:
 
 - Back、Front、Back、Front の順に選択とフォーカスが移り、対応する入力欄が表示される。
 
-<a id="storybook-card-form-09"></a>
+<a id="playwright-card-form-09"></a>
 
-### STORYBOOK-CARD-FORM-09 裏面エラーのある入力欄を開く
+### PLAYWRIGHT-CARD-FORM-09 [TODO] 裏面エラーのある入力欄を開く
 
 カテゴリ: `interaction`
 
@@ -209,9 +209,9 @@ Then:
 
 - Back タブが開いて裏面へフォーカスが移り、通常・拡大入力に必須エラーが関連付けられる。表面は失われない。
 
-<a id="storybook-card-form-10"></a>
+<a id="playwright-card-form-10"></a>
 
-### STORYBOOK-CARD-FORM-10 未知のエラーを安全な翻訳文で表示する
+### PLAYWRIGHT-CARD-FORM-10 [TODO] 未知のエラーを安全な翻訳文で表示する
 
 カテゴリ: `interaction`
 
@@ -229,9 +229,9 @@ Then:
 
 - 一般的な日本語のエラーが通常・拡大入力に表示され、内部エラー文は露出せず、値と拡大編集は保持される。
 
-<a id="storybook-card-form-11"></a>
+<a id="playwright-card-form-11"></a>
 
-### STORYBOOK-CARD-FORM-11 言語変更後も下書きとタグを保つ
+### PLAYWRIGHT-CARD-FORM-11 [TODO] 言語変更後も下書きとタグを保つ
 
 カテゴリ: `interaction`
 
@@ -249,9 +249,9 @@ Then:
 
 - 言語変更だけでは保存されず、修正時も裏面とタグが残る。保存に成功すると修正した内容を閲覧できる。
 
-<a id="storybook-card-form-12"></a>
+<a id="playwright-card-form-12"></a>
 
-### STORYBOOK-CARD-FORM-12 不完全な下書きを保存せずプレビューする
+### PLAYWRIGHT-CARD-FORM-12 [TODO] 不完全な下書きを保存せずプレビューする
 
 カテゴリ: `interaction`
 
@@ -269,9 +269,9 @@ Then:
 
 - 改行を含む下書きが表示され、閉じるとプレビューボタンにフォーカスが戻る。入力や既存のエラーは変わらない。
 
-<a id="storybook-card-form-13"></a>
+<a id="playwright-card-form-13"></a>
 
-### STORYBOOK-CARD-FORM-13 拡大編集の変更を数式プレビューへ反映する
+### PLAYWRIGHT-CARD-FORM-13 [TODO] 拡大編集の変更を数式プレビューへ反映する
 
 カテゴリ: `interaction`
 
@@ -289,9 +289,9 @@ Then:
 
 - 太字・数式・表と Changed がプレビューへ反映され、変更後の裏面と表面のエラーが残る。
 
-<a id="storybook-card-form-14"></a>
+<a id="playwright-card-form-14"></a>
 
-### STORYBOOK-CARD-FORM-14 表示条件に応じてコードを表示する
+### PLAYWRIGHT-CARD-FORM-14 [TODO] 表示条件に応じてコードを表示する
 
 カテゴリ: `interaction`
 
@@ -309,9 +309,9 @@ Then:
 
 - それぞれ python、typescript、md の表示が選ばれ、コードを数式にせず、開いたプレビューのテーマが切り替わる。
 
-<a id="storybook-card-form-15"></a>
+<a id="playwright-card-form-15"></a>
 
-### STORYBOOK-CARD-FORM-15 タグ変更をプレビューへ反映する
+### PLAYWRIGHT-CARD-FORM-15 [TODO] タグ変更をプレビューへ反映する
 
 カテゴリ: `interaction`
 
@@ -329,9 +329,9 @@ Then:
 
 - プレビューを開いたまま変更後の表示形式になり、裏面の入力文字列は保持される。
 
-<a id="storybook-card-form-16"></a>
+<a id="playwright-card-form-16"></a>
 
-### STORYBOOK-CARD-FORM-16 言語が変わってもプレビューを開いておく
+### PLAYWRIGHT-CARD-FORM-16 [TODO] 言語が変わってもプレビューを開いておく
 
 カテゴリ: `interaction`
 
@@ -349,9 +349,9 @@ Then:
 
 - 領域名は「解答プレビュー」、操作名は「プレビューを閉じる」になり、プレビューは開いたままである。
 
-<a id="storybook-card-form-20"></a>
+<a id="playwright-card-form-20"></a>
 
-### STORYBOOK-CARD-FORM-20 保存中は編集と離脱を無効にする
+### PLAYWRIGHT-CARD-FORM-20 [TODO] 保存中は編集と離脱を無効にする
 
 カテゴリ: `interaction`
 
@@ -369,9 +369,9 @@ Then:
 
 - 待機中は Saving…、表面入力、Cancel、Back to cards が無効になり、応答後は処理中の状態が解除される。
 
-<a id="storybook-card-form-21"></a>
+<a id="playwright-card-form-21"></a>
 
-### STORYBOOK-CARD-FORM-21 外部更新で編集中の下書きを上書きしない
+### PLAYWRIGHT-CARD-FORM-21 [TODO] 外部更新で編集中の下書きを上書きしない
 
 カテゴリ: `interaction`
 
@@ -389,9 +389,9 @@ Then:
 
 - 編集中の Unsaved front と、編集開始時の Back text が保持される。
 
-<a id="storybook-card-form-22"></a>
+<a id="playwright-card-form-22"></a>
 
-### STORYBOOK-CARD-FORM-22 両面が不正なら表面から修正する
+### PLAYWRIGHT-CARD-FORM-22 [TODO] 両面が不正なら表面から修正する
 
 カテゴリ: `interaction`
 
@@ -409,9 +409,9 @@ Then:
 
 - 最初は表面の必須エラーとフォーカスが表示され、Back タブでも裏面の必須エラーを確認できる。
 
-<a id="storybook-card-form-23"></a>
+<a id="playwright-card-form-23"></a>
 
-### STORYBOOK-CARD-FORM-23 保存失敗後に同じ下書きを再送信する
+### PLAYWRIGHT-CARD-FORM-23 [TODO] 保存失敗後に同じ下書きを再送信する
 
 カテゴリ: `interaction`
 
@@ -429,9 +429,9 @@ Then:
 
 - 失敗時は Unable to save changes. Try again. と下書きが残る。再試行の成功後は変更した Card を確認できる。
 
-<a id="storybook-card-form-24"></a>
+<a id="playwright-card-form-24"></a>
 
-### STORYBOOK-CARD-FORM-24 確認なしのタグ編集を下書きへ即時反映する
+### PLAYWRIGHT-CARD-FORM-24 [TODO] 確認なしのタグ編集を下書きへ即時反映する
 
 カテゴリ: `interaction`
 
@@ -449,9 +449,9 @@ Then:
 
 - 入力中にフォーカスを失わず、確認・OK 操作なしでタグと要約が更新され、開き直しても保持される。Card の保存前に成功通知は出ない。
 
-<a id="storybook-card-form-25"></a>
+<a id="playwright-card-form-25"></a>
 
-### STORYBOOK-CARD-FORM-25 空白や重複したタグ名で保存しない
+### PLAYWRIGHT-CARD-FORM-25 [TODO] 空白や重複したタグ名で保存しない
 
 カテゴリ: `interaction`
 
@@ -469,9 +469,9 @@ Then:
 
 - 空白とtrim後の重複には該当入力のエラーが表示され、有効な名前に直すと前後空白を除いて確認画面なしに保存できる。
 
-<a id="storybook-card-edit-01"></a>
+<a id="playwright-card-edit-01"></a>
 
-### STORYBOOK-CARD-EDIT-01 長い解答プレビューへキーボードで移動する
+### PLAYWRIGHT-CARD-EDIT-01 [TODO] 長い解答プレビューへキーボードで移動する
 
 カテゴリ: `interaction`
 
@@ -489,9 +489,9 @@ Then:
 
 - 入力や保存操作へ飛ばされず、長文のプレビュー領域にフォーカスが移る。
 
-<a id="storybook-card-edit-02"></a>
+<a id="playwright-card-edit-02"></a>
 
-### STORYBOOK-CARD-EDIT-02 プレビューを閉じた拡大編集内でフォーカスを循環させる
+### PLAYWRIGHT-CARD-EDIT-02 [TODO] プレビューを閉じた拡大編集内でフォーカスを循環させる
 
 カテゴリ: `interaction`
 
@@ -509,9 +509,9 @@ Then:
 
 - Tab で拡大入力の完了ボタンへ移り、Shift+Tab でプレビューの表示ボタンへ戻る。非表示の領域やダイアログの外へフォーカスが移らない。
 
-<a id="storybook-card-edit-03"></a>
+<a id="playwright-card-edit-03"></a>
 
-### STORYBOOK-CARD-EDIT-03 [TODO] 未保存の Card 編集内容を離脱前に確認できる
+### PLAYWRIGHT-CARD-EDIT-03 [TODO] 未保存の Card 編集内容を離脱前に確認できる
 
 カテゴリ: `interaction`
 
@@ -532,9 +532,9 @@ Then:
 - Tab / Shift+Tab のフォーカスはダイアログ内を循環する。
 - Discard changes では Deck 一覧へ1回だけ移動し、Card を開き直すと変更前の表面の本文を表示する。
 
-<a id="storybook-card-edit-04"></a>
+<a id="playwright-card-edit-04"></a>
 
-### STORYBOOK-CARD-EDIT-04 [TODO] 編集中の未保存の解答と表示形式をプレビューできる
+### PLAYWRIGHT-CARD-EDIT-04 [TODO] 編集中の未保存の解答と表示形式をプレビューできる
 
 カテゴリ: `interaction`
 
@@ -558,9 +558,9 @@ Then:
 - 未保存変更の離脱確認は維持される。
 - プレビューだけでは Card や Deck の保存済み内容・学習結果・学習の現在位置・URL は変わらない。
 
-<a id="storybook-card-edit-05"></a>
+<a id="playwright-card-edit-05"></a>
 
-### STORYBOOK-CARD-EDIT-05 [TODO] Card のタグ候補を選んで下書きへ反映できる
+### PLAYWRIGHT-CARD-EDIT-05 [TODO] Card のタグ候補を選んで下書きへ反映できる
 
 カテゴリ: `interaction`
 
@@ -582,9 +582,9 @@ Then:
 - 候補は所属 Deck の Card と編集中のタグから集約し、固定カテゴリや別 Deck のタグは含めない。
 - 他の Card にタグがなくても、既存の独自タグを保持・解除・再選択できる。
 
-<a id="storybook-card-edit-06"></a>
+<a id="playwright-card-edit-06"></a>
 
-### STORYBOOK-CARD-EDIT-06 [TODO] タグ入力中の Enter は Card を送信せず下書きを保つ
+### PLAYWRIGHT-CARD-EDIT-06 [TODO] タグ入力中の Enter は Card を送信せず下書きを保つ
 
 カテゴリ: `interaction`
 
@@ -603,9 +603,9 @@ Then:
 - 入力中も Enter 後もタグ名のフォーカスと入力値を保つ。
 - Card を送信せず、タグと両面の下書き・保存済み内容を維持する。
 
-<a id="storybook-card-edit-07"></a>
+<a id="playwright-card-edit-07"></a>
 
-### STORYBOOK-CARD-EDIT-07 [TODO] 入力直後の候補クリックで対象タグだけを解除する
+### PLAYWRIGHT-CARD-EDIT-07 [TODO] 入力直後の候補クリックで対象タグだけを解除する
 
 カテゴリ: `interaction`
 
@@ -624,9 +624,9 @@ Then:
 - 確認・OK 操作なしで入力を即時反映し、クリック1回で対象を解除する。前後空白の除去でクリックを失わない。
 - 重複行の解除ではその行だけが消え、元のタグは残る。
 
-<a id="storybook-card-edit-08"></a>
+<a id="playwright-card-edit-08"></a>
 
-### STORYBOOK-CARD-EDIT-08 [TODO] タグ名の前後空白だけを除いて選択順に保存する
+### PLAYWRIGHT-CARD-EDIT-08 [TODO] タグ名の前後空白だけを除いて選択順に保存する
 
 カテゴリ: `interaction`
 
@@ -645,9 +645,9 @@ Then:
 - 入力欄を離れるかタグ編集を閉じると前後空白だけを除き、内部空白は保つ。
 - 選択順を保ち、新しいタグを末尾に追加して保存する。
 
-<a id="storybook-card-edit-09"></a>
+<a id="playwright-card-edit-09"></a>
 
-### STORYBOOK-CARD-EDIT-09 [TODO] 編集成功の応答後に対象 Card の内容を確認する
+### PLAYWRIGHT-CARD-EDIT-09 [TODO] 編集成功の応答後に対象 Card の内容を確認する
 
 カテゴリ: `interaction`
 
@@ -667,9 +667,9 @@ Then:
 - 成功応答時だけ所属 Deck の一覧へ戻り、更新成功を通知する。開き直すと変更後の本文とタグを確認できる。
 - 対象の Card を更新し、所属 Deck、学習状態、未変更の独自タグと他の Card は維持する。
 
-<a id="storybook-card-edit-10"></a>
+<a id="playwright-card-edit-10"></a>
 
-### STORYBOOK-CARD-EDIT-10 [TODO] Card 編集画面の離脱後に保存が完了しても現在の画面を維持する
+### PLAYWRIGHT-CARD-EDIT-10 [TODO] Card 編集画面の離脱後に保存が完了しても現在の画面を維持する
 
 カテゴリ: `interaction`
 
@@ -689,9 +689,9 @@ Then:
 - 保存結果は画面を離れた後の完了でも通知され、既定の時間で消える。
 - 以前の保存完了によって現在の画面から遷移しない。
 
-<a id="storybook-card-edit-11"></a>
+<a id="playwright-card-edit-11"></a>
 
-### STORYBOOK-CARD-EDIT-11 [TODO] ログアウトを中止して元のアカウントへ戻っても Card の保存成功を通知する
+### PLAYWRIGHT-CARD-EDIT-11 [TODO] ログアウトを中止して元のアカウントへ戻っても Card の保存成功を通知する
 
 カテゴリ: `interaction`
 
@@ -712,9 +712,9 @@ Then:
 - 保存完了とログアウト中止の順序が入れ替わっても、成功通知を失わず重複させない。ログアウト失敗は Account 内で表示し、ホームへ離脱後に届く場合は別の通知として、保存結果と両方確認できる。
 - 以前の編集画面へ戻らず、現在の画面を維持する。
 
-<a id="storybook-card-edit-12"></a>
+<a id="playwright-card-edit-12"></a>
 
-### STORYBOOK-CARD-EDIT-12 [TODO] 保存待ち中に所属 Deck を削除した Card の古い成功を通知しない
+### PLAYWRIGHT-CARD-EDIT-12 [TODO] 保存待ち中に所属 Deck を削除した Card の古い成功を通知しない
 
 カテゴリ: `interaction`
 
@@ -735,9 +735,9 @@ Then:
 - 以前の保存結果を待ち続けず、別の Deck や Card の操作を妨げない。保存そのものを取り消したとは扱わない。
 - 単に画面を移動した場合や一覧のフィルターで Card が見えなくなった場合はこの終了条件に含めず、保存成功を通知する。
 
-<a id="storybook-card-edit-13"></a>
+<a id="playwright-card-edit-13"></a>
 
-### STORYBOOK-CARD-EDIT-13 [TODO] 認証確認中の Card 保存失敗を元のアカウントへの復帰後に通知する
+### PLAYWRIGHT-CARD-EDIT-13 [TODO] 認証確認中の Card 保存失敗を元のアカウントへの復帰後に通知する
 
 カテゴリ: `interaction`
 
@@ -759,9 +759,9 @@ Then:
 - 復帰前に所属 Deck が削除された場合、別アカウントへ切り替わった場合、同じ Card を新しく保存し直した場合は、古い保存失敗を通知しない。
 - その後に元のアカウントや Deck へ戻っても、破棄した結果を再通知しない。
 
-<a id="storybook-card-edit-14"></a>
+<a id="playwright-card-edit-14"></a>
 
-### STORYBOOK-CARD-EDIT-14 [TODO] 通知の表示が変化しても Card の離脱確認を操作できる
+### PLAYWRIGHT-CARD-EDIT-14 [TODO] 通知の表示が変化しても Card の離脱確認を操作できる
 
 カテゴリ: `interaction`
 
@@ -779,9 +779,9 @@ Then:
 
 - 通知が重なってもダイアログを操作でき、通知が消えても置き換わっても Keep editing のフォーカスを保つ。
 
-<a id="storybook-card-edit-15"></a>
+<a id="playwright-card-edit-15"></a>
 
-### STORYBOOK-CARD-EDIT-15 [TODO] Card の編集保存中は重ねて操作できない
+### PLAYWRIGHT-CARD-EDIT-15 [TODO] Card の編集保存中は重ねて操作できない
 
 カテゴリ: `interaction`
 
@@ -799,9 +799,9 @@ Then:
 
 - 検証中・保存中の連続送信で変更が重複せず、入力・保存・Cancel・戻るは完了まで無効になる。
 
-<a id="storybook-card-edit-16"></a>
+<a id="playwright-card-edit-16"></a>
 
-### STORYBOOK-CARD-EDIT-16 [TODO] Card の未表示の面にある入力エラーを修正できる
+### PLAYWRIGHT-CARD-EDIT-16 [TODO] Card の未表示の面にある入力エラーを修正できる
 
 カテゴリ: `interaction`
 
@@ -823,9 +823,9 @@ Then:
 - 拡大編集画面でも入力エラーが表示され、入力欄の読み上げ説明として確認できる。
 - 未入力の値は維持され、Card は保存されず元の内容が変更されない。
 
-<a id="storybook-card-edit-17"></a>
+<a id="playwright-card-edit-17"></a>
 
-### STORYBOOK-CARD-EDIT-17 [TODO] 未保存のタグ変更を破棄する
+### PLAYWRIGHT-CARD-EDIT-17 [TODO] 未保存のタグ変更を破棄する
 
 カテゴリ: `interaction`
 
@@ -843,9 +843,9 @@ Then:
 
 - 保存済みタグは操作前のままであり、下書きの変更は残らない。
 
-<a id="storybook-card-edit-18"></a>
+<a id="playwright-card-edit-18"></a>
 
-### STORYBOOK-CARD-EDIT-18 [TODO] System の言語変更後も検証エラーと未保存の入力を保つ
+### PLAYWRIGHT-CARD-EDIT-18 [TODO] System の言語変更後も検証エラーと未保存の入力を保つ
 
 カテゴリ: `interaction`
 
@@ -864,9 +864,9 @@ Then:
 - 表示中のエラー、入力欄の読み上げ名、ページの言語が日本語へ更新される。詳細を説明できないエラーは現在の言語の汎用メッセージになる。
 - 現在の画面・空の表面・裏面の入力・タグ・未保存の状態を保持する。言語変更だけでは保存を実行せず、学習の再開位置を変えない。
 
-<a id="storybook-card-edit-19"></a>
+<a id="playwright-card-edit-19"></a>
 
-### STORYBOOK-CARD-EDIT-19 [TODO] 読めない Card の編集リンクから警告を維持して戻る
+### PLAYWRIGHT-CARD-EDIT-19 [TODO] 読めない Card の編集リンクから警告を維持して戻る
 
 カテゴリ: `interaction`
 

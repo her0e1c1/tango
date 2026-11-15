@@ -41,7 +41,7 @@ export default mergeConfig(
             name: 'integration',
             globals: true,
             setupFiles: ['./test/setup.ts'],
-            include: ['test/integration/**/*.spec.{ts,tsx}'],
+            include: ['test/integration/*.spec.{ts,tsx}', 'test/integration/firestore/**/*.spec.{ts,tsx}'],
             environment: 'jsdom',
           },
         },

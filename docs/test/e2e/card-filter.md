@@ -32,6 +32,8 @@ Card 一覧と Deck 閲覧で、学習条件から独立したタグの絞り込
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 学習条件にかかわらず Card を全件表示できる（[PLAYWRIGHT-DECK-VIEW-04](../integration/playwright/deck-view.md#playwright-deck-view-04)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`browse-filter`](./fixture/browse-filter.yaml)
@@ -55,6 +57,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 他の Deck のフィルター条件にかかわらず Card を全件表示できる（[PLAYWRIGHT-DECK-VIEW-04](../integration/playwright/deck-view.md#playwright-deck-view-04)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`browse-filter`](./fixture/browse-filter.yaml)
@@ -77,6 +81,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: Card が登録されていない Deck は0件表示になる（[PLAYWRIGHT-CARD-LIST-02](../integration/playwright/card-list.md#playwright-card-list-02)、[PLAYWRIGHT-DECK-VIEW-02](../integration/playwright/deck-view.md#playwright-deck-view-02)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`browse-filter`](./fixture/browse-filter.yaml)
@@ -97,6 +103,8 @@ Then:
 カテゴリ: `read`
 
 区分: 正常系
+
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: フィルターに一致する Card がない場合は0件表示になる（[PLAYWRIGHT-CARD-LIST-03](../integration/playwright/card-list.md#playwright-card-list-03)、[PLAYWRIGHT-DECK-VIEW-03](../integration/playwright/deck-view.md#playwright-deck-view-03)、[PLAYWRIGHT-CARD-LIST-49](../integration/playwright/card-list.md#playwright-card-list-49)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
 
 Given:
 
@@ -120,6 +128,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 絞り込み結果を追加が新しい順にソートできる（[PLAYWRIGHT-CARD-LIST-26](../integration/playwright/card-list.md#playwright-card-list-26)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`card-list-sort`](./fixture/card-list-sort.yaml)
@@ -142,6 +152,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 絞り込み結果の表示順を標準へ戻せる（[PLAYWRIGHT-CARD-LIST-27](../integration/playwright/card-list.md#playwright-card-list-27)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`card-list-sort`](./fixture/card-list-sort.yaml)
@@ -163,6 +175,8 @@ Then:
 カテゴリ: `read`
 
 区分: 正常系
+
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 画面再入場時の標準順と保存済み条件の表示（[PLAYWRIGHT-CARD-LIST-31](../integration/playwright/card-list.md#playwright-card-list-31)、[PLAYWRIGHT-DECK-VIEW-04](../integration/playwright/deck-view.md#playwright-deck-view-04)）。置換実装後の E2E 目的: reload 後のフィルター復元とソート非永続化。
 
 Given:
 
@@ -187,6 +201,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 別の Deck から戻ると元のフィルターを復元できる（[PLAYWRIGHT-DECK-VIEW-04](../integration/playwright/deck-view.md#playwright-deck-view-04)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`browse-filter`](./fixture/browse-filter.yaml)
@@ -209,6 +225,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: Card 未登録の Deck 閲覧から Deck 一覧へ戻れる（[PLAYWRIGHT-DECK-VIEW-06](../integration/playwright/deck-view.md#playwright-deck-view-06)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`browse-filter`](./fixture/browse-filter.yaml)
@@ -229,6 +247,8 @@ Then:
 カテゴリ: `write`
 
 区分: 正常系
+
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: タグ・AND / OR による両画面の対象と件数（[PLAYWRIGHT-DECK-VIEW-05](../integration/playwright/deck-view.md#playwright-deck-view-05)）。置換実装後の E2E 目的: 閲覧フィルター実保存と両画面 reload 後の復元。
 
 Given:
 
@@ -253,6 +273,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: Clear 後の選択解除・OR・全件表示（[PLAYWRIGHT-DECK-VIEW-07](../integration/playwright/deck-view.md#playwright-deck-view-07)）。置換実装後の E2E 目的: 解除済みフィルター実保存と reload 後の復元。
+
 Given:
 
 - Fixture: [`browse-filter`](./fixture/browse-filter.yaml)
@@ -274,6 +296,8 @@ Then:
 カテゴリ: `write`
 
 区分: 正常系
+
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 単一タグで Card を絞り込める（[PLAYWRIGHT-DECK-VIEW-05](../integration/playwright/deck-view.md#playwright-deck-view-05)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
 
 Given:
 
@@ -297,6 +321,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: AND 条件ですべての選択タグを持つ Card に絞り込める（[PLAYWRIGHT-DECK-VIEW-05](../integration/playwright/deck-view.md#playwright-deck-view-05)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`browse-filter`](./fixture/browse-filter.yaml)
@@ -318,6 +344,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: OR 条件でいずれかの選択タグを持つ Card に絞り込める（[PLAYWRIGHT-DECK-VIEW-05](../integration/playwright/deck-view.md#playwright-deck-view-05)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`browse-filter`](./fixture/browse-filter.yaml)
@@ -338,6 +366,8 @@ Then:
 カテゴリ: `write`
 
 区分: 正常系
+
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: タグ未選択の AND / OR で全件表示（[PLAYWRIGHT-DECK-VIEW-05](../integration/playwright/deck-view.md#playwright-deck-view-05)）。置換実装後の E2E 目的: タグ未選択条件の実保存と reload 後の復元。
 
 Given:
 

@@ -1,25 +1,25 @@
-# Deck 作成画面 Storybook 結合テスト仕様書
+# Deck 作成画面 Playwright 結合テスト仕様書
 
 ## 目的
 
-Deck 作成画面を入口とした `play` で、新しい Deck の入力、利用可能な設定、入力エラーと作成結果を確認する。検証境界と実行前提は [AGENTS.md](./AGENTS.md) に従う。
+Deck 作成画面を入口とした Playwright テストで、新しい Deck の入力、利用可能な設定、入力エラーと作成結果を確認する。検証境界と実行前提は [AGENTS.md](./AGENTS.md) に従う。
 
 ## テストケース
 
 | ID | カテゴリ | 区分 | テストケース |
 | --- | --- | --- | --- |
-| STORYBOOK-DECK-FORM-01 | interaction | 正常系 | [名前とカテゴリを入力する](#storybook-deck-form-01) |
-| STORYBOOK-DECK-FORM-02 | render | 正常系 | [効果のない改行変換設定を表示しない](#storybook-deck-form-02) |
-| STORYBOOK-DECK-CREATE-01 | interaction | 正常系 | [作成の成功後に新しい Deck を確認する](#storybook-deck-create-01) |
-| STORYBOOK-DECK-CREATE-02 | interaction | 異常系 | [作成に失敗しても入力を保持する](#storybook-deck-create-02) |
-| STORYBOOK-DECK-CREATE-03 | interaction | 異常系 | [空欄と空白のみの名前に現在の言語でエラーを表示する](#storybook-deck-create-03) |
-| STORYBOOK-DECK-CREATE-04 | interaction | 異常系 | [表示中の名前エラーを言語変更に追従させる](#storybook-deck-create-04) |
-| STORYBOOK-DECK-CREATE-05 | interaction | 正常系 | [各認証状態で空の Deck の作成結果を表示する](#storybook-deck-create-05) |
-| STORYBOOK-DECK-CREATE-06 | interaction | 異常系 | [作成結果を待ってから失敗を通知する](#storybook-deck-create-06) |
+| PLAYWRIGHT-DECK-FORM-01 | interaction | 正常系 | [名前とカテゴリを入力する](#playwright-deck-form-01) |
+| PLAYWRIGHT-DECK-FORM-02 | render | 正常系 | [効果のない改行変換設定を表示しない](#playwright-deck-form-02) |
+| PLAYWRIGHT-DECK-CREATE-01 | interaction | 正常系 | [作成の成功後に新しい Deck を確認する](#playwright-deck-create-01) |
+| PLAYWRIGHT-DECK-CREATE-02 | interaction | 異常系 | [作成に失敗しても入力を保持する](#playwright-deck-create-02) |
+| PLAYWRIGHT-DECK-CREATE-03 | interaction | 異常系 | [空欄と空白のみの名前に現在の言語でエラーを表示する](#playwright-deck-create-03) |
+| PLAYWRIGHT-DECK-CREATE-04 | interaction | 異常系 | [表示中の名前エラーを言語変更に追従させる](#playwright-deck-create-04) |
+| PLAYWRIGHT-DECK-CREATE-05 | interaction | 正常系 | [各認証状態で空の Deck の作成結果を表示する](#playwright-deck-create-05) |
+| PLAYWRIGHT-DECK-CREATE-06 | interaction | 異常系 | [作成結果を待ってから失敗を通知する](#playwright-deck-create-06) |
 
-<a id="storybook-deck-form-01"></a>
+<a id="playwright-deck-form-01"></a>
 
-### STORYBOOK-DECK-FORM-01 名前とカテゴリを入力する
+### PLAYWRIGHT-DECK-FORM-01 [TODO] 名前とカテゴリを入力する
 
 カテゴリ: `interaction`
 
@@ -37,9 +37,9 @@ Then:
 
 - 名前の入力値は New deck、カテゴリの選択値は math になる。
 
-<a id="storybook-deck-form-02"></a>
+<a id="playwright-deck-form-02"></a>
 
-### STORYBOOK-DECK-FORM-02 効果のない改行変換設定を表示しない
+### PLAYWRIGHT-DECK-FORM-02 [TODO] 効果のない改行変換設定を表示しない
 
 カテゴリ: `render`
 
@@ -58,9 +58,9 @@ Then:
 - 名前と表示形式を入力できる。
 - 改行変換の操作・説明と、空の詳細設定欄は表示されない。
 
-<a id="storybook-deck-create-01"></a>
+<a id="playwright-deck-create-01"></a>
 
-### STORYBOOK-DECK-CREATE-01 作成の成功後に新しい Deck を確認する
+### PLAYWRIGHT-DECK-CREATE-01 [TODO] 作成の成功後に新しい Deck を確認する
 
 カテゴリ: `interaction`
 
@@ -78,9 +78,9 @@ Then:
 
 - 新しい Deck 名が一覧に表示され、その Deck を選べる。サーバーへの実保存はこの結果だけで保証しない。
 
-<a id="storybook-deck-create-02"></a>
+<a id="playwright-deck-create-02"></a>
 
-### STORYBOOK-DECK-CREATE-02 作成に失敗しても入力を保持する
+### PLAYWRIGHT-DECK-CREATE-02 [TODO] 作成に失敗しても入力を保持する
 
 カテゴリ: `interaction`
 
@@ -98,9 +98,9 @@ Then:
 
 - 失敗が表示され、名前とカテゴリを失わず再試行できる。
 
-<a id="storybook-deck-create-03"></a>
+<a id="playwright-deck-create-03"></a>
 
-### STORYBOOK-DECK-CREATE-03 空欄と空白のみの名前に現在の言語でエラーを表示する
+### PLAYWRIGHT-DECK-CREATE-03 [TODO] 空欄と空白のみの名前に現在の言語でエラーを表示する
 
 カテゴリ: `interaction`
 
@@ -119,9 +119,9 @@ Then:
 - 英語では `Deck name is required.`、日本語では `デッキ名は必須です。` が表示され、名前の入力欄は不正な値としてこのエラーを説明に持つ。
 - 名前と表示形式の入力が保持され、保存先への操作は開始されない。
 
-<a id="storybook-deck-create-04"></a>
+<a id="playwright-deck-create-04"></a>
 
-### STORYBOOK-DECK-CREATE-04 表示中の名前エラーを言語変更に追従させる
+### PLAYWRIGHT-DECK-CREATE-04 [TODO] 表示中の名前エラーを言語変更に追従させる
 
 カテゴリ: `interaction`
 
@@ -140,9 +140,9 @@ Then:
 - 表示中のエラーと入力欄の説明が、日本語では `デッキ名は必須です。`、英語では `Deck name is required.` に切り替わる。
 - 同じ名前入力欄、エラーとの関連付け、フォーカス、名前と表示形式の入力が保持され、保存先への操作は開始されない。
 
-<a id="storybook-deck-create-05"></a>
+<a id="playwright-deck-create-05"></a>
 
-### STORYBOOK-DECK-CREATE-05 [TODO] 各認証状態で空の Deck の作成結果を表示する
+### PLAYWRIGHT-DECK-CREATE-05 [TODO] 各認証状態で空の Deck の作成結果を表示する
 
 カテゴリ: `interaction`
 
@@ -161,9 +161,9 @@ Then:
 - 保存先の選択肢と改行変換の操作・説明は表示しない。作成成功を通知し、空の Deck を一覧に一つ表示する。
 - 編集画面に入力した名前と表示形式を表示する。
 
-<a id="storybook-deck-create-06"></a>
+<a id="playwright-deck-create-06"></a>
 
-### STORYBOOK-DECK-CREATE-06 [TODO] 作成結果を待ってから失敗を通知する
+### PLAYWRIGHT-DECK-CREATE-06 [TODO] 作成結果を待ってから失敗を通知する
 
 カテゴリ: `interaction`
 

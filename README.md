@@ -63,7 +63,7 @@ mise run test-sample
 ```
 
 Firestore persistence, subscription, and security-rule contracts and case IDs are documented in the
-[Firestore integration test specifications](./docs/test/integration/firestore/README.md).
+[Firestore integration test contracts and instructions](./docs/test/integration/firestore/AGENTS.md).
 
 ### Vitest Coverage
 

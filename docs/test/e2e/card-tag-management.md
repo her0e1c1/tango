@@ -32,6 +32,8 @@ Card フォームでのタグ編集、保存境界、候補の集約と絞り込
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 未保存のタグ変更を破棄する（[PLAYWRIGHT-CARD-EDIT-17](../integration/playwright/card-edit.md#playwright-card-edit-17)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [deck-tag-management](./fixture/deck-tag-management.yaml)
@@ -52,6 +54,8 @@ Then:
 カテゴリ: `read`
 
 区分: 正常系
+
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: タグ入力中の Enter は Card を送信せず下書きを保つ（[PLAYWRIGHT-CARD-EDIT-06](../integration/playwright/card-edit.md#playwright-card-edit-06)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
 
 Given:
 
@@ -75,6 +79,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 入力直後の候補クリックで対象タグだけを解除する（[PLAYWRIGHT-CARD-EDIT-07](../integration/playwright/card-edit.md#playwright-card-edit-07)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [deck-tag-management](./fixture/deck-tag-management.yaml)
@@ -97,6 +103,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 絞り込み候補は同じ Deck のタグを重複なく表示する（[PLAYWRIGHT-CARD-LIST-50](../integration/playwright/card-list.md#playwright-card-list-50)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [deck-tag-management](./fixture/deck-tag-management.yaml)
@@ -117,6 +125,8 @@ Then:
 カテゴリ: `read`
 
 区分: 正常系
+
+関連仕様: E2E維持。E2E の目的: オフライン保存中の reload でサーバー確定タグを復元。
 
 Given:
 
@@ -140,6 +150,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: E2E維持。E2E の目的: 匿名のタグ編集が再接続後もクラウドへ同期しない。
+
 Given:
 
 - Fixture: [deck-tag-management](./fixture/deck-tag-management.yaml)
@@ -160,6 +172,8 @@ Then:
 カテゴリ: `write`
 
 区分: 正常系
+
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 保存成功応答後の両面・タグ・他 Card の維持（[PLAYWRIGHT-CARD-EDIT-09](../integration/playwright/card-edit.md#playwright-card-edit-09)、[PLAYWRIGHT-CARD-EDIT-05](../integration/playwright/card-edit.md#playwright-card-edit-05)）。置換実装後の E2E 目的: 本文とタグの一括実保存・reload 後の復元。
 
 Given:
 
@@ -184,6 +198,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: Card のタグで一覧と Deck 閲覧を絞り込む（[PLAYWRIGHT-DECK-VIEW-05](../integration/playwright/deck-view.md#playwright-deck-view-05)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [deck-tag-management](./fixture/deck-tag-management.yaml)
@@ -204,6 +220,8 @@ Then:
 カテゴリ: `write`
 
 区分: 正常系
+
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 保存応答待ちの操作不可・画面維持（[PLAYWRIGHT-CARD-FORM-20](../integration/playwright/card-edit.md#playwright-card-form-20)）。置換実装後の E2E 目的: 実オフライン時のサーバー保存待ち。
 
 Given:
 
@@ -226,6 +244,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 匿名利用の成功応答後のタグ表示（[PLAYWRIGHT-CARD-EDIT-09](../integration/playwright/card-edit.md#playwright-card-edit-09)）。置換実装後の E2E 目的: 匿名のオフライン cache 保存・reload 後のタグ復元。
+
 Given:
 
 - Fixture: [deck-tag-management](./fixture/deck-tag-management.yaml)
@@ -246,6 +266,8 @@ Then:
 カテゴリ: `write`
 
 区分: 正常系
+
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: タグ名の前後空白だけを除いて選択順に保存する（[PLAYWRIGHT-CARD-EDIT-08](../integration/playwright/card-edit.md#playwright-card-edit-08)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
 
 Given:
 
@@ -269,6 +291,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 割り当てがなくなった選択済みタグのチェックボックスだけを解除し、候補消失・一覧2枚・閲覧1 of 2を確認（[PLAYWRIGHT-CARD-LIST-51](../integration/playwright/card-list.md#playwright-card-list-51)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [deck-tag-management](./fixture/deck-tag-management.yaml)
@@ -290,6 +314,8 @@ Then:
 カテゴリ: `write`
 
 区分: 正常系
+
+関連仕様: E2E維持。E2E の目的: 保留タグの再接続同期・reload 後の変更内容と他 Card 非変更。
 
 Given:
 
@@ -314,6 +340,8 @@ Then:
 
 区分: 異常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 空のタグ名を修正して保存する（[PLAYWRIGHT-CARD-FORM-25](../integration/playwright/card-edit.md#playwright-card-form-25)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [deck-tag-management](./fixture/deck-tag-management.yaml)
@@ -334,6 +362,8 @@ Then:
 カテゴリ: `write`
 
 区分: 異常系
+
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 重複するタグ名を修正して保存する（[PLAYWRIGHT-CARD-FORM-25](../integration/playwright/card-edit.md#playwright-card-form-25)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
 
 Given:
 

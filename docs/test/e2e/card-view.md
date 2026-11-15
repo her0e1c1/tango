@@ -24,6 +24,8 @@ Card 閲覧画面で裏面の本文と記憶状態を表示し、閲覧エラー
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: Card 閲覧画面を直接開ける（[PLAYWRIGHT-CARD-VIEW-04](../integration/playwright/card-view.md#playwright-card-view-04)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
@@ -44,6 +46,8 @@ Then:
 カテゴリ: `read`
 
 区分: 正常系
+
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: Card の閲覧 URL の変更に表示が追従する（[PLAYWRIGHT-CARD-VIEW-05](../integration/playwright/card-view.md#playwright-card-view-05)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
 
 Given:
 
@@ -66,6 +70,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 未評価の Card に推定した記憶状態を表示しない（[PLAYWRIGHT-CARD-VIEW-06](../integration/playwright/card-view.md#playwright-card-view-06)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`local-deck-with-cards`](./fixture/local-deck-with-cards.yaml)
@@ -87,6 +93,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: Card の切り替え・再表示で記憶状態を更新する（[PLAYWRIGHT-CARD-VIEW-07](../integration/playwright/card-view.md#playwright-card-view-07)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`local-deck-with-cards`](./fixture/local-deck-with-cards.yaml)
@@ -107,6 +115,8 @@ Then:
 カテゴリ: `write`
 
 区分: 正常系
+
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 投入した評価済み状態の曲線・基準時刻・表示条件（[PLAYWRIGHT-CARD-VIEW-08](../integration/playwright/card-view.md#playwright-card-view-08)）。置換実装後の E2E 目的: 実評価の FSRS 保存と reload・offline cache からの復元。
 
 Given:
 
@@ -136,6 +146,8 @@ Then:
 
 区分: 異常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 存在しない Card から復帰できる（[PLAYWRIGHT-CARD-VIEW-10](../integration/playwright/card-view.md#playwright-card-view-10)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
@@ -156,6 +168,8 @@ Then:
 カテゴリ: `read`
 
 区分: 異常系
+
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 読めない結果と未評価を区別する表示（[PLAYWRIGHT-CARD-VIEW-11](../integration/playwright/card-view.md#playwright-card-view-11)）。置換実装後の E2E 目的: 不正保存値と実取得失敗の検出。
 
 Given:
 

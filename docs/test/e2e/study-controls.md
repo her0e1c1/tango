@@ -40,6 +40,8 @@
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 主ボタン以外のドラッグで表面・位置を維持（[PLAYWRIGHT-STUDY-SESSION-06](../integration/playwright/study-session.md#playwright-study-session-06)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`study-session-start`](./fixture/study-session-start.yaml)
@@ -62,6 +64,8 @@ Then:
 カテゴリ: `read`
 
 区分: 正常系
+
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: Helpの操作説明を現在の割当と表示設定へ一致（[PLAYWRIGHT-STUDY-SESSION-07](../integration/playwright/study-session.md#playwright-study-session-07)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
 
 Given:
 
@@ -89,6 +93,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 閲覧中タッチスクロールと誤評価/移動の防止（[PLAYWRIGHT-STUDY-SESSION-08](../integration/playwright/study-session.md#playwright-study-session-08)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`study-back-text-long`](./fixture/study-back-text-long.yaml)
@@ -110,6 +116,8 @@ Then:
 カテゴリ: `read`
 
 区分: 正常系
+
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: Spaceの保持と再押下による再生切替の分離（[PLAYWRIGHT-STUDY-SESSION-09](../integration/playwright/study-session.md#playwright-study-session-09)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
 
 Given:
 
@@ -133,6 +141,8 @@ Then:
 カテゴリ: `read`
 
 区分: 正常系
+
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: Help内のキー入力を学習から分離しフォーカスを戻す（[PLAYWRIGHT-STUDY-SESSION-10](../integration/playwright/study-session.md#playwright-study-session-10)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
 
 Given:
 
@@ -158,6 +168,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 通知の表示/消去/置換中もHelp操作とフォーカスを維持（[PLAYWRIGHT-STUDY-SESSION-10](../integration/playwright/study-session.md#playwright-study-session-10)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`study-session-help`](./fixture/study-session-help.yaml)
@@ -181,6 +193,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: タッチブラウザーのピンチ拡大と誤評価/移動の防止（[PLAYWRIGHT-STUDY-SESSION-11](../integration/playwright/study-session.md#playwright-study-session-11)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`study-back-text-long`](./fixture/study-back-text-long.yaml)
@@ -202,6 +216,8 @@ Then:
 カテゴリ: `write`
 
 区分: 正常系
+
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 主ボタン上ドラッグのEasy割当と次表面表示・click抑止（[PLAYWRIGHT-STUDY-SESSION-05](../integration/playwright/study-session.md#playwright-study-session-05)）。置換実装後の E2E 目的: Easy回答の実保存。
 
 Given:
 
@@ -228,6 +244,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 匿名の上ドラッグによる次表面表示（[PLAYWRIGHT-STUDY-SESSION-05](../integration/playwright/study-session.md#playwright-study-session-05)）。置換実装後の E2E 目的: 匿名Easy評価の永続cacheへの実保存。
+
 Given:
 
 - Fixture: [`study-session-start-local`](./fixture/study-session-start-local.yaml)
@@ -251,6 +269,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: Helpボタン非表示の操作とレイアウト（[PLAYWRIGHT-STUDY-SESSION-12](../integration/playwright/study-session.md#playwright-study-session-12)）。置換実装後の E2E 目的: browser storageから再読込して非表示を復元。
+
 Given:
 
 - Fixture: [`study-session-help`](./fixture/study-session-help.yaml)
@@ -273,6 +293,8 @@ Then:
 カテゴリ: `write`
 
 区分: 正常系
+
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 閲覧モードのスクロール・文字選択・Helpと評価/移動を分離（[PLAYWRIGHT-STUDY-SESSION-08](../integration/playwright/study-session.md#playwright-study-session-08)、[PLAYWRIGHT-STUDY-SESSION-07](../integration/playwright/study-session.md#playwright-study-session-07)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
 
 Given:
 
@@ -298,6 +320,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: タップ/Enterで閲覧モードだけを終了して長押しを分離（[PLAYWRIGHT-STUDY-SESSION-13](../integration/playwright/study-session.md#playwright-study-session-13)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`study-session-start`](./fixture/study-session-start.yaml)
@@ -319,6 +343,8 @@ Then:
 カテゴリ: `batch`
 
 区分: 正常系
+
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 閲覧モードを維持して評価から次表面へ進みスクロールを戻す（[PLAYWRIGHT-STUDY-SESSION-14](../integration/playwright/study-session.md#playwright-study-session-14)）。置換実装後の E2E 目的: 評価結果と学習位置の実保存。
 
 Given:
 
@@ -342,6 +368,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 学習と閲覧のモード共有・他設定保持（[PLAYWRIGHT-STUDY-SESSION-15](../integration/playwright/study-session.md#playwright-study-session-15)）。置換実装後の E2E 目的: browser storageでON/OFFを再読込後に復元。
+
 Given:
 
 - Fixture: [`study-session-start`](./fixture/study-session-start.yaml)
@@ -362,6 +390,8 @@ Then:
 カテゴリ: `write`
 
 区分: 正常系
+
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 568×320で本文と各操作部へ到達（[PLAYWRIGHT-STUDY-SESSION-16](../integration/playwright/study-session.md#playwright-study-session-16)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
 
 Given:
 
@@ -384,6 +414,8 @@ Then:
 カテゴリ: `write`
 
 区分: 正常系
+
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 方向と割当を含む読み上げ名・Help・captionとフォーカス維持（[PLAYWRIGHT-STUDY-SESSION-17](../integration/playwright/study-session.md#playwright-study-session-17)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
 
 Given:
 
@@ -410,6 +442,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 評価完了後も方向キーの保持で次Cardを評価しない（[PLAYWRIGHT-STUDY-SESSION-18](../integration/playwright/study-session.md#playwright-study-session-18)）。置換実装後の E2E 目的: 押下ごとの回答と記憶状態・復習予定・位置の実保存。
+
 Given:
 
 - Fixture: [`study-session-start`](./fixture/study-session-start.yaml)
@@ -433,6 +467,8 @@ Then:
 カテゴリ: `write`
 
 区分: 正常系
+
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 修飾付き入力を無視し通常キーと入力部品の操作を維持（[PLAYWRIGHT-STUDY-SESSION-19](../integration/playwright/study-session.md#playwright-study-session-19)）。方向ボタンOFF/ONの修飾付き右方向入力と通常入力の限定条件は[PLAYWRIGHT-STUDY-SESSION-40](../integration/playwright/study-session.md#playwright-study-session-40)で確認。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
 
 Given:
 
@@ -458,6 +494,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 修飾Enterで閲覧維持、通常Enterの長押しと表裏切替分離（[PLAYWRIGHT-STUDY-SESSION-19](../integration/playwright/study-session.md#playwright-study-session-19)、[PLAYWRIGHT-STUDY-SESSION-13](../integration/playwright/study-session.md#playwright-study-session-13)）。置換実装後の E2E 目的: browser storageから再読込して閲覧ONを復元。
+
 Given:
 
 - Fixture: [`study-session-start`](./fixture/study-session-start.yaml)
@@ -481,6 +519,8 @@ Then:
 カテゴリ: `write`
 
 区分: 正常系
+
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 閲覧モードボタンの表示共有とモード・位置維持（[PLAYWRIGHT-STUDY-SESSION-15](../integration/playwright/study-session.md#playwright-study-session-15)）。置換実装後の E2E 目的: browser storageからボタン表示設定を再読込復元。
 
 Given:
 
@@ -506,6 +546,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: Card・表裏・モード変更でスクロールを先頭へ戻す（[PLAYWRIGHT-STUDY-SESSION-20](../integration/playwright/study-session.md#playwright-study-session-20)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`study-back-text-long`](./fixture/study-back-text-long.yaml)
@@ -526,6 +568,8 @@ Then:
 カテゴリ: `write`
 
 区分: 正常系
+
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 閲覧モード中の自動送りで次表面・モード維持・スクロール初期化（[PLAYWRIGHT-STUDY-SESSION-14](../integration/playwright/study-session.md#playwright-study-session-14)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
 
 Given:
 
@@ -548,6 +592,8 @@ Then:
 カテゴリ: `write`
 
 区分: 正常系
+
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: bの保持と再押下によるボタン表示切替の分離（[PLAYWRIGHT-STUDY-SESSION-09](../integration/playwright/study-session.md#playwright-study-session-09)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
 
 Given:
 

@@ -32,6 +32,8 @@ Deck 一覧の表示・並び順、復習と新規の件数、追加・管理画
 
 区分: 正常系
 
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 名前から正しい Card 一覧へ遷移し識別子をエンコード（[PLAYWRIGHT-DECK-LIST-27](../integration/playwright/deck-list.md#playwright-deck-list-27)）。置換実装後の E2E 目的: 直接表示・reload後の実データ再取得と識別子の分離。
+
 Given:
 
 - Fixture: [`deck-navigation`](./fixture/deck-navigation.yaml)
@@ -57,6 +59,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 読み込み済みの全 Deck の件数・集計条件・合計（[PLAYWRIGHT-DECK-LIST-06](../integration/playwright/deck-list.md#playwright-deck-list-06)、[PLAYWRIGHT-DECK-LIST-28](../integration/playwright/deck-list.md#playwright-deck-list-28)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`study-review-schedule`](./fixture/study-review-schedule.yaml)
@@ -80,6 +84,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 期日到達で一覧の件数と並び順を更新（[PLAYWRIGHT-DECK-LIST-29](../integration/playwright/deck-list.md#playwright-deck-list-29)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`study-review-schedule`](./fixture/study-review-schedule.yaml)
@@ -102,6 +108,8 @@ Then:
 カテゴリ: `read`
 
 区分: 正常系
+
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 追加メニューの全入力方法とフォーカス・排他（[PLAYWRIGHT-DECK-LIST-10](../integration/playwright/deck-list.md#playwright-deck-list-10)、[PLAYWRIGHT-DECK-LIST-11](../integration/playwright/deck-list.md#playwright-deck-list-11)、[PLAYWRIGHT-DECK-LIST-23](../integration/playwright/deck-list.md#playwright-deck-list-23)、[PLAYWRIGHT-DECK-LIST-30](../integration/playwright/deck-list.md#playwright-deck-list-30)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
 
 Given:
 
@@ -128,6 +136,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 追加メニューから作成・インポートへ実 router 遷移（[PLAYWRIGHT-DECK-LIST-01](../integration/playwright/deck-list.md#playwright-deck-list-01)、[PLAYWRIGHT-DECK-LIST-02](../integration/playwright/deck-list.md#playwright-deck-list-02)、[PLAYWRIGHT-DECK-LIST-12](../integration/playwright/deck-list.md#playwright-deck-list-12)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`deck-navigation`](./fixture/deck-navigation.yaml)
@@ -149,6 +159,8 @@ Then:
 カテゴリ: `read`
 
 区分: 正常系
+
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 状態別区分・読上げ・各viewportとテーマの表示（[PLAYWRIGHT-DECK-LIST-09](../integration/playwright/deck-list.md#playwright-deck-list-09)、[PLAYWRIGHT-DECK-LIST-17](../integration/playwright/deck-list.md#playwright-deck-list-17)、[PLAYWRIGHT-DECK-LIST-31](../integration/playwright/deck-list.md#playwright-deck-list-31)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
 
 Given:
 
@@ -176,6 +188,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 学習状態・期日・名前順の一覧（[PLAYWRIGHT-DECK-LIST-32](../integration/playwright/deck-list.md#playwright-deck-list-32)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`study-review-schedule`](./fixture/study-review-schedule.yaml)
@@ -198,6 +212,8 @@ Then:
 カテゴリ: `read`
 
 区分: 正常系
+
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 未読込・不一致・期日前の0件理由と操作（[PLAYWRIGHT-DECK-LIST-15](../integration/playwright/deck-list.md#playwright-deck-list-15)、[PLAYWRIGHT-DECK-LIST-33](../integration/playwright/deck-list.md#playwright-deck-list-33)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
 
 Given:
 
@@ -222,6 +238,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: Review・Study newは開始設定へ進み既存学習を変えない（[PLAYWRIGHT-DECK-LIST-16](../integration/playwright/deck-list.md#playwright-deck-list-16)、[PLAYWRIGHT-DECK-LIST-18](../integration/playwright/deck-list.md#playwright-deck-list-18)、[PLAYWRIGHT-DECK-LIST-50](../integration/playwright/deck-list.md#playwright-deck-list-50)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`study-review-schedule`](./fixture/study-review-schedule.yaml)
@@ -243,6 +261,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 間隔反復OFFの件数と操作表示（[PLAYWRIGHT-DECK-LIST-34](../integration/playwright/deck-list.md#playwright-deck-list-34)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`study-review-schedule`](./fixture/study-review-schedule.yaml)
@@ -263,6 +283,8 @@ Then:
 カテゴリ: `read`
 
 区分: 正常系
+
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 状態変化と画面復帰後の再集計（[PLAYWRIGHT-DECK-LIST-35](../integration/playwright/deck-list.md#playwright-deck-list-35)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
 
 Given:
 
@@ -286,6 +308,8 @@ Then:
 
 区分: 正常系
 
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 空の一覧から追加メニューを操作（[PLAYWRIGHT-DECK-LIST-05](../integration/playwright/deck-list.md#playwright-deck-list-05)、[PLAYWRIGHT-DECK-LIST-36](../integration/playwright/deck-list.md#playwright-deck-list-36)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+
 Given:
 
 - Fixture: [`empty`](./fixture/empty.yaml)
@@ -306,6 +330,8 @@ Then:
 カテゴリ: `write`
 
 区分: 正常系
+
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 既存学習を同じ対象・順序・位置で再開（[PLAYWRIGHT-DECK-LIST-37](../integration/playwright/deck-list.md#playwright-deck-list-37)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
 
 Given:
 
@@ -328,6 +354,8 @@ Then:
 カテゴリ: `write`
 
 区分: 正常系
+
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: Continue待機中の排他・離脱・再入場（[PLAYWRIGHT-DECK-LIST-38](../integration/playwright/deck-list.md#playwright-deck-list-38)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
 
 Given:
 
@@ -355,6 +383,8 @@ Then:
 カテゴリ: `write`
 
 区分: 異常系
+
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: Continue失敗通知・明示的な別Deck再試行（[PLAYWRIGHT-DECK-LIST-39](../integration/playwright/deck-list.md#playwright-deck-list-39)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
 
 Given:
 
