@@ -16,6 +16,7 @@
 | PLAYWRIGHT-APPLICATION-06 | interaction | 異常系 | [個別に処理された失敗では共通復旧画面に置き換えない](#playwright-application-06) |
 | PLAYWRIGHT-APPLICATION-07 | interaction | 異常系 | [ローカルデータの削除失敗を案内して再試行を促す](#playwright-application-07) |
 | PLAYWRIGHT-APPLICATION-08 | interaction | 異常系 | [ローカルデータ削除後の起動失敗を復旧画面に表示する](#playwright-application-08) |
+| PLAYWRIGHT-APPLICATION-09 | interaction | 異常系 | [初回認証の失敗を現在の言語で案内する](#playwright-application-09) |
 
 <a id="playwright-application-01"></a>
 
@@ -185,3 +186,24 @@ When:
 Then:
 
 - 削除とアプリ読み込みを待つ間は起動中表示にし、失敗後は復旧画面へ切り替える。
+
+<a id="playwright-application-09"></a>
+
+### PLAYWRIGHT-APPLICATION-09 [TODO] 初回認証の失敗を現在の言語で案内する
+
+カテゴリ: `interaction`
+
+区分: 異常系
+
+Given:
+
+- Account の URL を初期ルートにした実際の App 認証 gate の起動中で、Account 画面が描画される前に初回匿名認証が失敗する。英語・日本語を独立した言語例とする。
+
+When:
+
+- 認証失敗を表示し、Reload を選択する。再読み込みの境界は外部処理として応答を用意する。
+
+Then:
+
+- 現在の言語の見出し・説明・Reload の読み上げ名と元の失敗理由を表示し、認証・保存データの初期化で失敗し得る旨を案内する。
+- 再読み込みを要求でき、画面や操作を重複表示しない。実際のブラウザー再起動・認証成功はこの境界の結果としない。

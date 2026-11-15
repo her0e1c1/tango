@@ -325,7 +325,7 @@ Then:
 
 区分: 異常系
 
-関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 認証初期化失敗の案内と Reload 操作を重複表示しない（[PLAYWRIGHT-ACCOUNT-23](../integration/playwright/account.md#playwright-account-23)）。置換実装後の E2E 目的: 実ブラウザー reload 後に認証を再初期化し Deck 一覧へ復旧。
+関連仕様: 目的分割予定（既存 E2E 契約は継続）。IT の目的: 認証初期化失敗の案内と Reload 操作を重複表示しない（[PLAYWRIGHT-APPLICATION-09](../integration/playwright/application.md#playwright-application-09)）。置換実装後の E2E 目的: 実ブラウザー reload 後に認証を再初期化し Deck 一覧へ復旧。
 
 Given:
 
@@ -349,7 +349,7 @@ Then:
 
 区分: 異常系
 
-関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 初回匿名認証失敗の理由と復旧案内を現在の言語で表示（[PLAYWRIGHT-ACCOUNT-23](../integration/playwright/account.md#playwright-account-23)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: 初回匿名認証失敗の理由と復旧案内を現在の言語で表示（[PLAYWRIGHT-APPLICATION-09](../integration/playwright/application.md#playwright-application-09)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
 
 Given:
 

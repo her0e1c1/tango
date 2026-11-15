@@ -391,7 +391,7 @@ Then:
 
 区分: 異常系
 
-関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: アカウント変更後に元アカウントのCardの回答を拒否（[PLAYWRIGHT-STUDY-SESSION-28](../integration/playwright/study-session.md#playwright-study-session-28)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
+関連仕様: IT移行予定（既存 E2E 契約は継続）。IT の目的: アカウント変更後に元アカウントのCardの回答を拒否（[PLAYWRIGHT-STUDY-SESSION-41](../integration/playwright/study-session.md#playwright-study-session-41)）。置換実装後の E2E 目的: なし（移行実装後に縮小予定）。
 
 Given:
 

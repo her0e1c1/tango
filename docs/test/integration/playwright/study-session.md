@@ -58,6 +58,7 @@
 | PLAYWRIGHT-STUDY-SESSION-38 | interaction | 異常系 | [保存失敗後は巻き戻しを待たず操作待ちを解除する](#playwright-study-session-38) |
 | PLAYWRIGHT-STUDY-SESSION-39 | interaction | 異常系 | [学習不在を案内し後から届く学習を表示する](#playwright-study-session-39) |
 | PLAYWRIGHT-STUDY-SESSION-40 | interaction | 正常系 | [修飾付き右方向入力を無視し通常の右方向入力で一度進む](#playwright-study-session-40) |
+| PLAYWRIGHT-STUDY-SESSION-41 | interaction | 異常系 | [アカウント変更後に以前の Card へ回答しない](#playwright-study-session-41) |
 
 <a id="playwright-study-controls-01"></a>
 
@@ -829,11 +830,11 @@ Given:
 
 When:
 
-- 以前の保存結果が届き、以前の Card への評価を試みる。
+- 以前の保存結果が届く。
 
 Then:
 
-- 以前の結果で現在の Card を進めず、以前の学習の通知を表示しない。以前のアカウントの Card を評価できない。
+- 以前の結果で現在の Card を進めず、以前の学習の通知を表示しない。
 
 <a id="playwright-study-session-29"></a>
 
@@ -1082,3 +1083,23 @@ Then:
 
 - 修飾付き入力はアプリに届いても既定動作を妨げず、同じ先頭の表面と「1 / 3」を維持する。回答・記憶状態・復習予定・学習位置・設定を変えず、保存を要求しない。
 - 通常の右方向入力では Good 評価の保存を一度だけ要求し、その成功後に2枚目の表面と「2 / 3」を表示する。
+
+<a id="playwright-study-session-41"></a>
+
+### PLAYWRIGHT-STUDY-SESSION-41 [TODO] アカウント変更後に以前の Card へ回答しない
+
+カテゴリ: `interaction`
+
+区分: 異常系
+
+Given:
+
+- アカウントの Deck の学習画面を開いた後に、認証状態が別のアカウントへ切り替わっている。
+
+When:
+
+- 以前のアカウントの Card を評価しようとする。
+
+Then:
+
+- 以前のアカウントの Card に回答できず、回答の保存を要求しない。

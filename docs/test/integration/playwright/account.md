@@ -30,7 +30,6 @@
 | PLAYWRIGHT-ACCOUNT-20 | interaction | 異常系 | [ログイン再試行中もエラー通知の元の期限を保つ](#playwright-account-20) |
 | PLAYWRIGHT-ACCOUNT-21 | interaction | 異常系 | [同期が必要なログアウト拒否を案内する](#playwright-account-21) |
 | PLAYWRIGHT-ACCOUNT-22 | interaction | 正常系 | [通知の言語変更でフォーカスと期限を保つ](#playwright-account-22) |
-| PLAYWRIGHT-ACCOUNT-23 | interaction | 異常系 | [Account を開く認証初期化失敗を現在の言語で案内する](#playwright-account-23) |
 | PLAYWRIGHT-ACCOUNT-24 | interaction | 正常系 | [Account の切り替え中に以前のデータを新しい本人へ表示しない](#playwright-account-24) |
 | PLAYWRIGHT-ACCOUNT-25 | interaction | 異常系 | [アカウント切り替え中断後に現在の本人だけを利用する](#playwright-account-25) |
 | PLAYWRIGHT-ACCOUNT-26 | interaction | 異常系 | [ログイン失敗後も匿名のデータを表示する](#playwright-account-26) |
@@ -479,27 +478,6 @@ When:
 Then:
 
 - 本文・成功表示・閉じるボタンの読み上げ名・通知の読み上げが英語へ変わる。閉じるボタンのフォーカスと最初の表示から4秒の期限を維持し、通知を重複させない。
-
-<a id="playwright-account-23"></a>
-
-### PLAYWRIGHT-ACCOUNT-23 [TODO] Account を開く認証初期化失敗を現在の言語で案内する
-
-カテゴリ: `interaction`
-
-区分: 異常系
-
-Given:
-
-- Account の URL を入口に実際の認証 gate と Account 画面を結合する契約で、初回匿名認証が失敗した状態である。この結合による画面検証は未実装である。英語・日本語を独立した言語例とする。
-
-When:
-
-- 認証失敗を表示し、Reload を選択する。再読み込みの境界は外部処理として応答を用意する。
-
-Then:
-
-- 現在の言語の見出し・説明・Reload の読み上げ名と元の失敗理由を表示し、認証・保存データの初期化で失敗し得る旨を案内する。
-- 再読み込みを要求でき、画面や操作を重複表示しない。実際のブラウザー再起動・認証成功はこの境界の結果としない。
 
 <a id="playwright-account-24"></a>
 
