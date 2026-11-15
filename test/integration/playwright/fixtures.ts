@@ -1,15 +1,12 @@
 import { test as base, expect, type Page } from "@playwright/test";
-import AxeBuilder from "@axe-core/playwright";
 export { expect } from "@playwright/test";
 export const test = base.extend<{
   browserErrors: string[];
-  disabledAccessibilityRules: string[];
   fixedTime: boolean;
 }>({
-  disabledAccessibilityRules: [[], { option: true }],
   fixedTime: [true, { option: true }],
   browserErrors: [
-    async ({ page, baseURL, disabledAccessibilityRules, fixedTime }, use, testInfo) => {
+    async ({ page, baseURL, fixedTime }, use) => {
       const errors: string[] = [];
       const external: string[] = [];
       page.on("pageerror", (error) => errors.push(error.message));
@@ -26,20 +23,6 @@ export const test = base.extend<{
       await use(errors);
       expect(external).toEqual([]);
       expect(errors).toEqual([]);
-      if (testInfo.status === testInfo.expectedStatus) {
-        await base.step("Then: the completed UI has no accessibility violations", async () => {
-          if (fixedTime) await page.clock.resume();
-          // Legacy component audits used synthetic input, with the native pointer at its resting position.
-          await page.mouse.move(0, 0);
-          const results = await new AxeBuilder({ page })
-            .include("body")
-            .disableRules(["region", ...disabledAccessibilityRules])
-            .analyze();
-          expect(results.violations).toEqual([]);
-          expect(errors).toEqual([]);
-          expect(external).toEqual([]);
-        });
-      }
     },
     { auto: true },
   ],

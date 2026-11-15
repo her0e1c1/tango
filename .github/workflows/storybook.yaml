@@ -11,7 +11,7 @@ jobs:
   storybook:
     name: Storybook
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 20
     env:
       STORYBOOK_DISABLE_TELEMETRY: "1"
     steps:
@@ -29,7 +29,10 @@ jobs:
         timeout-minutes: 5
         run: mise run storybook -- -- --ci --smoke-test --host 127.0.0.1 --port 6006 --exact-port
 
-      - name: Run Playwright integration and accessibility tests
+      - name: Build Storybook
+        run: mise run build-storybook
+
+      - name: Run Playwright integration tests
         run: mise run test-playwright
 
       - name: Upload Storybook diagnostics

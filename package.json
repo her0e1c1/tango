@@ -20,7 +20,7 @@
     "test:unit": "vitest run --project=unit",
     "test:mutation": "stryker run",
     "test:integration": "vitest run --project=integration --no-file-parallelism",
-    "test:playwright": "npm run lint:test-specs && npm run build:storybook && playwright test --config playwright.integration.config.ts",
+    "test:playwright": "npm run lint:test-specs && playwright test --config playwright.integration.config.ts",
     "test:sample": "docker compose -f sample/docker-compose.yml run --rm --remove-orphans --entrypoint py.test base",
     "fix": "npm run fmt:fix && npm run lint:fix",
     "fmt": "biome format ./src ./test ./.storybook ./scripts",
@@ -75,7 +75,6 @@
     "zustand": "^5.0.15"
   },
   "devDependencies": {
-    "@axe-core/playwright": "4.13.0",
     "@babel/core": "^8.1.0",
     "@biomejs/biome": "2.6.4",
     "@feature-sliced/steiger-plugin": "^0.8.0",
@@ -103,7 +102,6 @@
     "@vitejs/plugin-react": "^6.2.1",
     "@vitest/coverage-v8": "4.1.12",
     "@vitest/eslint-plugin": "^1.6.27",
-    "axe-core": "4.13.0",
     "babel-plugin-react-compiler": "^1.0.0",
     "eslint": "^10.14.0",
     "eslint-plugin-boundaries": "^7.2.0",

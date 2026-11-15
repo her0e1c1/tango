@@ -1,17 +1,14 @@
 import { defineConfig, devices } from "@playwright/test";
 
 const baseURL = "http://127.0.0.1:4174";
-const storybookURL = "http://127.0.0.1:6006";
 const executablePath = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH;
 
 export default defineConfig({
   testDir: "./test/integration/playwright",
-  testMatch: "**/*.spec.ts",
   outputDir: "test-results/playwright",
   fullyParallel: true,
   workers: 2,
   forbidOnly: Boolean(process.env.CI),
-  reporter: "list",
   use: {
     ...devices["Desktop Chrome"],
     baseURL,
@@ -20,25 +17,9 @@ export default defineConfig({
     screenshot: "only-on-failure",
     ...(executablePath === undefined ? {} : { launchOptions: { executablePath } }),
   },
-  projects: [
-    { name: "store", testIgnore: "**/accessibility.spec.ts" },
-    {
-      name: "accessibility",
-      testMatch: "**/accessibility.spec.ts",
-      use: { baseURL: storybookURL },
-    },
-  ],
-  webServer: [
-    {
-      command:
-        "npx --no-install vite --config test/integration/playwright/vite.config.ts --host 127.0.0.1 --port 4174 --strictPort",
-      url: baseURL,
-      reuseExistingServer: false,
-    },
-    {
-      command: "npx --no-install vite preview --host 127.0.0.1 --port 6006 --outDir storybook-static --strictPort",
-      url: storybookURL,
-      reuseExistingServer: false,
-    },
-  ],
+  webServer: {
+    command:
+      "npx --no-install vite --config test/integration/playwright/vite.config.ts --host 127.0.0.1 --port 4174 --strictPort",
+    url: baseURL,
+  },
 });

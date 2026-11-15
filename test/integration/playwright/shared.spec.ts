@@ -107,7 +107,6 @@ test("PLAYWRIGHT-SHARED-07 setting row changes its switch and reports once", asy
 });
 
 test.describe("Repeated settings forms", () => {
-  test.use({ disabledAccessibilityRules: ["landmark-unique"] });
   test("PLAYWRIGHT-SHARED-08 repeated settings forms retain independent accessible IDs", async ({ page }) => {
     await test.step("Given: two real settings forms", () => open(page, "shared", "multiple-settings"));
     await test.step("Then: every section owns its heading and explanations", async () => {

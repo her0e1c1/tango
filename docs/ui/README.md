@@ -108,4 +108,4 @@
 
 `npm run storybook` で起動し、各仕様書の分類とStory名から対象を開く。指定したテーマ・画面幅・言語と、表示準備の操作後の状態を確認する。
 
-Markdownの形式は `npm run lint:markdown` で確認する。操作とアクセシビリティの自動検証は `npm run test:playwright` と結合テスト仕様で確認する。Storyのビルド成功だけで、ここに記載した表示や操作が検証済みになったとは扱わない。
+Markdownの形式は `npm run lint:markdown` で確認する。操作の自動検証は `npm run test:playwright` と結合テスト仕様で確認する。表示例のアクセシビリティは Storybook の a11y add-on で手動確認する。Storyのビルド成功だけで、ここに記載した表示や操作が検証済みになったとは扱わない。
