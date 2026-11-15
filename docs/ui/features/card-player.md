@@ -71,11 +71,3 @@ Storybook: `Features/Card Player/CardPlayer`。
 | `MobileDark` | 320×568の暗い画面で表面の操作パネルを開く。 | 戻る・表示切替・補足情報が重ならず、選択状態・利用不可・フォーカスを暗い背景で判別できる。 |
 | `MobileDarkAnswer` | 320×568の暗い画面で長いコードの裏面と左右の操作領域を表示する。 | コードと解答面の暗色表示をそろえ、左右の操作を判別でき、解答を末尾まで読める。 |
 | `LandscapeAnswer` | 812×375の画面で長い裏面と左右の操作領域を表示する。 | 低い高さでも解答をスクロールでき、左右の操作が画面外に失われない。 |
-
-## 同じファイルにある結合Story
-
-次のStoryは部品単体の表示仕様とは分け、[Playwright結合テストの規約](../../test/integration/playwright/AGENTS.md)に従って移行する。旧実行コードは同等なPlaywright検証を確認するまで残し、ここでは対象外の結合境界だけを示す。
-
-| Story | 対象外となる境界 |
-| --- | --- |
-| `HelpWithNotification` | ヘルプと背景の通知UIのフォーカス連携を確認するStory。 |

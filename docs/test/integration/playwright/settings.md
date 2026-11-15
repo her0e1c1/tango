@@ -24,6 +24,7 @@
 | PLAYWRIGHT-SETTINGS-14 | interaction | 正常系 | [Language の選択を画面とページの言語へ反映する](#playwright-settings-14) |
 | PLAYWRIGHT-SETTINGS-15 | interaction | 正常系 | [学習条件の変更を次の開始へ渡す](#playwright-settings-15) |
 | PLAYWRIGHT-SETTINGS-16 | interaction | 正常系 | [間隔スライダーの両端をキーボードで選んでも他の設定を保つ](#playwright-settings-16) |
+| PLAYWRIGHT-SETTINGS-17 | interaction | 正常系 | [旧既定の方向操作だけを現在の4評価へ移行できる](#playwright-settings-17) |
 
 <a id="playwright-settings-01"></a>
 
@@ -349,3 +350,26 @@ Then:
 - 間隔の既定値は60、スライダーの範囲は0〜60であり、Home で0、End で60を選択できる。
 - 0では英語・日本語とも自動送りがないことと再生・一時停止・進捗スライダーが非表示になる説明を表示・読み上げ、正の値へ戻すと秒数表示に戻る。
 - 間隔以外の設定と「自動再生で開始」「再生操作を表示」の選択を維持する。
+
+<a id="playwright-settings-17"></a>
+
+### PLAYWRIGHT-SETTINGS-17 [TODO] 旧既定の方向操作だけを現在の4評価へ移行できる
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- Deck と Card がないユーザーの Settings を対象とする。
+- 読み込める保存済み設定があり、方向操作は旧既定の割り当て（上＝習得済みにして次へ、下＝未習得として次へ、左＝前へ、右＝次へ）、または利用者が独自に変更した割り当てである。
+- 他の読み込める設定も保存されている。
+
+When:
+
+- Settings 画面を再読み込みする。
+
+Then:
+
+- 旧既定の方向操作が残っている場合は、現在の4評価（左＝again、下＝hard、右＝good、上＝easy）へまとめて切り替わる。
+- 読み込める他の設定と、利用者が独自に変更した方向の割り当ては維持される。

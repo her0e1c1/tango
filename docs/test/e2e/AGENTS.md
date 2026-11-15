@@ -94,8 +94,8 @@
 
 ## 変更時の確認
 
-- `npm run lint:test-specs`: E2E・Firestore・Playwright の未 TODO 仕様 ID が各対象 runner のテストソース内の文字列先頭にあるかを確認する。退役表にある旧 Storybook ID と残存 play の参照も別に確認し、旧 play を Playwright 実装の証拠にはしない。テストランナーや browser / emulator は起動しない。
+- `npm run lint:test-specs`: E2E・Firestore・Playwright の未 TODO 仕様 ID が各対象 runner のテストソース内の文字列先頭にあるかを確認する。未定義の参照、仕様 ID の重複、既存 unit テストの参照切れも確認する。テストランナーや browser / emulator は起動しない。
 - `npm run lint:markdown`: Markdown の構文と形式を確認する。
 - `mise run e2e`: 全 fixture の検証後に E2E test を実行する。
 
-この lint は正規表現による文字列照合のみとし、1:1・重複・コメント・skip・実行条件は判定しない。テストの網羅性やアサーションの内容・実行結果はレビューとテスト実行で確認する。
+この lint は文字列と仕様見出しによる静的照合であり、実行テストとの1:1対応、テストタイトルの重複、コメント・skip・実行条件は判定しない。テストの網羅性やアサーションの内容・実行結果はレビューとテスト実行で確認する。

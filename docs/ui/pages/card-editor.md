@@ -20,14 +20,3 @@ Storybook: `Pages/Card Edit/CardEditor`。
 | `Desktop` | 1280×800の画面で長い編集値とプレビューを表示する。 | フォームが広がりすぎず、入力・プレビュー・保存操作を確認できる。 |
 | `MobileDark` | 320×568の暗い画面で長い編集値とフォームエラーを表示する。 | 入力値・エラー・カード情報・操作とフォーカスを読め、横にはみ出さない。 |
 | `DarkSaving` | 暗いテーマで編集フォームの送信を待機させる。 | 保存中の文言と入力・保存・取消・戻る操作の無効状態を判別できる。 |
-
-## 同じファイルにある結合Story
-
-次のStoryは部品単体の表示仕様とは分け、[Playwright結合テストの規約](../../test/integration/playwright/AGENTS.md)に従って移行する。旧実行コードは同等なPlaywright検証を確認するまで残し、ここでは対象外の結合境界だけを示す。
-
-| Story | 対象外となる境界 |
-| --- | --- |
-| `PendingSave` | 編集action、保存境界と完了通知を組み合わせるStory。 |
-| `ExternalUpdate` | 編集用modelの外部更新と下書き保持を確認するStory。 |
-| `BothSidesInvalid` | 編集用modelの検証と送信抑止を確認するStory。 |
-| `RetrySave` | 保存失敗、通知、編集actionの再試行を組み合わせるStory。 |

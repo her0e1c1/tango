@@ -45,7 +45,7 @@ describe.each([
     ],
   },
 ])(
-  "PLAYWRIGHT-SETTINGS-10 PLAYWRIGHT-SETTINGS-16 PLAYWRIGHT-SETTINGS-10 PLAYWRIGHT-SETTINGS-16 Autoplay interval presentation in $language",
+  "PLAYWRIGHT-SETTINGS-10 PLAYWRIGHT-SETTINGS-16 Autoplay interval presentation in $language",
   (copy) => {
     it.each([
       { defaultAutoPlay: true, showPlaybackControls: true },
