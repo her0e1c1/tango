@@ -63,7 +63,7 @@ const renderGuard = () => {
   return render(<RouterProvider router={router} />);
 };
 
-describe("DECK-MANAGEMENT-08 DECK-MANAGEMENT-10 CARD-MANAGEMENT-09 CARD-MANAGEMENT-12 useNavigationGuard", () => {
+describe("PLAYWRIGHT-DECK-EDIT-06 PLAYWRIGHT-DECK-EDIT-07 PLAYWRIGHT-CARD-EDIT-03 PLAYWRIGHT-CARD-CREATE-08 useNavigationGuard", () => {
   it("allows clean navigation and intentional successful navigation", async () => {
     // Given: Prepare `view` and any shared test state below.
     const view = renderGuard();
@@ -174,7 +174,7 @@ describe("DECK-MANAGEMENT-08 DECK-MANAGEMENT-10 CARD-MANAGEMENT-09 CARD-MANAGEME
   });
 });
 
-describe("CARD-MANAGEMENT-13 pending navigation", () => {
+describe("PLAYWRIGHT-CARD-CREATE-09 pending navigation", () => {
   it("keeps the route mounted until saving finishes even when discard is requested", async () => {
     // Given: Prepare `PendingContext`, `PendingRoute`, `router` and any shared test state below.
     const PendingContext = React.createContext(true);

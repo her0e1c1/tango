@@ -8,7 +8,7 @@ import { replaceRemoteCards, replaceRemoteDecks } from "@/test/utils/entityFixtu
 import { useCard, useCards, useCardsByDeckId, useHasCards } from "./hooks";
 import { applyCardChanges, clearRemoteCards } from "./store";
 
-describe("Card visibility hooks [CARD-LIST-01 CARD-FILTER-02]", () => {
+describe("Card visibility hooks [PLAYWRIGHT-CARD-LIST-42 PLAYWRIGHT-DECK-VIEW-04]", () => {
   beforeEach(() => {
     // Given: Establish the shared setup used by the following cases.
     replaceRemoteCards([]);

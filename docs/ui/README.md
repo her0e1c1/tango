@@ -12,7 +12,7 @@
 
 ここはStoryの表示仕様であり、テストの検証済み一覧ではない。表の期待結果が既存のplayですべて自動検証されていることを意味しない。表示準備のためにダイアログを開くだけのplayも、動作検証済みとは数えない。
 
-画面単位のplayや、保存・認証・独立したUI間の連携まで含むplayの検証契約は、[Storybook結合テスト仕様](../test/integration/storybook/README.md)で扱う。既存の結合テスト仕様は移動・変更しない。Appのルート・レイアウト結合Storyはこの一覧の対象外とする。部品のStoryファイルに結合用Storyが混在する場合は、各仕様書の別表で区別する。
+画面単位の操作や、保存・認証・独立したUI間の連携の検証契約は、[Playwright結合テストの規約](../test/integration/playwright/AGENTS.md)に従って検証する。Storyは表示例とドキュメントに使う。
 
 仕様にはDOM構造、CSSクラス、内部関数、mockの呼出回数を固定せず、見た目・入力値・操作可否・読み上げ名・フォーカス・公開callbackの通知を書く。既存Storyにない状態は、この一覧で網羅済みとはみなさない。
 
@@ -108,4 +108,4 @@
 
 `npm run storybook` で起動し、各仕様書の分類とStory名から対象を開く。指定したテーマ・画面幅・言語と、表示準備の操作後の状態を確認する。
 
-Markdownの形式は `npm run lint:markdown` で確認する。playの自動検証は `npm run test:storybook` と結合テスト仕様で別に確認する。Storyのビルド成功だけで、ここに記載した表示や操作が検証済みになったとは扱わない。
+Markdownの形式は `npm run lint:markdown` で確認する。操作の自動検証は `npm run test:playwright` と結合テスト仕様で確認する。表示例のアクセシビリティは Storybook の a11y add-on で手動確認する。Storyのビルド成功だけで、ここに記載した表示や操作が検証済みになったとは扱わない。

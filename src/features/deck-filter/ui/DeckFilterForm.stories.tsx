@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import * as React from "react";
-import { expect, fn } from "storybook/test";
+import { fn } from "storybook/test";
 
 import { DeckFilterForm } from "./DeckFilterForm";
 import * as fixture from "@/storybook/fixture";
@@ -36,9 +36,6 @@ const InteractiveDeckFilterForm: React.FC<DeckFilterFormProps> = (props) => {
   );
 };
 
-// Given: Story args and parameters define the render scenarios below.
-// When: Storybook renders each exported variant and runs its play when present.
-// Then: Assertions are in the relevant plays; rendering alone adds no behavioral checks.
 const meta = {
   title: "Features/Deck Filter/DeckFilterForm",
   component: DeckFilterForm,
@@ -54,17 +51,6 @@ export const Default: Story = {};
 
 export const Interaction: Story = {
   args: { selectedTags: ["tag 1"] },
-  play: async ({ args: storyArgs, canvas, userEvent, step }) => {
-    // Given: Use the rendered story, its args, parameters, and any setup below.
-    await step("STORYBOOK-DECK-FILTER-01 Clear selected tags", async () => {
-      // Given: Use the rendered story, its args, parameters, and any setup below.
-      // When: Exercise `userEvent.click` with the prepared inputs.
-      await userEvent.click(canvas.getByRole("button", { name: "Clear" }));
-      // Then: Verify the expected result in the assertions below.
-      await expect(storyArgs.setSelectedTags).toHaveBeenCalledWith([]);
-      await expect(canvas.getByRole("checkbox", { name: "tag 1" })).not.toBeChecked();
-    });
-  },
 };
 
 export const ManyTagsSelected: Story = {

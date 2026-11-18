@@ -11,7 +11,7 @@ const session: StudySession = {
   remote: { uid: "uid", startedAt: 0 },
 };
 
-describe("planStudySessionSwipe [STUDY-ACTIONS-01] [STUDY-ACTIONS-02] [STUDY-ACTIONS-03] [STUDY-ACTIONS-04]", () => {
+describe("planStudySessionSwipe [STUDY-ACTIONS-01] [PLAYWRIGHT-STUDY-SESSION-25] [PLAYWRIGHT-STUDY-SESSION-26] [PLAYWRIGHT-STUDY-SESSION-24]", () => {
   const cards = [
     { id: "card-1", difficulty: 5, numberOfSeen: 0 },
     { id: "card-2", difficulty: 2, numberOfSeen: 3 },

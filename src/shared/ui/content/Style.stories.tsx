@@ -1,11 +1,8 @@
+import { fn } from "storybook/test";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { expect, fn } from "storybook/test";
 
 import { Style } from "./Style";
 
-// Given: Story args and parameters define the render scenarios below.
-// When: Storybook renders each exported variant and runs its play when present.
-// Then: Assertions are in the relevant plays; rendering alone adds no behavioral checks.
 const meta = {
   title: "Shared/Content/Style",
   component: Style,
@@ -42,13 +39,6 @@ export const Interaction: Story = {
   args: {
     onClick: fn(),
     children: "Click this styled content",
-  },
-  play: async ({ args, canvas, userEvent }) => {
-    // Given: Use the rendered story, its args, parameters, and any setup below.
-    // When: Exercise `userEvent.click` with the prepared inputs.
-    await userEvent.click(canvas.getByText("Click this styled content"));
-    // Then: Verify the expected result in the assertions below.
-    await expect(args.onClick).toHaveBeenCalledOnce();
   },
 };
 

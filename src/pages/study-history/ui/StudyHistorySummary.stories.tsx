@@ -1,5 +1,4 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { expect } from "storybook/test";
 import { getStudyHistoryChart } from "../model/queries/getStudyHistoryChart";
 import { StudyHistorySummary } from "./StudyHistorySummary";
 
@@ -8,9 +7,6 @@ const days = Array.from({ length: 30 }, (_, index) => ({
   started: index === 29 ? 2 : 0,
   completed: index === 29 ? 3 : 0,
 }));
-// Given: Story args and parameters define the render scenarios below.
-// When: Storybook renders each exported variant and runs its play when present.
-// Then: Assertions are in the relevant plays; rendering alone adds no behavioral checks.
 const meta = {
   title: "Pages/Study History/Summary",
   component: StudyHistorySummary,
@@ -26,17 +22,7 @@ const meta = {
 } satisfies Meta<typeof StudyHistorySummary>;
 export default meta;
 type Story = StoryObj<typeof meta>;
-export const Default: Story = {
-  play: async ({ canvas, step }) => {
-    // Given: Use the rendered story, its args, parameters, and any setup below.
-    await step("STORYBOOK-STUDY-HISTORY-08 Render summary chart", async () => {
-      // Given: Use the rendered story, its args, parameters, and any setup below.
-      // When: Storybook renders this scenario with its configured args and parameters.
-      // Then: Verify the expected result in the assertions below.
-      await expect(canvas.getByRole("img")).toBeVisible();
-    });
-  },
-};
+export const Default: Story = {};
 export const Empty: Story = {
   args: {
     chart: getStudyHistoryChart(days.map((day) => ({ ...day, started: 0, completed: 0 }))),
@@ -55,15 +41,6 @@ export const NinetyDays: Story = {
     ),
     started: 90,
     completed: 45,
-  },
-  play: async ({ canvas, step }) => {
-    // Given: Use the rendered story, its args, parameters, and any setup below.
-    await step("STORYBOOK-STUDY-HISTORY-09 Show aggregation unit", async () => {
-      // Given: Use the rendered story, its args, parameters, and any setup below.
-      // When: Storybook renders this scenario with its configured args and parameters.
-      // Then: Verify the expected result in the assertions below.
-      await expect(canvas.getByText("Study counts per 7 days")).toBeVisible();
-    });
   },
 };
 export const MobileJapanese: Story = {

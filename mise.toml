@@ -91,9 +91,9 @@ run = "npm run test:mutation --"
 depends = ["//sample:build", "up"]
 run = "npm run test:integration"
 
-[tasks.test-storybook]
+[tasks.test-playwright]
 depends = ["//sample:build"]
-run = "npm run test:storybook"
+run = "npm run test:playwright"
 
 [tasks.coverage]
 alias = "v"

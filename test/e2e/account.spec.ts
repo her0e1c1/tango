@@ -141,30 +141,6 @@ test("ACCOUNT-04 Authentication initialization recovers after Reload", async ({ 
   });
 });
 
-test("ACCOUNT-05 Pending sign-in announces success in the language at completion", async ({
-  fixture,
-  page,
-  namespace,
-}) => {
-  const popup = await test.step("Given: Google sign-in is pending in English", async () => {
-    await fixture.apply(page, { auth: false });
-    await page.goto("/account");
-    return openGooglePopup(page);
-  });
-
-  await test.step("When: Switch to Japanese before completing sign-in", async () => {
-    await page.getByRole("button", { name: "Open settings" }).click();
-    await page.getByRole("combobox", { name: "Language" }).selectOption("ja");
-    await expect(page.getByRole("heading", { level: 1, name: "設定" })).toBeVisible();
-    await completeGooglePopup(page, namespace.uid, popup);
-  });
-
-  await test.step("Then: Display and announce success in Japanese", async () => {
-    await expect(page.getByRole("status", { name: "トースト通知" })).toHaveText("成功: ログインしました。");
-    await expect(page.getByText("ログインしました。", { exact: true })).toBeVisible();
-  });
-});
-
 test("ACCOUNT-06 Google linking preserves Decks and Cards after reload and synchronization", async ({
   fixture,
   page,
@@ -303,42 +279,5 @@ test("ACCOUNT-14 Sign-out isolates the previous account's Decks, Cards, and stud
     await expect(page.getByRole("heading", { level: 1, name: "Study session unavailable." })).toBeVisible();
     await page.reload();
     await expect(page.getByRole("heading", { name: "Study session unavailable." })).toBeVisible();
-  });
-});
-
-test("ACCOUNT-19 Visible notifications retain focus and their deadline when the language changes", async ({
-  fixture,
-  page,
-  namespace,
-}) => {
-  await test.step("Given: A Japanese success notification has focus before its deadline", async () => {
-    await page.clock.install();
-    await fixture.apply(page, { auth: false });
-    await page.goto("/account");
-    const popup = await openGooglePopup(page);
-    await page.getByRole("button", { name: "Open settings" }).click();
-    await page.getByRole("combobox", { name: "Language" }).selectOption("ja");
-    await expect(page.getByRole("heading", { level: 1, name: "設定" })).toBeVisible();
-    await completeGooglePopup(page, namespace.uid, popup);
-    await expect(page.getByRole("status", { name: "トースト通知" })).toHaveText("成功: ログインしました。");
-    await expect(page.getByText("ログインしました。", { exact: true })).toBeVisible();
-    // Pause after real authentication completes so the notification's remaining lifetime can be checked deterministically.
-    await page.clock.pauseAt(await page.evaluate(() => Date.now() + 100));
-    await page.clock.runFor(2000);
-    await page.getByRole("button", { name: "通知を閉じる" }).focus();
-  });
-
-  await test.step("When: Change the language of the visible notification to English", async () => {
-    await page.getByRole("combobox", { name: "言語" }).selectOption("en");
-  });
-
-  await test.step("Then: Update its accessible text without duplicating it or resetting focus and expiry", async () => {
-    const status = page.getByRole("status", { name: "Toast notifications" });
-    await expect(status).toHaveText("Success: Signed in.");
-    await expect(page.getByText("Signed in.", { exact: true })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Dismiss notification" })).toBeFocused();
-    await page.clock.runFor(2000);
-    await expect(status).toBeEmpty();
-    await expect(page.getByRole("button", { name: "Dismiss notification" })).toHaveCount(0);
   });
 });

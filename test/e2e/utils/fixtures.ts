@@ -523,31 +523,6 @@ export const setDocument = async (collection: FirestoreCollection, id: string, d
   if (!response.ok) throw new Error(`Firestore seed failed: ${response.status} ${await response.text()}`);
 };
 
-export const requestFirestoreAsGuest = async ({
-  uid,
-  collection,
-  id,
-  method,
-  document,
-}: {
-  uid: string;
-  collection: FirestoreCollection;
-  id: string;
-  method: "PATCH" | "DELETE";
-  document?: Record<string, unknown>;
-}) =>
-  fetch(`${firestoreBase}/${collection}/${encodeURIComponent(id)}`, {
-    method,
-    headers: { Authorization: `Bearer ${emulatorToken(uid)}`, "Content-Type": "application/json" },
-    ...(document === undefined
-      ? {}
-      : {
-          body: JSON.stringify({
-            fields: Object.fromEntries(Object.entries(document).map(([key, value]) => [key, firestoreValue(value)])),
-          }),
-        }),
-  });
-
 export const getDocument = async (
   collection: FirestoreCollection,
   id: string

@@ -21,7 +21,7 @@ const history = (records: StudyAnswerRecord[], extra: Partial<StudyAnswerHistory
 });
 const aggregate = (value: StudyAnswerHistory) => aggregateStudyAnswers({ start, end }, value, new Set(["deck"]));
 
-describe("STUDY-SESSION-13 answer metrics for the selected interval", () => {
+describe("PLAYWRIGHT-STUDY-HISTORY-11 answer metrics for the selected interval", () => {
   it("counts ratings, distinct answers at identical times, local days and session metrics", () => {
     // Given: Prepare `answers` and any shared test state below.
     const answers = [record("a", "again"), record("b", "hard"), record("c", "good"), record("d", "easy")];

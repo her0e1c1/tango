@@ -4,7 +4,7 @@ import { createPreferences } from "@/test/factories";
 
 import { buildCardPlayerHelpRows } from "./buildCardPlayerHelpRows";
 
-describe("STUDY-CONTROLS-04 STUDY-CONTROLS-06 buildCardPlayerHelpRows", () => {
+describe("PLAYWRIGHT-STUDY-SESSION-07 PLAYWRIGHT-STUDY-SESSION-08 PLAYWRIGHT-STUDY-SESSION-07 buildCardPlayerHelpRows", () => {
   it("explains scrolling, mode exit, and button playback while reading", () => {
     // Given: Use this case's inputs and any shared test setup.
     // When: Exercise `buildCardPlayerHelpRows` with the prepared inputs.

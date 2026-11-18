@@ -23,7 +23,7 @@ afterEach(() => {
   dismissToast();
 });
 
-describe("DECK-MANAGEMENT-03 DECK-MANAGEMENT-04 CARD-MANAGEMENT-08 DestructiveActionDialog", () => {
+describe("PLAYWRIGHT-DECK-LIST-40 DECK-MANAGEMENT-04 CARD-MANAGEMENT-08 DestructiveActionDialog", () => {
   it("labels the alert dialog with the target and explanation", () => {
     // Given: Use this case's inputs and any shared test setup.
     // When: Exercise `render` with the prepared inputs.

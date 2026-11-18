@@ -2,123 +2,18 @@
 
 ## 目的
 
-Deck の作成・編集・削除と、重複しない再試行を確認する。操作は対象 Deck の Card と学習に反映し、他の Deck は変更しない。
+Deck の作成・編集・削除を再読み込み後も確認し、保存拒否から重複や他の教材の損失なく再試行できることを確認する。
 
 ## テストケース
 
 | ID | カテゴリ | 区分 | テストケース |
 | --- | --- | --- | --- |
-| DECK-MANAGEMENT-03 | read | 正常系 | [短い画面でも Deck の削除確認を読み、取り消せる](#deck-management-03) |
-| DECK-MANAGEMENT-11 | read | 正常系 | [通常高さでも長い名前の Deck の削除確認を読み、取り消せる](#deck-management-11) |
-| DECK-MANAGEMENT-08 | read | 正常系 | [未保存の Deck 編集内容を維持して編集を続けられる](#deck-management-08) |
-| DECK-MANAGEMENT-10 | read | 正常系 | [未保存の Deck 編集内容を破棄して一覧へ戻れる](#deck-management-10) |
 | DECK-MANAGEMENT-05 | write | 正常系 | [ログイン中に空の Deck を作成して再読み込み後も確認できる](#deck-management-05) |
 | DECK-MANAGEMENT-07 | write | 正常系 | [匿名で空の Deck を作成して再読み込み後も確認できる](#deck-management-07) |
 | DECK-MANAGEMENT-01 | write | 正常系 | [Deck 編集内容を保存して再読み込み後も確認できる](#deck-management-01) |
 | DECK-MANAGEMENT-02 | batch | 正常系 | [Deck と関連データをまとめて削除できる](#deck-management-02) |
 | DECK-MANAGEMENT-06 | write | 異常系 | [ログイン中の Deck 作成拒否を反映できる](#deck-management-06) |
 | DECK-MANAGEMENT-04 | batch | 異常系 | [Deck の削除失敗後に再試行できる](#deck-management-04) |
-| DECK-MANAGEMENT-09 | batch | 異常系 | [学習 session の終了失敗後も Deck の削除成功を維持する](#deck-management-09) |
-
-<a id="deck-management-03"></a>
-
-### DECK-MANAGEMENT-03 短い画面でも Deck の削除確認を読み、取り消せる
-
-カテゴリ: `read`
-
-区分: 正常系
-
-Given:
-
-- Fixture: [`study-session-middle`](./fixture/study-session-middle.yaml)
-- 所有する Deck に Card と途中から再開できる学習 session がある。1枚へ回答済みで、回答履歴・学習状態が保存され、未回答の Card が残っている。
-- Deck の名前を、`"START "`、`"Long deletion target name "` の12回繰り返し、`"END"` の順に連結した321文字へ変更済みである。
-- 画面の幅は360px、高さは360pxで、Deck 一覧の操作メニューから削除確認を開いている。
-- 初期フォーカスは Cancel にある。
-
-When:
-
-- 通常のスクロールで確認の先頭へ戻り、見出し、名前の先頭から末尾、関連 Card・学習 session への影響と取り消せない旨を読む。
-- 名前欄の内部スクロールと Tab / Shift+Tab で名前欄・Cancel・Delete を辿り、Cancel を選択する。
-
-Then:
-
-- 見出しを読め、名前の先頭と末尾、説明、Cancel / Delete まで到達できる。全内容の同時表示は要求しない。
-- 削除確認が閉じ、フォーカスが対象 Deck の操作メニューボタンへ戻る。
-- 読取・フォーカス移動・Cancel により Deck、Card とその学習状態、学習 session・回答が変わらず、同じ位置から再開できる。
-
-<a id="deck-management-11"></a>
-
-### DECK-MANAGEMENT-11 通常高さでも長い名前の Deck の削除確認を読み、取り消せる
-
-カテゴリ: `read`
-
-区分: 正常系
-
-Given:
-
-- Fixture: [`study-session-middle`](./fixture/study-session-middle.yaml)
-- 所有する Deck に Card と途中から再開できる学習 session がある。1枚へ回答済みで、回答履歴・学習状態が保存され、未回答の Card が残っている。
-- Deck の名前を、`"START "`、`"Long deletion target name "` の12回繰り返し、`"END"` の順に連結した321文字へ変更済みである。
-- 画面の幅は360px、高さは640pxで、Deck 一覧の操作メニューから削除確認を開いている。
-- 初期フォーカスは Cancel にある。
-
-When:
-
-- 通常のスクロールで確認の先頭へ戻り、見出し、名前の先頭から末尾、関連 Card・学習 session への影響と取り消せない旨を読む。
-- 名前欄の内部スクロールと Tab / Shift+Tab で名前欄・Cancel・Delete を辿り、Cancel を選択する。
-
-Then:
-
-- 見出しを読め、名前の先頭と末尾、説明、Cancel / Delete まで到達できる。全内容の同時表示は要求しない。
-- 削除確認が閉じ、フォーカスが対象 Deck の操作メニューボタンへ戻る。
-- 読取・フォーカス移動・Cancel により Deck、Card とその学習状態、学習 session・回答が変わらず、同じ位置から再開できる。
-
-<a id="deck-management-08"></a>
-
-### DECK-MANAGEMENT-08 未保存の Deck 編集内容を維持して編集を続けられる
-
-カテゴリ: `read`
-
-区分: 正常系
-
-Given:
-
-- Fixture: [`deck-unsaved-navigation`](./fixture/deck-unsaved-navigation.yaml)
-- 所有する Deck の編集画面で name を変更し、まだ保存していない。
-- 通知が表示されている。
-
-When:
-
-- Header から Deck 一覧への離脱を試み、Keep editing を選択する。
-
-Then:
-
-- 離脱は取り消され、変更した name が編集画面に維持される。
-- 通知が重なってもダイアログを操作でき、通知の消去・置き換えでも Keep editing のフォーカスを維持する。
-
-<a id="deck-management-10"></a>
-
-### DECK-MANAGEMENT-10 未保存の Deck 編集内容を破棄して一覧へ戻れる
-
-カテゴリ: `read`
-
-区分: 正常系
-
-Given:
-
-- Fixture: [`deck-unsaved-navigation`](./fixture/deck-unsaved-navigation.yaml)
-- 認証済みユーザーが所有する Deck の編集画面で name を変更し、まだ保存していない。
-- Header から Deck 一覧への離脱を一度試み、Keep editing を選択して編集を続けている。
-
-When:
-
-- Header から再度 Deck 一覧への離脱を試み、Discard changes を選択する。
-
-Then:
-
-- 2回目の離脱では Deck 一覧へ1回だけ遷移する。
-- Deck 一覧には変更前の name が表示される。
 
 <a id="deck-management-05"></a>
 
@@ -269,30 +164,3 @@ Then:
 - Deck の削除成功が通知される。
 - Deck 一覧に対象 Deck が表示されない。
 - 対象 Deck の Card を利用できず、学習 session も再開できない。
-
-<a id="deck-management-09"></a>
-
-### DECK-MANAGEMENT-09 学習 session の終了失敗後も Deck の削除成功を維持する
-
-カテゴリ: `batch`
-
-区分: 異常系
-
-Given:
-
-- Fixture: [`multi-study-sessions`](./fixture/multi-study-sessions.yaml)
-- 認証済みユーザーが所有する削除対象の Deck に、複数の Card と再開可能な学習 session が存在する。
-- 同じユーザーが別の Deck、Card、学習 session も所有している。
-- Deck の保存は成功するが、対象 Deck の学習 session を終了する後処理は保留された後に拒否される。
-
-When:
-
-- Deck 一覧から対象 Deck の削除を確定し、学習 session 終了の後処理が拒否された後に画面を再読み込みする。
-
-Then:
-
-- Deck の保存成功で削除成功が通知され、学習 session の終了を待たずに操作待ちが解除される。
-- 学習 session の終了が保留・失敗しても削除は取り消されず、後処理の失敗は別途通知される。
-- 再読み込み後も Deck 一覧に対象 Deck が表示されず、その学習 session を再開できない。
-- 対象 Deck のすべての Card を表示・操作できない。削除前にこのブラウザーで開いたことがない Card も対象となる。
-- 別の Deck と Card は変わらず、学習 session も再開できる。

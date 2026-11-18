@@ -33,7 +33,7 @@ import { deckListStore } from "@/pages/deck-list/model/store";
 import { deckViewStore } from "@/pages/deck-view/model/store";
 import { studySessionPageStore } from "@/pages/study-session/model/store";
 
-export const APP_STORY_UID = "storybook-user";
+const APP_STORY_UID = "storybook-user";
 
 type StudySessionFixtures = Partial<
   Record<

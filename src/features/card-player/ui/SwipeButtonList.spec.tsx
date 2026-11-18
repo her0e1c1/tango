@@ -11,7 +11,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import { SwipeButtonList } from "./SwipeButtonList";
 
-describe("SwipeButtonList [STUDY-ACTIONS-04]", () => {
+describe("SwipeButtonList [PLAYWRIGHT-STUDY-SESSION-24]", () => {
   it("keeps disabled directions visible and skips them during keyboard navigation", async () => {
     // Given: Prepare `user`, `onClickLeft`, `left` and any shared test state below.
     const user = userEvent.setup();

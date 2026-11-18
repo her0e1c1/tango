@@ -35,7 +35,7 @@ const studyPreferences = createPreferences({ shuffled: false, useCardInterval: f
 
 const cardsForDeck = (deckId: string) => cards.filter((card) => card.deckId === deckId);
 
-describe("DECK-LIST-01 STUDY-SESSION-03 useDeckListState DECK-LIST-07", () => {
+describe("PLAYWRIGHT-DECK-LIST-27 STUDY-SESSION-03 useDeckListState PLAYWRIGHT-DECK-LIST-32", () => {
   beforeEach(async () => {
     // Given: Establish the shared setup used by the following cases.
     vi.useFakeTimers();
@@ -86,7 +86,7 @@ describe("DECK-LIST-01 STUDY-SESSION-03 useDeckListState DECK-LIST-07", () => {
     expect(sections.emptyReason).toBeUndefined();
   });
 
-  it("DECK-LIST-07 orders overdue Decks by each Deck's earliest saved deadline", async () => {
+  it("PLAYWRIGHT-DECK-LIST-32 orders overdue Decks by each Deck's earliest saved deadline", async () => {
     // Given: Prepare `schedule` and any shared test state below.
     const schedule = calculateFsrsState(null, "good", 0);
     await Promise.all([

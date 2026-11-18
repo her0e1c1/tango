@@ -20,7 +20,7 @@ const card = createLocalCard({
   uniqueKey: "card-view-card",
 });
 
-describe("CARD-VIEW-04 CARD-VIEW-05 useCardViewState", () => {
+describe("PLAYWRIGHT-CARD-VIEW-04 PLAYWRIGHT-CARD-VIEW-10 useCardViewState", () => {
   beforeEach(async () => {
     // Given: Establish the shared setup used by the following cases.
     updatePreferences(createPreferences({ appearance: { darkMode: true } }));

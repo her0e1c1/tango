@@ -67,7 +67,7 @@ vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
 import { CardEditPage } from "./CardEditPage";
 
-describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 CARD-VIEW-05 CARD-MANAGEMENT-09 CARD-MANAGEMENT-10 CARD-MANAGEMENT-18 CARD-MANAGEMENT-19 CARD-MANAGEMENT-20 CARD-MANAGEMENT-21 CardEditPage", () => {
+describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 PLAYWRIGHT-CARD-VIEW-10 PLAYWRIGHT-CARD-EDIT-03 PLAYWRIGHT-CARD-EDIT-16 PLAYWRIGHT-CARD-EDIT-05 PLAYWRIGHT-CARD-EDIT-15 PLAYWRIGHT-CARD-EDIT-10 PLAYWRIGHT-CARD-FORM-21 CardEditPage", () => {
   const deckId = "card-edit-deck";
   const cardId = "card-id";
   const renderPage = (path = `/card/${cardId}/edit`) => {
@@ -120,7 +120,7 @@ describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 CARD-VIEW-05 CARD-MANAGEMENT-09 
     expect(screen.getByRole("button", { name: "tango" })).toBeVisible();
   });
 
-  it("CARD-MANAGEMENT-01 CARD-MANAGEMENT-18 saves same-Deck Card tag selections while preserving existing Card tags", async () => {
+  it("CARD-MANAGEMENT-01 PLAYWRIGHT-CARD-EDIT-05 saves same-Deck Card tag selections while preserving existing Card tags", async () => {
     // Given: Use this case's inputs and any shared test setup.
     replaceRemoteDecks([createLocalDeck({ id: deckId }), createLocalDeck({ id: "other-deck" })]);
     await createCard("user-id", createLocalCard({ id: "source", deckId, tags: ["chapter-1", "exam"] }));
@@ -152,7 +152,7 @@ describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 CARD-VIEW-05 CARD-MANAGEMENT-09 
     expect(getCards().find((card) => card.id === cardId)?.tags).toEqual(["legacy", "exam"]);
   });
 
-  it("CARD-MANAGEMENT-01 CARD-MANAGEMENT-18 retains existing tags when no other Card supplies candidates", async () => {
+  it("CARD-MANAGEMENT-01 PLAYWRIGHT-CARD-EDIT-05 retains existing tags when no other Card supplies candidates", async () => {
     // Given: Use this case's inputs and any shared test setup.
     replaceRemoteDecks([createLocalDeck({ id: deckId })]);
     await editCard("user-id", { id: cardId, tags: ["legacy"] });
@@ -385,7 +385,7 @@ describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 CARD-VIEW-05 CARD-MANAGEMENT-09 
     expect(screen.getByRole("heading", { name: "Previous page" })).toBeVisible();
   });
 
-  it("CARD-MANAGEMENT-20 waits for saved content after leaving before notifying once", async () => {
+  it("PLAYWRIGHT-CARD-EDIT-10 waits for saved content after leaving before notifying once", async () => {
     // Given: The write can return before the existing subscription reflects the edited content.
     mocks.skipCardWrite = true;
     const view = renderPage();
@@ -418,7 +418,7 @@ describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 CARD-VIEW-05 CARD-MANAGEMENT-09 
     expect(screen.queryByText("Updated card “Saved after leaving”.")).not.toBeInTheDocument();
   });
 
-  it("CARD-MANAGEMENT-20 supersedes an older pending edit when the same Card is edited again", async () => {
+  it("PLAYWRIGHT-CARD-EDIT-10 supersedes an older pending edit when the same Card is edited again", async () => {
     // Given: The first edit has not reached the read model after leaving its Page.
     mocks.skipCardWrite = true;
     const view = renderPage();
@@ -450,7 +450,7 @@ describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 CARD-VIEW-05 CARD-MANAGEMENT-09 
     expect(screen.getByRole("heading", { name: "Card list" })).toBeVisible();
   });
 
-  it("CARD-MANAGEMENT-20 suppresses completion after the account changes", async () => {
+  it("PLAYWRIGHT-CARD-EDIT-10 suppresses completion after the account changes", async () => {
     // Given: An edit is pending for the original authenticated user.
     const write = Promise.withResolvers<void>();
     mocks.beforeCardWrite = () => write.promise;

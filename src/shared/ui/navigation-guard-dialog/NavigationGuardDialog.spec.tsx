@@ -42,8 +42,8 @@ const EditorHarness = ({
   );
 };
 
-describe("CARD-MANAGEMENT-09 DECK-MANAGEMENT-08 CARD-MANAGEMENT-12 CARD-MANAGEMENT-23 NavigationGuardDialog", () => {
-  it("CARD-MANAGEMENT-09 keeps forward and backward Tab navigation inside the confirmation", async () => {
+describe("PLAYWRIGHT-CARD-EDIT-03 PLAYWRIGHT-DECK-EDIT-06 PLAYWRIGHT-CARD-CREATE-08 PLAYWRIGHT-CARD-EDIT-14 NavigationGuardDialog", () => {
+  it("PLAYWRIGHT-CARD-EDIT-03 keeps forward and backward Tab navigation inside the confirmation", async () => {
     // Given: Prepare `user`, `onDiscardChanges`, `onKeepEditing` and any shared test state below.
     const user = userEvent.setup();
     const onDiscardChanges = vi.fn();
@@ -77,7 +77,7 @@ describe("CARD-MANAGEMENT-09 DECK-MANAGEMENT-08 CARD-MANAGEMENT-12 CARD-MANAGEME
     expect(onKeepEditing).not.toHaveBeenCalled();
   });
 
-  it("CARD-MANAGEMENT-09 keeps the draft and restores editor focus when Escape cancels leaving", async () => {
+  it("PLAYWRIGHT-CARD-EDIT-03 keeps the draft and restores editor focus when Escape cancels leaving", async () => {
     // Given: Prepare `user`, `onDiscardChanges`, `onKeepEditing` and any shared test state below.
     const user = userEvent.setup();
     const onDiscardChanges = vi.fn();

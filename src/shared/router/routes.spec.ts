@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { routes } from "./routes";
 
-describe("DECK-LIST-01 NAVIGATION-08 routes", () => {
+describe("PLAYWRIGHT-DECK-LIST-27 PLAYWRIGHT-DECK-VIEW-09 routes", () => {
   it.each([
     ["plan", "plan"],
     ["plan?draft=1", "plan%3Fdraft%3D1"],

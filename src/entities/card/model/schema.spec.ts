@@ -10,7 +10,7 @@ import {
   editCardSchema,
 } from "./schema";
 
-describe("Card content input schema [CARD-MANAGEMENT-05 CARD-MANAGEMENT-10]", () => {
+describe("Card content input schema [CARD-MANAGEMENT-05 PLAYWRIGHT-CARD-EDIT-16]", () => {
   it("accepts content without asking for an identity", () => {
     // Given: Prepare `content` and any shared test state below.
     const content = { frontText: "Front", backText: "Back", tags: ["custom"] };
@@ -36,7 +36,7 @@ describe("Card content input schema [CARD-MANAGEMENT-05 CARD-MANAGEMENT-10]", ()
   });
 });
 
-describe("Card content schema [CARD-LIST-01]", () => {
+describe("Card content schema [PLAYWRIGHT-CARD-LIST-42]", () => {
   it.each(["", "   ", "\n\t"])("rejects blank front text: %j", (frontText) => {
     // Given: Use this case's inputs and any shared test setup.
     // When: Evaluate `cardContentSchema.parse` as part of the following checks.
@@ -65,7 +65,7 @@ describe("Card content schema [CARD-LIST-01]", () => {
   });
 });
 
-describe("Card operation schemas [CARD-LIST-01]", () => {
+describe("Card operation schemas [PLAYWRIGHT-CARD-LIST-42]", () => {
   const card = createCardFixture({ id: "card", deckId: "deck", uid: "uid-a" });
 
   it("applies entity defaults without adding persistence timestamps", () => {

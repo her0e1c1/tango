@@ -6,7 +6,7 @@ import { useSnapshotTime } from "./useSnapshotTime";
 
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
-describe("CARD-VIEW-09 memory reference time", () => {
+describe("PLAYWRIGHT-CARD-VIEW-07 memory reference time", () => {
   afterEach(() => vi.restoreAllMocks());
   it("holds a snapshot until the card, schedule, or foreground changes", () => {
     // Given: Prepare `at`, `clock`, `schedule` and any shared test state below.

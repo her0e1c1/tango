@@ -28,7 +28,7 @@ vi.mock("@/entities/preference", () => ({
   usePreferences: () => repository.preferences,
 }));
 
-describe("useCardListQuery [CARD-FILTER-01 CARD-FILTER-03 CARD-FILTER-04]", () => {
+describe("useCardListQuery [PLAYWRIGHT-DECK-VIEW-04 PLAYWRIGHT-CARD-LIST-02 PLAYWRIGHT-DECK-VIEW-02 PLAYWRIGHT-CARD-LIST-03 PLAYWRIGHT-DECK-VIEW-03 PLAYWRIGHT-CARD-LIST-49]", () => {
   beforeEach(() => {
     // Given: Establish the shared setup used by the following cases.
     repository.preferences = createPreferences({

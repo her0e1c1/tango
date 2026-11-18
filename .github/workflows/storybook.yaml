@@ -11,7 +11,7 @@ jobs:
   storybook:
     name: Storybook
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     env:
       STORYBOOK_DISABLE_TELEMETRY: "1"
     steps:
@@ -21,7 +21,7 @@ jobs:
 
       - run: mise run init
 
-      - name: Install Storybook Chromium
+      - name: Install Chromium
         run: npx playwright install --with-deps chromium
 
       # Exercise the mise task's CLI startup path explicitly; smoke-test exits after successful startup.
@@ -32,8 +32,8 @@ jobs:
       - name: Build Storybook
         run: mise run build-storybook
 
-      - name: Run Storybook tests
-        run: mise run test-storybook
+      - name: Run Playwright integration tests
+        run: mise run test-playwright
 
       - name: Upload Storybook diagnostics
         if: ${{ failure() }}
@@ -42,5 +42,5 @@ jobs:
           name: storybook-diagnostics
           path: |
             debug-storybook.log
-            test-results/storybook/
+            test-results/playwright/
           if-no-files-found: ignore

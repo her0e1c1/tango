@@ -30,7 +30,7 @@ const deck = createDeck({ uid: owner.uid });
 const card = createCard({ uid: owner.uid, deckId: deck.id });
 const values = { frontText: "Saved content", backText: "Saved back", tags: ["custom"] };
 
-describe("CARD-MANAGEMENT-26 CARD-MANAGEMENT-28 ACCOUNT-03 composed Card and Account results", () => {
+describe("PLAYWRIGHT-CARD-EDIT-11 PLAYWRIGHT-CARD-EDIT-13 ACCOUNT-03 composed Card and Account results", () => {
   beforeEach(() => {
     // Given: Real actions, authentication state, routing, and Toasts share the same owner and Card.
     dismissToast();

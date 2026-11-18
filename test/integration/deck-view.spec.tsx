@@ -47,7 +47,7 @@ function savedState(deckId: string) {
   });
 }
 
-describe("NAVIGATION-09 NAVIGATION-10 NAVIGATION-14 NAVIGATION-15 NAVIGATION-16 Deck View through App, routes, local Entities, and persistence", () => {
+describe("PLAYWRIGHT-DECK-VIEW-09 PLAYWRIGHT-DECK-VIEW-10 PLAYWRIGHT-DECK-VIEW-22 PLAYWRIGHT-DECK-VIEW-13 PLAYWRIGHT-DECK-VIEW-14 Deck View through App, routes, local Entities, and persistence", () => {
   beforeEach(() => {
     // Given: Establish the shared setup used by the following cases.
     replaceAuthSession({ status: "authenticated", uid: "user-id", displayName: null, isAnonymous: true });
@@ -64,7 +64,7 @@ describe("NAVIGATION-09 NAVIGATION-10 NAVIGATION-14 NAVIGATION-15 NAVIGATION-16 
     replaceAuthSession({ status: "initializing" });
   });
 
-  it("NAVIGATION-09 shows each card's code language without changing saved data", async () => {
+  it("PLAYWRIGHT-DECK-VIEW-09 shows each card's code language without changing saved data", async () => {
     // Given: Prepare `deck`, `typescript`, `python` and any shared test state below.
     const deck = createLocalDeck({ id: "view-code", name: "Code View Deck", category: "typescript" });
     const typescript = "interface Greeting { value: string; }";
@@ -227,7 +227,7 @@ describe("NAVIGATION-09 NAVIGATION-10 NAVIGATION-14 NAVIGATION-15 NAVIGATION-16 
     router.dispose();
   });
 
-  it("[CARD-FILTER-07] views every tag match in standard order despite the study limit and shuffle without creating a session", async () => {
+  it("[PLAYWRIGHT-DECK-VIEW-05] views every tag match in standard order despite the study limit and shuffle without creating a session", async () => {
     // Given: Prepare `deck`, `rows`, `before` and any shared test state below.
     const deck = createLocalDeck({
       id: "view-filtered",

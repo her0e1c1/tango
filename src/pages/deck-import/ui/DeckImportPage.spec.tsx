@@ -95,7 +95,7 @@ const selectLocalFile = async (name: string, backText = "back") => {
   await screen.findByRole("heading", { level: 2, name: "Review import" });
 };
 
-describe("DeckImportPage [DECK-IMPORT-01 DECK-IMPORT-04 DECK-IMPORT-05 DECK-IMPORT-06 DECK-IMPORT-11 SETTINGS-09 SETTINGS-14]", () => {
+describe("DeckImportPage [PLAYWRIGHT-IMPORT-02 PLAYWRIGHT-DECK-IMPORT-01 DECK-IMPORT-04 DECK-IMPORT-05 PLAYWRIGHT-IMPORT-08 PLAYWRIGHT-IMPORT-10 PLAYWRIGHT-DECK-IMPORT-04 PLAYWRIGHT-DECK-IMPORT-05 PLAYWRIGHT-DECK-IMPORT-17 PLAYWRIGHT-DECK-IMPORT-08 PLAYWRIGHT-DECK-IMPORT-14 PLAYWRIGHT-DECK-IMPORT-15]", () => {
   beforeEach(() => {
     // Given: Establish the shared setup used by the following cases.
     deckImportStore.setState(deckImportStore.getInitialState(), true);

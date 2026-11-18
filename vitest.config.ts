@@ -1,5 +1,3 @@
-import { storybookTest } from '@storybook/addon-vitest/vitest-plugin'
-import { playwright } from '@vitest/browser-playwright'
 import { defineConfig, mergeConfig } from 'vitest/config'
 import viteConfig from './vite.config'
 
@@ -41,36 +39,8 @@ export default mergeConfig(
             name: 'integration',
             globals: true,
             setupFiles: ['./test/setup.ts'],
-            include: ['test/integration/**/*.spec.{ts,tsx}'],
+            include: ['test/integration/*.spec.{ts,tsx}', 'test/integration/firestore/**/*.spec.{ts,tsx}'],
             environment: 'jsdom',
-          },
-        },
-        {
-          extends: true,
-          define: {
-            __APP_VERSION__: JSON.stringify('1.2.3'),
-            __COMMIT_HASH__: JSON.stringify('0123456789abcdef0123456789abcdef01234567'),
-          },
-          optimizeDeps: {
-            include: ['storybook/test'],
-            exclude: ['firebase/auth', 'firebase/firestore'],
-          },
-          plugins: [
-            storybookTest({
-              storybookScript: 'npm run storybook -- --no-open',
-            }),
-          ],
-          test: {
-            name: 'storybook',
-            attachmentsDir: 'test-results/storybook/attachments',
-            browser: {
-              enabled: true,
-              provider: playwright({ contextOptions: { colorScheme: 'light', reducedMotion: 'no-preference' } }),
-              headless: true,
-              instances: [{ browser: 'chromium' }],
-              screenshotFailures: true,
-              screenshotDirectory: 'test-results/storybook',
-            },
           },
         },
       ],

@@ -25,7 +25,7 @@ const startSession = (deckId: string, cardOrderIds: string[]): void => {
   );
 };
 
-describe("study store [STUDY-SESSION-01] [STUDY-ACTIONS-04]", () => {
+describe("study store [PLAYWRIGHT-STUDY-SESSION-START-04] [PLAYWRIGHT-STUDY-SESSION-24]", () => {
   const store = studySessionStore;
 
   beforeEach(() => {

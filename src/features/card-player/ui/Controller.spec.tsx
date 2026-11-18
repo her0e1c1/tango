@@ -5,7 +5,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import { Controller } from "./Controller";
 
-describe("NAVIGATION-15 NAVIGATION-16 Controller", () => {
+describe("PLAYWRIGHT-DECK-VIEW-13 PLAYWRIGHT-DECK-VIEW-14 Controller", () => {
   it("delegates autoplay toggles", () => {
     // Given: Prepare `onToggleAutoPlay` and any shared test state below.
     const onToggleAutoPlay = vi.fn();

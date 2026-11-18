@@ -8,10 +8,7 @@ const readSelectedTags = async (deckId: string): Promise<string[]> =>
     .map((value) => value.stringValue)
     .filter((value): value is string => value !== undefined);
 
-test("STUDY-SESSION-08 STUDY-SESSION-32 reveals, persists, and applies an additional Study tag", async ({
-  fixture,
-  page,
-}) => {
+test("STUDY-SESSION-08 reveals, persists, and applies an additional Study tag", async ({ fixture, page }) => {
   const { deck, targetCard, targetTag } =
     await test.step("Given: Study settings with additional tags initially hidden", async () => {
       const deck = fixture.deck();
@@ -95,73 +92,6 @@ test("STUDY-SESSION-09 shows independent starts and completions after studying",
   });
 });
 
-test("STUDY-SESSION-10 keeps Deck selection in the URL across navigation and reload", async ({ fixture, page }) => {
-  const { deck } = await test.step("Given: A deck with no study records", async () => {
-    await fixture.apply(page);
-    await page.goto("/");
-    const deck = fixture.deck();
-    return { deck };
-  });
-  await test.step("When: Open study history from that deck", async () => {
-    await page.getByRole("button", { name: `Open actions for ${deck.name}` }).click();
-    await page.getByRole("menuitem", { name: "Study history" }).click();
-  });
-  await test.step("Then: The URL-scoped deck is selected", async () => {
-    await expect(page.getByRole("combobox", { name: "Deck", exact: true })).toHaveValue(deck.id);
-  });
-  await test.step("When: Select all decks and navigate back", async () => {
-    await page.getByRole("combobox").selectOption("");
-    await page.goBack();
-  });
-  await test.step("Then: The original deck selection is restored", async () => {
-    await expect(page.getByRole("combobox")).toHaveValue(deck.id);
-  });
-  await test.step("When: Navigate forward", async () => {
-    await page.goForward();
-  });
-  await test.step("Then: All-decks selection returns", async () => {
-    await expect(page.getByRole("combobox")).toHaveValue("");
-  });
-  await test.step("When: Reload study history", async () => {
-    await page.reload();
-  });
-  await test.step("Then: The all-decks selection and empty state remain", async () => {
-    await expect(page.getByRole("combobox")).toHaveValue("");
-    await expect(page.getByText("No study records in this period.")).toBeVisible();
-  });
-  await test.step("When: Expand daily counts", async () => {
-    await page.getByText("Show daily counts · 30 days").click();
-  });
-  await test.step("Then: Thirty days of history are available", async () => {
-    await expect(page.getByRole("row")).toHaveCount(31);
-  });
-});
-
-test("STUDY-SESSION-11 keeps unavailable Deck selection without displaying all history", async ({
-  fixture,
-  page,
-  namespace,
-}) => {
-  await test.step("Given: History for an unavailable deck without a fallback to all history", async () => {
-    await fixture.apply(page);
-    const path = `/study-history?deckId=${namespace.id("missing")}`;
-    await page.goto(path);
-    await page.getByRole("heading", { level: 1, name: "Study history" }).waitFor();
-    await expect(page.getByRole("status").filter({ hasText: "The selected deck is unavailable." })).toHaveText(
-      "The selected deck is unavailable.All decks"
-    );
-    expect(new URL(page.url()).pathname + new URL(page.url()).search).toBe(path);
-    await expect(page.getByRole("table")).toHaveCount(0);
-  });
-  await test.step("When: Choose all decks and expand daily counts", async () => {
-    await page.getByRole("button", { name: "All decks" }).click();
-    await page.getByText("Show daily counts · 30 days").click();
-  });
-  await test.step("Then: The all-decks history table opens", async () => {
-    await expect(page.getByRole("table")).toBeVisible();
-  });
-});
-
 test("STUDY-SESSION-12 restores anonymous study history from the device cache", async ({ fixture, page }) => {
   const { deck, cards } =
     await test.step("Given: An anonymous deck with completed study history in its cache", async () => {
@@ -180,72 +110,6 @@ test("STUDY-SESSION-12 restores anonymous study history from the device cache", 
     await expectCompletedHistory(page, deck, cards);
     await expect(page.getByText(/Anonymous data is stored only on this browser/)).toBeVisible();
     await expect(page.getByText(/Cloud history may be incomplete/)).toBeVisible();
-  });
-});
-
-test("STUDY-SESSION-13 STUDY-SESSION-35 selects presets and inclusive dates while preserving Deck and URL navigation", async ({
-  fixture,
-  page,
-}) => {
-  await test.step("Given: Study history at its initial period", async () => {
-    await fixture.apply(page);
-    await page.goto("/study-history");
-  });
-  await test.step("When: Select seven days and expand daily counts", async () => {
-    await page.getByRole("button", { name: "7 days" }).click();
-    await page.getByText("Show daily counts · 7 days").click();
-  });
-  await test.step("Then: Seven daily rows and their heading are shown", async () => {
-    await expect(page.getByRole("row")).toHaveCount(8);
-  });
-  await test.step("When: Select the ninety-day period", async () => {
-    await page.getByRole("button", { name: "90 days" }).click();
-  });
-  await test.step("Then: The chart groups counts by seven days", async () => {
-    await expect(page.getByText("Study counts per 7 days")).toBeVisible();
-  });
-  await test.step("When: Expand the ninety-day daily table", async () => {
-    await page.getByText("Show daily counts · 90 days").click();
-  });
-  await test.step("Then: The first thirty daily rows are shown", async () => {
-    await expect(page.getByRole("row")).toHaveCount(31);
-  });
-  await test.step("When: Page to the oldest dates", async () => {
-    await page.getByRole("button", { name: "Older dates" }).click();
-    await page.getByRole("button", { name: "Older dates" }).click();
-  });
-  await test.step("Then: The final thirty days are shown without another page", async () => {
-    await expect(page.getByText("61–90 of 90 days")).toBeVisible();
-    await expect(page.getByRole("button", { name: "Older dates" })).toBeDisabled();
-  });
-  await test.step("When: Apply an inclusive custom range, select a deck and navigate back", async () => {
-    await page.getByRole("button", { name: "Custom range" }).click();
-    await page.getByLabel("Start date").fill("2020-12-31");
-    await page.getByLabel("End date").fill("2021-01-02");
-    await page.getByRole("button", { name: "Apply" }).click();
-    await page.getByRole("combobox").selectOption(fixture.deck().id);
-    await page.goBack();
-  });
-  await test.step("Then: Back restores the all-decks selection", async () => {
-    await expect(page.getByRole("combobox")).toHaveValue("");
-  });
-  await test.step("When: Navigate forward and reload", async () => {
-    await page.goForward();
-    await page.reload();
-  });
-  await test.step("Then: The deck and both custom range endpoints survive reload", async () => {
-    await expect(page.getByRole("combobox")).toHaveValue(fixture.deck().id);
-    await expect(page.getByLabel("Start date")).toHaveValue("2020-12-31");
-    await expect(page.getByLabel("End date")).toHaveValue("2021-01-02");
-    await expect(page.getByText("No study records in this period.")).toBeVisible();
-  });
-  await test.step("When: Expand the custom daily counts", async () => {
-    await page.getByText("Show daily counts · 3 days").click();
-  });
-  await test.step("Then: Both endpoint dates appear in the inclusive range", async () => {
-    await expect(page.getByRole("row")).toHaveCount(4);
-    await expect(page.getByRole("row", { name: "Dec 31, 2020 0 0" })).toBeVisible();
-    await expect(page.getByRole("row", { name: "Jan 2, 2021 0 0" })).toBeVisible();
   });
 });
 
@@ -269,82 +133,6 @@ const returnToDeckList = async (page: Page) => {
   await page.getByRole("button", { name: "Open card actions" }).click();
   await page.getByRole("button", { name: "Back to deck list" }).click();
 };
-
-test("STUDY-SESSION-01 starts a filtered session capped by the learning limit", async ({ fixture, page }) => {
-  const { deck, firstCard, secondCard, eligibleBeyondLimit, otherTagExcluded, tagOnlyExcluded } =
-    await test.step("Given: A deck with eligible and excluded cards under saved study filters", async () => {
-      const deck = fixture.deck();
-      const firstCard = fixture.card("card-1");
-      const secondCard = fixture.card("card-2");
-      const eligibleBeyondLimit = fixture.card("card-3");
-      const otherTagExcluded = fixture.card("card-4");
-      const tagOnlyExcluded = fixture.card("card-5");
-      await fixture.apply(page);
-      await page.goto("/settings");
-      await expect(page.getByRole("heading", { level: 1, name: "Settings" })).toBeVisible();
-      return { deck, firstCard, secondCard, eligibleBeyondLimit, otherTagExcluded, tagOnlyExcluded };
-    });
-
-  for (const maximum of [fixture.state.browser.preferences.study.maxNumberOfCardsToLearn, 0, 1]) {
-    const { expectedIds } =
-      await test.step("Given: Study uses the iteration learning limit and matching cards", async () => {
-        if (maximum !== fixture.state.browser.preferences.study.maxNumberOfCardsToLearn) {
-          await page.goto("/settings");
-          const slider = page.getByRole("slider", { name: "Maximum cards" });
-          await slider.press("Home");
-          if (maximum === 1) await slider.press("ArrowRight");
-        }
-        await expect
-          .poll(() =>
-            page.evaluate(
-              () =>
-                JSON.parse(localStorage.getItem("tango-config") ?? "{}").state?.preferences?.study
-                  ?.maxNumberOfCardsToLearn
-            )
-          )
-          .toBe(maximum);
-        const matchingIds = [firstCard.id, secondCard.id, eligibleBeyondLimit.id];
-        const expectedIds = maximum === 0 ? matchingIds : matchingIds.slice(0, maximum);
-        return { expectedIds };
-      });
-    const { countLabel } = await test.step("When: Open study settings for that learning limit", async () => {
-      const countLabel = `${String(expectedIds.length)} ${expectedIds.length === 1 ? "card" : "cards"}`;
-      await page.goto(`/deck/${deck.id}/start`);
-      return { countLabel };
-    });
-    await test.step("Then: The eligible session count respects the limit", async () => {
-      await expect(page.getByRole("heading", { level: 2, name: `${countLabel} in this session` })).toBeVisible();
-    });
-    await test.step("When: Start the filtered session", async () => {
-      await page.getByRole("button", { name: `Start ${countLabel}` }).click();
-    });
-    await test.step("Then: Only matching cards within the limit enter the saved session", async () => {
-      await expect(page.getByText(firstCard.frontText, { exact: true })).toBeVisible();
-      await expect
-        .poll(async () => (await readSession(fixture.user().uid, deck.id))?.cardOrderIds)
-        .toEqual(expectedIds);
-      const stored = await readSession(fixture.user().uid, deck.id);
-      expect(stored?.cardOrderIds).not.toContain(otherTagExcluded.id);
-      expect(stored?.cardOrderIds).not.toContain(tagOnlyExcluded.id);
-    });
-  }
-});
-
-test("STUDY-SESSION-02 prevents an empty filtered session from starting", async ({ fixture, page }) => {
-  const { deck } = await test.step("Given: A deck whose saved study filters match no cards", async () => {
-    const deck = fixture.deck();
-    await fixture.apply(page);
-    return { deck };
-  });
-  await test.step("When: Open study settings", async () => {
-    await page.goto(`/deck/${deck.id}/start`);
-  });
-  await test.step("Then: Starting an empty session is disabled and creates no session", async () => {
-    await expect(page.getByText("No cards match your filters.")).toBeVisible();
-    await expect(page.getByRole("button", { name: "Start 0 cards" })).toBeDisabled();
-    expect(await readSession(fixture.user().uid, deck.id)).toBeUndefined();
-  });
-});
 
 test("STUDY-SESSION-03 returns and continues from the same Card", async ({ fixture, page }) => {
   const { deck, session, currentCard, beforeContinue } =
@@ -474,10 +262,7 @@ test("STUDY-SESSION-06 keeps multiple Deck sessions independent", async ({ fixtu
   });
 });
 
-test("STUDY-SESSION-07 STUDY-SESSION-30 STUDY-SESSION-31 preserves local-only progress and session position across reload", async ({
-  fixture,
-  page,
-}) => {
+test("STUDY-SESSION-07 preserves local-only progress and session position across reload", async ({ fixture, page }) => {
   const { deck, currentCard, nextCard } =
     await test.step("Given: An anonymous session advanced once with review scheduling enabled", async () => {
       await fixture.apply(page, { preferences: { study: { useCardInterval: true } } });
@@ -522,30 +307,11 @@ test("STUDY-SESSION-07 STUDY-SESSION-30 STUDY-SESSION-31 preserves local-only pr
     expect(Number.isFinite(dueMinute)).toBe(true);
     return { dueMinute };
   });
-  await test.step("When: Open study settings before that review is due", async () => {
+  await test.step("When: Open a later review after the saved due time", async () => {
+    await page.clock.install({ time: new Date(dueMinute + 60_000) });
     await page.goto(`/deck/${deck.id}/start`);
   });
-  await test.step("Then: Only the remaining card is available to start", async () => {
-    await expect(page.getByRole("button", { name: "Start 1 card", exact: true })).toBeEnabled();
-  });
-  await test.step("When: Reload study settings", async () => {
-    await page.reload();
-  });
-  await test.step("Then: The available card count remains one", async () => {
-    await expect(page.getByRole("button", { name: "Start 1 card", exact: true })).toBeEnabled();
-  });
-  await test.step("When: Set the clock before the public review minute and refresh counts", async () => {
-    // The public date display has minute precision; cross that whole minute with the page still open.
-    await page.clock.install({ time: new Date(dueMinute - 60_000) });
-    await page.evaluate(() => window.dispatchEvent(new Event("focus")));
-  });
-  await test.step("Then: The rated card is still excluded", async () => {
-    await expect(page.getByRole("button", { name: "Start 1 card", exact: true })).toBeEnabled();
-  });
-  await test.step("When: Advance across the entire review minute", async () => {
-    await page.clock.runFor(120_000);
-  });
-  await test.step("Then: Both cards are now available to study", async () => {
+  await test.step("Then: Both saved cards are available to review again", async () => {
     await expect(page.getByRole("button", { name: "Start 2 cards", exact: true })).toBeEnabled();
   });
   await test.step("When: Start studying both due cards", async () => {

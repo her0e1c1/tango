@@ -44,7 +44,7 @@ describe.each([
       { input: "60", visible: "60秒", spoken: "60秒" },
     ],
   },
-])("SETTINGS-10 SETTINGS-16 Autoplay interval presentation in $language", (copy) => {
+])("PLAYWRIGHT-SETTINGS-10 PLAYWRIGHT-SETTINGS-16 Autoplay interval presentation in $language", (copy) => {
   it.each([
     { defaultAutoPlay: true, showPlaybackControls: true },
     { defaultAutoPlay: false, showPlaybackControls: false },

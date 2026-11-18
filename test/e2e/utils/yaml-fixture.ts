@@ -567,6 +567,17 @@ export const loadFixtureSource = (caseId: string): FixtureSource => {
   };
 };
 
+export const loadNamedFixtureSource = (name: string): FixtureSource => {
+  if (!/^[a-z0-9-]+$/u.test(name)) throw new Error(`Invalid fixture name: ${name}`);
+  const fixturePath = path.join(fixtureRoot, `${name}.yaml`);
+  return {
+    caseId: name,
+    category: "read",
+    path: path.relative(repositoryRoot, fixturePath),
+    document: materializeFixture(fixturePath).document,
+  };
+};
+
 const fixturePreferenceDefaults: FixturePreferences = {
   // The product defaults to system; E2E uses English so existing accessible-name assertions are host-independent.
   language: "en",

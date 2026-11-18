@@ -1,7 +1,7 @@
+import { fn } from "storybook/test";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
 import { AiOutlineDelete, AiOutlineDownload, AiOutlineEdit } from "react-icons/ai";
-import { expect, fn } from "storybook/test";
 
 import { ActionsMenu, type ActionsMenuProps } from "./ActionsMenu";
 
@@ -24,9 +24,6 @@ const ActionsMenuStory = (args: ActionsMenuProps) => {
   );
 };
 
-// Given: Story args and parameters define the render scenarios below.
-// When: Storybook renders each exported variant and runs its play when present.
-// Then: Assertions are in the relevant plays; rendering alone adds no behavioral checks.
 const meta = {
   title: "Shared/Navigation/ActionsMenu",
   component: ActionsMenu,
@@ -75,20 +72,6 @@ export const Disabled: Story = {
 
 export const Interaction: Story = {
   render: (args) => <ActionsMenuStory {...args} />,
-  play: async ({ args, canvas, userEvent }) => {
-    // Given: Use the rendered story, its args, parameters, and any setup below.
-    const trigger = canvas.getByRole("button", { name: "Open document actions" });
-    // When: Exercise `userEvent.click` with the prepared inputs.
-    await userEvent.click(trigger);
-    // Then: Verify the expected result in the assertions below.
-    await expect(canvas.getByRole("menu", { name: "Document actions" })).toBeVisible();
-    // When: Exercise `userEvent.click` with the prepared inputs.
-    await userEvent.click(canvas.getByRole("menuitem", { name: "Download" }));
-    const downloadItem = args.items.find(({ key }) => key === "download");
-    // Then: Verify the expected result in the assertions below.
-    await expect(downloadItem?.onSelect).toHaveBeenCalledOnce();
-    await expect(canvas.queryByRole("menu", { name: "Document actions" })).not.toBeInTheDocument();
-  },
 };
 
 export const Mobile: Story = {

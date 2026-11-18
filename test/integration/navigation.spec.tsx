@@ -27,7 +27,7 @@ const cases = [
   { id: "plan#draft", name: "Hash Deck", frontText: "Hash Card", path: "/deck/plan%23draft" },
 ];
 
-describe("DECK-LIST-01 Deck navigation through App, router, and local Entities", () => {
+describe("PLAYWRIGHT-DECK-LIST-27 Deck navigation through App, router, and local Entities", () => {
   beforeEach(async () => {
     // Given: Establish the shared setup used by the following cases.
     replaceAuthSession({ status: "authenticated", uid: "user-id", displayName: null, isAnonymous: true });

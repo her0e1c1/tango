@@ -6,7 +6,7 @@
 オフラインで受け付けた操作や保存済みデータの変更についても、保存結果と購読後の再開対象が一致することを保証する。
 関数の呼び出し順や内部の store 構造ではなく、保存された session と公開 query から取得できる再開対象を観測する。
 
-関連 E2E: [STUDY-SESSION-01](../../e2e/study-session.md#study-session-01)、[STUDY-SESSION-03](../../e2e/study-session.md#study-session-03)、[STUDY-SESSION-05](../../e2e/study-session.md#study-session-05)、[PERSISTENCE-02](../../e2e/persistence.md#persistence-02)
+関連仕様: [PLAYWRIGHT-STUDY-SESSION-START-04](../playwright/study-session-start.md#playwright-study-session-start-04)、[STUDY-SESSION-03](../../e2e/study-session.md#study-session-03)、[STUDY-SESSION-05](../../e2e/study-session.md#study-session-05)、[PERSISTENCE-02](../../e2e/persistence.md#persistence-02)
 
 共通の実行・検証前提は [AGENTS.md](./AGENTS.md#共通前提) を参照する。
 

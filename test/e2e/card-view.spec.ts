@@ -1,7 +1,7 @@
-import { expect, getDocument, test } from "./utils/fixtures";
+import { expect, test } from "./utils/fixtures";
 import { createAnonymousDeck } from "./utils/ui-helpers";
 
-test("CARD-VIEW-06 CARD-VIEW-08 CARD-VIEW-09 shows FSRS memory after a rating, reload, and offline navigation", async ({
+test("CARD-VIEW-06 shows FSRS memory after a rating, reload, and offline navigation", async ({
   fixture,
   page,
   context,
@@ -61,49 +61,5 @@ test("CARD-VIEW-06 CARD-VIEW-08 CARD-VIEW-09 shows FSRS memory after a rating, r
   });
   await test.step("When: Reconnect the browser", async () => {
     await context.setOffline(false);
-  });
-});
-
-test("CARD-VIEW-04 CARD-VIEW-07 opens a Card view route inside the application shell", async ({ fixture, page }) => {
-  const { card, nextCard } = await test.step("Given: A card route open inside the application shell", async () => {
-    const card = fixture.card();
-    const nextCard = fixture.card("card-2");
-    await fixture.apply(page);
-
-    await page.goto(`/card/${card.id}`);
-
-    await expect(page.getByRole("region", { name: "Card answer" })).toContainText(card.backText);
-    await expect(page.getByRole("button", { name: "tango" })).toBeVisible();
-    return { card, nextCard };
-  });
-  await test.step("When: Navigate to another card through browser history", async () => {
-    // Exercise a same-document history transition so the Page must consume the new route parameter.
-    await page.evaluate((cardId) => {
-      window.history.pushState(window.history.state, "", `/card/${encodeURIComponent(cardId)}`);
-      window.dispatchEvent(new PopStateEvent("popstate", { state: window.history.state }));
-    }, nextCard.id);
-  });
-  await test.step("Then: The route and answer update inside the same shell", async () => {
-    await expect(page).toHaveURL(`/card/${nextCard.id}`);
-    await expect(page.getByRole("region", { name: "Card answer" })).toContainText(nextCard.backText);
-    await expect(page.getByRole("region", { name: "Card answer" })).not.toContainText(card.backText);
-    await expect(page.getByRole("button", { name: "tango" })).toBeVisible();
-  });
-});
-
-test("CARD-VIEW-05 recovers home from a missing Card route", async ({ fixture, page, namespace }) => {
-  await test.step("Given: A missing card route with home recovery", async () => {
-    await fixture.apply(page);
-
-    await page.goto(`/card/${namespace.id("missing")}`);
-    await expect(page.getByRole("heading", { level: 1, name: "Card not found" })).toBeVisible();
-  });
-  await test.step("When: Choose Go home", async () => {
-    await page.getByRole("button", { name: "Go home" }).click();
-  });
-  await test.step("Then: The deck list opens without creating the missing card", async () => {
-    await expect(page).toHaveURL(/\/$/);
-    await expect(page.getByRole("heading", { level: 1, name: "Decks" })).toBeVisible();
-    expect(await getDocument("card", namespace.id("missing"))).toBeUndefined();
   });
 });

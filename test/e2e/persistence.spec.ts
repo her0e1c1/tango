@@ -4,7 +4,6 @@ import {
   expect,
   getDocument,
   listDocuments,
-  requestFirestoreAsGuest,
   requireDocument,
   setDocument,
   test,
@@ -227,14 +226,9 @@ test("PERSISTENCE-02 syncs an offline cached Card edit after reconnecting", asyn
   });
 });
 
-test("PERSISTENCE-04 PERSISTENCE-11 keeps guest edits local and rejects every cloud write", async ({
-  fixture,
-  page,
-  namespace,
-}) => {
-  const { uid, updatedName, updatedFrontText, deck, card } =
+test("PERSISTENCE-04 restores anonymous Deck and Card edits after reload", async ({ fixture, page, namespace }) => {
+  const { updatedName, updatedFrontText, deck, card } =
     await test.step("Given: An anonymous deck and card ready for local edits", async () => {
-      const { uid } = fixture.user();
       const updatedName = `${namespace.caseId} local deck update`;
       const updatedFrontText = `${namespace.caseId} local card update`;
       await fixture.apply(page);
@@ -242,7 +236,7 @@ test("PERSISTENCE-04 PERSISTENCE-11 keeps guest edits local and rejects every cl
       const { deck, first: card } = local;
 
       await page.goto("/");
-      return { uid, updatedName, updatedFrontText, deck, card };
+      return { updatedName, updatedFrontText, deck, card };
     });
   await test.step("When: Edit and save the local deck name", async () => {
     await page.getByRole("button", { name: `Open actions for ${deck.name}` }).click();
@@ -276,57 +270,6 @@ test("PERSISTENCE-04 PERSISTENCE-11 keeps guest edits local and rejects every cl
     await expect(page.getByRole("button", { name: `Open cards in ${updatedName}` })).toBeVisible();
     expect(await getDocument("deck", deck.id)).toBeUndefined();
     expect(await getDocument("card", card.id)).toBeUndefined();
-  });
-  const { legacyDeckId, legacyCardId } =
-    await test.step("Given: Legacy remote records already owned by the anonymous UID", async () => {
-      // Legacy records may already belong to an anonymous UID; ownership must not grant write access.
-      const legacyDeckId = namespace.id("legacy-deck");
-      const legacyCardId = namespace.id("legacy-card");
-      await setDocument("deck", legacyDeckId, { uid, name: "Legacy deck" });
-      await setDocument("card", legacyCardId, { uid, deckId: legacyDeckId, frontText: "Legacy card" });
-      return { legacyDeckId, legacyCardId };
-    });
-  for (const collection of ["deck", "card"] as const) {
-    const { existingId, data, create } =
-      await test.step("When: Attempt to create a remote record as a guest", async () => {
-        const existingId = collection === "deck" ? legacyDeckId : legacyCardId;
-        const data = { uid, deckId: legacyDeckId, name: "Denied guest write" };
-        const create = await requestFirestoreAsGuest({
-          uid,
-          collection,
-          id: namespace.id(`denied-${collection}`),
-          method: "PATCH",
-          document: data,
-        });
-        return { existingId, data, create };
-      });
-    await test.step("Then: Guest creation is denied", async () => {
-      expect(create.status).toBe(403);
-    });
-    const { update } = await test.step("When: Attempt to update the existing remote record as a guest", async () => {
-      const update = await requestFirestoreAsGuest({
-        uid,
-        collection,
-        id: existingId,
-        method: "PATCH",
-        document: data,
-      });
-      return { update };
-    });
-    await test.step("Then: Guest updates are denied", async () => {
-      expect(update.status).toBe(403);
-    });
-    const { remove } = await test.step("When: Attempt to delete the existing remote record as a guest", async () => {
-      const remove = await requestFirestoreAsGuest({ uid, collection, id: existingId, method: "DELETE" });
-      return { remove };
-    });
-    await test.step("Then: Guest deletion is denied", async () => {
-      expect(remove.status).toBe(403);
-    });
-  }
-  await test.step("Then: The original legacy deck and card remain unchanged", async () => {
-    expect((await requireDocument("deck", legacyDeckId)).fields.name?.stringValue).toBe("Legacy deck");
-    expect((await requireDocument("card", legacyCardId)).fields.frontText?.stringValue).toBe("Legacy card");
   });
 });
 
@@ -396,10 +339,7 @@ test("PERSISTENCE-08 restores study progress from the SDK cache offline", async 
   });
 });
 
-test("PERSISTENCE-09 PERSISTENCE-14 PERSISTENCE-15 PERSISTENCE-16 receives remote edits and tombstones after reopening", async ({
-  fixture,
-  page,
-}) => {
+test("PERSISTENCE-09 receives remote edits and tombstones after reopening", async ({ fixture, page }) => {
   const { deck, edited, deleted, unchanged } =
     await test.step("Given: A remote deck with all cards loaded before closing the application", async () => {
       const deck = fixture.deck();
@@ -450,16 +390,14 @@ test("PERSISTENCE-09 PERSISTENCE-14 PERSISTENCE-15 PERSISTENCE-16 receives remot
   await test.step("Then: Deck and card tombstones remain effective", async () => {
     await expect(page.getByRole("heading", { name: "No decks yet" })).toBeVisible();
     await expect(page.getByRole("button", { name: `Open cards in ${deck.name}` })).toHaveCount(0);
-    expect((await requireDocument("deck", deck.id)).fields.deletedAt?.integerValue).toBeDefined();
-    expect((await requireDocument("card", deleted.id)).fields.deletedAt?.integerValue).toBeDefined();
   });
 });
 
 for (const allInvalid of [false, true]) {
-  test(`PERSISTENCE-10 PERSISTENCE-17 starts after reopening ${allInvalid ? "all" : "one"} malformed local Cards`, async ({
+  test(`${allInvalid ? "PERSISTENCE-17" : "PERSISTENCE-10"} starts after reopening ${allInvalid ? "all" : "one"} malformed local Cards`, async ({
     fixture,
     page,
-  }, testInfo) => {
+  }) => {
     const { deck, first, second } =
       await test.step("Given: An anonymous deck whose healthy cards survived their initial reload", async () => {
         await fixture.seedPage(page);
@@ -498,19 +436,6 @@ for (const allInvalid of [false, true]) {
       await expect(page.getByRole("button", { name: `View ${first.frontText}` })).toHaveCount(allInvalid ? 0 : 1);
       await expect(page.getByRole("button", { name: `View ${second.frontText}` })).toHaveCount(0);
       await expect(page.getByText(warning)).toBeVisible();
-      const warningBounds = await page.getByText(warning).boundingBox();
-      const headerBounds = await page
-        .locator("header")
-        .filter({ has: page.getByRole("button", { name: "tango", exact: true }) })
-        .boundingBox();
-      expect(warningBounds).not.toBeNull();
-      expect(headerBounds).not.toBeNull();
-      expect(warningBounds!.y).toBeGreaterThanOrEqual(headerBounds!.y + headerBounds!.height);
-
-      await testInfo.attach("partial-startup-after-reload", {
-        body: await page.screenshot(),
-        contentType: "image/png",
-      });
     });
     await test.step("When: Repair a quarantined card in cache and reopen the deck", async () => {
       await setCachedCardFsrs(page, second.id, null);
@@ -530,179 +455,3 @@ for (const allInvalid of [false, true]) {
     });
   });
 }
-
-test("PERSISTENCE-10 PERSISTENCE-18 keeps healthy study controls inside the mobile viewport with an invalid Card", async ({
-  fixture,
-  page,
-}, testInfo) => {
-  const { viewport, first } =
-    await test.step("Given: An anonymous deck with one healthy and one quarantined card", async () => {
-      const viewport = { width: 390, height: 844 };
-      await fixture.seedPage(page);
-      const { deck, first, second } = await createAnonymousDeck(page);
-      await setCachedCardFsrs(page, second.id);
-      await page.goto(`/deck/${deck.id}/start`);
-      return { viewport, first };
-    });
-  await test.step("When: Start the healthy card in a mobile viewport", async () => {
-    await page.getByRole("button", { name: "Start 1 card", exact: true }).click();
-    await page.setViewportSize(viewport);
-  });
-  await test.step("Then: Warning and study controls remain visible inside the viewport", async () => {
-    await expect(page.locator("#frontText")).toHaveText(first.frontText);
-    const warning = page.getByText(
-      "Some saved cards could not be loaded (1). Their saved data is unchanged. Other saved data is still available."
-    );
-    const controls = [
-      { name: "warning", locator: warning },
-      { name: "front", locator: page.locator("#frontText") },
-      ...["Swipe left: Again", "Swipe down: Hard", "Swipe right: Good", "Swipe up: Easy", "Play"].map((name) => ({
-        name,
-        locator: page.getByRole("button", { name, exact: true }),
-      })),
-      { name: "Study progress", locator: page.getByRole("slider", { name: "Study progress" }) },
-    ];
-    const geometry = [];
-    for (const control of controls) {
-      await expect(control.locator).toBeVisible();
-      const bounds = await control.locator.boundingBox();
-      if (bounds === null) throw new Error(`${control.name} has no visible bounds`);
-      geometry.push({ name: control.name, ...bounds });
-    }
-    await testInfo.attach("mobile-study-geometry", {
-      body: Buffer.from(JSON.stringify({ viewport, geometry })),
-      contentType: "application/json",
-    });
-    for (const bounds of geometry) {
-      expect(bounds.x, bounds.name).toBeGreaterThanOrEqual(0);
-      expect(bounds.y, bounds.name).toBeGreaterThanOrEqual(0);
-      expect(bounds.x + bounds.width, bounds.name).toBeLessThanOrEqual(viewport.width);
-      expect(bounds.y + bounds.height, bounds.name).toBeLessThanOrEqual(viewport.height);
-    }
-    expect(await page.evaluate(() => window.scrollY)).toBe(0);
-
-    await testInfo.attach("mobile-study-before-interaction", {
-      body: await page.screenshot(),
-      contentType: "image/png",
-    });
-  });
-  await test.step("When: Start playback with the visible Play control", async () => {
-    await page.getByRole("button", { name: "Play", exact: true }).click();
-  });
-  await test.step("Then: Playback starts", async () => {
-    await expect(page.getByRole("button", { name: "Pause", exact: true })).toBeVisible();
-  });
-  await test.step("When: Pause playback", async () => {
-    await page.getByRole("button", { name: "Pause", exact: true }).click();
-  });
-  const { completion } = await test.step("Then: Study has not completed without an answer", async () => {
-    const completion = page.getByRole("region", { name: "Study complete", exact: true });
-    await expect(completion).toHaveCount(0);
-    return { completion };
-  });
-  await test.step("When: Rate the healthy card Good", async () => {
-    await page.getByRole("button", { name: "Swipe right: Good", exact: true }).click();
-  });
-  await test.step("Then: The one-card session completes without a progress slider", async () => {
-    await expect(completion).toBeVisible();
-    await expect(completion.getByText("Session: 1 card", { exact: true })).toBeVisible();
-    await expect(page.getByRole("slider", { name: "Study progress" })).toHaveCount(0);
-  });
-});
-
-test("PERSISTENCE-10 PERSISTENCE-19 retains the recovery warning on quarantined Card view and edit links", async ({
-  fixture,
-  page,
-}, testInfo) => {
-  const { deck, second, warning } =
-    await test.step("Given: An anonymous deck with one quarantined card and a recovery warning", async () => {
-      await fixture.seedPage(page);
-      const { deck, first, second } = await createAnonymousDeck(page);
-      await setCachedCardFsrs(page, second.id);
-      await page.goto(`/deck/${deck.id}`);
-      await expect(page.getByRole("button", { name: `View ${first.frontText}` })).toBeVisible();
-      const warning = page.getByText(
-        "Some saved cards could not be loaded (1). Their saved data is unchanged. Other saved data is still available."
-      );
-      return { deck, second, warning };
-    });
-  for (const suffix of ["", "/edit"]) {
-    await test.step("When: Open the quarantined card view or edit route", async () => {
-      await page.goto(`/card/${second.id}${suffix}`);
-    });
-    await test.step("Then: The missing-card state retains the recovery warning", async () => {
-      await expect(page.getByRole("heading", { name: "Card not found", exact: true })).toBeVisible();
-      await expect(warning).toBeVisible();
-    });
-    await test.step("When: Reload the quarantined card route", async () => {
-      await page.reload();
-    });
-    await test.step("Then: The missing-card state and warning survive reload", async () => {
-      await expect(page.getByRole("heading", { name: "Card not found", exact: true })).toBeVisible();
-      await expect(warning).toBeVisible();
-
-      await testInfo.attach(suffix === "" ? "quarantined-card-view" : "quarantined-card-edit", {
-        body: await page.screenshot(),
-        contentType: "image/png",
-      });
-    });
-    await test.step("When: Choose Go home from the quarantined route", async () => {
-      await page.getByRole("button", { name: "Go home", exact: true }).click();
-    });
-    await test.step("Then: Home opens with the healthy deck and warning intact", async () => {
-      await expect(page).toHaveURL("/");
-      await expect(page.getByRole("button", { name: `Open cards in ${deck.name}` })).toBeVisible();
-      await expect(warning).toBeVisible();
-    });
-  }
-});
-
-test("PERSISTENCE-10 PERSISTENCE-20 retains the warning on a Deck view with all Cards quarantined", async ({
-  fixture,
-  page,
-}, testInfo) => {
-  const { deck, first, second } =
-    await test.step("Given: An anonymous deck with a healthy View mode baseline", async () => {
-      await fixture.seedPage(page);
-      const { deck, first, second } = await createAnonymousDeck(page);
-      const firstById = [first, second].toSorted((left, right) => left.id.localeCompare(right.id))[0]!;
-      await page.goto(`/deck/${deck.id}/view`);
-      await expect(page.getByRole("button", { name: "Card front", exact: true })).toHaveText(firstById.frontText);
-      await expect(page.getByText(/Some saved cards could not be loaded/)).toHaveCount(0);
-      return { deck, first, second };
-    });
-  await test.step("When: Quarantine both cached cards and reopen View mode", async () => {
-    await setCachedCardFsrs(page, first.id);
-    await setCachedCardFsrs(page, second.id);
-    await page.goto(`/deck/${deck.id}/view`);
-  });
-  const { warning } = await test.step("Then: The empty deck view retains the recovery warning", async () => {
-    const warning = page.getByText(
-      "Some saved cards could not be loaded (2). Their saved data is unchanged. Other saved data is still available."
-    );
-    await expect(page.getByRole("heading", { name: "No cards yet", exact: true })).toBeVisible();
-    await expect(warning).toBeVisible();
-    return { warning };
-  });
-  await test.step("When: Reload the all-quarantined deck view", async () => {
-    await page.reload();
-  });
-  await test.step("Then: The warning remains and no next-card action appears", async () => {
-    await expect(page.getByRole("heading", { name: "No cards yet", exact: true })).toBeVisible();
-    await expect(warning).toBeVisible();
-    await expect(page.getByRole("button", { name: "Next card", exact: true })).toHaveCount(0);
-
-    await testInfo.attach("all-quarantined-deck-view", {
-      body: await page.screenshot(),
-      contentType: "image/png",
-    });
-  });
-  await test.step("When: Return to the deck list", async () => {
-    await page.getByRole("button", { name: "Back to deck list", exact: true }).click();
-  });
-  await test.step("Then: The deck remains available with the recovery warning", async () => {
-    await expect(page).toHaveURL("/");
-    await expect(page.getByRole("button", { name: `Open cards in ${deck.name}` })).toBeVisible();
-    await expect(warning).toBeVisible();
-  });
-});

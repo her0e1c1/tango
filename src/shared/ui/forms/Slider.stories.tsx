@@ -1,12 +1,9 @@
+import { fn } from "storybook/test";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import * as React from "react";
-import { expect, fireEvent, fn } from "storybook/test";
 
 import { Slider } from "./Slider";
 
-// Given: Story args and parameters define the render scenarios below.
-// When: Storybook renders each exported variant and runs its play when present.
-// Then: Assertions are in the relevant plays; rendering alone adds no behavioral checks.
 const meta = {
   title: "Shared/Forms/Slider",
   component: Slider,
@@ -37,15 +34,6 @@ export const Default: Story = { args: { value: "40" } };
 export const Interaction: Story = {
   args: { "aria-label": "Interactive slider", value: "40", onChange: fn() },
   render: (args) => <InteractiveSlider {...args} />,
-  play: async ({ args, canvas }) => {
-    // Given: Use the rendered story, its args, parameters, and any setup below.
-    const control = canvas.getByRole("slider", { name: "Interactive slider" });
-    // When: Exercise `fireEvent.change` with the prepared inputs.
-    await fireEvent.change(control, { target: { value: "41" } });
-    // Then: Verify the expected result in the assertions below.
-    await expect(control).toHaveValue("41");
-    await expect(args.onChange).toHaveBeenCalledOnce();
-  },
 };
 
 export const Values: Story = {

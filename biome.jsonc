@@ -139,7 +139,7 @@
   },
   "overrides": [
     {
-      "includes": ["src/**/*.stories.tsx", "test/integration/storybook/**/*.stories.tsx"],
+      "includes": ["src/**/*.stories.tsx"],
       "linter": {
         "rules": {
           // TypeScript ESLint resolves storybook/test thenables; keep one owner for Story promise diagnostics.
@@ -149,7 +149,7 @@
     },
     {
       // Share Playwright diagnostics with #1015; Storybook uses its own interaction rules.
-      "includes": ["playwright.config.ts", "test/e2e/**/*.{ts,tsx}"],
+      "includes": ["playwright.config.ts", "playwright.integration.config.ts", "test/e2e/**/*.{ts,tsx}", "test/integration/playwright/**/*.{ts,tsx}"],
       "linter": {
         "rules": {
           "correctness": {

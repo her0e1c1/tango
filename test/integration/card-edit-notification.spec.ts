@@ -24,7 +24,7 @@ async function flushCompletions() {
   await new Promise<void>((resolve) => setTimeout(resolve, 0));
 }
 
-describe("CARD-MANAGEMENT-20 CARD-MANAGEMENT-26 CARD-MANAGEMENT-27 Card edit notification lifetime", () => {
+describe("PLAYWRIGHT-CARD-EDIT-10 PLAYWRIGHT-CARD-EDIT-11 PLAYWRIGHT-CARD-EDIT-12 Card edit notification lifetime", () => {
   beforeEach(() => {
     // Given: A signed-in owner has one existing Card; only persistence I/O and notification delivery are mocked.
     vi.mocked(editCard).mockReset().mockResolvedValue(undefined);
@@ -47,7 +47,7 @@ describe("CARD-MANAGEMENT-20 CARD-MANAGEMENT-26 CARD-MANAGEMENT-27 Card edit not
     { phase: "content", restoreFirst: false },
     { phase: "content", restoreFirst: true },
   ])(
-    "CARD-MANAGEMENT-26 notifies after sign-out is refused ($phase, restore first: $restoreFirst)",
+    "PLAYWRIGHT-CARD-EDIT-11 notifies after sign-out is refused ($phase, restore first: $restoreFirst)",
     async ({ phase, restoreFirst }) => {
       // Given: Saving has started, possibly already waiting for the existing read model.
       const write = Promise.withResolvers<void>();
@@ -85,7 +85,7 @@ describe("CARD-MANAGEMENT-20 CARD-MANAGEMENT-26 CARD-MANAGEMENT-27 Card edit not
   );
 
   it.each(["write", "content", "auth"])(
-    "CARD-MANAGEMENT-27 stops a removed Deck's notification while waiting for %s",
+    "PLAYWRIGHT-CARD-EDIT-12 stops a removed Deck's notification while waiting for %s",
     async (phase) => {
       // Given: A Card save is waiting for persistence, its content, or the same-owner auth decision.
       const write = Promise.withResolvers<void>();
@@ -121,7 +121,7 @@ describe("CARD-MANAGEMENT-20 CARD-MANAGEMENT-26 CARD-MANAGEMENT-27 Card edit not
   );
 
   it.each(["write", "content", "auth"])(
-    "CARD-MANAGEMENT-20 ends an old owner's operation while waiting for %s",
+    "PLAYWRIGHT-CARD-EDIT-10 ends an old owner's operation while waiting for %s",
     async (phase) => {
       // Given: The original owner's save has not yet produced a notification.
       const write = Promise.withResolvers<void>();
@@ -150,7 +150,7 @@ describe("CARD-MANAGEMENT-20 CARD-MANAGEMENT-26 CARD-MANAGEMENT-27 Card edit not
     }
   );
 
-  it("CARD-MANAGEMENT-27 retains a save hidden by the browsing filter", async () => {
+  it("PLAYWRIGHT-CARD-EDIT-12 retains a save hidden by the browsing filter", async () => {
     // Given: The Card's saved content has not yet appeared in the existing read model.
     const saved = submit({ cardId: card.id, values });
     await flushCompletions();
@@ -164,7 +164,7 @@ describe("CARD-MANAGEMENT-20 CARD-MANAGEMENT-26 CARD-MANAGEMENT-27 Card edit not
     expect(showToast).toHaveBeenCalledTimes(1);
   });
 
-  it("CARD-MANAGEMENT-26 waits if another auth check starts before notification", async () => {
+  it("PLAYWRIGHT-CARD-EDIT-11 waits if another auth check starts before notification", async () => {
     // Given: Saved content is waiting for the original owner to resume.
     const saved = submit({ cardId: card.id, values });
     replaceAuthSession({ status: "initializing" });
@@ -187,7 +187,7 @@ describe("CARD-MANAGEMENT-20 CARD-MANAGEMENT-26 CARD-MANAGEMENT-27 Card edit not
     expect(showToast).toHaveBeenCalledTimes(1);
   });
 
-  it("CARD-MANAGEMENT-26 discards a superseded result during an auth check", async () => {
+  it("PLAYWRIGHT-CARD-EDIT-11 discards a superseded result during an auth check", async () => {
     // Given: A completed old edit is waiting for the original owner to resume.
     const saved = submit({ cardId: card.id, values });
     replaceAuthSession({ status: "initializing" });
@@ -210,7 +210,7 @@ describe("CARD-MANAGEMENT-20 CARD-MANAGEMENT-26 CARD-MANAGEMENT-27 Card edit not
     });
   });
 
-  it("CARD-MANAGEMENT-20 keeps different Cards' pending notifications independent", async () => {
+  it("PLAYWRIGHT-CARD-EDIT-10 keeps different Cards' pending notifications independent", async () => {
     // Given: Two existing Cards have independent edits pending.
     const anotherCard = createCard({ id: "another-card", uid: owner.uid });
     applyCardChanges([anotherCard]);
@@ -232,7 +232,7 @@ describe("CARD-MANAGEMENT-20 CARD-MANAGEMENT-26 CARD-MANAGEMENT-27 Card edit not
     ]);
   });
 
-  it("CARD-MANAGEMENT-27 suppresses a late write rejection after Deck deletion", async () => {
+  it("PLAYWRIGHT-CARD-EDIT-12 suppresses a late write rejection after Deck deletion", async () => {
     // Given: The persistence request remains pending when its Deck is removed.
     const write = Promise.withResolvers<void>();
     vi.mocked(editCard).mockReturnValueOnce(write.promise);
@@ -249,7 +249,7 @@ describe("CARD-MANAGEMENT-20 CARD-MANAGEMENT-26 CARD-MANAGEMENT-27 Card edit not
   });
 
   it.each([false, true])(
-    "CARD-MANAGEMENT-28 retains a rejected save until its owner returns (repeat auth: %s)",
+    "PLAYWRIGHT-CARD-EDIT-13 retains a rejected save until its owner returns (repeat auth: %s)",
     async (repeatAuth) => {
       // Given: A Card save is pending when the same owner's sign-out check begins.
       const write = Promise.withResolvers<void>();
@@ -281,7 +281,7 @@ describe("CARD-MANAGEMENT-20 CARD-MANAGEMENT-26 CARD-MANAGEMENT-27 Card edit not
   );
 
   it.each(["Deck removal", "owner change"])(
-    "CARD-MANAGEMENT-28 discards a retained failure after %s",
+    "PLAYWRIGHT-CARD-EDIT-13 discards a retained failure after %s",
     async (cancellation) => {
       // Given: The save has failed while its original owner's auth check remains unresolved.
       const write = Promise.withResolvers<void>();
@@ -304,7 +304,7 @@ describe("CARD-MANAGEMENT-20 CARD-MANAGEMENT-26 CARD-MANAGEMENT-27 Card edit not
     }
   );
 
-  it("CARD-MANAGEMENT-28 suppresses a retained failure when a newer edit succeeds", async () => {
+  it("PLAYWRIGHT-CARD-EDIT-13 suppresses a retained failure when a newer edit succeeds", async () => {
     // Given: A failed edit is waiting for its original owner to return.
     const write = Promise.withResolvers<void>();
     vi.mocked(editCard).mockReturnValueOnce(write.promise);

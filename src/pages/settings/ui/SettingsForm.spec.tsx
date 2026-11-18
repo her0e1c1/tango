@@ -28,7 +28,7 @@ const SettingsFormHarness: React.FC<{ values?: Preferences }> = ({ values = defa
   );
 };
 
-describe("SETTINGS-01 SETTINGS-02 SETTINGS-04 SettingsForm", () => {
+describe("SETTINGS-01 PLAYWRIGHT-SETTINGS-09 PLAYWRIGHT-SETTINGS-15 PLAYWRIGHT-STUDY-SESSION-START-04 SETTINGS-04 SettingsForm", () => {
   it("groups every auto-saved setting in the unified settings list", () => {
     // Given: Use this case's inputs and any shared test setup.
     // When: Exercise `render` with the prepared inputs.
@@ -137,7 +137,7 @@ describe("SETTINGS-01 SETTINGS-02 SETTINGS-04 SettingsForm", () => {
   });
 });
 
-describe("SETTINGS-02 maximum card count presentation", () => {
+describe("PLAYWRIGHT-SETTINGS-09 PLAYWRIGHT-SETTINGS-15 PLAYWRIGHT-STUDY-SESSION-START-04 maximum card count presentation", () => {
   it.each([
     {
       locale: "en",

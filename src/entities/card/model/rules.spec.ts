@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { createCard } from "@/test/factories";
 import { filterCardsByDeckId, filterCardsByTags, getCardContentValidationErrors, mustFindCardById } from "./rules";
 
-describe("DECK-IMPORT-02 getCardContentValidationErrors", () => {
+describe("PLAYWRIGHT-IMPORT-03 PLAYWRIGHT-IMPORT-11 PLAYWRIGHT-DECK-IMPORT-13 getCardContentValidationErrors", () => {
   it("returns field errors from the Card content schema", () => {
     // Given: Use this case's inputs and any shared test setup.
     // When: Evaluate `getCardContentValidationErrors` as part of the following checks.
@@ -25,7 +25,7 @@ describe("DECK-IMPORT-02 getCardContentValidationErrors", () => {
   });
 });
 
-describe("CARD-FILTER-01 CARD-FILTER-02 CARD-FILTER-03 filterCardsByDeckId", () => {
+describe("PLAYWRIGHT-DECK-VIEW-04 PLAYWRIGHT-DECK-VIEW-04 PLAYWRIGHT-CARD-LIST-02 PLAYWRIGHT-DECK-VIEW-02 filterCardsByDeckId", () => {
   it("returns cards matching the specified deckId", () => {
     // Given: Prepare `card1`, `card2`, `card3` and any shared test state below.
     const card1 = createCard({ id: "card-1", deckId: "deck-a" });
@@ -53,7 +53,7 @@ describe("CARD-FILTER-01 CARD-FILTER-02 CARD-FILTER-03 filterCardsByDeckId", () 
   });
 });
 
-describe("CARD-FILTER-04 CARD-FILTER-08 CARD-FILTER-09 CARD-FILTER-12 filterCardsByTags", () => {
+describe("PLAYWRIGHT-CARD-LIST-03 PLAYWRIGHT-DECK-VIEW-03 PLAYWRIGHT-CARD-LIST-49 PLAYWRIGHT-DECK-VIEW-05 PLAYWRIGHT-DECK-VIEW-05 PLAYWRIGHT-DECK-VIEW-05 filterCardsByTags", () => {
   it.each([
     { mode: "AND", tagAndFilter: true, expectedIds: ["both"] },
     { mode: "OR", tagAndFilter: false, expectedIds: ["x-only", "y-only", "both"] },
