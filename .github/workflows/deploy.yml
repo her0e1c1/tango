@@ -44,7 +44,7 @@ jobs:
         with:
           ref: ${{ github.sha }}
 
-      - uses: jdx/mise-action@b44d12e7d0d8ee7461bb893e1b1993500433185b # v5.2.7
+      - uses: jdx/mise-action@236a21c3b91f5db6d4e174b348674a0f0caac06d # v5.2.9
 
       - run: echo VITE_PROJECT_ID="${{ secrets.VITE_PROJECT_ID }}" >> .env
       - run: echo VITE_WEB_API_KEY="${{ secrets.VITE_WEB_API_KEY }}" >> .env
