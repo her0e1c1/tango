@@ -1,16 +1,13 @@
-import { useEffect } from "react";
+import { useAsync } from "react-use";
+import { useMountedGuard } from "@/shared/lib/useMountedGuard";
 import { finishDeckFilterSave } from "./actions/finishDeckFilterSave";
 import type { SetDeckFilterDraft } from "./types";
 
 export const useDeckFilterSaveLifecycle = (pending: Promise<void> | undefined, setState: SetDeckFilterDraft): void => {
-  useEffect(() => {
+  const isMounted = useMountedGuard();
+  useAsync(async () => {
     if (pending === undefined) return;
-    let active = true;
-    void pending.then(() => {
-      if (active) finishDeckFilterSave(pending, setState);
-    });
-    return () => {
-      active = false;
-    };
-  }, [pending, setState]);
+    await pending;
+    if (isMounted()) finishDeckFilterSave(pending, setState);
+  }, [pending, setState, isMounted]);
 };

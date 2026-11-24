@@ -1,5 +1,5 @@
-import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAsync } from "react-use";
 import {
   type SwipeDirection,
   toggleViewMode,
@@ -15,7 +15,6 @@ import { useStudyShortcuts } from "./useStudyShortcuts";
 import { useAuth } from "@/entities/auth";
 import type { DeckId } from "@/entities/deck";
 import { closeHelp } from "./actions/closeHelp";
-import { enterStudySessionPage } from "./actions/enterStudySessionPage";
 import { maintainStudySession } from "./actions/maintainStudySession";
 import { openHelp } from "./actions/openHelp";
 import { swipeCard } from "./actions/swipeCard";
@@ -23,6 +22,7 @@ import { toggleAutoPlay } from "./actions/toggleAutoPlay";
 import { toggleBackText } from "./actions/toggleBackText";
 import { updateStudyIndex } from "./actions/updateStudyIndex";
 import { useAutoPlay } from "./actions/useAutoPlay";
+import { useStudySessionVisit } from "./actions/useStudySessionVisit";
 import { useStudyQuery } from "./queries/useStudyQuery";
 import { useStudySessionPageState } from "./queries/useStudySessionPageState";
 import { skipCard } from "./actions/skipCard";
@@ -32,8 +32,8 @@ export function useStudySessionPageModel(deckId: DeckId) {
   const { uid } = useAuth();
   const query = useStudyQuery(deckId);
   const pageState = useStudySessionPageState(uid, deckId);
-  useEffect(() => enterStudySessionPage(uid, deckId), [uid, deckId]);
-  useEffect(() => maintainStudySession(deckId), [deckId, query.sessionState.status]);
+  useStudySessionVisit(uid, deckId);
+  useAsync(() => maintainStudySession(deckId), [deckId, query.sessionState.status]);
   useAutoPlay(query.sessionState);
   const swipe = async (direction: SwipeDirection) => {
     if (await swipeCard(deckId, direction)) await navigate(routes.deckList.to(), { replace: true });

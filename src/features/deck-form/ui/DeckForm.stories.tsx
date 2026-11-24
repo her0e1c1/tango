@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useRef } from "react";
+import { useForm, type FieldErrors, type UseFormReturn } from "react-hook-form";
+import { useLifecycles } from "react-use";
 import { fn } from "storybook/test";
 
 import { CATEGORY, type Deck } from "@/entities/deck";
@@ -34,6 +35,22 @@ const DangerZone = ({ onDelete }: { onDelete: () => void }) => (
   </section>
 );
 
+const noErrors: FieldErrors<DeckFormFields> = {};
+const invalidName: FieldErrors<DeckFormFields> = { name: { type: "too_small", message: "Deck name is required." } };
+
+function PendingDeckSave({ form }: { form: UseFormReturn<DeckFormFields> }) {
+  const finish = useRef<(() => void) | undefined>(undefined);
+  useLifecycles(
+    () => {
+      const pending = Promise.withResolvers<void>();
+      finish.current = pending.resolve;
+      void form.handleSubmit(() => pending.promise)();
+    },
+    () => finish.current?.()
+  );
+  return null;
+}
+
 const DeckFormStory = ({ deck, isSaving, mode, validationError, onCancel, onDelete }: DeckFormStoryProps) => {
   const form = useForm<DeckFormFields>({
     defaultValues:
@@ -43,14 +60,8 @@ const DeckFormStory = ({ deck, isSaving, mode, validationError, onCancel, onDele
             name: deck.name,
             category: deck.category,
           },
+    errors: validationError ? invalidName : noErrors,
   });
-
-  useEffect(() => {
-    if (validationError) {
-      form.setError("name", { type: "too_small", message: "Deck name is required." });
-    }
-    if (isSaving) void form.handleSubmit(() => new Promise(() => undefined))();
-  }, [form, isSaving, validationError]);
 
   const commonProps = {
     categories: CATEGORY,
@@ -59,18 +70,21 @@ const DeckFormStory = ({ deck, isSaving, mode, validationError, onCancel, onDele
     onSubmit: form.handleSubmit(() => undefined),
   };
 
-  if (mode === "create") {
-    return <DeckForm {...commonProps} mode="create" />;
-  }
-
   return (
-    <DeckForm
-      {...commonProps}
-      mode="edit"
-      deckInfo={{ id: deck.id, createdAt: deck.createdAt, updatedAt: deck.updatedAt }}
-      deckName={deck.name}
-      afterForm={<DangerZone onDelete={onDelete} />}
-    />
+    <>
+      {mode === "create" ? (
+        <DeckForm {...commonProps} mode="create" />
+      ) : (
+        <DeckForm
+          {...commonProps}
+          mode="edit"
+          deckInfo={{ id: deck.id, createdAt: deck.createdAt, updatedAt: deck.updatedAt }}
+          deckName={deck.name}
+          afterForm={<DangerZone onDelete={onDelete} />}
+        />
+      )}
+      {isSaving ? <PendingDeckSave form={form} /> : null}
+    </>
   );
 };
 

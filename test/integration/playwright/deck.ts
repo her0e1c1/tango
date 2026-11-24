@@ -4,6 +4,7 @@ export {
   useDeck,
   useDecks,
   subscribeDecks,
+  waitForDeck,
   CATEGORY,
   getStudyFilter,
   getCardFilter,

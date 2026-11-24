@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import * as React from "react";
+import type * as React from "react";
 import { AiOutlineArrowRight } from "react-icons/ai";
 
 import type { ToastTone } from ".";
@@ -14,8 +14,9 @@ interface ToastStoryProps {
   visualContent?: React.ReactNode;
 }
 
-const useStoryToast = (props: ToastStoryProps) => {
-  React.useEffect(() => {
+const ToastStory = (props: ToastStoryProps) => {
+  const attachStory = (element: HTMLDivElement | null) => {
+    if (element === null) return;
     const id = showToast({
       messageKey: props.messageKey,
       messageParams: props.messageParams,
@@ -25,12 +26,12 @@ const useStoryToast = (props: ToastStoryProps) => {
       visualContent: props.visualContent,
     });
     return () => dismissToast(id);
-  }, [props.dismissible, props.messageKey, props.messageParams, props.tone, props.visualContent]);
-};
-
-const ToastStory = (props: ToastStoryProps) => {
-  useStoryToast(props);
-  return <ToastViewport />;
+  };
+  return (
+    <div ref={attachStory}>
+      <ToastViewport />
+    </div>
+  );
 };
 
 // Given: Story args and parameters define the render scenarios below.

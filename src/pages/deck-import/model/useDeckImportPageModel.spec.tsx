@@ -151,7 +151,7 @@ describe("Deck import operations [PLAYWRIGHT-IMPORT-02 PLAYWRIGHT-DECK-IMPORT-01
       expect(controls.navigate).not.toHaveBeenCalled();
 
       // When: Exercise `act` with the prepared inputs.
-      act(() => {
+      await actAsync(async () => {
         replaceRemoteDecks([deck]);
         replaceRemoteCards(cards);
       });
@@ -166,7 +166,7 @@ describe("Deck import operations [PLAYWRIGHT-IMPORT-02 PLAYWRIGHT-DECK-IMPORT-01
       expect(controls.navigate).toHaveBeenCalledExactlyOnceWith("/");
 
       // When: Exercise `act` with the prepared inputs.
-      act(() => {
+      await actAsync(async () => {
         replaceRemoteDecks([deck]);
         replaceRemoteCards(cards);
       });
@@ -243,7 +243,7 @@ describe("Deck import operations [PLAYWRIGHT-IMPORT-02 PLAYWRIGHT-DECK-IMPORT-01
     // Then: Verify the expected result in the assertions below.
     expect(result.current.view.pending).toBe(true);
     // When: Exercise `act` with the prepared inputs.
-    act(() => {
+    await actAsync(async () => {
       const card = vi.mocked(createCard).mock.calls[0]?.[1];
       if (card) {
         replaceRemoteCards([createCardFixture({ ...card, deletedAt: null, uid: controls.uid })]);

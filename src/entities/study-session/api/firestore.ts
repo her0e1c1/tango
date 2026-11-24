@@ -1,3 +1,4 @@
+import { waitForStoreCondition } from "@/shared/lib/waitForStoreCondition";
 import {
   onSnapshot,
   collection,
@@ -181,4 +182,20 @@ export async function touchStudySession(deckId: string): Promise<void> {
   });
   if (auth.currentUser?.isAnonymous) void write.catch(globalThis.reportError);
   else await write;
+}
+
+export function waitForStudySession(
+  uid: string,
+  deckId: string,
+  sessionId: string,
+  signal: AbortSignal
+): Promise<boolean> {
+  return waitForStoreCondition(
+    studySessionStore.subscribe,
+    () => {
+      const session = getStudySession(deckId);
+      return session?.sessionId === sessionId && session.remote.uid === uid;
+    },
+    signal
+  );
 }

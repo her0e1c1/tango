@@ -1,3 +1,4 @@
+import { waitForStoreCondition } from "@/shared/lib/waitForStoreCondition";
 import type { z } from "zod";
 import type { Deck, DeckId, RemoteDeckCreateInput } from "../model/types";
 import { onSnapshot, collection, doc, serverTimestamp, query, setDoc, updateDoc, where } from "firebase/firestore";
@@ -10,7 +11,7 @@ import {
   deckIdSchema,
   editDeckSchema,
 } from "../model/schema";
-import { setRemoteDecks } from "../model/store";
+import { setRemoteDecks, getDecks, deckStore } from "../model/store";
 import { parseDeckDocument, toDeck, toDeckDocument } from "./document";
 
 const DECK_COLLECTION = "deck";
@@ -73,4 +74,12 @@ export async function deleteDeck(uid: string, deckId: DeckId): Promise<void> {
   const write = updateDoc(reference, { deletedAt, updatedAt: serverTimestamp() });
   if (auth.currentUser?.isAnonymous) void write.catch(globalThis.reportError);
   else await write;
+}
+
+export function waitForDeck(uid: string, id: DeckId, signal: AbortSignal): Promise<boolean> {
+  return waitForStoreCondition(
+    deckStore.subscribe,
+    () => getDecks().some((deck) => deck.id === id && deck.uid === uid),
+    signal
+  );
 }

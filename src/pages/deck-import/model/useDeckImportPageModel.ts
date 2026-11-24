@@ -1,10 +1,8 @@
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useStore } from "zustand";
-import { useKey } from "react-use";
+import { useAsync, useKey, useUnmount } from "react-use";
 
-import { useCards } from "@/entities/card";
-import { useDecks } from "@/entities/deck";
 import { usePreferences } from "@/entities/preference";
 import { useMountedGuard } from "@/shared/lib/useMountedGuard";
 import { routes } from "@/shared/router";
@@ -28,8 +26,8 @@ export function useDeckImportPageModel() {
   const navigate = useNavigate();
   const isMounted = useMountedGuard();
   const initiatedHere = useRef<boolean>(false);
-  const decks = useDecks();
-  const cards = useCards();
+  const completion = useRef<AbortController | undefined>(undefined);
+  useUnmount(() => completion.current?.abort());
   const pendingImport = useStore(deckImportStore, (state) =>
     state.status === "importing" && state.source.kind === "selected" ? state.source.preparedImport : undefined
   );
@@ -41,11 +39,14 @@ export function useDeckImportPageModel() {
     initiatedHere.current = true;
     void importDeckPreviewAction();
   };
-  useEffect(() => {
-    if (!completeDeckImport()) return;
+  useAsync(async () => {
+    completion.current?.abort();
+    const controller = new AbortController();
+    completion.current = controller;
+    if (pendingImport === undefined || !(await completeDeckImport(controller.signal))) return;
     if (initiatedHere.current && isMounted()) void navigate(routes.deckList.to());
     initiatedHere.current = false;
-  }, [cards, decks, isMounted, navigate, pendingImport]);
+  }, [isMounted, navigate, pendingImport]);
   return {
     view,
     dark: preferences.appearance.darkMode,

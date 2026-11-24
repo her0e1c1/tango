@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useMount } from "react-use";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { BackText, cardContentInputSchema, getCards, useCard, type Card } from "@/entities/card";
@@ -69,9 +69,9 @@ export function readData() {
 function UnknownErrorPage() {
   const value = useCard(card.id)!;
   const model = useCardEditPageModel(value);
-  useEffect(() => {
+  useMount(() => {
     model.form.setError("frontText", { type: "unknown", message: "private diagnostic" });
-  }, [model.form]);
+  });
   return (
     <AppLayout showHeader>
       {model.navigationGuard}

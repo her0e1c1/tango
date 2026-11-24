@@ -4,7 +4,8 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import React, { useEffect } from "react";
+import React from "react";
+import { useMount } from "react-use";
 
 import { clearLocalDataAndReload } from "./clear-local-data";
 vi.mock("./clear-local-data", () => ({ clearLocalDataAndReload: vi.fn(), isLocalDataResetRequested: () => false }));
@@ -173,9 +174,9 @@ describe("NAVIGATION-03 provider lifecycle and initial render failures", () => {
   it("catches provider effects", () => {
     // Given: Use this case's inputs and any shared test setup.
     function FailedProvider() {
-      useEffect(() => {
+      useMount(() => {
         throw new Error("provider failed");
-      }, []);
+      });
       return <ApplicationContent />;
     }
     // When: Exercise `render` with the prepared inputs.

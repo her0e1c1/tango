@@ -43,18 +43,25 @@ const CardFieldsDialog = ({ title, expanded = false, closeLabel, onClose, childr
   const closeRef = React.useRef<HTMLButtonElement>(null);
   useToastModalFocusTarget(dialogRef, closeRef);
 
-  React.useEffect(() => {
+  // Keep focus and scroll ownership stable across ordinary dialog rerenders.
+  const [attachDialog] = React.useState(() => (dialog: HTMLDivElement | null) => {
+    dialogRef.current = dialog;
+    if (dialog === null) return;
     const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     closeRef.current?.focus();
     return () => {
       document.body.style.overflow = previousOverflow;
-      if (previousFocus?.isConnected) previousFocus.focus();
+      if (previousFocus?.isConnected) {
+        // A sibling may still be inert until React finishes this commit.
+        if (previousFocus.closest("[inert]")) queueMicrotask(() => previousFocus.focus());
+        else previousFocus.focus();
+      }
     };
-  }, []);
+  });
 
-  const handleKeyDown = React.useEffectEvent((event: KeyboardEvent) => {
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     if (event.key === "Escape") {
       event.preventDefault();
       event.stopPropagation();
@@ -71,14 +78,7 @@ const CardFieldsDialog = ({ title, expanded = false, closeLabel, onClose, childr
         first?.focus();
       }
     }
-  });
-
-  React.useEffect(() => {
-    const dialog = dialogRef.current;
-    if (dialog === null) return;
-    dialog.addEventListener("keydown", handleKeyDown);
-    return () => dialog.removeEventListener("keydown", handleKeyDown);
-  }, []);
+  };
 
   return (
     <div
@@ -86,7 +86,8 @@ const CardFieldsDialog = ({ title, expanded = false, closeLabel, onClose, childr
       className="fixed inset-0 z-50 flex items-end justify-center bg-canvas/70 sm:items-center sm:p-6"
     >
       <div
-        ref={dialogRef}
+        ref={attachDialog}
+        onKeyDown={handleKeyDown}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
@@ -189,6 +190,7 @@ export const CardFields = ({
   const backTabRef = React.useRef<HTMLButtonElement>(null);
   const focusedTagValue = React.useRef("");
   const pendingTagEdit = React.useRef<{ index: number; name: string } | null>(null);
+  const focusedValidationCount = React.useRef(-1);
 
   const invalidSide = (["frontText", "backText"] as const).find((side) => formState.errors[side]) ?? null;
 
@@ -197,9 +199,6 @@ export const CardFields = ({
     setValidation({ count: formState.submitCount, side: invalidSide });
     if (invalidSide) setActiveSide(invalidSide);
   }
-  React.useEffect(() => {
-    if (validation.side) form.setFocus(validation.side);
-  }, [form, validation]);
 
   const sides = [
     {
@@ -313,6 +312,17 @@ export const CardFields = ({
               </div>
               <Textarea
                 {...side.field}
+                ref={(element) => {
+                  side.field.ref(element);
+                  if (
+                    element !== null &&
+                    validation.side === side.name &&
+                    focusedValidationCount.current !== validation.count
+                  ) {
+                    element.focus();
+                    focusedValidationCount.current = validation.count;
+                  }
+                }}
                 id={inputId}
                 rows={12}
                 className="min-h-[min(45dvh,24rem)] text-lg leading-relaxed"

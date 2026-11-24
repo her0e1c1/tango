@@ -5,7 +5,7 @@
  */
 
 import cx from "classnames";
-import * as React from "react";
+import type * as React from "react";
 // highlight.js exposes this default through its ESM export map.
 import hljs from "highlight.js";
 
@@ -18,10 +18,7 @@ import { Style } from "./Style";
  * dark theme.
  */
 const Highlight: React.FC<{ category: string; dark: boolean; text: string }> = ({ category, dark, text }) => {
-  const codeRef = React.useRef<HTMLElement>(null);
-
-  React.useEffect(() => {
-    const code = codeRef.current;
+  const highlightCode = (code: HTMLElement | null) => {
     if (code == null) return;
 
     code.textContent = text;
@@ -38,7 +35,7 @@ const Highlight: React.FC<{ category: string; dark: boolean; text: string }> = (
       code.classList.remove("hljs", ...languageClasses);
       code.textContent = text;
     };
-  }, [category, dark, text]);
+  };
 
   return (
     <pre
@@ -49,7 +46,7 @@ const Highlight: React.FC<{ category: string; dark: boolean; text: string }> = (
         category
       )}
     >
-      <code ref={codeRef} className="block min-w-max" data-theme={dark ? "dark" : "light"}>
+      <code ref={highlightCode} className="block min-w-max" data-theme={dark ? "dark" : "light"}>
         {text}
       </code>
     </pre>

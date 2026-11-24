@@ -25,7 +25,10 @@ export const NavigationGuardDialog: React.FC<NavigationGuardDialogProps> = ({
   const descriptionId = React.useId();
   useToastModalFocusTarget(dialogRef, keepEditingRef);
 
-  React.useEffect(() => {
+  // Keep focus and scroll ownership stable across ordinary dialog rerenders.
+  const [attachDialog] = React.useState(() => (dialog: HTMLDivElement | null) => {
+    dialogRef.current = dialog;
+    if (dialog === null) return;
     const previouslyFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -33,9 +36,13 @@ export const NavigationGuardDialog: React.FC<NavigationGuardDialogProps> = ({
 
     return () => {
       document.body.style.overflow = previousOverflow;
-      if (previouslyFocused?.isConnected) previouslyFocused.focus();
+      if (previouslyFocused?.isConnected) {
+        // A sibling may still be inert until React finishes this commit.
+        if (previouslyFocused.closest("[inert]")) queueMicrotask(() => previouslyFocused.focus());
+        else previouslyFocused.focus();
+      }
     };
-  }, []);
+  });
 
   const handleTabKey = (event: React.KeyboardEvent<HTMLDivElement>) => {
     const focusable = Array.from(dialogRef.current?.querySelectorAll<HTMLElement>(focusableElementSelector) ?? []);
@@ -67,7 +74,7 @@ export const NavigationGuardDialog: React.FC<NavigationGuardDialogProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-canvas/70 px-shell-gutter py-6">
       {/* The alertdialog owns Escape and focus-trap keyboard handling. */}
       <div
-        ref={dialogRef}
+        ref={attachDialog}
         role="alertdialog"
         aria-modal="true"
         aria-labelledby={titleId}

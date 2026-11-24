@@ -1,3 +1,4 @@
+import { waitForStoreCondition } from "@/shared/lib/waitForStoreCondition";
 import type { CardId, CardCreateCommand, CardEditInput, CardContentInput } from "../model/types";
 import { FirebaseError } from "firebase/app";
 import {
@@ -233,4 +234,9 @@ export function waitForCardContent(
     signal.addEventListener("abort", check, { once: true });
     check();
   });
+}
+
+// Observe the application read model so callers can wait for subscription delivery after creating records.
+export function waitForCards(uid: string, ids: readonly CardId[], signal: AbortSignal): Promise<boolean> {
+  return waitForStoreCondition(cardStore.subscribe, () => ids.every((id) => findCardById(id)?.uid === uid), signal);
 }

@@ -28,11 +28,11 @@ const preferences = createPreferences({
 
 const PreferencesFormHarness: React.FC = () => {
   const savedPreferences = usePreferences();
-  const { form, studyPreferencesLimits } = useSettingsPageModel();
+  const { form, onChange, studyPreferencesLimits } = useSettingsPageModel();
 
   return (
     <>
-      <SettingsForm form={form} studyPreferencesLimits={studyPreferencesLimits} />
+      <SettingsForm form={form} onChange={onChange} studyPreferencesLimits={studyPreferencesLimits} />
       <output aria-label="Saved playback controls preference">
         {String(savedPreferences.controls.showPlaybackControls)}
       </output>

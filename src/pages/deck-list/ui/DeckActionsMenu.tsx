@@ -4,7 +4,7 @@
  * outside the view.
  */
 
-import * as React from "react";
+import type * as React from "react";
 import {
   AiOutlineBarChart,
   AiOutlineRead,
@@ -32,15 +32,11 @@ export interface DeckActionsMenuProps {
 
 /**
  * Renders the Deck Actions Menu user interface.
- * Offers deck actions, closes when disabled during pending work, and reports selections and
+ * Offers deck actions and reports selections and
  * dismissal to its owner.
  */
 export const DeckActionsMenu: React.FC<DeckActionsMenuProps> = (props) => {
   const { t } = useTranslation();
-  const { disabled, onClose, open } = props;
-  React.useEffect(() => {
-    if (disabled && open) onClose();
-  }, [disabled, onClose, open]);
 
   const items: ActionsMenuItem[] = [
     {

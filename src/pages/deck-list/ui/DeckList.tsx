@@ -109,6 +109,12 @@ export const DeckList: React.FC<DeckListProps> = (props) => {
   const { t } = useTranslation();
   const [openMenuDeckId, setOpenMenuDeckId] = React.useState<DeckId>();
   const [actionsOpen, setActionsOpen] = React.useState(false);
+  if (
+    openMenuDeckId !== undefined &&
+    (props.deckCard?.isPending?.(openMenuDeckId) || props.deckCard?.continuingDeckId === openMenuDeckId)
+  ) {
+    setOpenMenuDeckId(undefined);
+  }
   const total = props.sections.studying.length + props.sections.other.length + (props.sections.reviewNow?.length ?? 0);
   const toggleMenu = (id: DeckId) => {
     setActionsOpen(false);

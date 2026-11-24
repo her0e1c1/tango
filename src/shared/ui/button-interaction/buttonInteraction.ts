@@ -4,7 +4,7 @@
  * act like a button.
  */
 
-import { useEffect, useRef } from "react";
+import { useState } from "react";
 import type * as React from "react";
 
 type ButtonInteraction<Element extends HTMLElement> = Pick<
@@ -20,17 +20,14 @@ type ButtonInteraction<Element extends HTMLElement> = Pick<
 export const useButtonInteraction = <Element extends HTMLElement>(
   onClick: (() => void) | undefined
 ): ButtonInteraction<Element> | Record<string, never> => {
-  const spacePressed = useRef(false);
-
-  useEffect(() => {
-    if (onClick === undefined) spacePressed.current = false;
-  }, [onClick]);
+  const [spacePressed, setSpacePressed] = useState(false);
+  if (onClick === undefined && spacePressed) setSpacePressed(false);
 
   if (onClick === undefined) return {};
 
   return {
     onBlur: (event) => {
-      if (event.target === event.currentTarget) spacePressed.current = false;
+      if (event.target === event.currentTarget) setSpacePressed(false);
     },
     onClick,
     onKeyDown: (event) => {
@@ -38,7 +35,7 @@ export const useButtonInteraction = <Element extends HTMLElement>(
 
       if (event.key === " ") {
         event.preventDefault();
-        if (!event.repeat) spacePressed.current = true;
+        if (!event.repeat) setSpacePressed(true);
       } else if (event.key === "Enter") {
         event.preventDefault();
         if (!event.repeat) onClick();
@@ -48,9 +45,8 @@ export const useButtonInteraction = <Element extends HTMLElement>(
       if (event.target !== event.currentTarget || event.key !== " ") return;
 
       event.preventDefault();
-      // biome-ignore lint/suspicious/noUnnecessaryConditions: React refs are mutable; remove after biomejs/biome#11174.
-      if (spacePressed.current) {
-        spacePressed.current = false;
+      if (spacePressed) {
+        setSpacePressed(false);
         onClick();
       }
     },

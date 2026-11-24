@@ -12,6 +12,7 @@ const repositoryUrl = "https://github.com/her0e1c1/tango";
 
 export interface SettingsFormProps {
   form: UseFormReturn<SettingsFormValues>;
+  onChange?: () => void;
   studyPreferencesLimits: {
     maxNumberOfCardsToLearn: { min: number; max: number };
     cardInterval: { min: number; max: number };
@@ -34,6 +35,10 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
     maxNumberOfCardsToLearn === 0 ? t("settings.study.maximumCards.allMatching") : maxNumberOfCardsToLearn;
   const { field: cardIntervalField } = useController({ control: props.form.control, name: "study.cardInterval" });
   const cardInterval = cardIntervalField.value;
+  const { value: darkMode, ...darkModeInput } = useController({
+    control: props.form.control,
+    name: "appearance.darkMode",
+  }).field;
   const idPrefix = useId();
   const inputIds = {
     language: `${idPrefix}-language`,
@@ -59,7 +64,7 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
   const descriptionId = (inputId: string) => `${inputId}-description`;
 
   return (
-    <section className="mx-auto flex w-full max-w-reading flex-col gap-4 text-ink">
+    <section className="mx-auto flex w-full max-w-reading flex-col gap-4 text-ink" onChange={props.onChange}>
       <div className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
         <h1 className="break-words text-title font-bold text-ink">{t("settings.title")}</h1>
         <p className="text-caption text-ink-muted">{t("settings.autoSave")}</p>
@@ -165,7 +170,8 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
             description={t("settings.appearance.darkMode.help")}
           >
             <Switch
-              {...props.form.register("appearance.darkMode")}
+              {...darkModeInput}
+              checked={darkMode}
               id={inputIds.darkMode}
               aria-describedby={descriptionId(inputIds.darkMode)}
             />

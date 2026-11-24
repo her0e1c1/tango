@@ -1,18 +1,20 @@
-import { getCards } from "@/entities/card";
-import { getDecks } from "@/entities/deck";
+import { getAuthUid } from "@/entities/auth";
+import { waitForCards } from "@/entities/card";
+import { waitForDeck } from "@/entities/deck";
 import { showToast } from "@/shared/ui/toast";
 
 import { deckImportStore } from "../store";
 
-export function completeDeckImport(): boolean {
+export async function completeDeckImport(signal: AbortSignal): Promise<boolean> {
   const { status, source } = deckImportStore.getState();
   if (status !== "importing" || source.kind !== "selected" || source.preparedImport === undefined) return false;
 
   const pendingImport = source.preparedImport;
-  const deckReady = getDecks().some((deck) => deck.id === pendingImport.destination.id);
   const cardIds = pendingImport.mutations.flatMap((mutation) => (mutation.kind === "create" ? [mutation.card.id] : []));
-  const cards = getCards();
-  if (!deckReady || cardIds.some((id) => !cards.some((card) => card.id === id))) return false;
+  if (!(await waitForDeck(pendingImport.uid, pendingImport.destination.id, signal))) return false;
+  if (!(await waitForCards(pendingImport.uid, cardIds, signal))) return false;
+  if (signal.aborted || getAuthUid() !== pendingImport.uid) return false;
+  if (deckImportStore.getState().source !== source || deckImportStore.getState().status !== "importing") return false;
 
   showToast({
     messageKey: "deckImport.toast.imported",

@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useTimeoutFn, useUpdateEffect } from "react-use";
 import { useStore } from "zustand";
 import { usePreferences } from "@/entities/preference";
 import { canMoveStudySession } from "@/entities/study-session";
@@ -27,14 +27,15 @@ export function useAutoPlay(sessionState: StudySessionState): void {
       ? sessionState.session
       : undefined;
 
-  useEffect(() => {
+  const [, cancel, restart] = useTimeoutFn(() => {
     if (session === undefined) return;
-    const timeout = window.setTimeout(() => {
-      // A departed visit must not advance a matching session in a later visit.
-      const current = studySessionPageStore.getState();
-      if (current.owner !== owner || !current.pageState.autoPlay || current.pageState.helpOpen) return;
-      advanceStudySession(session);
-    }, cardInterval * 1000);
-    return () => window.clearTimeout(timeout);
-  }, [session, owner, cardInterval]);
+    // A departed visit must not advance a matching session in a later visit.
+    const current = studySessionPageStore.getState();
+    if (current.owner !== owner || !current.pageState.autoPlay || current.pageState.helpOpen) return;
+    advanceStudySession(session);
+  }, cardInterval * 1000);
+  useUpdateEffect(() => {
+    if (session === undefined) cancel();
+    else restart();
+  }, [session, owner, cardInterval, cancel, restart]);
 }

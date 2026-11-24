@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useUnmount } from "react-use";
 import { createBrowserRouter, type RouteObject } from "react-router-dom";
 import { appRoutes } from "@/app/routes";
 import App from "@/app/App";
@@ -160,7 +161,7 @@ function Routes({ path, routes }: { path: string; routes: RouteObject[] }) {
     window.history.replaceState(null, "", initialPath);
     return createBrowserRouter(routes);
   });
-  useEffect(() => () => router.dispose(), [router]);
+  useUnmount(() => router.dispose());
   return <App router={router} />;
 }
 export function renderRoutes(path: string, routes: RouteObject[] = appRoutes) {

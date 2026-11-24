@@ -2,7 +2,6 @@ import { flushSync } from "react-dom";
 import { useCardTagForm } from "@/test/useCardTagForm";
 import { BackText } from "@/entities/card";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { fn } from "storybook/test";
 
@@ -22,10 +21,6 @@ interface CardCreatorStoryProps {
 const CardCreatorStory = ({ initialValues, isSaving, onCancel, onSubmit }: CardCreatorStoryProps) => {
   const form = useForm<CardFormFields>({ defaultValues: initialValues ?? { frontText: "", backText: "", tags: [] } });
 
-  useEffect(() => {
-    if (isSaving) void form.handleSubmit(() => new Promise(() => undefined))();
-  }, [form, isSaving]);
-
   const preview = useCardPreviewContent(form.control, "raw", false);
 
   return (
@@ -35,6 +30,7 @@ const CardCreatorStory = ({ initialValues, isSaving, onCancel, onSubmit }: CardC
       preview={<BackText {...preview} />}
       deckName="Spanish vocabulary"
       form={form}
+      pending={isSaving}
       onCancel={onCancel}
       onSubmit={form.handleSubmit(onSubmit)}
     />

@@ -37,6 +37,7 @@ const ControlledMenu: React.FC<ControlledMenuProps> = (props) => {
 const DisableableMenu: React.FC = () => {
   const [open, setOpen] = React.useState(false);
   const [disabled, setDisabled] = React.useState(false);
+  if (disabled && open) setOpen(false);
   return (
     <>
       <button type="button" onClick={() => setDisabled((value) => !value)}>

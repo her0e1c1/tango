@@ -39,7 +39,7 @@ vi.mock("@/entities/preference", () => ({
   usePreferences: () => mocks.preferences,
   setDarkMode: mocks.setDarkMode,
 }));
-vi.mock("../model/actions/bootstrapSampleDeck", () => ({ bootstrapSampleDeck: () => undefined }));
+vi.mock("../model/actions/bootstrapSampleDeck", () => ({ bootstrapSampleDeck: () => Promise.resolve() }));
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 vi.mock("@/shared/files", () => ({ downloadTextFile: mocks.downloadTextFile }));
 

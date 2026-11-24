@@ -27,14 +27,15 @@ const AppShell: React.FC<AppProps> = ({ router }) => {
   const { darkMode } = usePreferences().appearance;
   const focusFallbackRef = React.useRef<HTMLElement>(null);
 
-  React.useEffect(() => {
-    document.documentElement.classList.toggle("dark", darkMode);
-  }, [darkMode]);
+  const attachShell = (element: HTMLElement | null) => {
+    focusFallbackRef.current = element;
+    element?.ownerDocument.documentElement.classList.toggle("dark", darkMode);
+  };
 
   return (
     <>
       <main
-        ref={focusFallbackRef}
+        ref={attachShell}
         // This landmark survives route replacement so removing a focused Toast never leaves focus on the document body.
         tabIndex={-1}
       >

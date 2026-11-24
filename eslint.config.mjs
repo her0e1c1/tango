@@ -21,12 +21,25 @@ const vitestFiles = [
   "test/integration/*.{spec,test}.{ts,tsx}",
   "test/integration/firestore/**/*.{spec,test}.{ts,tsx}",
 ];
+const playwrightConfigs = ["playwright.config.ts", "playwright.integration.config.ts"];
 const playwrightFiles = [
   "test/e2e/**/*.{ts,tsx}",
   "test/integration/playwright/**/*.{ts,tsx}",
-  "playwright.config.ts",
-  "playwright.integration.config.ts",
+  ...playwrightConfigs,
 ];
+const effectPolicyFiles = [...sourceFiles, "test/**/*.{ts,tsx}", ".storybook/**/*.{ts,tsx}", ...playwrightConfigs];
+// Catch named imports, aliases, and property access such as React.useEffect or React["useEffect"].
+const effectSyntax = {
+  selector: [
+    "Identifier[name='useEffect']",
+    "MemberExpression[property.value='useEffect']",
+    "Property[key.value='useEffect']",
+    "ImportSpecifier[imported.value='useEffect']",
+    "ExportSpecifier[local.value='useEffect']",
+    "ExportSpecifier[exported.value='useEffect']",
+  ].join(", "),
+  message: "Do not use useEffect. Use an event handler, a derived value, a ref callback, or a purpose-specific subscription or timer.",
+};
 // no-restricted-imports uses gitignore patterns: a directory also matches its descendants.
 const apiImports = {
   group: ["../**/api", "@/**/api"],
@@ -56,11 +69,15 @@ const pageRouteImports = ["react-router", "react-router-dom"].map((name) => ({
 export default defineConfig(
   { linterOptions: { noInlineConfig: true } },
   {
-    files: [...sourceFiles, ...vitestFiles, ...playwrightFiles],
+    files: effectPolicyFiles,
     languageOptions: {
       parser: tsParser,
       parserOptions: { projectService: true, tsconfigRootDir: import.meta.dirname },
     },
+    rules: { "no-restricted-syntax": ["error", effectSyntax] },
+  },
+  {
+    files: [...sourceFiles, ...vitestFiles, ...playwrightFiles],
     rules: { complexity: "error", "max-depth": "error" },
   },
   // Hook correctness and React Compiler compatibility must hold in production, tests, and stories alike.
@@ -68,12 +85,14 @@ export default defineConfig(
     files: [...sourceFiles, "test/integration/playwright/**/*.tsx"],
     // React Compiler is enabled in Vite, so this preset checks both Hooks semantics and compiler-incompatible patterns.
     extends: [reactHooks.configs.flat["recommended-latest"]],
+    settings: { "react-hooks": { additionalEffectHooks: "useUpdateEffect" } },
     rules: {
       // React Compiler owns routine memoization, so manual caches would duplicate its work and add dependency lists
       // that can become stale.
       // Match identifiers rather than imports alone so qualified calls such as React.useMemo cannot bypass the policy.
       "no-restricted-syntax": [
         "error",
+        effectSyntax,
         {
           selector: "Identifier[name='useCallback']",
           message: "Do not use useCallback; rely on React Compiler memoization.",

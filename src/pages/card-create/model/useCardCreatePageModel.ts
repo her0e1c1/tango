@@ -1,10 +1,10 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import type { SubmitEvent } from "react";
 import { useForm, useFormState, useWatch } from "react-hook-form";
-import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
-import { type CardContentInput, cardContentInputSchema, useCard, useCardsByDeckId } from "@/entities/card";
+import { type CardContentInput, cardContentInputSchema, useCardsByDeckId } from "@/entities/card";
 import { useDeck } from "@/entities/deck";
 import { usePreferences } from "@/entities/preference";
 import {
@@ -17,9 +17,9 @@ import {
   useCardPreviewContent,
 } from "@/features/card-form";
 import { routes, useNavigationGuard } from "@/shared/router";
-import { showToast } from "@/shared/ui/toast";
+import { useMountedAbortSignal } from "@/shared/lib/useMountedAbortSignal";
 
-import { submit as submitAction } from "./actions/submit";
+import { submitCardCreation } from "./actions/submitCardCreation";
 
 export function useCardCreateRouteModel(deckId: string | undefined) {
   if (deckId === undefined) throw new Error("invalid deck id");
@@ -32,33 +32,24 @@ export function useCardCreatePageModel(deckId: string) {
   const preferences = usePreferences();
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [pending, setPending] = useState<{ id: string; name: string } | undefined>(undefined);
-  const createdCard = useCard(pending?.id);
-  const completedId = useRef<string | undefined>(undefined);
+  const getSignal = useMountedAbortSignal();
   const destination = routes.cardList.to(deckId);
   const form = useForm<CardContentInput>({
     defaultValues: { frontText: "", backText: "", tags: [] },
     resolver: zodResolver(cardContentInputSchema),
   });
   const { isDirty, isSubmitting } = useFormState({ control: form.control });
-  const guard = useNavigationGuard(isDirty || isSubmitting || pending !== undefined, {
+  const guard = useNavigationGuard(isDirty || isSubmitting, {
     description: isSubmitting ? t("cardForm.create.submittingDescription") : undefined,
   });
 
   async function onSubmit(values: CardContentInput): Promise<void> {
-    if (pending !== undefined) return;
-    const submitted = await submitAction({ deckId, values });
-    if (submitted !== undefined) setPending(submitted);
-  }
-
-  useEffect(() => {
-    if (pending === undefined || createdCard === undefined || completedId.current === pending.id) return;
-    completedId.current = pending.id;
-    showToast({ messageKey: "cardForm.toast.created", messageParams: { name: pending.name }, tone: "success" });
-    void guard.allowNavigation({ historyAction: "REPLACE", to: destination }, () =>
+    const signal = getSignal();
+    if (signal === undefined || !(await submitCardCreation(deckId, values, signal)) || signal.aborted) return;
+    await guard.allowNavigation({ historyAction: "REPLACE", to: destination }, () =>
       navigate(destination, { replace: true })
     );
-  }, [createdCard, destination, guard, navigate, pending]);
+  }
 
   const tagValues = useWatch({ control: form.control, name: "tags" });
   const { tagRowIds, setTagRowIds } = useCardTagState(form.getValues("tags"));
@@ -79,7 +70,7 @@ export function useCardCreatePageModel(deckId: string) {
       selectCardTag({ name: tag, selected }, form.getValues, form.setValue, setTagRowIds),
     navigationGuard: guard.element,
     onCancel: () => void navigate(destination),
-    pending: pending !== undefined,
-    onSubmit: form.handleSubmit(onSubmit),
+    pending: isSubmitting,
+    onSubmit: (event: SubmitEvent<HTMLFormElement>) => form.handleSubmit(onSubmit)(event),
   };
 }

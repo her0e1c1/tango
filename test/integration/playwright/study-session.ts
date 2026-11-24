@@ -11,6 +11,7 @@ export {
   clearStudySessions,
   getStudySession,
   subscribeStudySessions,
+  waitForStudySession,
   subscribeStudyHistory,
 } from "../../../src/entities/study-session";
 export type {

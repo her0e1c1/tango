@@ -1,6 +1,6 @@
 export { useDeck, useDecks } from "./model/hooks";
 export { subscribeDecks } from "./api/firestore";
-export { createDeck, deleteDeck, editDeck } from "./api/firestore";
+export { createDeck, deleteDeck, editDeck, waitForDeck } from "./api/firestore";
 export {
   CATEGORY,
   getStudyFilter,

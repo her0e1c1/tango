@@ -8,6 +8,7 @@ import { DeckActionsMenu, type DeckActionsMenuProps } from "./DeckActionsMenu";
 
 const DeckActionsMenuStory = (args: DeckActionsMenuProps) => {
   const [open, setOpen] = useState(args.open);
+  if (args.disabled && open) setOpen(false);
 
   return (
     <DeckActionsMenu

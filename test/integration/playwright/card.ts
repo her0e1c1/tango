@@ -8,6 +8,7 @@ export {
   useInvalidCardIds,
   subscribeCards,
   waitForCardContent,
+  waitForCards,
   cardContentInputSchema,
   clearRemoteCards,
   findCardById,

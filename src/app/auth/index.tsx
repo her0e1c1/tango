@@ -1,5 +1,6 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
+import { useLifecycles } from "react-use";
 
 import { useAuthSession } from "@/entities/auth";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
@@ -15,10 +16,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const { t } = useTranslation();
   const authState = useAuthSession();
 
-  React.useEffect(() => {
-    const stopAuthSession = startAuthSession();
-    return stopAuthSession;
-  }, []);
+  const stopSession = React.useRef<(() => void) | undefined>(undefined);
+  useLifecycles(
+    () => {
+      stopSession.current = startAuthSession();
+    },
+    () => stopSession.current?.()
+  );
 
   if (
     authState.status === "initializing" ||

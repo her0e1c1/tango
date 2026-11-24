@@ -9,7 +9,6 @@ import { useStudyHistoryFormState } from "./useStudyHistoryFormState";
 import { useStudyHistoryState } from "./useStudyHistoryState";
 import { useStudyHistoryClock } from "./useStudyHistoryClock";
 import { useStudyAnswerHistoryState } from "./useStudyAnswerHistoryState";
-import { useLoadStudyAnswers } from "./actions/useLoadStudyAnswers";
 import { getStudyAnswerHistoryView } from "./queries/getStudyAnswerHistoryView";
 
 export function useStudyHistoryPageModel() {
@@ -22,7 +21,6 @@ export function useStudyHistoryPageModel() {
   const form = useStudyHistoryFormState(range.fields, range.maxDate);
   const history = useStudyHistoryState(uid || null, deckId, range.period);
   const answers = useStudyAnswerHistoryState(uid || null, deckId, range.period, isAnonymous);
-  useLoadStudyAnswers({ request: answers.request, setResult: answers.setResult });
   const answerHistory = getStudyAnswerHistoryView(answers, decks);
   const view = getStudyHistoryView(uid, decks, deckId, history);
   return {

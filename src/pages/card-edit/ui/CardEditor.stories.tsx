@@ -3,8 +3,7 @@ import { useCardTagForm } from "@/test/useCardTagForm";
 import { BackText } from "@/entities/card";
 import { useCardPreviewContent } from "@/features/card-form";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, type FieldErrors } from "react-hook-form";
 import { fn } from "storybook/test";
 
 import type { Card, CardContentInput } from "@/entities/card";
@@ -21,25 +20,17 @@ interface CardEditorStoryProps {
   onCancel: () => void;
 }
 
+const noErrors: FieldErrors<CardContentInput> = {};
+const invalidContent: FieldErrors<CardContentInput> = {
+  frontText: { type: "required", message: "Front text is required." },
+  backText: { type: "required", message: "Back text is required." },
+};
+
 const CardEditorStory = ({ card, isSaving, validationError, onCancel }: CardEditorStoryProps) => {
   const form = useForm<CardContentInput>({
     defaultValues: { frontText: card.frontText, backText: card.backText, tags: card.tags },
+    errors: validationError ? invalidContent : noErrors,
   });
-
-  useEffect(() => {
-    if (validationError) {
-      form.setError("frontText", { message: "Front text is required." });
-      form.setError("backText", { message: "Back text is required." });
-    }
-  }, [form, validationError]);
-
-  useEffect(() => {
-    if (!isSaving) return;
-    const pending = Promise.withResolvers<void>();
-    // Drive the saving preview through RHF, just as a pending persistence request does.
-    void form.handleSubmit(() => pending.promise)();
-    return () => pending.resolve();
-  }, [form, isSaving]);
 
   const preview = useCardPreviewContent(form.control, "raw", false);
 
@@ -54,6 +45,7 @@ const CardEditorStory = ({ card, isSaving, validationError, onCancel }: CardEdit
       availableTags={CATEGORY}
       preview={<BackText {...preview} />}
       form={form}
+      pending={isSaving}
       onCancel={onCancel}
       onSubmit={form.handleSubmit(() => undefined)}
     />

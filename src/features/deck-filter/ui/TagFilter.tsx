@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from "react";
+import { useId, useRef, useState } from "react";
 import type * as React from "react";
 import { useTranslation } from "react-i18next";
 import { AiOutlineCheck, AiOutlineDown, AiOutlineUp } from "react-icons/ai";
@@ -65,13 +65,6 @@ export const TagFilter: React.FC<TagFilterProps> = (props) => {
     selectedTags.length === 0
       ? t("deckFilter.tagFilter.noFilter")
       : t("deckFilter.tagFilter.selected", { count: selectedTags.length });
-
-  useEffect(() => {
-    if (!expanded || pendingExpandedTagFocusRef.current === null) return;
-
-    tagRefs.current.get(pendingExpandedTagFocusRef.current)?.focus();
-    pendingExpandedTagFocusRef.current = null;
-  }, [expanded]);
 
   const toggleTag = (tag: string) => {
     if (!selectedTagSet.has(tag)) {
@@ -181,7 +174,13 @@ export const TagFilter: React.FC<TagFilterProps> = (props) => {
                     key={tag}
                     ref={(element) => {
                       if (element === null) tagRefs.current.delete(tag);
-                      else tagRefs.current.set(tag, element);
+                      else {
+                        tagRefs.current.set(tag, element);
+                        if (pendingExpandedTagFocusRef.current === tag) {
+                          element.focus();
+                          pendingExpandedTagFocusRef.current = null;
+                        }
+                      }
                     }}
                     tag={tag}
                     name={tagInputName}

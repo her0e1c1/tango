@@ -4,6 +4,7 @@ import { createPortal } from "react-dom";
 import { AiOutlineClose } from "react-icons/ai";
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
+import { useTimeoutFn } from "react-use";
 
 import {
   dismissToast,
@@ -72,24 +73,22 @@ const Toast = (props: ToastProps) => {
   );
 };
 
-const useAutoDismiss = (toast: ToastState | undefined) => {
-  React.useEffect(() => {
-    if (toast === undefined || toast.durationMs === null) return;
-    const timeout = window.setTimeout(() => dismissToast(toast.id), toast.durationMs);
-    return () => window.clearTimeout(timeout);
-  }, [toast]);
+const ToastTimer = ({ id, durationMs }: { id: ToastState["id"]; durationMs: number }) => {
+  useTimeoutFn(() => dismissToast(id), durationMs);
+  return null;
 };
 
 const ToastItem = ({ toast, modalActive }: { toast: ToastState; modalActive: boolean }) => {
   const { t } = useTranslation();
-  const visualTargetRef = React.useRef<HTMLDivElement>(null);
-  React.useLayoutEffect(() => {
-    const visualTarget = visualTargetRef.current;
+  const attachToast = (visualTarget: HTMLDivElement | null) => {
     if (visualTarget === null) return;
-    return registerToastVisualTarget(toast.id, visualTarget);
-  }, [toast]);
+    const unregister = registerToastVisualTarget(toast.id, visualTarget);
+    return () => {
+      unregister();
+    };
+  };
   return (
-    <div ref={visualTargetRef}>
+    <div ref={attachToast}>
       <Toast
         message={t(toast.messageKey, toast.messageParams ?? {})}
         visualContent={toast.visualContent}
@@ -112,8 +111,6 @@ export const ToastViewport = <T extends HTMLElement = HTMLElement>({
   const { t } = useTranslation();
   const current = useStore(toastStore, (state) => state.current);
   const supplementary = useStore(toastStore, (state) => state.supplementary);
-  useAutoDismiss(current);
-  useAutoDismiss(supplementary);
   const toasts = [current, supplementary].filter((toast) => toast !== undefined);
   const modalTargets = useStore(toastStore, (state) => state.modalFocusTargets);
   const modalActive = modalTargets.length > 0;
@@ -132,6 +129,11 @@ export const ToastViewport = <T extends HTMLElement = HTMLElement>({
     <span
       key={toast.id}
     >{`${t(tonePresentation[toast.tone].labelKey)}: ${t(toast.messageKey, toast.messageParams ?? {})}`}</span>
+  );
+
+  // A modal can move the viewport to a portal without restarting a toast's deadline.
+  const timers = toasts.map((toast) =>
+    toast.durationMs === null ? null : <ToastTimer key={toast.id} id={toast.id} durationMs={toast.durationMs} />
   );
 
   const viewport = (
@@ -162,5 +164,10 @@ export const ToastViewport = <T extends HTMLElement = HTMLElement>({
       )}
     </>
   );
-  return nativeModal === undefined ? viewport : createPortal(viewport, nativeModal);
+  return (
+    <>
+      {timers}
+      {nativeModal === undefined ? viewport : createPortal(viewport, nativeModal)}
+    </>
+  );
 };

@@ -1,11 +1,10 @@
-import { useEffect, useState } from "react";
-import { useMountedGuard } from "@/shared/lib/useMountedGuard";
+import { useState } from "react";
+import { useMountedAbortSignal } from "@/shared/lib/useMountedAbortSignal";
 import { useNavigate } from "react-router-dom";
 import { routes } from "@/shared/router";
 
 import { useAuth } from "@/entities/auth";
 import { type Deck, useDeck } from "@/entities/deck";
-import { useStudySession } from "@/entities/study-session";
 import {
   useDeckFilterDraft,
   getDeckFilterState,
@@ -13,7 +12,7 @@ import {
   updateDeckFilterDraft,
 } from "@/features/deck-filter";
 
-import { startStudySession } from "./actions/startStudySession";
+import { startStudyAndWait } from "./actions/startStudyAndWait";
 import { useStudyStartShortcut } from "./actions/useStudyStartShortcut";
 import { useStudySessionStartState } from "./queries/useStudySessionStartState";
 
@@ -24,9 +23,8 @@ export function useStudySessionStartRouteModel(deckId: string) {
 
 export function useStudySessionStartPageModel(deck: Deck) {
   const navigate = useNavigate();
-  const isMounted = useMountedGuard();
   const [pendingSessionId, setPendingSessionId] = useState<string | undefined>(undefined);
-  const session = useStudySession(deck.id);
+  const getSignal = useMountedAbortSignal();
   const { uid } = useAuth();
   const filterDraft = useDeckFilterDraft(uid, deck);
   useDeckFilterSaveLifecycle(filterDraft.state.pending, filterDraft.setState);
@@ -41,13 +39,11 @@ export function useStudySessionStartPageModel(deck: Deck) {
   const state = useStudySessionStartState(deck.id, filterDraft.state.draft);
   const start = async () => {
     if (filter.saving || pendingSessionId !== undefined) return;
-    const sessionId = await startStudySession(deck.id, filterDraft.state.draft);
-    if (sessionId !== undefined && isMounted()) setPendingSessionId(sessionId);
+    const signal = getSignal();
+    if (signal === undefined) return;
+    const ready = await startStudyAndWait(deck.id, filterDraft.state.draft, setPendingSessionId, signal);
+    if (ready && !signal.aborted) void navigate(routes.deckStudy.to(deck.id), { replace: true });
   };
-  useEffect(() => {
-    if (pendingSessionId === undefined || session?.sessionId !== pendingSessionId) return;
-    void navigate(routes.deckStudy.to(deck.id), { replace: true });
-  }, [deck.id, navigate, pendingSessionId, session?.sessionId]);
   useStudyStartShortcut(
     () => {
       void start();

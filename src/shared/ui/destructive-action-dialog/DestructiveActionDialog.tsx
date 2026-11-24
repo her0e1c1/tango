@@ -27,7 +27,10 @@ export const DestructiveActionDialog: React.FC<DestructiveActionDialogProps> = (
   const descriptionId = React.useId();
   useToastModalFocusTarget(dialogRef, targetNameRef);
 
-  React.useEffect(() => {
+  // Keep focus and scroll ownership stable across ordinary dialog rerenders.
+  const [attachDialog] = React.useState(() => (dialog: HTMLDivElement | null) => {
+    dialogRef.current = dialog;
+    if (dialog === null) return;
     const previouslyFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -35,9 +38,13 @@ export const DestructiveActionDialog: React.FC<DestructiveActionDialogProps> = (
 
     return () => {
       document.body.style.overflow = previousOverflow;
-      if (previouslyFocused?.isConnected) previouslyFocused.focus();
+      if (previouslyFocused?.isConnected) {
+        // A sibling may still be inert until React finishes this commit.
+        if (previouslyFocused.closest("[inert]")) queueMicrotask(() => previouslyFocused.focus());
+        else previouslyFocused.focus();
+      }
     };
-  }, []);
+  });
 
   React.useLayoutEffect(() => {
     if (!props.pending) return;
@@ -45,7 +52,7 @@ export const DestructiveActionDialog: React.FC<DestructiveActionDialogProps> = (
     targetNameRef.current?.focus();
   }, [props.pending]);
 
-  const handleDialogTabKey = (event: KeyboardEvent) => {
+  const handleDialogTabKey = (event: React.KeyboardEvent<HTMLDivElement>) => {
     const focusable = Array.from(dialogRef.current?.querySelectorAll<HTMLElement>(focusableElementSelector) ?? []);
     if (focusable.length === 0) {
       event.preventDefault();
@@ -70,7 +77,7 @@ export const DestructiveActionDialog: React.FC<DestructiveActionDialogProps> = (
     props.onCancel();
   };
 
-  const handleKeyDownEvent = React.useEffectEvent((event: KeyboardEvent) => {
+  const handleKeyDownEvent = (event: React.KeyboardEvent<HTMLDivElement>) => {
     if (event.key === "Escape") {
       event.preventDefault();
       handleCancel();
@@ -79,14 +86,7 @@ export const DestructiveActionDialog: React.FC<DestructiveActionDialogProps> = (
     if (event.key === "Tab") {
       handleDialogTabKey(event);
     }
-  });
-
-  React.useEffect(() => {
-    const dialog = dialogRef.current;
-    if (dialog === null) return;
-    dialog.addEventListener("keydown", handleKeyDownEvent);
-    return () => dialog.removeEventListener("keydown", handleKeyDownEvent);
-  }, []);
+  };
 
   const describedBy = `${targetId} ${descriptionId}`;
 
@@ -110,7 +110,8 @@ export const DestructiveActionDialog: React.FC<DestructiveActionDialogProps> = (
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-canvas/70 px-shell-gutter py-6">
       <div
-        ref={dialogRef}
+        ref={attachDialog}
+        onKeyDown={handleKeyDownEvent}
         role="alertdialog"
         aria-modal="true"
         aria-labelledby={titleId}

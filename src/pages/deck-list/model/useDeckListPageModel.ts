@@ -1,5 +1,4 @@
 import { getDeckListEmptyState } from "./queries/getDeckListEmptyState";
-import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useKey } from "react-use";
 
@@ -16,6 +15,7 @@ import {
 } from "@/features/deck-deletion";
 import { resumeStudy } from "./actions/resumeStudy";
 import { bootstrapSampleDeck } from "./actions/bootstrapSampleDeck";
+import { useBootstrapSampleDeck } from "./actions/useBootstrapSampleDeck";
 import { routes } from "@/shared/router";
 
 import { exportDeck } from "./actions/exportDeck";
@@ -43,9 +43,7 @@ export function useDeckListPageModel() {
       isMounted,
     });
 
-  useEffect(() => {
-    void bootstrapSampleDeck();
-  }, [decks, loadSample]);
+  useBootstrapSampleDeck(decks, loadSample);
   useKey("s", () => void navigate(routes.settings.to()));
   useKey("i", () => void navigate(routes.deckImport.to()));
 

@@ -108,18 +108,7 @@ export const StudyHelpDialog: React.FC<StudyHelpDialogProps> = (props) => {
   const descriptionId = React.useId();
   useToastModalFocusTarget(dialogRef, closeRef);
 
-  React.useEffect(() => {
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    closeRef.current?.focus();
-
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      restoreTriggerFocus();
-    };
-  }, [restoreTriggerFocus]);
-
-  const trapFocus = (event: KeyboardEvent) => {
+  const trapFocus = (event: React.KeyboardEvent<HTMLDivElement>) => {
     const focusable = Array.from(dialogRef.current?.querySelectorAll<HTMLElement>(focusableElementSelector) ?? []);
     const [first] = focusable;
     const last = focusable.at(-1);
@@ -136,26 +125,20 @@ export const StudyHelpDialog: React.FC<StudyHelpDialogProps> = (props) => {
     }
   };
 
-  const handleKeyDownEvent = React.useEffectEvent((event: KeyboardEvent) => {
+  const handleKeyDownEvent = (event: React.KeyboardEvent<HTMLDivElement>) => {
     if (event.key === "Escape") {
       event.preventDefault();
       props.onClose();
     } else if (event.key === "Tab") {
       trapFocus(event);
     }
-  });
-
-  React.useEffect(() => {
-    const dialog = dialogRef.current;
-    if (dialog === null) return;
-    dialog.addEventListener("keydown", handleKeyDownEvent);
-    return () => dialog.removeEventListener("keydown", handleKeyDownEvent);
-  }, []);
+  };
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center overflow-y-auto bg-canvas/75 px-shell-gutter py-6 backdrop-blur-sm">
       <div
         ref={dialogRef}
+        onKeyDown={handleKeyDownEvent}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
@@ -172,7 +155,18 @@ export const StudyHelpDialog: React.FC<StudyHelpDialogProps> = (props) => {
             </p>
           </div>
           <button
-            ref={closeRef}
+            ref={(close) => {
+              closeRef.current = close;
+              if (close === null) return;
+              const previousOverflow = document.body.style.overflow;
+              document.body.style.overflow = "hidden";
+              close.focus();
+              return () => {
+                closeRef.current = null;
+                document.body.style.overflow = previousOverflow;
+                restoreTriggerFocus();
+              };
+            }}
             type="button"
             className="inline-flex min-h-touch min-w-touch shrink-0 items-center justify-center rounded-control border border-border px-3 py-2 font-bold text-ink hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
             onClick={props.onClose}

@@ -16,6 +16,7 @@ import {
 import { MdSwipe } from "react-icons/md";
 import { useTranslation } from "react-i18next";
 import { useSwipeable } from "react-swipeable";
+import { useUnmount } from "react-use";
 import { Overlay } from "@/shared/ui/feedback";
 
 import { Controller, type ControllerProps } from "./Controller";
@@ -453,18 +454,15 @@ const BackTextEdgeOverlay: React.FC<{
   className: string;
   onClick: () => void;
 }> = ({ ariaLabel, className, onClick }) => {
-  const wheelTargetRef = React.useRef<HTMLDivElement>(null);
-
-  React.useEffect(() => {
-    const wheelTarget = wheelTargetRef.current;
-    if (wheelTarget === null) return;
-
-    wheelTarget.addEventListener("wheel", scrollAnswerFromOverlay, { passive: false });
-    return () => wheelTarget.removeEventListener("wheel", scrollAnswerFromOverlay);
-  }, []);
-
   return (
-    <div ref={wheelTargetRef} className={cx("pointer-events-auto absolute inset-y-0 touch-pan-y", className)}>
+    <div
+      ref={(wheelTarget) => {
+        if (wheelTarget === null) return;
+        wheelTarget.addEventListener("wheel", scrollAnswerFromOverlay, { passive: false });
+        return () => wheelTarget.removeEventListener("wheel", scrollAnswerFromOverlay);
+      }}
+      className={cx("pointer-events-auto absolute inset-y-0 touch-pan-y", className)}
+    >
       <Overlay
         className="pointer-events-auto inset-0 size-full touch-pan-y"
         position="center"
@@ -656,22 +654,18 @@ export const CardPlayer: React.FC<CardPlayerProps> = (props) => {
   const restoreHelpTriggerFocus = () => {
     if (helpTriggerRef.current?.isConnected) helpTriggerRef.current.focus();
   };
-  const surfaceRef = React.useRef<HTMLDivElement | null>(null);
-  React.useEffect(() => {
-    if (surfaceRef.current !== null) surfaceRef.current.scrollTop = 0;
-  }, [props.cardKey, props.showBackText, viewMode]);
-  React.useEffect(() => {
-    if (viewMode) surfaceRef.current?.focus({ preventScroll: true });
-  }, [viewMode]);
+  const previousSurface = React.useRef<{
+    element: HTMLDivElement;
+    cardKey: string | undefined;
+    showBackText: boolean | undefined;
+    viewMode: boolean;
+  }>(undefined);
   const suppressCardClick = React.useRef(false);
   const suppressCardClickTimer = React.useRef<ReturnType<typeof setTimeout>>(undefined);
 
-  React.useEffect(
-    () => () => {
-      if (suppressCardClickTimer.current !== undefined) clearTimeout(suppressCardClickTimer.current);
-    },
-    []
-  );
+  useUnmount(() => {
+    if (suppressCardClickTimer.current !== undefined) clearTimeout(suppressCardClickTimer.current);
+  });
 
   const suppressTrailingCardClick = () => {
     // Browsers emit a click after a mouse drag; keep that click from also flipping the study card.
@@ -758,8 +752,19 @@ export const CardPlayer: React.FC<CardPlayerProps> = (props) => {
         {...readingSurface}
         {...cardGestureHandlers}
         ref={(element) => {
-          surfaceRef.current = element;
           swipeHandlers.ref(element);
+          if (element === null) return;
+          const previous = previousSurface.current;
+          if (
+            previous?.element !== element ||
+            previous.cardKey !== props.cardKey ||
+            previous.showBackText !== props.showBackText ||
+            previous.viewMode !== viewMode
+          ) {
+            element.scrollTop = 0;
+          }
+          if (viewMode && !previous?.viewMode) element.focus({ preventScroll: true });
+          previousSurface.current = { element, cardKey: props.cardKey, showBackText: props.showBackText, viewMode };
         }}
       >
         <CardContent

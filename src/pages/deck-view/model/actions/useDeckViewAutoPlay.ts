@@ -1,4 +1,4 @@
-import { useEffect, useEffectEvent } from "react";
+import { useTimeoutFn, useUpdateEffect } from "react-use";
 import { useStore } from "zustand";
 import type { Card } from "@/entities/card";
 import { useNavigate } from "react-router-dom";
@@ -15,13 +15,14 @@ export function useDeckViewAutoPlay(cards: readonly Card[]): void {
   } = usePreferences();
   const { autoPlay, helpOpen, positionRevision, cardId } = useStore(deckViewStore);
   const currentCardId = getDeckViewPosition(cards, cardId).card?.id;
-  // Read the current filtered collection without restarting playback for unrelated rerenders.
-  const advance = useEffectEvent(() => {
+  const enabled = autoPlay && !helpOpen && interval > 0 && currentCardId !== undefined;
+  // The timer reads the current filtered collection without restarting for unrelated rerenders.
+  const [, cancel, restart] = useTimeoutFn(() => {
+    if (!enabled) return;
     if (moveCard(cards, 1) === "boundary") void navigate(routes.deckList.to());
-  });
-  useEffect(() => {
-    if (!autoPlay || helpOpen || interval <= 0 || currentCardId === undefined) return;
-    const timer = window.setTimeout(() => advance(), interval * 1000);
-    return () => window.clearTimeout(timer);
-  }, [autoPlay, helpOpen, interval, currentCardId, positionRevision]);
+  }, interval * 1000);
+  useUpdateEffect(() => {
+    if (enabled) restart();
+    else cancel();
+  }, [enabled, interval, currentCardId, positionRevision, cancel, restart]);
 }
