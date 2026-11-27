@@ -41,7 +41,6 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^7.0.5",
-    "@tailwindcss/postcss": "^4.3.3",
     "@types/file-saver": "^2.0.7",
     "@types/lodash": "^4.17.27",
     "@types/papaparse": "^5.5.2",
@@ -90,6 +89,7 @@
     "@storybook/react-vite": "^10.6.3",
     "@stryker-mutator/core": "10.1.1",
     "@stryker-mutator/vitest-runner": "10.1.1",
+    "@tailwindcss/postcss": "^4.3.3",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",
     "@testing-library/user-event": "*",
