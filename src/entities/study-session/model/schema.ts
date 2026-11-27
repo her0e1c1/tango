@@ -18,6 +18,6 @@ export const studySessionSchema: z.ZodType<StudySession> = z
     }),
   })
   .refine((session) => session.currentIndex < session.cardOrderIds.length, {
-    message: "Study session index must point to an active card",
+    error: "Study session index must point to an active card",
     path: ["currentIndex"],
   });
