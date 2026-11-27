@@ -33,9 +33,9 @@ export const cardIdSchema = z.string().min(1, "Card id is required");
 const cardDeckIdSchema = z.string().min(1, "Card deck is required");
 const cardUidSchema = z.string().min(1, "Card owner is required");
 
-const cardFrontTextSchema = z.string().refine(isNonBlank, { message: "Front text is required." });
-const cardBackTextSchema = z.string().refine(isNonBlank, { message: "Back text is required." });
-const cardUniqueKeySchema = z.string().refine(isNonBlank, { message: "Unique key is required." });
+const cardFrontTextSchema = z.string().refine(isNonBlank, { error: "Front text is required." });
+const cardBackTextSchema = z.string().refine(isNonBlank, { error: "Back text is required." });
+const cardUniqueKeySchema = z.string().refine(isNonBlank, { error: "Unique key is required." });
 
 export const cardContentSchema = z.object({
   /** Non-blank question content. */
@@ -51,7 +51,7 @@ export const cardContentSchema = z.object({
 // Creation assigns the identity and editing preserves it; neither asks for it as content input.
 export const cardContentInputSchema = cardContentSchema.omit({ uniqueKey: true }).extend({
   /** Tags attached to the Card; content forms require non-blank, unique entries. */
-  tags: z.array(z.string().refine(isNonBlank, { message: "required" })).superRefine((tags, context) => {
+  tags: z.array(z.string().refine(isNonBlank, { error: "required" })).superRefine((tags, context) => {
     tags.forEach((tag, index) => {
       if (tags.indexOf(tag) !== index) context.addIssue({ code: "custom", message: "duplicate", path: [index] });
     });
